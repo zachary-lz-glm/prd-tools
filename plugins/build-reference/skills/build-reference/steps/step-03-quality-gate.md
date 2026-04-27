@@ -98,28 +98,39 @@ todos:
 
 逐项检查：
 
-| 检查项 | 方式 | 通过标准 |
-|--------|------|---------|
-| 7 文件齐全 | Glob `_reference/*` | 8 个文件全部存在（00-index.md + 01~07.yaml） |
-| YAML 格式合法 | 尝试解析每个 .yaml | 无解析错误 |
-| 元数据完整 | 检查 version/layer/project/last_verified | 每个文件都有 |
-| 文件路径存在 | 遍历所有 target_file / key_files / definition_file | 100% 存在 |
-| TODO 计数 | `grep -c todo:` | < 15 个 |
-| 行数限制 | `wc -l` | 每文件 ≤ 300 行（05-mapping 例外） |
-| 枚举无重复 | 检查 01-entities 的枚举列表 | 无重复值 |
-| change_type 覆盖率 | 遍历 05-mapping 的 prd_routing 和 inventory capabilities | 每个条目有有效 change_type |
-| default_action 兼容 | 检查有 change_type 的条目是否也有 default_action | 100% 兼容 |
-| 代码模式匹配 | Grep 03-conventions 中描述的代码模式到源码 | ≥90% 匹配 |
-| 跨文件枚举一致 | 01-entities 的枚举值 vs 04-constraints 的枚举校验规则 | 完全一致 |
-| 孤立条目检测 | 05-mapping 的 inventory 中 implemented:true 但无 prd_routing 引用 | 报告但不断 |
-| 实体索引完整 | 00-index.md 实体索引中指向的文件和章节存在 | 100% 有效 |
+| 检查项 | 方式 | 通过标准 | 严重度 |
+|--------|------|---------|--------|
+| 7 文件齐全 | Glob `_reference/*` | 8 个文件全部存在（00-index.md + 01~07.yaml） | 致命 |
+| YAML 格式合法 | 尝试解析每个 .yaml | 无解析错误 | 致命 |
+| 元数据完整 | 检查 version/layer/project/last_verified | 每个文件都有 | 重要 |
+| 文件路径存在 | 遍历所有 target_file / key_files / definition_file | 100% 存在 | 致命 |
+| TODO 计数 | `grep -c todo:` | < 15 个 | 重要 |
+| 行数限制 | `wc -l` | 每文件 ≤ 300 行（05-mapping 例外） | 次要 |
+| 枚举无重复 | 检查 01-entities 的枚举列表 | 无重复值 | 致命 |
+| change_type 覆盖率 | 遍历 05-mapping 的 prd_routing 和 inventory capabilities | 每个条目有有效 change_type | 重要 |
+| default_action 兼容 | 检查有 change_type 的条目是否也有 default_action | 100% 兼容 | 重要 |
+| 代码模式匹配 | Grep 03-conventions 中描述的代码模式到源码 | ≥90% 匹配 | 重要 |
+| 跨文件枚举一致 | 01-entities 的枚举值 vs 04-constraints 的枚举校验规则 | 完全一致 | 致命 |
+| 孤立条目检测 | 05-mapping 的 inventory 中 implemented:true 但无 prd_routing 引用 | 报告但不断 | 次要 |
+| 实体索引完整 | 00-index.md 实体索引中指向的文件和章节存在 | 100% 有效 | 重要 |
+| **枚举完备性** | Grep 01-entities 中每个枚举的 definition_file，Read 源码提取实际值，与 YAML 逐条比对 | **100% 匹配（致命类）** | 🔴 致命 |
+| **分支计数准确** | Read 02-architecture 中每个 registration_mechanism 的源文件，计数实际 case 分支，与 YAML 比对 | **100% 匹配（致命类）** | 🔴 致命 |
+| **方法签名完备** | Read 01-entities 中每个类型的 definition_file，列出所有导出方法，与 key_methods 比对 | **100% 匹配（致命类）** | 🔴 致命 |
+| **字段路径存在性** | 对 05-mapping 中每个 field_mapping，Grep 目标文件验证 code_field 实际存在 | **100% 存在（致命类）** | 🔴 致命 |
+| **verified_by 覆盖率** | 检查 Phase 2 输出的 _output/verification-log.yaml，统计已验证 vs 未验证事实 | ≥80% 事实有 verified_by | 重要 |
+
+> **致命类检查项不通过 = Round 1 失败，必须返回 Phase 2 修复后重新检查。**
 
 自动修复可修复的问题（如缺失元数据头），报告无法自动修复的问题。
 
 ### Round 2: 准确性检查（人工 + AI）
 
 1. **抽样验证**：随机选 3~5 个模块，人工对照源码验证 reference 内容
-2. **幻觉检测**：检查是否编造了不存在的文件/函数/变量
+2. **幻觉检测**（结构化检查）：
+   - 文件幻觉：reference 中引用的每个文件路径，用 Glob 确认存在
+   - 函数幻觉：reference 中引用的每个函数名，用 Grep 确认在声明文件中存在
+   - 变量幻觉：reference 中引用的每个枚举值/常量名，用 Grep 确认在定义文件中存在
+   - 机制幻觉：reference 中描述的每个代码机制（如"使用 runOn 做条件渲染"），用 Read 源码确认描述与实际实现一致
 3. **业务知识补充**：标注 AI 无法从代码推断的业务规则
 4. **custom 字段注释检查**：自定义字段是否写清了注释
 
@@ -185,9 +196,11 @@ todos:
 ## VALIDATION
 
 1. **总分 ≥ 80** — 才能标记为 ready
-2. **Round 1 全部通过** — 自动化检查无失败项
-3. **TODO < 5** — 最终版本 TODO 数量可控
-4. **命中率 ≥ 80%** — Round 3 端到端测试达标
+2. **Round 1 致命项全部通过** — 枚举完备性、分支计数、方法签名、字段路径必须 100% 匹配，任一项失败则返回 Phase 2
+3. **Round 1 非致命项 ≥90%** — 其余检查项允许 10% 容忍
+4. **TODO < 5** — 最终版本 TODO 数量可控
+5. **命中率 ≥ 80%** — Round 3 端到端测试达标
+6. **verified_by 覆盖率 ≥ 80%** — 关键事实有源码验证支撑
 
 ## NEXT STEP
 

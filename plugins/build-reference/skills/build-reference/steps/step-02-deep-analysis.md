@@ -93,19 +93,75 @@ verify_cadence: "14d"
    严格 YAML 格式，不确定的标记 TODO：
    module: {module_name}
    files_scanned: [...]
-   answers: [...]
+   answers:
+     - question: "..."
+       answer: "..."
+       verified_by: ["file.ts:45", "file.ts:67"]  # 必填：事实来源的文件:行号
+       confidence: high | medium | low
    key_files: [...]
    non_obvious_patterns: [...]
 
    ## 规则
-   1. 只写确定的内容，不确定的一律标 TODO
-   2. 文件路径必须是实际存在的
+   1. 只写确定的内容，不确定的一律标 TODO + confidence: low
+   2. 文件路径必须是实际存在的（用 Glob/Grep 验证）
    3. 不要写废话，每行都要有信息量
    4. 总长度控制在 35 行以内
    5. 只分析业务源码，不要读取配置文件、mock 文件、测试文件
+   6. **每条事实必须附带 verified_by** — 指向定义该事实的源文件:行号
+   7. **不要从文件名或 import 语句推断代码行为** — 必须读取函数体
    ```
 
    - 收集所有 Sub-agent 的返回结果
+
+3. **确定性事实验证（Deterministic Fact Verification）** — 🔴 强制步骤，不可跳过
+
+   在进入部落知识挖掘之前，对所有具有单一权威来源的事实进行源码级验证。这些事实的**部分正确比全错更糟糕**，因为下游代码生成完全信任它们。
+
+   **验证协议：每个事实必须从源文件 Read 后写入，禁止推断。**
+
+   **3-0. 枚举值完备性验证**
+   - 从 Sub-agent 返回的枚举列表中，逐个定位 `definition_file`：
+     1. `Grep 'enum\s+\w+<EnumName>'` 找到定义文件
+     2. `Read` 该文件，提取**完整的**枚举成员列表（每个成员名 + 值）
+     3. 与 Sub-agent 报告的值逐条比对
+     4. **任何不匹配**：以源码为准重写，标记 `confidence: high`
+     5. **任何遗漏**：补充缺失成员，标记 `confidence: high`
+   - 验证完成后，枚举条目必须附带 `verified_by: ["path/to/enum-file.ts:XX"]`
+
+   **3-0a. switch-case 分支完备性验证**
+   - 对每个 `registration_mechanism` 或 `switch-case` 分发点：
+     1. `Read` 包含 switch 的文件
+     2. 计数所有 `case` 分支（包括 `default`）
+     3. 与 Sub-agent 报告的分支数比对
+     4. **任何不匹配**：以源码为准重写，标记 `confidence: high`
+     5. 记录无对应处理模板的分支（如 `AISelectableOrder`、`Turbo`）
+   - 验证完成后，分支计数必须附带 `verified_by: ["path/to/switch-file.ts:XX"]`
+
+   **3-0b. 接口/类方法完备性验证**
+   - 对每个核心类型（如 `InjectContext`、`ComponentModel`）：
+     1. `Read` 定义文件
+     2. 列出**所有**导出的方法签名（含参数和返回类型）
+     3. 与 Sub-agent 报告的方法列表比对
+     4. **任何遗漏或多余**：以源码为准重写
+   - 验证完成后，方法列表必须附带 `verified_by: ["path/to/definition-file.ts:XX"]`
+
+   **3-0c. 数据流路径验证**
+   - 对每个 `data_flow` 描述：
+     1. 从入口文件开始，`Read` 并追踪实际调用链
+     2. 验证描述中的每一层（如 "Controller → Service → ComponentModel"）确实存在且调用关系正确
+     3. 如果中间层不是独立层（如 ComponentModel 内嵌 Builder），修正描述
+   - 验证完成后，数据流描述必须附带 `verified_by: ["entry-file.ts:XX", "next-file.ts:YY"]`
+
+   **3-0d. 字段映射路径验证**
+   - 对 `05-mapping.yaml` 中的每个 `field_mapping`：
+     1. `Grep` 验证 `target_file` 路径存在
+     2. `Grep` 验证 `code_field` 在目标文件中实际存在
+     3. **任何不存在**：标记为 `TODO` + `confidence: low`，不要猜测替代路径
+   - 验证完成后，映射条目必须附带 `verified_by: ["path/to/target-file.ts"]`
+
+   **验证失败处理：**
+   - 如果某项验证无法完成（文件不存在、无法解析）：标记 `TODO` + `confidence: low` + `needs_domain_expert: true`
+   - 所有验证结果记录到 `_output/verification-log.yaml`（供 Phase 3 审计）
 
 3. **部落知识挖掘（Tribal Knowledge Mining）**
 

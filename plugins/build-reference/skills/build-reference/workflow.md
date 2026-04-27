@@ -114,6 +114,7 @@ Agent 执行工作流时必须遵守：
    - **BFF 优先**：`config/template/**`, `config/constant/**`, `handler/**`, `service/**`
    - **前端优先**：`src/components/**`, `src/pages/**`, `src/store/**`, `src/hooks/**`
    - **后端优先**：`src/modules/**`, `src/controller/**`, `src/service/**`, `src/model/**`
+9. **验证优先** — 声明任何事实（枚举值、分支计数、方法列表、数据流、字段映射）之前，先从源文件 Read 后写入。不要从文件名、import 语句或模式匹配推断。如果文件无法读取，标记 TODO + confidence: low，不要猜测。每条事实附带 `verified_by: ["file.ts:line"]`。
 
 ## 步骤文件执行
 
