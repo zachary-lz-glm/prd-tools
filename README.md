@@ -22,7 +22,23 @@
 
 ## 安装
 
-### 方式一：Claude Code Marketplace（推荐）
+### 方式一：curl 一键安装（推荐）
+
+无需 git，一行命令安装到任意项目：
+
+```bash
+# 安装到当前项目
+curl -fsSL https://raw.githubusercontent.com/zachary-lz-glm/prd-tools/main/install.sh | bash
+
+# 或指定目标项目路径
+curl -fsSL https://raw.githubusercontent.com/zachary-lz-glm/prd-tools/main/install.sh | bash -s /path/to/project
+```
+
+安装后文件位于 `<项目>/.claude/skills/build-reference/` 和 `<项目>/.claude/skills/prd-distill/`。
+
+### 方式二：Claude Code Plugin Marketplace
+
+适合团队协作，安装后所有成员自动获得 Skill。
 
 ```bash
 cd /your-project && claude
@@ -36,23 +52,25 @@ cd /your-project && claude
 3. 安装时选择 **Install for all collaborators on this repository** (project scope)
 4. 重启 Claude Code → 输入 `/build-reference` 验证
 
-### 方式二：命令行安装（所有 AI 工具通用）
+### 方式三：手动 git clone
 
 ```bash
-# 将 <项目路径> 替换为实际路径
-mkdir -p /tmp/skills <项目路径>/.claude/skills
+TARGET="/path/to/your/project"
 
-git archive --remote=git@github.com:zachary-lz-glm/prd-tools.git HEAD:plugins | tar -x -C /tmp/skills
+git clone --depth 1 https://github.com/zachary-lz-glm/prd-tools.git /tmp/prd-tools
 
-cp -r /tmp/skills/build-reference/skills/build-reference <项目路径>/.claude/skills/
-cp -r /tmp/skills/prd-distill/skills/prd-distill <项目路径>/.claude/skills/
+cp -r /tmp/prd-tools/plugins/build-reference/skills/build-reference "$TARGET/.claude/skills/"
+cp -r /tmp/prd-tools/plugins/prd-distill/skills/prd-distill "$TARGET/.claude/skills/"
 
-rm -rf /tmp/skills
+rm -rf /tmp/prd-tools
 ```
 
-安装后：
+### 非 Claude Code 环境
+
+Skill 文件是纯 Markdown（`.md`），不依赖任何运行时。安装后：
+
 - **Claude Code**：`/build-reference`、`/prd-distill` 直接使用
-- **Cursor / 其他**：将 SKILL.md 内容作为指令发给 AI
+- **Cursor / Windsurf / 其他**：将 `.claude/skills/<skill>/SKILL.md` 的内容作为指令发给 AI
 
 ## 使用流程
 
@@ -66,8 +84,9 @@ rm -rf /tmp/skills
 
 ## 更新
 
+- **curl 安装**：重新执行安装命令即可覆盖
 - **Marketplace**：`/plugin` → Marketplaces 标签 → 选择更新
-- **手动安装**：重新执行安装命令即可
+- **手动安装**：重新执行 clone + cp
 
 ## 注意事项
 
