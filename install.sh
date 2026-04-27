@@ -40,6 +40,7 @@ for skill in build-reference prd-distill; do
   src="$SRC_DIR/$skill/skills/$skill"
   dst="$SKILLS_DIR/$skill"
   if [ -d "$src" ]; then
+    rm -rf "$dst"
     cp -r "$src" "$dst"
     echo "    Installed: $skill"
   else
