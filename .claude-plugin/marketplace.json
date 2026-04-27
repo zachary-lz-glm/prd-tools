@@ -1,0 +1,23 @@
+{
+  "name": "prd-tools",
+  "description": "PRD-to-Code 工具集 — 领域知识构建 + PRD 蒸馏",
+  "owner": {
+    "name": "DevTools Team"
+  },
+  "plugins": [
+    {
+      "name": "build-reference",
+      "source": "./plugins/build-reference",
+      "description": "领域知识构建：扫描项目源码，生成结构化 reference（路由表+能力清单+术语表），供 PRD 蒸馏使用",
+      "version": "1.0.0",
+      "tags": ["reference", "knowledge-base", "code-analysis"]
+    },
+    {
+      "name": "prd-distill",
+      "source": "./plugins/prd-distill",
+      "description": "PRD 蒸馏：解析 PRD 文档，自动路由匹配 + 变更分类（ADD/MODIFY/DELETE），生成结构化开发文档",
+      "version": "1.0.0",
+      "tags": ["prd", "distillation", "change-classification"]
+    }
+  ]
+}

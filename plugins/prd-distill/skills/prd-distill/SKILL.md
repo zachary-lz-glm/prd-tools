@@ -1,3 +1,9 @@
+---
+name: prd-distill
+description: PRD 蒸馏 — 解析 PRD 文档，自动路由匹配 + 变更分类（ADD/MODIFY/DELETE），生成结构化开发文档
+user-invocable: true
+---
+
 # /prd-distill — PRD 蒸馏工具
 
 ## 入口行为

@@ -1,3 +1,9 @@
+---
+name: build-reference
+description: 领域知识构建 — 扫描项目源码，生成结构化 reference（路由表+能力清单+术语表），供 PRD 蒸馏使用
+user-invocable: true
+---
+
 # /build-reference — 领域知识构建工具
 
 ## 入口行为

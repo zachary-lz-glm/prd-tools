@@ -1,0 +1,16 @@
+{
+  "name": "build-reference",
+  "version": "1.0.0",
+  "description": "领域知识构建工具 — 扫描项目源码，生成结构化 reference 文件（路由表 + 能力清单 + 术语表）",
+  "skills": ["./skills/build-reference"],
+  "author": {
+    "name": "DevTools Team"
+  },
+  "changelog": [
+    {
+      "version": "1.0.0",
+      "date": "2026-04-26",
+      "changes": ["Initial release — 4-step workflow: structure scan → deep analysis → quality gate → feedback ingest"]
+    }
+  ]
+}
