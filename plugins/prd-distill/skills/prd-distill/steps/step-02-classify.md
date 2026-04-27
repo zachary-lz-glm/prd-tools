@@ -20,6 +20,9 @@
 | 变更分类标准 | `_reference/05-mapping.yaml` → `change_type_rules` | YAML |
 | 枚举定义 | `_reference/01-entities.yaml` → `enums` | YAML |
 | 约束规则 | `_reference/04-constraints.yaml` → `fatal_errors` | YAML |
+| 踩坑历史 | `_reference/03-conventions.yaml` → `war_stories`（可选） | YAML |
+| 第三轨 | `_reference/02-architecture.yaml` → `third_rails`（可选） | YAML |
+| 变更热力图 | `_reference/02-architecture.yaml` → `change_heatmap`（可选） | YAML |
 
 ## OUTPUT
 
@@ -57,7 +60,7 @@ version: "2.0"
 | 当前层 | N | M | K | L |
 
 ### 明细
-| ID | PRD 引用 | 描述 | 层 | 变更类型 | 目标 | 置信度 |
+| ID | PRD 引用 | 描述 | 层 | 变更类型 | 目标 | 置信度 | 风险 |
 |----|---------|------|----|---------| -----|--------|
 | CI-001 | §3.1 | 新增梯度奖励表格... | 前端 | ADD | FormDxgyFormList | high |
 
@@ -138,6 +141,7 @@ change_scope: ...
      confidence: high                    # 分类置信度
      verification_source: code_verified  # 验证来源（code_verified / reference_only / code_contradicts_reference）
      code_evidence: "Grep搜索 FormDxgyFormList 目录，未找到梯度表格渲染逻辑"  # 代码证据摘要
+     risk_flags: []            # 风险标记（war_story / third_rail / playbook_warning）
    ```
 
 4. **源码二次验证（对 ADD/MODIFY 项）**
@@ -161,21 +165,65 @@ change_scope: ...
    - reference 说 `implemented: true` 但源码已删除 → 必须纠正
    - AI 不搜索源码直接判断 → **严格禁止**
 
-5. **结构化字段清单**
+5. **风险标记（Risk Flagging）**
+
+   对所有 `change_type: ADD` 或 `change_type: MODIFY` 的项，执行风险扫描：
+
+   a. **踩坑历史检查**（加载 `_reference/03-conventions.yaml` → `war_stories`，如存在）
+      - 对每个 change_item，检查其 target 涉及的模块/文件
+      - 如果匹配某个 war_story 的 module → 附加 risk_flag：
+        ```yaml
+        risk_flags:
+          - type: war_story
+            id: "WS-001"
+            warning: "switch-case 漏分支导致新活动详情页空白"
+            prevention: "每次新增活动类型必须 Grep 'case' 确认所有枚举值都有分支"
+        ```
+
+   b. **第三轨检查**（加载 `_reference/02-architecture.yaml` → `third_rails`，如存在）
+      - 对每个 change_item，检查其 target 是否命中 third_rails 文件
+      - 命中 → 附加 risk_flag：
+        ```yaml
+        risk_flags:
+          - type: third_rail
+            file: "src/config/template/render/rules/details/index.ts"
+            reason: "所有活动类型的 switch-case 注册入口"
+            guidance: "修改前必须 Grep 所有枚举值，确认每个都有 case 分支"
+            severity: critical
+        ```
+
+   c. **场景常见错误检查**（从 step-01 路由结果中的 `matched_scenarios` 传递）
+      - 如果 change_item 属于某个 matched_scenario
+      - 检查 matched_scenario 的 common_mistakes 是否适用于此 change_item
+      - 适用 → 附加 risk_flag：
+        ```yaml
+        risk_flags:
+          - type: playbook_warning
+            scenario: "新增活动类型"
+            mistake: "忘记 preview 占位符"
+        ```
+
+   d. **变更热力图辅助**（加载 `_reference/02-architecture.yaml` → `change_heatmap`，如存在）
+      - change_item 的 target 是 hot 文件 → 标记 `file_frequency: hot`
+      - cold 文件 → 标记 `file_frequency: cold`
+
+   e. **向后兼容**：所有可选文件不存在时，跳过对应检查，不影响现有流程
+
+6. **结构化字段清单**
 
    将 step-01 的原始字段提取结果，结合分类信息结构化：
    - 每个字段标注 `change_type`（从所属需求项继承）
    - 每个字段标注层专属信息（前端→d_component, BFF→target_file, 后端→api_field）
    - 保持模块分组（basic / group / rules / message / preview）
 
-5. **处理未匹配需求**
+7. **处理未匹配需求**
 
    对 step-01 中未匹配路由的需求：
    - 根据 PRD 描述推断 `change_type`（通常为 ADD，置信度 low）
    - 不映射到具体目标，标注 `target: null`
    - 标记为需确认项
 
-6. **生成蒸馏草稿**
+8. **生成蒸馏草稿**
 
    - 按上述格式生成 Markdown + YAML
    - 变更分类章节放在摘要之后（最重要的新增信息）

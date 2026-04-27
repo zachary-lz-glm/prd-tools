@@ -22,6 +22,8 @@
 | 能力边界 | `_reference/05-mapping.yaml` → `capability_boundary` | YAML |
 | 枚举定义 | `_reference/01-entities.yaml` → `enums` | YAML |
 | 业务术语 | `_reference/06-glossary.yaml` → `terms`（含 `prd_keywords` + `synonyms`）| YAML |
+| 需求场景开发指南 | `_reference/05-mapping.yaml` → `development_playbook`（可选） | YAML |
+| 业务上下文 | `_reference/07-business-context.yaml`（可选） | YAML |
 | 后端技术文档（可选） | 用户提供 | .md 文件 |
 
 ## OUTPUT
@@ -52,7 +54,7 @@ layer: <frontend|bff|backend>
 | 未匹配数 | K |
 
 ## 路由匹配明细
-| # | PRD 描述 | 匹配路由 | target | confidence | 验证来源 | 匹配方式 |
+| # | PRD 描述 | 匹配路由 | target | confidence | 验证来源 | 匹配方式 | 场景 |
 |---|---------|---------|--------|------------|---------|---------|
 | 1 | ... | prd_pattern 名 | component/file/API | high/medium/low | code_verified/reference_only/code_contradicts | keyword_exact/synonym/structural_pattern/golden_sample/fallback |
 
@@ -73,6 +75,8 @@ routing_results:
   - { prd_ref: "...", matched_pattern: "...", target: {...}, confidence: high, verification_source: code_verified, match_method: keyword_exact }
   - { prd_ref: "...", matched_pattern: "...", target: {...}, confidence: high, verification_source: code_verified, match_method: synonym, synonym_matched: "阶梯→梯度" }
   - { prd_ref: "...", matched_pattern: null, confidence: low, verification_source: reference_only, match_method: fallback }
+
+  matched_scenarios: []  # 从 development_playbook 匹配，无匹配则为空
 
 raw_fields: [...]
 raw_linkages: [...]
@@ -228,7 +232,52 @@ raw_business_rules: [...]
    - 提取奖励条件（梯度、门槛等）
    - 为每个提取项标注 `source_ref`（PRD 原文段落引用）
 
-7. **生成路由结果**
+7. **场景匹配（Playbook Scenario Matching）**
+
+   路由匹配完成后，对整个 PRD 做一次整体场景识别：
+
+   a. 读取 `_reference/05-mapping.yaml` 的 `development_playbook`（如存在）
+
+   b. 对每个 playbook scenario，检查其 `trigger_signals`:
+      - 遍历 `prd_keywords`，与 PRD 全文做关键词匹配
+      - 遍历 `structural_hint`，与代码锚定结果和 PRD 结构特征匹配
+
+   c. 匹配规则：
+      - 一个 PRD 可以匹配 0~多个 scenario
+      - 每个 scenario 计算 `scenario_confidence`: high（关键词精确匹配） / medium（结构暗示匹配） / low（弱匹配）
+
+   d. 匹配结果附加到路由结果的 YAML 块的 `matched_scenarios` 字段：
+      ```yaml
+      matched_scenarios:
+        - scenario: "新增活动类型"
+          scenario_confidence: high
+          trigger_matched: "prd_keywords: ['新增活动']"
+          suggested_checklist:
+            - { step: 1, action: "添加枚举值", target: "campaignType.ts" }
+            - { step: 2, action: "创建 detail 模板", target: "details/{NewType}.ts" }
+            # ... 全部 checklist steps
+          common_mistakes:
+            - "忘记 switch 注册"
+            - "忘记 preview 占位符"
+          estimated_files_changed: "7-10"
+      ```
+
+   e. 如果匹配到 scenario，将 `common_mistakes` 传播到对应的 routing_results 项：
+      - 找到 trigger_signals 对应的 routing_results 项
+      - 附加 `scenario_warnings: [...]`
+
+   f. 无 scenario 匹配 → 跳过（不影响现有流程）
+
+7.5. **业务上下文辅助（可选）**
+
+   如果 `_reference/07-business-context.yaml` 存在：
+
+   a. 读取 `implicit_business_rules`
+   b. 对每个路由匹配结果，检查是否涉及 business_rules 中提到的字段/实体
+   c. 如果涉及 → 在路由结果中附加 `business_context_note: "<业务规则摘要>"`
+   d. 示例：PRD 提到"奖励金额" → 匹配 business_rule "奖励金额上限 999 元（风控要求）"
+
+8. **生成路由结果**
    - 按 Markdown + YAML 格式生成
    - 写入 `_output/distilled-<name>-routing.md`
    - 更新 `_output/distill-progress.yaml`（step_01: completed）

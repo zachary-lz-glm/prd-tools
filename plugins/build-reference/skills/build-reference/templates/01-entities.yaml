@@ -1,0 +1,35 @@
+# 01-entities.yaml 格式模板
+# 步骤 6 合并时按此格式写入
+
+version: "2.0"
+layer: <frontend|bff|backend>
+project: <string>
+last_verified: "<日期>"
+
+# --- 枚举定义 ---
+enums:
+  CampaignType:
+    definition_file: "<路径>"
+    values:
+      - name: "ORDER"
+        business_meaning: "订单活动"
+      - name: "GAS_STATION"
+        business_meaning: "加油站活动"
+    # 层特有字段
+    registration: "src/config/template/render/rules/details/index.ts"  # BFF
+    # component_mapping: "src/components/FormField/"  # 前端
+    # api_endpoint: "POST /api/v1/campaign/create"  # 后端
+
+# --- 核心类型 ---
+types:
+  Builder:
+    definition_file: "<路径>"
+    description: "Schema 构建器"
+    key_methods: ["parseOnce", "parse"]
+    usage_note: "所有模板函数通过 Builder.parseOnce 生成 Schema"
+
+# --- 核心数据结构 ---
+structures:
+  ValidationResult:
+    definition_file: "<路径>"
+    fields: [...]

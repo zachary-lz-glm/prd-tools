@@ -5,16 +5,16 @@
 3 步工作流，将原始 PRD 蒸馏为带变更分类（ADD/DELETE/MODIFY）的结构化开发文档。蒸馏结合领域知识（`_reference/05-mapping.yaml`）进行路由匹配、能力检查和变更分类。**参考是快速通道，源码是最终权威**。支持前端、BFF、后端三层通用。
 
 ```
-PRD + reference/01 → step-01(解析+路由匹配+代码锚定) → step-02(分类+源码验证) → step-03(确认+输出) → 蒸馏报告
+PRD + reference → step-01(解析+路由匹配+场景匹配+代码锚定) → step-02(分类+源码验证+风险标记) → step-03(确认+开发建议+风险提示) → 蒸馏报告
 ```
 
 ## 3 步定义
 
 | 步骤 | 名称 | 输入 | 输出 | 人工确认 |
 |------|------|------|------|---------|
-| 1 | 解析 + 路由匹配 | PRD 文档 + `_reference/05-mapping.yaml` | 路由结果 + 原始提取 | 否 |
-| 2 | 分类 + 结构化 | 路由结果 + inventory 检查 | 带 ADD/DELETE/MODIFY 的蒸馏草稿 | 否 |
-| 3 | 确认 + 输出 | 蒸馏草稿 | 最终蒸馏报告 | **是** — 确认所有 low/medium 项 + 变更分类 |
+| 1 | 解析 + 路由匹配 | PRD 文档 + `_reference/05-mapping.yaml（含 development_playbook）+ 07-business-context（可选）` | 路由结果 + 原始提取 | 否 |
+| 2 | 分类 + 结构化 | 路由结果 + inventory 检查 + war_stories + third_rails（可选） | 带 ADD/DELETE/MODIFY 的蒸馏草稿 | 否 |
+| 3 | 确认 + 输出 | 蒸馏草稿 + matched_scenarios + risk_flags | 最终蒸馏报告 | **是** — 确认所有 low/medium 项 + 变更分类 |
 
 ## 进度追踪
 
@@ -48,8 +48,8 @@ last_updated: "2026-04-24T10:00:00Z"
 
 | 步骤 | 写入文件 | 读取文件 |
 |------|---------|---------|
-| step-01 | `_output/distilled-<name>-routing.md` | PRD 原文 + `_reference/05-mapping.yaml` + **项目源码** |
-| step-02 | `_output/distilled-<name>-draft.md` | routing + `_reference/05-mapping.yaml` inventory + **项目源码** |
+| step-01 | `_output/distilled-<name>-routing.md` | PRD 原文 + `_reference/05-mapping.yaml` + `_reference/03-conventions.yaml（可选）` + `_reference/02-architecture.yaml（可选）` + `_reference/07-business-context.yaml（可选）` + **项目源码** |
+| step-02 | `_output/distilled-<name>-draft.md` | routing + `_reference/05-mapping.yaml` inventory + `_reference/03-conventions.yaml → war_stories（可选）` + `_reference/02-architecture.yaml → third_rails + change_heatmap（可选）` + **项目源码** |
 | step-03 | `_output/distilled-<name>.md` | draft + 用户确认 |
 
 ## 确认流程
@@ -80,6 +80,9 @@ last_updated: "2026-04-24T10:00:00Z"
 7. **蒸馏输出格式统一** — Markdown 表格（人可读）+ YAML 块（机器可读）
 8. **通用层感知** — 自动从 `05-mapping.yaml` 的 `layer` 字段确定层，按层适配分类和目标格式
 9. **验证来源透明** — 每个变更项标注 `verification_source`：`reference_only` / `code_verified` / `code_contradicts_reference`
+10. **场景感知** — 如果 PRD 匹配到 development_playbook scenario，必须展示对应的 checklist 和 common_mistakes
+11. **风险标记** — 所有 ADD/MODIFY 项必须检查 war_stories 和 third_rails，标记风险
+12. **向后兼容** — 新增 reference 维度全部为"可选"，旧版 reference 仍可正常蒸馏
 
 ## 步骤文件执行
 

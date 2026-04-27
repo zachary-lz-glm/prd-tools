@@ -1,9 +1,3 @@
----
-name: build-reference
-description: 领域知识构建 — 扫描项目源码，生成结构化 reference（路由表+能力清单+术语表），供 PRD 蒸馏使用
-user-invocable: true
----
-
 # /build-reference — 领域知识构建工具
 
 ## 入口行为
@@ -41,12 +35,13 @@ user-invocable: true
 **选项 B: 增量更新** — 已有 reference，根据代码变更增量更新
 
 选择后：
-1. 检查 `_reference/` 目录完整性（7 个文件是否齐全）
+1. 检查 `_reference/` 目录完整性（8 个文件是否齐全）
 2. 对比 `last_verified` 日期与 git log，识别变更范围
 3. 只重新扫描变更影响的文件
 4. 保留未变更部分，只更新受影响的章节
 5. 更新 `last_verified` 日期
 6. 检查 `_output/reference-health.yaml`（如存在）中的衰减告警
+7. 额外检查：07-business-context 的 decision_log 是否需要新增条目，03-conventions 的 war_stories 是否需要补充，05-mapping 的 development_playbook 是否覆盖了新模式
 
 **选项 B2: 健康检查** — 快速检查 reference 是否过期（含深度 Lint）
 
@@ -90,6 +85,17 @@ user-invocable: true
 
 **选项 E: 反馈回流** — 从 `/prd-distill` 蒸馏结果中提取 reference 矛盾，人工确认后回流更新
 
+**选项 F: 上下文收集** — 从历史需求素材中自动提取项目知识（零问答，建议在全量构建前先跑一次）
+
+选择后读取 `steps/step-00-context-enrichment.md` 执行：
+1. **Git 历史深挖**（自动）— 贡献者画像、热点变更模式、fixup/revert 信号
+2. **PRD ↔ Git Diff 对照**（用户提供素材，AI 自动分析）：
+   - 用户提供 2~3 个历史 PRD 文件路径 + 对应 git 分支名
+   - AI 自动分析：PRD 说了什么 → 实际改了哪些文件 → 按什么模式改
+   - 自动归纳：开发场景（playbook）、踩坑信号（war stories）、高风险文件（third rails）
+3. **后端技术文档解析**（可选）— 提取 API 变更、业务规则、字段映射
+4. 结果存入 `_output/context-enrichment.yaml`，供 Phase 2 深度分析时引用
+
 选择后：
 1. 扫描 `_output/distilled-*.md`，提取所有 `verification_source: code_contradicts_reference` 条目
 2. 如未找到矛盾条目：提示"未检测到 reference 矛盾，无需回流"
@@ -100,11 +106,12 @@ user-invocable: true
 
 模式选择完成后：
 
-- **全量构建** → 读取 `workflow.md` 并按阶段执行
+- **全量构建** → 检查 `_output/context-enrichment.yaml` 是否存在，不存在则提示"建议先运行 Option F 收集业务上下文"。确认后读取 `workflow.md` 并按阶段执行
 - **增量更新** → 读取 `workflow.md` 跳到 Phase 2（只分析变更部分）
 - **质量检查** → 读取 `steps/step-03-quality-gate.md` 执行
 - **帮助** → 展示后重新回到模式选择
 - **反馈回流** → 读取 `steps/step-04-feedback-ingest.md` 执行
+- **上下文收集** → 读取 `steps/step-00-context-enrichment.md` 执行
 
 ## 输出目录结构
 
@@ -114,19 +121,21 @@ user-invocable: true
 _reference/
 ├── 00-index.md              # 导航索引 + 实体索引
 ├── 01-entities.yaml         # 实体：枚举、核心类型、数据结构、注册信息
-├── 02-architecture.yaml     # 结构：目录结构、注册机制、数据流、模块依赖
-├── 03-conventions.yaml      # 规范：命名、代码模式（gold patterns）、反模式
+├── 02-architecture.yaml     # 结构：目录结构、注册机制、数据流、模块依赖、第三轨、变更热力图
+├── 03-conventions.yaml      # 规范：命名、代码模式（gold patterns）、反模式、踩坑历史、代码风格
 ├── 04-constraints.yaml      # 约束：白名单、校验规则、致命错误、检查清单
-├── 05-mapping.yaml          # 映射：PRD 路由表、能力边界、字段映射、变更分类
-└── 06-glossary.yaml         # 术语：业务术语表、同义词、工作量标准
+├── 05-mapping.yaml          # 映射：PRD 路由表、能力边界、字段映射、变更分类、需求场景开发指南
+├── 06-glossary.yaml         # 术语：业务术语表、同义词、工作量标准
+└── 07-business-context.yaml # 业务：业务域概览、决策记录、隐式业务规则、项目里程碑
 ```
 
 ## 文件索引
 
 | 文件 | 职责 |
 |------|------|
-| `workflow.md` | 3 阶段工作流编排 |
+| `workflow.md` | 4 阶段工作流编排 |
+| `steps/step-00-context-enrichment.md` | Phase 0: 上下文富化（Git 深挖 + PRD↔Diff 对照分析） |
 | `steps/step-01-structure-scan.md` | Phase 1: 结构扫描 |
-| `steps/step-02-deep-analysis.md` | Phase 2: 深度分析（按关注点维度产出 7 文件） |
-| `steps/step-03-quality-gate.md` | Phase 3: 质量门控（含深度 Lint） |
+| `steps/step-02-deep-analysis.md` | Phase 2: 深度分析（按关注点维度产出 8 文件） |
+| `steps/step-03-quality-gate.md` | Phase 3: 质量门控（含深度 Lint + 场景验证） |
 | `steps/step-04-feedback-ingest.md` | 反馈回流（从 prd-distill 蒸馏结果回流更新 reference） |

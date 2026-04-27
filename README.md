@@ -6,19 +6,51 @@
 
 ### /build-reference — 领域知识构建
 
-自动扫描项目代码库，生成 7 个 YAML 领域知识文件（reference），供 PRD 蒸馏使用。
+自动扫描项目代码库，生成 8 个领域知识文件（7 YAML + 1 MD），供 PRD 蒸馏使用。
 
-- **Phase 1**：结构扫描 → 模块地图（modules-index.yaml）
-- **Phase 2**：深度分析 → 7 个 YAML reference 文件
-- **Phase 3**：质量门控 → 路径验证 + TODO 校准
+**工作流（4 阶段）：**
+
+| 阶段 | 名称 | 说明 |
+|------|------|------|
+| Phase 0 | 上下文富化 | Git 历史深挖 + 历史 PRD↔Diff 对照分析（可选但推荐） |
+| Phase 1 | 结构扫描 | 目录扫描 → 模块地图（modules-index.yaml） |
+| Phase 2 | 深度分析 | 按关注点维度产出 8 个 reference 文件 |
+| Phase 3 | 质量门控 | 路径验证 + 深度 Lint + TODO 校准 |
+
+**模式选择：**
+
+| 选项 | 说明 |
+|------|------|
+| A. 全量构建 | 首次使用，从零构建完整 reference |
+| B. 增量更新 | 根据代码变更增量更新 |
+| B2. 健康检查 | 检查 reference 是否过期（含深度 Lint） |
+| C. 质量检查 | 对已有 reference 做质量门控验证 |
+| E. 反馈回流 | 从蒸馏结果中提取矛盾，回流更新 reference |
+| F. 上下文收集 | 从历史需求素材中自动提取项目知识 |
+
+**生成的 reference 文件：**
+
+```
+_reference/
+├── 00-index.md              # 导航索引 + 实体索引
+├── 01-entities.yaml         # 实体：枚举、核心类型、数据结构
+├── 02-architecture.yaml     # 结构：目录结构、注册机制、数据流、第三轨
+├── 03-conventions.yaml      # 规范：命名、代码模式、踩坑历史
+├── 04-constraints.yaml      # 约束：白名单、校验规则、致命错误
+├── 05-mapping.yaml          # 映射：PRD 路由表、字段映射、开发指南
+├── 06-glossary.yaml         # 术语：业务术语表、同义词
+└── 07-business-context.yaml # 业务：业务域概览、决策记录、隐式规则
+```
 
 ### /prd-distill — PRD 蒸馏
 
 读取领域知识 + 原始 PRD 文档，生成结构化的蒸馏报告（Markdown + YAML）。
 
 - **Step 1**：解析 PRD + reference 路由匹配 + 代码锚定验证
-- **Step 2**：分类 + 结构化输出
-- **Step 3**：确认 + 最终报告
+- **Step 2**：变更分类（ADD/MODIFY/DELETE）+ 源码验证 + 风险标记
+- **Step 3**：变更分类确认 + 置信度检查 + 人工确认 → 最终蒸馏报告
+
+支持前端、BFF、后端三层通用。
 
 ## 安装
 

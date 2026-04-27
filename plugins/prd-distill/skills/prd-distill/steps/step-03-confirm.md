@@ -52,7 +52,53 @@
    - 修改某项的分类（如 ADD → MODIFY）
    - 标记某项为忽略
 
-2. **置信度分级确认**
+2. **展示开发建议（如有 matched_scenarios）**
+
+   如果 step-01 匹配到了 playbook scenario（从 draft 的 `matched_scenarios` 字段读取），展示：
+
+   ```
+   📋 开发建议（基于 development_playbook）
+
+   匹配场景：新增活动类型（置信度: high）
+   预估变更文件数：7-10
+
+   推荐执行顺序：
+   | 步骤 | 操作 | 目标文件 | 验证方式 |
+   |------|------|---------|---------|
+   | 1 | 添加枚举值 | campaignType.ts | Grep 确认 |
+   | 2 | 创建 detail 模板 | details/{NewType}.ts | Grep 确认 |
+   | ... | ... | ... | ... |
+
+   ⚠️ 常见错误：
+   - 忘记 switch 注册
+   - 忘记 preview 占位符
+   - 枚举值重复
+   ```
+
+   用户可确认或调整建议。
+
+3. **展示风险提示（如有 risk_flags）**
+
+   如果 step-02 标记了风险项（从 draft 的 change_items 中 risk_flags 字段读取），在确认流程前展示：
+
+   ```
+   ⚠️ 风险提示（基于 war_stories + third_rails）
+
+   🔴 危险区域（third_rails）：
+   - CI-003 涉及 details/index.ts — switch-case 注册入口，漏改一个分支就运行时报错
+     建议：修改前必须 Grep 所有枚举值确认
+
+   🟡 已知坑点（war_stories）：
+   - CI-005 涉及 rewardCondition — 梯度 key 容易和 basic 字段混淆
+     预防：生成时必须区分 ctx.rewardCondition 和 ctx.basic
+
+   🔵 场景提醒（playbook warnings）：
+   - 新增活动类型场景常见错误：忘记 preview 占位符
+   ```
+
+   用户确认已知晓风险后继续。
+
+4. **置信度分级确认**
 
    按置信度从低到高处理：
 
@@ -72,28 +118,38 @@
    - 展示统计数量
    - 用户一键确认
 
-3. **需确认项处理**
+5. **需确认项处理**
 
    对蒸馏过程中发现的歧义（ambiguities）：
    - 逐项展示问题 + AI 建议 + 严重级别
    - blocker 级别的必须解决
    - suggestion 级别的可跳过
 
-4. **同步更新**
+6. **同步更新**
 
    用户确认后，同步更新：
    - Markdown 表格中的字段信息（含 `change_type` 列）
    - 变更分类汇总表
    - 嵌入 YAML 块中的 `change_items` 和 `fields`
    - 置信度分布统计
+   - 在 YAML 块中 `change_scope` 之后追加：
+     ```yaml
+     matched_scenarios: [...]  # 从 step-01 传递的 playbook 匹配结果
+     risk_summary:             # 从 step-02 汇总的风险标记
+       total_flags: N
+       third_rails: X
+       war_stories: Y
+       playbook_warnings: Z
+       details: [...]
+     ```
 
-5. **保存最终版本**
+7. **保存最终版本**
 
    - 写入 `_output/distilled-<name>.md`（最终版）
    - 删除 draft 和 routing 中间文件
    - 更新 `_output/distill-progress.yaml`（全部 completed）
 
-6. **收集反馈（可选）**
+8. **收集反馈（可选）**
 
    使用 AskUserQuestion 收集反馈评分：
    > **蒸馏质量评分**（1-5 分）：
@@ -115,6 +171,8 @@
 - 字段总数：N（high: X, medium: Y, low: 0）
 - 变更范围：N 个文件/组件（新增 X / 修改 Y / 不变 Z）
 - 整体置信度：high
+- 📋 开发建议：匹配到 N 个场景（scenario 名称）
+- ⚠️ 风险提示：N 个风险标记（third_rails: X, war_stories: Y, playbook_warnings: Z）
 
 📊 蒸馏质量指标
 | 指标 | 值 | 说明 |

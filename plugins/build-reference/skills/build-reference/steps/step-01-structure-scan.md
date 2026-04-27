@@ -7,6 +7,12 @@
 3. 所有文件路径必须是 Glob/Grep 实际找到的，不编造路径
 4. 不确定归属的文件标 TODO，不强行归类
 5. 扫描结果以 YAML 格式输出
+6. **只扫描业务源码** — 排除以下文件/目录（遵循 workflow.md 准则 7-8）：
+   - 排除目录：`node_modules`, `dist`, `build`, `.git`, `.husky`, `.vscode`, `.idea`, `coverage`, `__tests__`, `__mocks__`, `mock`, `mocks`, `.claude`, `_output`, `_reference`
+   - 排除模式：`*.config.ts`, `*.config.js`, `*.mock.*`, `*.test.*`, `*.spec.*`, `*.fixture.*`
+   - 排除配置：`.eslintrc*`, `.prettierrc*`, `.babelrc*`, `.env*`, `tsconfig.*`, `jest.*`, `webpack.*`, `vite.*`
+   - 排除依赖锁：`package-lock.json`, `yarn.lock`, `pnpm-lock.yaml`
+   - **例外**：`package.json` 仅在步骤 2 "检测项目类型" 时读取 `dependencies`/`scripts`
 
 ## INPUT
 
@@ -71,7 +77,10 @@ modules:
    - 向用户确认检测结果
 
 3. **扫描目录结构**
-   - Glob `**/*.{ts,tsx,js,jsx}` 获取源文件列表
+   - Glob `**/*.{ts,tsx,js,jsx}` 获取源文件列表，**排除非业务文件**：
+     - 排除 `node_modules/`, `dist/`, `build/`, `coverage/`, `__tests__/`, `__mocks__/`, `mock/`, `mocks/`
+     - 排除 `*.config.*`, `*.mock.*`, `*.test.*`, `*.spec.*`, `*.fixture.*`
+     - 排除 `.eslintrc*`, `.prettierrc*`, `tsconfig.*`, `jest.*`, `webpack.*`, `vite.*`
    - 统计目录层级和文件分布
    - 识别入口文件（index.ts、app.tsx、main.ts 等）
 

@@ -1,0 +1,67 @@
+# 03-conventions.yaml 格式模板
+
+version: "2.0"
+layer: <frontend|bff|backend>
+project: <string>
+last_verified: "<日期>"
+
+# --- 命名规范 ---
+naming:
+  constants: "UPPER_SNAKE_CASE"
+  types: "PascalCase"
+  functions: "camelCase"
+  files: "kebab-case"
+  enum_values: "kebab-case 字符串"
+
+# --- 代码模式（Gold Patterns）---
+patterns:
+  template_function:
+    description: "所有模板函数签名一致"
+    example: |
+      export function getXxxTemplate(ctx: TemplateContext): Schema[] {
+        return Builder.parseOnce(template, { ...ctx })
+      }
+    files_to_follow: ["src/config/template/render/basic.ts"]
+
+# --- 反模式（禁止做的事）---
+anti_patterns:
+  - pattern: "硬编码枚举值"
+    detail: "必须使用常量定义，不允许 magic string"
+    detection: "Grep 搜索字符串字面量匹配已知枚举值"
+
+# --- 非显而易见的模式 ---
+non_obvious_patterns:
+  - pattern: "模板函数必须返回 Schema[]"
+    detail: "即使只有一个元素也必须用数组包裹"
+    source: "code_comment"
+
+# --- 踩坑历史（War Stories）---
+war_stories:
+  - id: "WS-001"
+    module: "<模块名>"
+    title: "<简短标题>"
+    pitfall: "<坑是什么>"
+    symptom: "<踩坑后的表现>"
+    root_cause: "<根本原因>"
+    fix: "<怎么修的>"
+    prevention: "<如何预防>"
+    source: "git_diff_analysis | code_comment | git_history"
+
+# --- 代码风格深潜 ---
+code_style:
+  error_handling:
+    pattern: "<错误处理模式>"
+    example_source: "<示例文件路径>"
+    anti_pattern: "<不推荐的做法>"
+  function_structure:
+    guideline: "<函数结构规范>"
+    example_source: "<示例文件路径>"
+  import_order:
+    preference: "<导入排序偏好>"
+    example_source: "<示例文件路径>"
+  comment_convention:
+    chinese_for: "<中文注释用于什么>"
+    english_for: "<英文注释用于什么>"
+  file_organization:
+    per_file: "<文件组织原则>"
+    max_lines_guideline: "<行数指导>"

@@ -6,6 +6,7 @@
 2. 自动化检查优先（Round 1），人工检查为主（Round 2-3）
 3. 发现问题必须修复后才能通过，不能标 TODO 绕过
 4. 质量评分量化，不使用模糊描述
+5. Round 4 场景验证（development_playbook 测试）
 
 ## INPUT
 
@@ -14,6 +15,7 @@
 | Reference 文件 | `_reference/` | YAML / Markdown |
 | 项目源代码 | 项目目录 | 源文件 |
 | 模块索引 | `_output/modules-index.yaml` | YAML |
+| 上下文富化 | `_output/context-enrichment.yaml` | YAML |
 
 ## OUTPUT
 
@@ -98,7 +100,7 @@ todos:
 
 | 检查项 | 方式 | 通过标准 |
 |--------|------|---------|
-| 7 文件齐全 | Glob `_reference/*` | 7 个文件全部存在 |
+| 7 文件齐全 | Glob `_reference/*` | 8 个文件全部存在（00-index.md + 01~07.yaml） |
 | YAML 格式合法 | 尝试解析每个 .yaml | 无解析错误 |
 | 元数据完整 | 检查 version/layer/project/last_verified | 每个文件都有 |
 | 文件路径存在 | 遍历所有 target_file / key_files / definition_file | 100% 存在 |
@@ -136,6 +138,24 @@ todos:
    - 漏报率：未匹配的 / 总需求
 4. **目标**：命中率 ≥ 80%
 
+### Round 4: 场景验证（Playbook 测试）
+
+目标：验证 development_playbook 是否能让 AI 正确规划变更。
+
+1. 从 `05-mapping.yaml` 的 `development_playbook` 中选 2 个 scenario
+2. 构造模拟 PRD 需求描述（一句话），例如：
+   - "新增一种签到活动，支持连续签到 7 天递增奖励"
+   - "在基础信息页新增一个'骑手类型'下拉选项"
+3. 让当前 Agent 基于 reference 文件规划变更（只读 reference，不读源码）：
+   - 列出需要修改的文件清单
+   - 列出修改顺序
+   - 标注已知坑点
+4. 对照 playbook checklist 评估：
+   - **文件覆盖率**：AI 列出的文件 vs playbook 要求的文件 ≥ 80%
+   - **顺序正确性**：AI 的修改顺序 vs playbook 的 step 顺序 ≥ 70%
+   - **坑避免率**：AI 是否避开了 common_mistakes 和 war_stories ≥ 90%
+5. 记录结果到质量报告
+
 ### TODO 校准
 
 汇总所有 TODO 项：
@@ -155,6 +175,7 @@ todos:
    Round 1 自动检查：✅ PASS (N/M 项通过)
    Round 2 人工验证：✅ PASS (N 个幻觉已修正，M 条业务知识已补充)
    Round 3 端到端测试：✅ PASS (命中率 XX%，误报率 XX%)
+   Round 4 场景验证：✅ PASS (文件覆盖率 XX%，顺序正确性 XX%，坑避免率 XX%)
    总分：XX/100
    TODO 剩余：N 个
    ```

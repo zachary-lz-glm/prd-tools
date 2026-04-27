@@ -1,0 +1,98 @@
+# 05-mapping.yaml 格式模板
+# 注意：此文件允许超过 300 行（含核心路由表 + development_playbook）
+
+version: "2.0"
+layer: <frontend|bff|backend>
+project: <string>
+last_verified: "<日期>"
+
+# --- 能力边界 ---
+capability_boundary:
+  can_do:
+    - name: "Schema 生成"
+      example: "为活动生成表单 Schema"
+      how: "通过 Builder + template 函数"
+  cannot_do:
+    - "不负责 options 内容（由后端 API 返回）"
+
+# --- PRD 路由表 ---
+prd_routing:
+  - prd_pattern: "新增活动类型"
+    prd_keywords: ["新增活动", "新奖励类型", "新 campaign type"]
+    change_type: ADD
+    target:
+      files:
+        create: [...]
+        modify_required: [...]
+        modify_conditional: [...]
+    confidence_rule: high
+    check_capabilities: true
+    default_action: may_need_code
+
+# --- 能力清单 ---
+inventory:
+  <ItemName>:
+    target_file: "<路径>"
+    description: "<一句话>"
+    capabilities:
+      - pattern: "<业务描述>"
+        prd_keywords: [...]
+        implemented: <boolean>
+        change_type: <ADD|MODIFY|DELETE|NO_CHANGE>
+        how: "<实现方式>"
+        files_to_modify: [...]
+
+# --- 字段映射 ---
+field_mappings:
+  - prd_field: "骑手类型"
+    code_field: "rider_type"
+    target_file: "src/config/template/render/basic.ts"
+    confidence: high
+
+# --- 变更分类标准 ---
+change_type_rules:
+  ADD: "PRD 明确说新增/添加/支持XX"
+  MODIFY: "PRD 明确说修改/调整/变更/更新"
+  DELETE: "PRD 明确说移除/删除/废弃/下线"
+  NO_CHANGE: "PRD 描述匹配现有能力，无需改动"
+
+# --- 黄金样本（参考实现）---
+golden_samples:
+  - name: "<样本名称>"
+    reference_entity: "<参考实体名>"
+    similar_to: ["<相似实体>"]
+    prd_pattern_matched: "<匹配的 prd_pattern>"
+    files_changed:
+      - path: "<文件路径>"
+        change: "<改了什么>"
+        pattern: "<按什么模式改>"
+        code_snippet: "<关键代码片段（3-5行）>"
+    summary: "<一句话总结>"
+
+# --- 需求场景开发指南（Development Playbook）---
+development_playbook:
+  - scenario: "<场景名>"
+    trigger_signals:
+      - prd_keywords: ["<触发关键词>"]
+      - structural_hint: "<PRD 结构特征>"
+    checklist:
+      - step: 1
+        action: "<操作>"
+        target: "<目标文件>"
+        pattern: "<变更模式>"
+    estimated_files_changed: "N-M"
+    common_mistakes:
+      - "<常见错误>"
+
+# --- PRD 结构模式 ---
+structural_patterns:
+  - pattern: "<PRD 文档结构特征>"
+    indicates: "<推断的意图>"
+    prd_keywords_hint: ["<关键词>"]
+    confidence: medium
+    routing_fallback: "<对应的 prd_pattern>"
+
+# --- 层专属扩展 ---
+# 前端: bff_linkage_chain, workload_calibration
+# BFF: activity_templates, d_component_families, step_linkage_map, linkage_triggers
+# 后端: api_contracts, data_models

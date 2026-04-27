@@ -1,9 +1,3 @@
----
-name: prd-distill
-description: PRD 蒸馏 — 解析 PRD 文档，自动路由匹配 + 变更分类（ADD/MODIFY/DELETE），生成结构化开发文档
-user-invocable: true
----
-
 # /prd-distill — PRD 蒸馏工具
 
 ## 入口行为
@@ -18,10 +12,13 @@ user-invocable: true
 - 文件不存在 → 提示用户先运行 `/build-reference` 构建领域知识，然后 HALT
 
 同时验证以下文件是否齐全：
-- `_reference/05-mapping.yaml` — 必须存在（路由表 + inventory + 能力边界 + golden_samples + structural_patterns）
+- `_reference/05-mapping.yaml` — 必须存在（路由表 + inventory + 能力边界 + golden_samples + structural_patterns + development_playbook）
 - `_reference/01-entities.yaml` — 必须存在（枚举定义）
 - `_reference/06-glossary.yaml` — 必须存在（术语表 + 同义词）
 - `_reference/04-constraints.yaml` — 应存在（约束规则，缺失时跳过 fatal_errors 检查）
+- `_reference/03-conventions.yaml` — 应存在（踩坑历史 war_stories + 代码风格 code_style，缺失时跳过风险提示）
+- `_reference/02-architecture.yaml` — 应存在（第三轨 third_rails + 变更热力图 change_heatmap，缺失时跳过危险区域提示）
+- `_reference/07-business-context.yaml` — 可选（业务上下文，缺失时跳过业务规则辅助）
 
 ### 2. 收集 PRD 输入
 
@@ -47,9 +44,12 @@ user-invocable: true
 ### 4. 执行蒸馏
 
 输入收集完成后：
-- 读取 `_reference/05-mapping.yaml`（PRD 路由表 + 能力清单 + 能力边界 + golden_samples + structural_patterns）
+- 读取 `_reference/05-mapping.yaml`（PRD 路由表 + 能力清单 + 能力边界 + golden_samples + structural_patterns + development_playbook）
 - 读取 `_reference/01-entities.yaml`（枚举定义）
 - 读取 `_reference/06-glossary.yaml`（术语表 + 同义词）
+- 读取 `_reference/03-conventions.yaml`（踩坑历史 + 代码风格，如存在）
+- 读取 `_reference/02-architecture.yaml`（第三轨 + 变更热力图，如存在）
+- 读取 `_reference/07-business-context.yaml`（业务上下文，如存在）
 - 读取 `workflow.md` 并按 3 步流程执行
 
 ### 5. 输出

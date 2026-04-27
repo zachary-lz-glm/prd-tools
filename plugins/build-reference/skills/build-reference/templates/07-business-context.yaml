@@ -1,0 +1,37 @@
+# 07-business-context.yaml 格式模板
+
+version: "2.0"
+layer: <frontend|bff|backend>
+project: <项目标识>
+last_verified: "<日期>"
+
+# --- 业务域概览 ---
+domain:
+  name: "<业务域名称>"
+  core_users: ["<用户角色1>", "<用户角色2>"]
+  value_proposition: "<核心价值>"
+  key_flows:
+    - "<关键业务流程1>"
+    - "<关键业务流程2>"
+
+# --- 决策记录（ADR-Business）---
+decision_log:
+  - id: "BD-001"
+    decision: "<决策内容>"
+    context: "<决策背景>"
+    consequence: "<决策后果>"
+    trade_off: "<权衡考量>"
+    date: "<日期>"
+
+# --- 业务规则（代码中看不到的）---
+implicit_business_rules:
+  - rule: "<规则描述>"
+    source: "<来源：业务方口述/PRD/风控要求>"
+    enforced_in: "<在哪个系统层执行>"
+    impact_on_code: "<对本项目代码的影响>"
+
+# --- 项目里程碑 ---
+milestones:
+  - period: "<时间段>"
+    event: "<事件描述>"
+    significance: "<对代码结构的影响>"

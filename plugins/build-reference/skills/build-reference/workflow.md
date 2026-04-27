@@ -2,19 +2,20 @@
 
 ## 概述
 
-3 阶段工作流，用于从项目源代码中提取领域知识，按关注点维度生成标准化的 7 个 YAML reference 文件。
+4 阶段工作流，用于从项目源代码中提取领域知识，按关注点维度生成标准化的 8 个 reference 文件（7 YAML + 1 MD）。
 
 ```
-项目源代码 → Phase 1(结构扫描) → Phase 2(深度分析) → Phase 3(质量门控) → _reference/
+项目负责人知识(Phase 0) → Phase 1(结构扫描) → Phase 2(深度分析) → Phase 3(质量门控) → _reference/
 ```
 
-## 3 阶段定义
+## 4 阶段定义
 
-| 阶段 | 名称 | 输入 | 输出 | 人工确认 |
-|------|------|------|------|---------|
-| 1 | 结构扫描 | 项目目录 + Git 历史 | `modules-index.yaml` | **是** — 确认模块划分 |
-| 2 | 深度分析 | `modules-index.yaml` + 源代码 | 7 个 YAML reference 文件 | **是** — 逐模块确认 |
-| 3 | 质量门控 | 生成的 reference 文件 | 质量报告 + 最终 reference | **是** — 校准 TODO 项 |
+| 阶段 | 名称 | 输入 | 输出 | 人工确认 | 必要性 |
+|------|------|------|------|---------|--------|
+| 0 | 上下文富化 | 项目 Git 历史 + 历史 PRD + git 分支 diff | `context-enrichment.yaml` | **是** — 提供素材路径（一次交互） | 可选但强烈推荐 |
+| 1 | 结构扫描 | 项目目录 + Git 历史 | `modules-index.yaml` | **是** — 确认模块划分 | 必须 |
+| 2 | 深度分析 | `modules-index.yaml` + 源代码 + `context-enrichment.yaml` | 8 个 reference 文件 | **是** — 逐模块确认 | 必须 |
+| 3 | 质量门控 | 生成的 reference 文件 | 质量报告 + 最终 reference | **是** — 校准 TODO 项 | 必须 |
 
 ## 进度追踪
 
@@ -25,13 +26,18 @@
 ```yaml
 session_id: "br-{timestamp}"
 created_at: "2026-04-24T10:00:00Z"
-current_phase: 1
+current_phase: 0
 project_type: "frontend"       # frontend / bff / backend
 project_path: "."
 phases:
+  phase_0:
+    status: not_started         # not_started | in_progress | completed | skipped | failed
+    started_at: null
+    completed_at: null
+    prd_samples_collected: false
   phase_1:
-    status: in_progress         # not_started | in_progress | completed | failed
-    started_at: "2026-04-24T10:00:00Z"
+    status: not_started
+    started_at: null
     completed_at: null
     modules_found: 0
   phase_2:
@@ -61,8 +67,9 @@ last_updated: "2026-04-24T10:00:00Z"
 
 | 阶段 | 写入文件 | 读取文件 |
 |------|---------|---------|
+| Phase 0 | `_output/context-enrichment.yaml` | 项目 Git 历史 + 历史 PRD + git 分支 diff |
 | Phase 1 | `_output/modules-index.yaml` | 项目目录（Glob/Grep） |
-| Phase 2 | `_reference/00-index.md` + `01~06.yaml` | `_output/modules-index.yaml` + 源代码 |
+| Phase 2 | `_reference/00-index.md` + `01~07.yaml` | `_output/modules-index.yaml` + 源代码 + `_output/context-enrichment.yaml` |
 | Phase 3 | `_output/quality-report.yaml` | `_reference/` 全部文件 + 源代码 |
 
 ## 确认流程
@@ -96,6 +103,17 @@ Agent 执行工作流时必须遵守：
 4. **每文件 ≤ 300 行** — 05-mapping.yaml 例外（含核心路由表）
 5. **阶段间只通过文件通信** — 确保断点续传可行
 6. **Sub-agent 返回摘要** — 每个子任务 ≤ 1000 tokens
+7. **文件过滤** — 以下文件/目录不参与知识提取（所有阶段、所有步骤通用）：
+   - **排除目录**：`node_modules`, `dist`, `build`, `.git`, `.husky`, `.vscode`, `.idea`, `coverage`, `__tests__`, `__mocks__`, `mock`, `mocks`, `.claude`, `_output`, `_reference`, `.next`, `.nuxt`
+   - **排除文件**：`.` 开头的配置文件（`.eslintrc*`, `.prettierrc*`, `.babelrc*`, `.env*`, `.npmrc`, `.editorconfig`）
+   - **排除模式**：`*.config.ts`, `*.config.js`, `webpack.*`, `vite.*`, `rollup.*`, `jest.setup.*`, `tsconfig.*`, `jest.config.*`, `babel.config.*`, `postcss.config.*`, `tailwind.config.*`
+   - **排除依赖锁**：`package-lock.json`, `yarn.lock`, `pnpm-lock.yaml`, `bun.lockb`
+   - **排除 mock**：`**/mock/**`, `**/mocks/**`, `**/__mocks__/**`, `**/fixtures/**`, `**/stubs/**`, `*.mock.ts`, `*.mock.js`, `*.fixture.*`
+   - **唯一例外**：仅在 Phase 1 "检测项目类型"阶段读取 `package.json` 的 `dependencies`/`scripts` 字段
+8. **核心文件优先** — 分析模块时，优先读取业务源码文件，配置文件不参与知识提取：
+   - **BFF 优先**：`config/template/**`, `config/constant/**`, `handler/**`, `service/**`
+   - **前端优先**：`src/components/**`, `src/pages/**`, `src/store/**`, `src/hooks/**`
+   - **后端优先**：`src/modules/**`, `src/controller/**`, `src/service/**`, `src/model/**`
 
 ## 步骤文件执行
 
@@ -108,27 +126,28 @@ Agent 执行工作流时必须遵守：
 
 ## 知识维度说明
 
-7 个文件按**关注点维度**组织，不按工作流步骤。每个维度是独立的知识层，可被多个工作流步骤按需引用。
+8 个文件按**关注点维度**组织，不按工作流步骤。每个维度是独立的知识层，可被多个工作流步骤按需引用。
 
 | 文件 | 维度 | 核心问题 |
 |------|------|---------|
 | 01-entities | 实体 | 项目里有什么东西？ |
 | 02-architecture | 结构 | 项目怎么组织的？ |
-| 03-conventions | 规范 | 代码该怎么写？ |
+| 03-conventions | 规范 | 代码该怎么写？踩过什么坑？ |
 | 04-constraints | 约束 | 什么必须为真？ |
-| 05-mapping | 映射 | PRD 怎么对应代码？ |
+| 05-mapping | 映射 | PRD 怎么对应代码？新需求该怎么动手？ |
 | 06-glossary | 术语 | 人话 ↔ 机器话？ |
+| 07-business-context | 业务 | 为什么这样做？业务决策和历史？ |
 
 **工作流步骤按需加载参考：**
 
 | 工作流步骤 | 需加载的文件 |
 |-----------|------------|
-| PRD 蒸馏（路由匹配） | 05-mapping + 01-entities + 06-glossary |
-| 项目分析（结构扫描） | 02-architecture + 01-entities |
-| 变更计划（分类规划） | 03-conventions + 04-constraints + 05-mapping |
-| 代码生成 | 03-conventions + 02-architecture + 01-entities |
-| 代码验证 | 04-constraints + 03-conventions |
-| 输出报告 | 06-glossary |
+| PRD 蒸馏（路由匹配） | 05-mapping（含 development_playbook）+ 01-entities + 06-glossary + 07-business-context |
+| 项目分析（结构扫描） | 02-architecture（含 third_rails + change_heatmap）+ 01-entities |
+| 变更计划（分类规划） | 03-conventions（含 war_stories）+ 04-constraints + 05-mapping（含 development_playbook）|
+| 代码生成 | 03-conventions（含 code_style + war_stories）+ 02-architecture + 01-entities |
+| 代码验证 | 04-constraints + 03-conventions（含 war_stories）|
+| 输出报告 | 06-glossary + 07-business-context |
 
 ## 知识维护策略（基于 Meta + Anthropic）
 

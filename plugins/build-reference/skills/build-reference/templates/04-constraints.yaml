@@ -1,0 +1,37 @@
+# 04-constraints.yaml 格式模板
+
+version: "2.0"
+layer: <frontend|bff|backend>
+project: <string>
+last_verified: "<日期>"
+
+# --- 白名单 ---
+whitelists:
+  target_projects: ["dive-bff", "dive-template-bff"]
+  i18n_prefixes: ["dive_", "marketing_"]
+
+# --- 枚举校验 ---
+enum_validations:
+  - entity: "CampaignType"
+    valid_values: ["ORDER", "GAS_STATION", "COURIER_RUSH", "SHIFT_CHECKIN"]
+    source_file: "src/config/constant/campaignType.ts"
+
+# --- 致命错误（生成代码绝不能违反）---
+fatal_errors:
+  - rule: "生成的字段必须是 01-entities.yaml 中的合法字段"
+    severity: "fatal"
+  - rule: "import 路径必须使用相对路径"
+    severity: "fatal"
+
+# --- 警告规则 ---
+warnings:
+  - rule: "新增文件应遵循现有目录结构"
+    severity: "warning"
+
+# --- 检查清单 ---
+checklists:
+  add_new_campaign_type:
+    - "campaignType.ts 添加枚举"
+    - "details/index.ts 添加 switch"
+    - "创建新模板文件"
+    - "更新 preview options"
