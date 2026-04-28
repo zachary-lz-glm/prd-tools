@@ -4,14 +4,14 @@
 
 生成：
 
-- `_output/prd-distill/<slug>/dev-plan.md`
-- `_output/prd-distill/<slug>/qa-plan.md`
-- `_output/prd-distill/<slug>/reference-update-suggestions.yaml`
-- `_output/prd-distill/<slug>/distilled-report.md`
+- `_output/prd-distill/<slug>/report.md`
+- `_output/prd-distill/<slug>/plan.md`
+- `_output/prd-distill/<slug>/questions.md`
+- `_output/prd-distill/<slug>/artifacts/reference-update-suggestions.yaml`
 
-## 开发计划
+## 合并计划
 
-按层分组：
+`plan.md` 合并开发、QA 和契约对齐计划，按命中的层分组：
 
 - 前端任务
 - BFF 任务
@@ -19,12 +19,11 @@
 - 契约对齐任务
 - 开放问题和风险
 - 建议实现顺序
+- QA 矩阵和回归重点
 
 每个任务引用 `REQ-*`、`IMP-*` 或 `CONTRACT-*`。
 
-## QA 计划
-
-包含：
+QA 部分包含：
 
 - Requirement 验收矩阵
 - 分层单元/集成检查
@@ -37,12 +36,12 @@
 
 ## 确认
 
-最终报告前：
+生成 `questions.md`：
 
 - 展示所有 `medium` 和 `low` confidence 项。
 - 展示 `needs_confirmation` 或 `blocked` 的 Contract Delta。
 - 展示 reference 矛盾和迁移建议。
-- 让用户确认或修正阻塞项。
+- 标注建议 owner、所需证据和当前默认策略。
 
 ## Reference 回流
 
@@ -59,12 +58,11 @@
 
 ## 最终报告
 
-`distilled-report.md` 汇总：
+`report.md` 汇总，优先一屏可读：
 
-1. Requirement IR
-2. Layer Impact
-3. Contract Delta
-4. 开发计划
-5. QA 计划
-6. 阻塞问题
-7. Reference 回流建议
+1. 需求摘要
+2. 命中的层和能力面
+3. 关键开发结论
+4. 契约风险和阻塞项
+5. Top open questions
+6. `plan.md` 和 `artifacts/` 索引

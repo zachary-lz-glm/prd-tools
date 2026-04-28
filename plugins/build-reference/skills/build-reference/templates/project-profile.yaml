@@ -1,0 +1,42 @@
+# project-profile.yaml
+schema_version: "3.1"
+tool_version: "<tool-version>"
+layer: "<frontend|bff|backend|multi-layer>"
+project: "<project>"
+last_verified: "<YYYY-MM-DD>"
+verify_cadence: "14d"
+owner: "<team>"
+
+tech_stack:
+  languages: []
+  frameworks: []
+  package_managers: []
+  build_commands: []
+  test_commands: []
+
+entrypoints:
+  runtime: []
+  api: []
+  ui: []
+  jobs: []
+  config: []
+
+capability_surfaces:
+  - id: "SURFACE-001"
+    layer: "<frontend|bff|backend>"
+    surface: ""
+    responsibility: ""
+    entrypoints: []
+    key_files: []
+    symbols: []
+    contract_refs: []
+    status: "candidate | verified | negative_search"
+    evidence: []
+    confidence: "high | medium | low"
+
+candidate_paths:
+  frontend: []
+  bff: []
+  backend: []
+
+unknowns: []

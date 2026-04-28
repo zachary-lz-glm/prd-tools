@@ -1,12 +1,17 @@
 {
   "name": "build-reference",
-  "version": "2.0.0",
-  "description": "领域知识构建工具 — 构建前端/BFF/后端通用 reference v3（IR、分层影响、契约、playbook、反馈回流）",
+  "version": "2.1.0",
+  "description": "领域知识构建工具 — 构建前端/BFF/后端通用 reference v3.1（项目画像、能力面、契约、playbook、反馈回流）",
   "skills": ["./skills/build-reference"],
   "author": {
     "name": "DevTools Team"
   },
   "changelog": [
+    {
+      "version": "2.1.0",
+      "date": "2026-04-28",
+      "changes": ["能力面适配器替代路径优先规则", "Reference 默认视图瘦身", "明确 03/08/09 边界", "新增安装版本标记"]
+    },
     {
       "version": "2.0.0",
       "date": "2026-04-28",

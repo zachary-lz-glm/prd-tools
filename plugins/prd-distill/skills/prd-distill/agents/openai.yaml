@@ -1,0 +1,4 @@
+interface:
+  display_name: "PRD Distill"
+  short_description: "将 PRD 蒸馏为报告、计划、问题和证据链"
+  default_prompt: "使用 $prd-distill 基于 PRD 和 _reference 生成 report.md、plan.md、questions.md 和 artifacts 证据链。"

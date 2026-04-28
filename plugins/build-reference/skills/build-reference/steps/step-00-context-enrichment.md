@@ -2,7 +2,7 @@
 
 ## 目标
 
-在构建 reference v3 之前，从历史 PRD、技术方案、分支和 diff 中提取可复用项目知识。
+在构建 reference v3.1 之前，从历史 PRD、技术方案、分支和 diff 中提取可复用项目知识。
 
 本步骤只收集事实，不修改 `_reference/`。
 
@@ -32,7 +32,8 @@
 写入 `_output/context-enrichment.yaml`：
 
 ```yaml
-version: "3.0"
+schema_version: "3.1"
+tool_version: "2.1.0"
 collected_at: ""
 samples:
   - id: "SAMPLE-001"
@@ -57,7 +58,7 @@ cross_sample_patterns:
   risks: []
 ```
 
-## 映射到 Reference v3
+## 映射到 Reference v3.1
 
 - 术语候选 -> `06-glossary.yaml`
 - 路由信号 -> `05-routing.yaml`

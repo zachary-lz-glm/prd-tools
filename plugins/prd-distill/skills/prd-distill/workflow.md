@@ -2,21 +2,17 @@
 
 ## 目标
 
-把 PRD 蒸馏为工程可执行的中间表示和计划：
+把 PRD 蒸馏为工程可执行的结论、计划和证据链：
 
 ```text
 PRD + tech docs + reference + code
-  -> evidence.yaml
-  -> requirement-ir.yaml
-  -> layer-impact.yaml
-  -> contract-delta.yaml
-  -> dev-plan.md
-  -> qa-plan.md
-  -> reference-update-suggestions.yaml
-  -> distilled-report.md
+  -> report.md
+  -> plan.md
+  -> questions.md
+  -> artifacts/*
 ```
 
-主流程对前端、BFF、后端通用；层差异只通过 `references/layer-adapters.md` 的适配器生效。
+主流程对前端、BFF、后端通用；层差异通过 `references/layer-adapters.md` 的能力面适配器生效。默认给人看轻量输出，机器可读细节放入 `artifacts/`。
 
 ## 步骤 0：准备输入
 
@@ -33,11 +29,15 @@ PRD + tech docs + reference + code
 
 ```text
 _output/prd-distill/<slug>/
+├── report.md
+├── plan.md
+├── questions.md
+└── artifacts/
 ```
 
 ## 步骤 1：证据台账
 
-先建立 `evidence.yaml`，后续所有判断只引用 evidence id。
+先建立 `artifacts/evidence.yaml`，后续所有判断只引用 evidence id。
 
 证据类型：
 
@@ -60,7 +60,7 @@ _output/prd-distill/<slug>/
 
 ## 步骤 2：Requirement IR
 
-将 PRD 转成 `requirement-ir.yaml`。
+将 PRD 转成 `artifacts/requirement-ir.yaml`。
 
 每个 requirement 必须包含：
 
@@ -86,13 +86,13 @@ _output/prd-distill/<slug>/
 读取目标层适配器：
 
 - frontend / BFF / backend 单层：生成对应 impacts。
-- multi-layer：每层各生成 impacts，并合并进一个 `layer-impact.yaml`。
+- multi-layer：每层各生成 impacts，并合并进一个 `artifacts/layer-impact.yaml`。
 
 每个 impact 必须说明：
 
 - requirement_id
 - layer
-- concern
+- surface
 - target 文件/模块/接口/组件
 - current_state
 - planned_delta
@@ -104,7 +104,7 @@ ADD/MODIFY/DELETE/NO_CHANGE 必须由源码或负向搜索支撑。
 
 ## 步骤 4：Contract Delta
 
-多层、接口、schema、事件、外部权益/券/支付/审计等需求必须生成 `contract-delta.yaml`。
+多层、接口、schema、事件、外部权益/券/支付/审计等需求必须生成 `artifacts/contract-delta.yaml`。单层且无契约变化时也创建最小文件，写明 `alignment_summary.status: not_applicable`。
 
 每个 contract 记录：
 
@@ -126,29 +126,22 @@ ADD/MODIFY/DELETE/NO_CHANGE 必须由源码或负向搜索支撑。
 
 ## 步骤 5：计划
 
-生成 `dev-plan.md`：
+生成 `plan.md`：
 
-- 按层分组。
+- 合并开发计划、QA 计划和契约对齐计划。
+- 按命中的层分组；没有命中的层不要硬写空章节。
 - 每个任务引用 requirement_id、impact_id、contract_id。
 - 标注建议修改文件、实现顺序、风险、人工确认项。
+- QA case 必须追溯到 `requirement_id` 或 `contract_id`。
 - 不直接写代码，除非用户明确要求进入实现。
-
-生成 `qa-plan.md`：
-
-- PRD 验收场景。
-- 层内测试。
-- 契约测试。
-- 回归场景。
-- 边界/互斥/权限/批量/预览/审计等矩阵。
-
-QA case 必须追溯到 `requirement_id` 或 `contract_id`。
 
 ## 步骤 6：Reference 回流
 
-生成 `reference-update-suggestions.yaml`：
+生成 `artifacts/reference-update-suggestions.yaml`：
 
 ```yaml
-version: "3.0"
+schema_version: "3.1"
+tool_version: "2.1.0"
 suggestions:
   - id: "REF-UPD-001"
     type: "new_term | new_route | new_contract | new_playbook | contradiction | golden_sample_candidate"
@@ -165,20 +158,20 @@ suggestions:
 - reference 说已实现但源码不存在，或源码存在但 reference 缺失。
 - 本次需求能作为高价值 golden sample。
 
-## 步骤 7：蒸馏报告
+## 步骤 7：人类报告
 
-`distilled-report.md` 是给人看的汇总：
+`report.md` 是给人看的汇总，优先一屏可读：
 
 1. 需求摘要
-2. Requirement IR 汇总
-3. 分层影响
-4. 契约差异和阻塞项
-5. 开发计划
-6. QA 计划
-7. 需人工确认问题
-8. Reference 回流建议
+2. 命中的层和能力面
+3. 关键开发结论
+4. 契约风险和阻塞项
+5. Top open questions
+6. 计划和 artifacts 索引
 
 报告里不要隐藏低置信度项；低置信度是价值，不是瑕疵。
+
+生成 `questions.md`，只放阻塞问题、需 owner 确认的问题和低置信度假设。若没有问题，明确写“暂无阻塞问题”。
 
 ## 暂停条件
 
@@ -196,4 +189,4 @@ suggestions:
 3. 业务规则不能只靠前端守。
 4. 多层需求必须给契约计划。
 5. 每个输出都要能回溯 evidence。
-6. 完成后简要告知输出路径和最重要的阻塞/风险。
+6. 完成后简要告知输出路径、最重要的阻塞/风险，并优先引导用户阅读 `report.md`。

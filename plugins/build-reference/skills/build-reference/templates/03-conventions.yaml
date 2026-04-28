@@ -1,10 +1,13 @@
 # 03-conventions.yaml
-version: "3.0"
+schema_version: "3.1"
+tool_version: "<tool-version>"
 layer: "<frontend|bff|backend|multi-layer>"
 project: "<project>"
 last_verified: "<YYYY-MM-DD>"
 verify_cadence: "14d"
 owner: "<team>"
+
+boundary: "Only code conventions: naming, registration patterns, transforms, error handling, anti-patterns. Do not store cross-layer field contracts or scenario playbooks here."
 
 naming: []
 

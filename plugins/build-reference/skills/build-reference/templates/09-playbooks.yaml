@@ -1,10 +1,13 @@
 # 09-playbooks.yaml
-version: "3.0"
+schema_version: "3.1"
+tool_version: "<tool-version>"
 layer: "<frontend|bff|backend|multi-layer>"
 project: "<project>"
 last_verified: "<YYYY-MM-DD>"
 verify_cadence: "14d"
 owner: "<team>"
+
+boundary: "Only scenario playbooks, QA matrix, common mistakes and golden samples. Reference contract IDs instead of duplicating field-level contracts."
 
 playbooks:
   - id: "PLAYBOOK-001"

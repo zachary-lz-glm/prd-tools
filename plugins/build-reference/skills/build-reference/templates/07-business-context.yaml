@@ -1,5 +1,6 @@
 # 07-business-context.yaml
-version: "3.0"
+schema_version: "3.1"
+tool_version: "<tool-version>"
 layer: "<frontend|bff|backend|multi-layer>"
 project: "<project>"
 last_verified: "<YYYY-MM-DD>"

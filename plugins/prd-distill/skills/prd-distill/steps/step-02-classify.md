@@ -4,13 +4,14 @@
 
 将 Requirement IR 转成：
 
-- `_output/prd-distill/<slug>/layer-impact.yaml`
-- `_output/prd-distill/<slug>/contract-delta.yaml`
+- `_output/prd-distill/<slug>/artifacts/layer-impact.yaml`
+- `_output/prd-distill/<slug>/artifacts/contract-delta.yaml`
 
 ## 输入
 
-- `evidence.yaml`
-- `requirement-ir.yaml`
+- `artifacts/evidence.yaml`
+- `artifacts/requirement-ir.yaml`
+- `_reference/project-profile.yaml`，如存在
 - `_reference/01-entities.yaml`
 - `_reference/02-architecture.yaml`
 - `_reference/03-conventions.yaml`
@@ -21,9 +22,9 @@
 
 ## 执行
 
-1. 为每个目标层选择适配器。
+1. 为每个目标层选择能力面适配器。
 2. 对每个 requirement 搜索并读取代码，确认当前状态。
-3. 按适配器 concern 记录 Layer Impact。
+3. 按适配器 surface 记录 Layer Impact。
 4. 对每个跨层/API/schema/event/downstream 契约面创建 Contract Delta。
 5. 从规范、约束、third rails、契约、playbook 中补充风险。
 

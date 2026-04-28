@@ -2,10 +2,11 @@
 
 ## 目标
 
-生成 reference v3：
+生成 reference v3.1：
 
 ```text
 _reference/00-index.md
+_reference/project-profile.yaml
 _reference/01-entities.yaml
 _reference/02-architecture.yaml
 _reference/03-conventions.yaml
@@ -30,7 +31,7 @@ _reference/09-playbooks.yaml
 
 1. 为分析过程中发现的事实建立 evidence 台账。
 2. 提取实体：枚举、字段、组件、API、领域对象、validator、integration。
-3. 提取架构：模块、数据流、注册点、依赖枢纽、third rails、heatmap。
+3. 提取项目画像和架构：能力面、入口、数据流、注册点、依赖枢纽、third rails、heatmap。
 4. 提取契约：producer、consumers、契约面、字段、兼容性、对齐状态。
 5. 提取路由：PRD 信号如何映射到 Requirement IR 和 Layer Impact。
 6. 提取 playbook：高频需求场景、分层步骤、契约检查、QA 矩阵、常见错误。
@@ -56,4 +57,5 @@ _reference/09-playbooks.yaml
 - 每个非显然条目都有 evidence。
 - 跨层假设写入 `08-contracts.yaml`。
 - 场景知识写入 `09-playbooks.yaml`，不要散落在说明文字中。
-- 层专属事实使用适配器中的 concern 名称。
+- 代码写法写入 `03-conventions.yaml`，不要复制契约和 playbook。
+- 层专属事实使用适配器中的 surface 名称。

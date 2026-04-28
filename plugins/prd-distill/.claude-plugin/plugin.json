@@ -1,12 +1,17 @@
 {
   "name": "prd-distill",
-  "version": "2.0.0",
-  "description": "PRD 蒸馏工具 — 输出 Requirement IR、分层影响、契约差异、开发计划、QA 计划和 reference 回流建议",
+  "version": "2.1.0",
+  "description": "PRD 蒸馏工具 — 默认输出 report、plan、questions，并把 IR、分层影响、契约差异和回流建议放入 artifacts",
   "skills": ["./skills/prd-distill"],
   "author": {
     "name": "DevTools Team"
   },
   "changelog": [
+    {
+      "version": "2.1.0",
+      "date": "2026-04-28",
+      "changes": ["默认输出瘦身为 report/plan/questions", "证据链迁入 artifacts", "Layer Impact 改为能力面 surface", "兼容 v2.0 输出读取"]
+    },
     {
       "version": "2.0.0",
       "date": "2026-04-28",
