@@ -1,16 +1,21 @@
 {
   "name": "prd-distill",
-  "version": "1.0.0",
-  "description": "PRD 蒸馏工具 — 解析 PRD 文档，自动路由匹配 + 变更分类（ADD/MODIFY/DELETE），生成结构化开发文档",
+  "version": "2.0.0",
+  "description": "PRD 蒸馏工具 — 输出 Requirement IR、分层影响、契约差异、开发计划、QA 计划和 reference 回流建议",
   "skills": ["./skills/prd-distill"],
   "author": {
     "name": "DevTools Team"
   },
   "changelog": [
     {
+      "version": "2.0.0",
+      "date": "2026-04-28",
+      "changes": ["新工作流：PRD -> Requirement IR -> Layer Impact -> Contract Delta -> 开发/QA 计划 -> Reference 回流"]
+    },
+    {
       "version": "1.0.0",
       "date": "2026-04-26",
-      "changes": ["Initial release — 3-step workflow: parse + route → classify → confirm"]
+      "changes": ["初始版本：3 步工作流，解析和路由 → 分类 → 确认"]
     }
   ]
 }

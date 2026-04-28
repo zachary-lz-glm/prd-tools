@@ -1,0 +1,37 @@
+# 05-routing.yaml
+version: "3.0"
+layer: "<frontend|bff|backend|multi-layer>"
+project: "<project>"
+last_verified: "<YYYY-MM-DD>"
+verify_cadence: "14d"
+owner: "<team>"
+
+capability_boundary:
+  can_do: []
+  cannot_do: []
+
+prd_routing:
+  - id: "ROUTE-001"
+    prd_pattern: ""
+    prd_keywords: []
+    structural_signals: []
+    requirement_ir_hints: []
+    target_layers: []
+    default_change_type: "ADD | MODIFY | DELETE | NO_CHANGE"
+    confidence_rule: "high | medium | low"
+    evidence: []
+
+field_mappings:
+  - prd_field: ""
+    code_field: ""
+    target_layer: ""
+    target_file: ""
+    contract_ref: ""
+    evidence: []
+    confidence: medium
+
+change_type_rules:
+  ADD: "PRD 明确说新增、添加、支持新能力"
+  MODIFY: "PRD 明确说修改、调整、扩展现有能力"
+  DELETE: "PRD 明确说删除、下线、废弃能力"
+  NO_CHANGE: "PRD 描述与现有能力一致，无需代码改动"

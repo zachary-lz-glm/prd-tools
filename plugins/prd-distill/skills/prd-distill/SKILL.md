@@ -1,73 +1,67 @@
-# /prd-distill — PRD 蒸馏工具
+---
+name: prd-distill
+description: 将 PRD 和可选技术文档蒸馏为有证据支撑的 Requirement IR、Layer Impact、Contract Delta、开发计划、QA 计划和 reference 回流建议，适用于前端、BFF、后端项目。适用于用户调用 /prd-distill，或要求分析 PRD 实现影响时。
+---
 
-## 入口行为
+# /prd-distill
 
-当用户输入 `/prd-distill` 时，按以下流程执行：
+你是需求分析师 + 契约协调员。目标不是“理解一下 PRD”，而是把 PRD 变成可执行、可审计、可回流的工程计划：
 
-### 1. 检查前置条件
+`PRD -> Requirement IR -> Layer Impact -> Contract Delta -> 开发计划 / QA 计划 / 契约计划 -> Reference 回流`
 
-读取 `_reference/05-mapping.yaml`（PRD 路由表 + 能力清单）。
+## 入口流程
 
-- 文件存在 → 继续，读取 `layer` 字段确定目标层（frontend / bff / backend）
-- 文件不存在 → 提示用户先运行 `/build-reference` 构建领域知识，然后 HALT
+当用户运行 `/prd-distill`：
 
-同时验证以下文件是否齐全：
-- `_reference/05-mapping.yaml` — 必须存在（路由表 + inventory + 能力边界 + golden_samples + structural_patterns + development_playbook）
-- `_reference/01-entities.yaml` — 必须存在（枚举定义）
-- `_reference/06-glossary.yaml` — 必须存在（术语表 + 同义词）
-- `_reference/04-constraints.yaml` — 应存在（约束规则，缺失时跳过 fatal_errors 检查）
-- `_reference/03-conventions.yaml` — 应存在（踩坑历史 war_stories + 代码风格 code_style，缺失时跳过风险提示）
-- `_reference/02-architecture.yaml` — 应存在（第三轨 third_rails + 变更热力图 change_heatmap，缺失时跳过危险区域提示）
-- `_reference/07-business-context.yaml` — 可选（业务上下文，缺失时跳过业务规则辅助）
+1. 确认 PRD 来源：`.docx | .md | 文本描述`。
+2. 可选读取技术方案、接口文档、历史分支、已有 diff。
+3. 检查 `_reference/`：
+   - v3 优先：`05-routing.yaml`、`08-contracts.yaml`、`09-playbooks.yaml`。
+   - 旧版兼容：若只有 `05-mapping.yaml`，可读取，但输出中建议迁移到 v3。
+4. 自动判断目标层：`frontend | bff | backend | multi-layer`；多层需求必须产出 Contract Delta。
+5. 读取 `workflow.md` 执行完整蒸馏。
 
-### 2. 收集 PRD 输入
+## 必需输出
 
-使用 AskUserQuestion 引导用户提供 PRD：
+写入 `_output/prd-distill/<slug>/`：
 
-> **请提供 PRD 来源：**
-> - **文件路径**（.docx / .md）
-> - **直接描述需求**（自然语言）
-> - **其他**（粘贴内容等）
+```text
+evidence.yaml
+requirement-ir.yaml
+layer-impact.yaml
+contract-delta.yaml
+dev-plan.md
+qa-plan.md
+reference-update-suggestions.yaml
+distilled-report.md
+```
 
-支持两种输入方式：
-1. **文件路径**：读取 .docx（自动分级回退转换：pandoc → mammoth → textutil → 提示用户）或 .md 文件
-2. **自然语言描述**：直接使用用户输入的文本
+如果用户只要求快速分析，可以先给摘要，但正式蒸馏必须产出以上文件或明确说明缺失原因。
 
-### 3. 可选：收集后端技术文档
+## 质量标准
 
-使用 AskUserQuestion 询问：
+- 每个 requirement 必须有 `change_type: ADD | MODIFY | DELETE | NO_CHANGE`。
+- 每个 requirement 至少有一条 PRD 或技术文档证据。
+- 每个 Layer Impact 至少有源码证据或负向搜索证据。
+- 每个跨层字段必须进入 `contract-delta.yaml`，明确 producer / consumers / required / type / alignment_status。
+- 业务规则不能只落在前端；涉及奖励、金额、权益、资格、互斥、上限、发放、审计时必须检查 BFF/backend 责任。
+- 中/低置信度项必须生成开放问题或人工确认项。
+- 结束时必须生成 reference 回流建议：新术语、新路由、新契约、新 playbook、reference 与源码矛盾。
 
-> **是否有本次需求的后端技术文档？**（描述后端 API 变更）
-> - **有** → 请提供文件路径
-> - **没有** → 继续仅基于 PRD 蒸馏
+## 分层适配器
 
-### 4. 执行蒸馏
+读取 `references/layer-adapters.md` 按目标层套用适配器。适配器是专门化关注点，不改变主流程：
 
-输入收集完成后：
-- 读取 `_reference/05-mapping.yaml`（PRD 路由表 + 能力清单 + 能力边界 + golden_samples + structural_patterns + development_playbook）
-- 读取 `_reference/01-entities.yaml`（枚举定义）
-- 读取 `_reference/06-glossary.yaml`（术语表 + 同义词）
-- 读取 `_reference/03-conventions.yaml`（踩坑历史 + 代码风格，如存在）
-- 读取 `_reference/02-architecture.yaml`（第三轨 + 变更热力图，如存在）
-- 读取 `_reference/07-business-context.yaml`（业务上下文，如存在）
-- 读取 `workflow.md` 并按 3 步流程执行
-
-### 5. 输出
-
-蒸馏完成后生成：
-- `_output/distilled-<campaign-name>.md` — 蒸馏报告（含变更分类 ADD/DELETE/MODIFY + 字段清单 + YAML 块）
-- `_output/distill-progress.yaml` — 蒸馏进度
-
-## 快速体验
-
-- 前端示例 PRD：`examples/dive-frontend/step1-prd-distill/`
-- BFF 示例 PRD：`_bff-gen/examples/sample-prd-shift-checkin.md`
+- 前端：组件/表单/状态/API client/文案/客户端校验/预览。
+- BFF：schema template/活动类型/联动/批量/前端契约/上游契约。
+- 后端：API、领域校验、持久化、下游集成、审计、可观测。
 
 ## 文件索引
 
-| 文件 | 职责 |
-|------|------|
-| `workflow.md` | 3 步蒸馏流程编排（解析→分类→确认） |
-| `steps/step-01-parse.md` | 步骤 1：解析 PRD + 路由匹配 |
-| `steps/step-02-classify.md` | 步骤 2：变更分类（ADD/MODIFY/DELETE）+ 结构化 |
-| `steps/step-03-confirm.md` | 步骤 3：变更分类确认 + 置信度检查 + 人工确认 |
+| 文件 | 用途 |
+|---|---|
+| `workflow.md` | 主流程：PRD 解析、IR、层影响、契约、计划、回流 |
+| `references/output-contracts.md` | 输出文件格式和必填字段 |
+| `references/layer-adapters.md` | 前端/BFF/后端关注点和质量门控 |
+| `references/selectable-reward-golden-sample.md` | 可选择奖励需求 golden sample |
+| `references/external-practices.md` | 外部 AI 工程化实践摘要 |

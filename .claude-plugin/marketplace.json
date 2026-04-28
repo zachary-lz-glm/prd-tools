@@ -8,16 +8,16 @@
     {
       "name": "build-reference",
       "source": "./plugins/build-reference",
-      "description": "领域知识构建：扫描项目源码，生成结构化 reference（路由表+能力清单+术语表），供 PRD 蒸馏使用",
-      "version": "1.0.0",
-      "tags": ["reference", "knowledge-base", "code-analysis"]
+      "description": "领域知识构建：生成前端/BFF/后端通用 reference v3（实体、架构、路由、契约、playbook、反馈回流）",
+      "version": "2.0.0",
+      "tags": ["reference", "knowledge-base", "code-analysis", "contracts"]
     },
     {
       "name": "prd-distill",
       "source": "./plugins/prd-distill",
-      "description": "PRD 蒸馏：解析 PRD 文档，自动路由匹配 + 变更分类（ADD/MODIFY/DELETE），生成结构化开发文档",
-      "version": "1.0.0",
-      "tags": ["prd", "distillation", "change-classification"]
+      "description": "PRD 蒸馏：PRD -> Requirement IR -> 分层影响 -> 契约差异 -> 开发/QA 计划 -> reference 回流",
+      "version": "2.0.0",
+      "tags": ["prd", "distillation", "contracts", "qa-plan"]
     }
   ]
 }

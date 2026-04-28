@@ -1,91 +1,199 @@
-# prd-distill Workflow
+# prd-distill 工作流
 
-## 概述
+## 目标
 
-3 步工作流，将原始 PRD 蒸馏为带变更分类（ADD/DELETE/MODIFY）的结构化开发文档。蒸馏结合领域知识（`_reference/05-mapping.yaml`）进行路由匹配、能力检查和变更分类。**参考是快速通道，源码是最终权威**。支持前端、BFF、后端三层通用。
+把 PRD 蒸馏为工程可执行的中间表示和计划：
 
+```text
+PRD + tech docs + reference + code
+  -> evidence.yaml
+  -> requirement-ir.yaml
+  -> layer-impact.yaml
+  -> contract-delta.yaml
+  -> dev-plan.md
+  -> qa-plan.md
+  -> reference-update-suggestions.yaml
+  -> distilled-report.md
 ```
-PRD + reference → step-01(解析+路由匹配+场景匹配+代码锚定) → step-02(分类+源码验证+风险标记) → step-03(确认+开发建议+风险提示) → 蒸馏报告
+
+主流程对前端、BFF、后端通用；层差异只通过 `references/layer-adapters.md` 的适配器生效。
+
+## 步骤 0：准备输入
+
+读取或收集：
+
+- PRD：`.docx | .md | pasted text`。
+- 技术方案 / API 文档：可选，但多层或后端相关需求强烈建议读取。
+- `_reference/`：优先 v3；若只有旧版 `05-mapping.yaml`，兼容读取并在回流建议里提示迁移。
+- 目标代码库：用于代码锚定。
+
+如果 PRD 是 docx，按可用工具转换为文本；转换失败时提示用户提供 md/text。
+
+创建输出目录：
+
+```text
+_output/prd-distill/<slug>/
 ```
 
-## 3 步定义
+## 步骤 1：证据台账
 
-| 步骤 | 名称 | 输入 | 输出 | 人工确认 |
-|------|------|------|------|---------|
-| 1 | 解析 + 路由匹配 | PRD 文档 + `_reference/05-mapping.yaml（含 development_playbook）+ 07-business-context（可选）` | 路由结果 + 原始提取 | 否 |
-| 2 | 分类 + 结构化 | 路由结果 + inventory 检查 + war_stories + third_rails（可选） | 带 ADD/DELETE/MODIFY 的蒸馏草稿 | 否 |
-| 3 | 确认 + 输出 | 蒸馏草稿 + matched_scenarios + risk_flags | 最终蒸馏报告 | **是** — 确认所有 low/medium 项 + 变更分类 |
+先建立 `evidence.yaml`，后续所有判断只引用 evidence id。
 
-## 进度追踪
+证据类型：
 
-进度存储在 `_output/distill-progress.yaml` 中。
+- `prd`
+- `tech_doc`
+- `code`
+- `git_diff`
+- `negative_code_search`
+- `human`
+- `api_doc`
+- `reference`
+
+格式见 `references/output-contracts.md`。
+
+规则：
+
+- PRD 原文证据要能定位章节、页码、标题或段落。
+- 源码证据要能定位文件和符号；尽量带行号。
+- 搜不到也是证据，用 `negative_code_search`，记录 query 和搜索范围。
+
+## 步骤 2：Requirement IR
+
+将 PRD 转成 `requirement-ir.yaml`。
+
+每个 requirement 必须包含：
+
+- `id`
+- `title`
+- `intent`
+- `change_type`
+- `business_entities`
+- `rules`
+- `acceptance_criteria`
+- `target_layers`
+- `evidence`
+- `confidence`
+
+原则：
+
+- 业务规则、字段、枚举、限制、互斥、数量上限、流程差异都要拆成可追踪 requirement。
+- 不要把实现方案直接混进 IR；实现影响放到 layer impact。
+- 不确定项进入 `open_questions`。
+
+## 步骤 3：Layer Impact
+
+读取目标层适配器：
+
+- frontend / BFF / backend 单层：生成对应 impacts。
+- multi-layer：每层各生成 impacts，并合并进一个 `layer-impact.yaml`。
+
+每个 impact 必须说明：
+
+- requirement_id
+- layer
+- concern
+- target 文件/模块/接口/组件
+- current_state
+- planned_delta
+- risks
+- evidence
+- confidence
+
+ADD/MODIFY/DELETE/NO_CHANGE 必须由源码或负向搜索支撑。
+
+## 步骤 4：Contract Delta
+
+多层、接口、schema、事件、外部权益/券/支付/审计等需求必须生成 `contract-delta.yaml`。
+
+每个 contract 记录：
+
+- producer
+- consumers
+- contract_surface
+- request_fields
+- response_fields
+- alignment_status
+- checked_by
+- evidence
+
+判断：
+
+- `aligned`：生产者和消费者都有证据。
+- `needs_confirmation`：PRD/技术方案有描述，但某层源码或文档未确认。
+- `blocked`：字段、枚举、required、时序或责任归属冲突。
+- `not_applicable`：确认为单层内部变化。
+
+## 步骤 5：计划
+
+生成 `dev-plan.md`：
+
+- 按层分组。
+- 每个任务引用 requirement_id、impact_id、contract_id。
+- 标注建议修改文件、实现顺序、风险、人工确认项。
+- 不直接写代码，除非用户明确要求进入实现。
+
+生成 `qa-plan.md`：
+
+- PRD 验收场景。
+- 层内测试。
+- 契约测试。
+- 回归场景。
+- 边界/互斥/权限/批量/预览/审计等矩阵。
+
+QA case 必须追溯到 `requirement_id` 或 `contract_id`。
+
+## 步骤 6：Reference 回流
+
+生成 `reference-update-suggestions.yaml`：
 
 ```yaml
-session_id: "distill-{timestamp}"
-created_at: "2026-04-24T10:00:00Z"
-current_step: 1
-prd_source: "/path/to/prd.docx"
-reference_used: "_reference/05-mapping.yaml"
-layer: <frontend|bff|backend>  # 从 reference/01 的 layer 字段读取
-steps:
-  step_01:
-    status: in_progress         # not_started | in_progress | completed | failed
-    started_at: "2026-04-24T10:00:00Z"
-    completed_at: null
-  step_02:
-    status: not_started
-    started_at: null
-    completed_at: null
-    items_classified: 0
-  step_03:
-    status: not_started
-    started_at: null
-    completed_at: null
-last_updated: "2026-04-24T10:00:00Z"
+version: "3.0"
+suggestions:
+  - id: "REF-UPD-001"
+    type: "new_term | new_route | new_contract | new_playbook | contradiction | golden_sample_candidate"
+    target_file: "_reference/05-routing.yaml"
+    summary: ""
+    evidence: ["EV-001"]
+    priority: "high | medium | low"
+    proposed_patch: ""
 ```
 
-## 步骤间数据传递
+触发条件：
 
-| 步骤 | 写入文件 | 读取文件 |
-|------|---------|---------|
-| step-01 | `_output/distilled-<name>-routing.md` | PRD 原文 + `_reference/05-mapping.yaml` + `_reference/03-conventions.yaml（可选）` + `_reference/02-architecture.yaml（可选）` + `_reference/07-business-context.yaml（可选）` + **项目源码** |
-| step-02 | `_output/distilled-<name>-draft.md` | routing + `_reference/05-mapping.yaml` inventory + `_reference/03-conventions.yaml → war_stories（可选）` + `_reference/02-architecture.yaml → third_rails + change_heatmap（可选）` + **项目源码** |
-| step-03 | `_output/distilled-<name>.md` | draft + 用户确认 |
+- PRD 出现 reference 没有的术语、枚举、路由、契约或场景。
+- reference 说已实现但源码不存在，或源码存在但 reference 缺失。
+- 本次需求能作为高价值 golden sample。
 
-## 确认流程
+## 步骤 7：蒸馏报告
 
-蒸馏完成后，根据置信度分布和变更分类决定确认方式（step-03 执行）：
+`distilled-report.md` 是给人看的汇总：
 
-1. **变更分类确认**（新增）：展示 ADD/DELETE/MODIFY 汇总表，用户确认分类是否准确
-2. **置信度分级确认**（原有）：
-   - **全部 high** → 简要确认 `[Y/n]`
-   - **有 medium** → 列出逐个确认
-   - **有 low** → **强制逐个确认** + 展示 PRD 原文引用
+1. 需求摘要
+2. Requirement IR 汇总
+3. 分层影响
+4. 契约差异和阻塞项
+5. 开发计划
+6. QA 计划
+7. 需人工确认问题
+8. Reference 回流建议
 
-## 错误处理
+报告里不要隐藏低置信度项；低置信度是价值，不是瑕疵。
 
-- PRD 文件不存在 → 立即暂停 + 明确错误
-- PRD 内容无法解析 → 提示检查文件格式
-- reference/01 路由表无法匹配 → 标记 change_type: ADD，置信度 low
-- Token 超限 → 分段蒸馏
+## 暂停条件
 
-## 执行准则
+遇到以下情况暂停并说明：
 
-1. **reference 是快速通道，源码是最终权威** — reference 帮助 AI 快速理解项目结构，但不替代源码验证。涉及 ADD/MODIFY 判断时，必须用 Grep/Read 验证源码
-2. **代码锚定（Code Grounding）** — 每个变更分类（ADD/MODIFY/DELETE/NO_CHANGE）必须有源码依据。reference 中的 `implemented` 标记仅作为初始假设，关键判断必须锚定到实际代码
-3. **每个功能点必须标注变更类型** — ADD / MODIFY / DELETE / NO_CHANGE
-4. **每个字段必须标注置信度** — high / medium / low
-5. **每个字段必须标注来源引用** — PRD 原文段落或行号
-6. **不确定的一律标 low** — 禁止猜测后标为 high
-7. **蒸馏输出格式统一** — Markdown 表格（人可读）+ YAML 块（机器可读）
-8. **通用层感知** — 自动从 `05-mapping.yaml` 的 `layer` 字段确定层，按层适配分类和目标格式
-9. **验证来源透明** — 每个变更项标注 `verification_source`：`reference_only` / `code_verified` / `code_contradicts_reference`
-10. **场景感知** — 如果 PRD 匹配到 development_playbook scenario，必须展示对应的 checklist 和 common_mistakes
-11. **风险标记** — 所有 ADD/MODIFY 项必须检查 war_stories 和 third_rails，标记风险
-12. **向后兼容** — 新增 reference 维度全部为"可选"，旧版 reference 仍可正常蒸馏
+- PRD 无法读取且用户没有提供文本。
+- 目标仓库路径不存在。
+- 多层契约冲突导致计划不可执行。
+- 缺少关键证据，且无法通过源码或负向搜索补齐。
 
-## 步骤文件执行
+## 执行规则
 
-- `steps/step-01-parse.md` → 步骤 1
-- `steps/step-02-classify.md` → 步骤 2
-- `steps/step-03-confirm.md` → 步骤 3
+1. 先证据，后结论。
+2. IR 描述业务意图，impact 描述代码影响，contract 描述跨层接口。
+3. 业务规则不能只靠前端守。
+4. 多层需求必须给契约计划。
+5. 每个输出都要能回溯 evidence。
+6. 完成后简要告知输出路径和最重要的阻塞/风险。

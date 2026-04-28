@@ -1,35 +1,37 @@
-# 01-entities.yaml 格式模板
-# 步骤 6 合并时按此格式写入
+# 01-entities.yaml
+version: "3.0"
+layer: "<frontend|bff|backend|multi-layer>"
+project: "<project>"
+last_verified: "<YYYY-MM-DD>"
+verify_cadence: "14d"
+owner: "<team>"
 
-version: "2.0"
-layer: <frontend|bff|backend>
-project: <string>
-last_verified: "<日期>"
-
-# --- 枚举定义 ---
 enums:
-  CampaignType:
-    definition_file: "<路径>"
+  <EnumName>:
+    definition_file: "<path:line>"
     values:
-      - name: "ORDER"
-        business_meaning: "订单活动"
-      - name: "GAS_STATION"
-        business_meaning: "加油站活动"
-    # 层特有字段
-    registration: "src/config/template/render/rules/details/index.ts"  # BFF
-    # component_mapping: "src/components/FormField/"  # 前端
-    # api_endpoint: "POST /api/v1/campaign/create"  # 后端
+      - name: "<NAME>"
+        value: "<value>"
+        business_meaning: "<meaning>"
+    evidence:
+      - "EV-001"
+    confidence: high
 
-# --- 核心类型 ---
-types:
-  Builder:
-    definition_file: "<路径>"
-    description: "Schema 构建器"
-    key_methods: ["parseOnce", "parse"]
-    usage_note: "所有模板函数通过 Builder.parseOnce 生成 Schema"
+entities:
+  - id: "<ENTITY-ID>"
+    kind: "<component|schema_field|api|domain_object|model|validator|integration>"
+    target_file: "<path>"
+    code_symbol: "<symbol>"
+    layer_fields: {}
+    implemented: true
+    evidence:
+      - "EV-001"
+    confidence: high
 
-# --- 核心数据结构 ---
 structures:
-  ValidationResult:
-    definition_file: "<路径>"
-    fields: [...]
+  - id: "<STRUCTURE-ID>"
+    kind: "<type|interface|payload|db_model>"
+    definition_file: "<path:line>"
+    fields: []
+    evidence: []
+    confidence: medium

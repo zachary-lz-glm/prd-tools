@@ -1,135 +1,127 @@
-# PRD Tools — Claude Code Skills
+# PRD Tools：Claude Code 技能
 
-两个 Claude Code Skill，用于项目级领域知识构建和 PRD 蒸馏。
+两个可安装的 Claude Code 技能，用于把 PRD 变成可执行、可验证、可回流的工程计划。
 
-## Skills
+## 工作流
 
-### /build-reference — 领域知识构建
-
-自动扫描项目代码库，生成 8 个领域知识文件（7 YAML + 1 MD），供 PRD 蒸馏使用。
-
-**工作流（4 阶段）：**
-
-| 阶段 | 名称 | 说明 |
-|------|------|------|
-| Phase 0 | 上下文富化 | Git 历史深挖 + 历史 PRD↔Diff 对照分析（可选但推荐） |
-| Phase 1 | 结构扫描 | 目录扫描 → 模块地图（modules-index.yaml） |
-| Phase 2 | 深度分析 | 按关注点维度产出 8 个 reference 文件 + 确定性事实验证 |
-| Phase 3 | 质量门控 | 严重度分级检查（致命/重要/次要）+ 结构化幻觉检测 + TODO 校准 |
-
-**模式选择：**
-
-| 选项 | 说明 |
-|------|------|
-| A. 全量构建 | 首次使用，从零构建完整 reference |
-| B. 增量更新 | 根据代码变更增量更新 |
-| B2. 健康检查 | 检查 reference 是否过期（含深度 Lint） |
-| C. 质量检查 | 对已有 reference 做质量门控验证 |
-| E. 反馈回流 | 从蒸馏结果中提取矛盾，回流更新 reference |
-| F. 上下文收集 | 从历史需求素材中自动提取项目知识 |
-
-**生成的 reference 文件：**
-
+```text
+PRD
+  -> Requirement IR
+  -> Layer Impact
+  -> Contract Delta
+  -> 开发计划 / QA 计划
+  -> Reference 回流
+  -> 项目 Reference v3
 ```
+
+## 技能
+
+### /build-reference
+
+构建项目级 `_reference/`，适用于前端、BFF、后端。
+
+```text
 _reference/
-├── 00-index.md              # 导航索引 + 实体索引
-├── 01-entities.yaml         # 实体：枚举、核心类型、数据结构
-├── 02-architecture.yaml     # 结构：目录结构、注册机制、数据流、第三轨
-├── 03-conventions.yaml      # 规范：命名、代码模式、踩坑历史
-├── 04-constraints.yaml      # 约束：白名单、校验规则、致命错误
-├── 05-mapping.yaml          # 映射：PRD 路由表、字段映射、开发指南
-├── 06-glossary.yaml         # 术语：业务术语表、同义词
-└── 07-business-context.yaml # 业务：业务域概览、决策记录、隐式规则
+├── 00-index.md
+├── 01-entities.yaml
+├── 02-architecture.yaml
+├── 03-conventions.yaml
+├── 04-constraints.yaml
+├── 05-routing.yaml
+├── 06-glossary.yaml
+├── 07-business-context.yaml
+├── 08-contracts.yaml
+└── 09-playbooks.yaml
 ```
 
-### /prd-distill — PRD 蒸馏
+核心能力：
 
-读取领域知识 + 原始 PRD 文档，生成结构化的蒸馏报告（Markdown + YAML）。
+- 从源码、历史 PRD、技术方案和分支 diff 构建 Reference v3。
+- 用前端/BFF/后端适配器保持通用流程，同时保留层专属关注点。
+- 沉淀跨层契约、开发 playbook、QA 矩阵和 golden sample。
+- 从 `/prd-distill` 输出中回流术语、路由、契约、playbook 和矛盾修复建议。
 
-- **Step 1**：解析 PRD + reference 路由匹配 + 代码锚定验证
-- **Step 2**：变更分类（ADD/MODIFY/DELETE）+ 源码验证 + 风险标记
-- **Step 3**：变更分类确认 + 置信度检查 + 人工确认 → 最终蒸馏报告
+### /prd-distill
 
-支持前端、BFF、后端三层通用。
+读取 PRD、技术方案、reference 和源码，输出：
 
-## 核心特性
+```text
+_output/prd-distill/<slug>/
+├── evidence.yaml
+├── requirement-ir.yaml
+├── layer-impact.yaml
+├── contract-delta.yaml
+├── dev-plan.md
+├── qa-plan.md
+├── reference-update-suggestions.yaml
+└── distilled-report.md
+```
 
-- **确定性事实验证** — 每条事实（枚举值、分支计数、方法签名、数据流、字段映射）必须从源码 Read 后写入，附带 `verified_by: ["file.ts:line"]` 溯源链路
-- **质量门控分级** — 致命项（枚举完备性、路径存在性等）100% 通过才放行，非致命项允许 10% 容忍
-- **结构化幻觉检测** — 文件/函数/变量/机制四层幻觉扫描，杜绝编造
-- **反馈回流闭环** — 蒸馏阶段发现的 reference 矛盾可回流更新，知识越用越准
-- **断点续传** — 阶段间通过文件通信，中断后可从任意阶段恢复
+核心能力：
+
+- 每个需求都有变更类型、证据、置信度和开放问题。
+- 每层影响都经过源码或负向搜索锚定。
+- 多层需求自动产出契约差异和契约对齐状态。
+- 产出开发计划、QA 计划和 Reference 回流建议。
 
 ## 安装
 
-### 方式一：curl 一键安装（推荐）
-
-无需 git，一行命令安装到任意项目：
+### curl
 
 ```bash
-# 安装到当前项目
 curl -fsSL https://raw.githubusercontent.com/zachary-lz-glm/prd-tools/main/install.sh | bash
+```
 
-# 或指定目标项目路径
+指定目标项目：
+
+```bash
 curl -fsSL https://raw.githubusercontent.com/zachary-lz-glm/prd-tools/main/install.sh | bash -s /path/to/project
 ```
 
-安装后文件位于 `<项目>/.claude/skills/build-reference/` 和 `<项目>/.claude/skills/prd-distill/`。
+### Claude Code 插件市场
 
-### 方式二：Claude Code Plugin Marketplace
-
-适合团队协作，安装后所有成员自动获得 Skill。
+在目标项目里打开 Claude Code：
 
 ```bash
-cd /your-project && claude
+claude
 ```
 
-1. 输入 `/plugin` → 选择 Add Marketplace → 输入：
-   ```
+1. 输入 `/plugin`
+2. 添加插件市场
+3. 输入：
+   ```text
    git@github.com:zachary-lz-glm/prd-tools.git
    ```
-2. 切换到 Discover 标签 → 找到 `build-reference` 和 `prd-distill` → Space 启用
-3. 安装时选择 **Install for all collaborators on this repository** (project scope)
-4. 重启 Claude Code → 输入 `/build-reference` 验证
+4. 在插件发现列表中启用 `build-reference` 和 `prd-distill`
 
-### 方式三：手动 git clone
+### 手动安装
 
 ```bash
 TARGET="/path/to/your/project"
-
 git clone --depth 1 https://github.com/zachary-lz-glm/prd-tools.git /tmp/prd-tools
-
+mkdir -p "$TARGET/.claude/skills"
 cp -r /tmp/prd-tools/plugins/build-reference/skills/build-reference "$TARGET/.claude/skills/"
 cp -r /tmp/prd-tools/plugins/prd-distill/skills/prd-distill "$TARGET/.claude/skills/"
-
-rm -rf /tmp/prd-tools
 ```
 
-### 非 Claude Code 环境
+## 使用方式
 
-Skill 文件是纯 Markdown（`.md`），不依赖任何运行时。安装后：
+首次使用或项目结构变化后：
 
-- **Claude Code**：`/build-reference`、`/prd-distill` 直接使用
-- **Cursor / Windsurf / 其他**：将 `.claude/skills/<skill>/SKILL.md` 的内容作为指令发给 AI
-
-## 使用流程
-
-```bash
-# 第一步：构建领域知识（首次使用或项目结构变更后）
+```text
 /build-reference
+```
 
-# 第二步：PRD 蒸馏（每次拿到新 PRD 时）
+拿到新 PRD 后：
+
+```text
 /prd-distill
 ```
 
-## 更新
+## 设计原则
 
-- **curl 安装**：重新执行安装命令即可覆盖
-- **Marketplace**：`/plugin` → Marketplaces 标签 → 选择更新
-- **手动安装**：重新执行 clone + cp
-
-## 注意事项
-
-- Marketplace 只需添加一次，重启后自动加载
-- 遇到问题：`/plugin` → Errors 标签查看错误详情
-- Skill 文件是纯 Markdown，不依赖 Node.js 或任何运行时
+- Reference 是持久项目知识，不是一次性提示词。
+- 源码和技术文档是最终证据，reference 是快速通道。
+- 层差异通过适配器表达，不拆成三套工作流。
+- 多层需求必须显式处理契约。
+- 每次真实需求结束后，把矛盾和新增知识回流到 reference。

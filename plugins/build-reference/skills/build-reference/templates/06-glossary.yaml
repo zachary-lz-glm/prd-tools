@@ -1,26 +1,20 @@
-# 06-glossary.yaml 格式模板
+# 06-glossary.yaml
+version: "3.0"
+layer: "<frontend|bff|backend|multi-layer>"
+project: "<project>"
+last_verified: "<YYYY-MM-DD>"
+verify_cadence: "14d"
+owner: "<team>"
 
-version: "2.0"
-layer: <frontend|bff|backend>
-project: <string>
-last_verified: "<日期>"
-
-# --- 业务术语表 ---
 terms:
-  - code: "<代码变量名>"
-    business: "<中文业务术语>"
-    synonyms: ["<同义词列表>"]
-    description: "<说明>"
-    prd_keywords: ["<PRD 中可能的关键词>"]
+  - prd_keyword: ""
+    synonyms: []
+    field_id: ""
+    enum_value: ""
+    component: ""
+    contract_ref: ""
+    notes: ""
+    evidence: []
+    confidence: medium
 
-# --- 工作量标准 ---
-workload_standards:
-  S: "新增 1-2 个字段，不涉及新文件"
-  M: "新增 3-5 个字段，或涉及 1 个新文件"
-  L: "新增活动类型，涉及多文件变更"
-
-# --- 报告格式 ---
-report_format:
-  change_types: [ADD, MODIFY, DELETE, NO_CHANGE]
-  confidence_levels: [high, medium, low]
-  verification_sources: [code_verified, reference_only, code_contradicts_reference]
+workload_calibration: []

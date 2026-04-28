@@ -1,141 +1,94 @@
-# /build-reference — 领域知识构建工具
+---
+name: build-reference
+description: 为前端、BFF、后端通用的 PRD-to-code 工作流构建、更新、健康检查或回流项目 reference 知识库。适用于用户调用 /build-reference，或要求创建项目 reference、分层适配器、契约、playbook、golden sample、反馈回流机制时。
+---
 
-## 入口行为
+# /build-reference
 
-当用户输入 `/build-reference` 时，按以下流程执行：
+你是知识工程师。目标不是写一份“大而全的项目百科”，而是把项目中会影响 PRD 蒸馏、跨层契约对齐、开发计划和测试计划的事实，沉淀成可复用、可验证、可回流的 `_reference/`。
 
-### 1. 检查项目状态
+## 核心思路
 
-扫描当前目录，判断项目类型：
+工作流定位为：
 
-- 读取 `package.json`（如存在）检测项目特征
-- 通过 Glob 扫描关键目录（`src/`、`app/`、`components/` 等）
-- 读取 `_reference/00-index.md`（如存在）判断已有 reference 状态
+`PRD / code / history / tech docs -> reference v3 -> /prd-distill -> feedback -> reference`
 
-### 2. 检查断点续传
+reference v3 支撑后一阶段生成：
 
-读取 `_output/build-reference-progress.yaml`。
+- `requirement-ir.yaml`
+- `layer-impact.yaml`
+- `contract-delta.yaml`
+- `dev-plan.md`
+- `qa-plan.md`
+- `reference-update-suggestions.yaml`
 
-- 文件存在且包含未完成的阶段 → 使用 AskUserQuestion 询问用户：
-  - **继续上次进度**（从上次中断的阶段恢复）
-  - **重新开始**（清除旧进度，从 Phase 1 开始）
-- 文件不存在或所有阶段已完成 → 全新开始
+前端、BFF、后端共用同一套 reference 结构；层差异只放在适配器和具体条目里，不拆成三套流程。
 
-### 3. 模式选择
+## 入口流程
 
-使用 AskUserQuestion 展示以下选项：
+当用户运行 `/build-reference`：
 
-**选项 A: 全量构建** — 首次使用，从零构建完整 reference（7 个 YAML 文件）
+1. 识别当前项目路径、项目层级：`frontend | bff | backend | multi-layer`。
+2. 检查 `_reference/`、`_output/build-reference-progress.yaml`、`_output/reference-health.yaml` 是否存在。
+3. 如果有未完成进度，询问继续还是重跑；如果 reference 过期或有矛盾，优先建议健康检查或反馈回流。
+4. 展示模式：
+   - `A 全量构建`：首次构建 reference v3。
+   - `B 增量更新`：按 git diff / 文件变更更新受影响条目。
+   - `B2 健康检查`：路径、枚举、契约、playbook 和矛盾计数检查。
+   - `C 质量门控`：对已有 reference 执行证据、契约和幻觉检查。
+   - `E 反馈回流`：读取 `/prd-distill` 输出的矛盾和建议，确认后更新 reference。
+   - `F 上下文收集`：从历史 PRD、技术方案和分支 diff 抽取 golden sample。
+5. 读取 `workflow.md` 执行对应阶段。
 
-选择后引导用户：
-1. 确认项目路径（默认当前目录）
-2. 确认项目类型：前端 / BFF / 后端（自动检测结果需用户确认）
-3. 进入 3 阶段工作流（按 `workflow.md` 执行）
+## Reference v3
 
-**选项 B: 增量更新** — 已有 reference，根据代码变更增量更新
+输出到项目根目录：
 
-选择后：
-1. 检查 `_reference/` 目录完整性（8 个文件是否齐全）
-2. 对比 `last_verified` 日期与 git log，识别变更范围
-3. 只重新扫描变更影响的文件
-4. 保留未变更部分，只更新受影响的章节
-5. 更新 `last_verified` 日期
-6. 检查 `_output/reference-health.yaml`（如存在）中的衰减告警
-7. 额外检查：07-business-context 的 decision_log 是否需要新增条目，03-conventions 的 war_stories 是否需要补充，05-mapping 的 development_playbook 是否覆盖了新模式
-
-**选项 B2: 健康检查** — 快速检查 reference 是否过期（含深度 Lint）
-
-选择后：
-1. 读取 `_output/reference-health.yaml`（如不存在则创建）
-2. 遍历所有 reference 文件中的文件路径，用 Glob 验证存在
-3. 检查 `last_verified` 是否超过 14 天
-4. 检查上次 `/prd-distill` 中报告的 `code_contradicts_reference` 数量
-5. **深度 Lint 检查**：
-   - **代码模式匹配**：Grep reference 中描述的代码模式（如注册 switch-case、模板函数签名）到源码，验证模式仍然匹配
-   - **跨文件枚举一致性**：01-entities 的枚举值与 04-constraints 的枚举校验规则一致
-   - **孤立条目检测**：05-mapping 的 inventory 中标记为 `implemented: true` 但从未被 prd_routing 引用的条目
-   - **实体索引有效性**：00-index.md 实体索引中指向的文件和章节是否存在
-6. 输出健康报告：
-   ```
-   Reference 健康状态：
-   - 文件路径有效性：N/M 通过
-   - 上次验证：X 天前
-   - 蒸馏矛盾报告：X 次
-   - 代码模式匹配：N/M 通过
-   - 跨文件枚举一致性：✅ 一致 / ❌ 不一致（差异详情）
-   - 孤立条目：N 个
-   - 实体索引有效性：M/N 有效
-   - 状态：✅ 健康 / ⚠️ 需更新 / ❌ 需重建
-   ```
-
-**选项 C: 质量检查** — 对已有 reference 做质量门控验证
-
-选择后：
-1. 读取所有 7 个 reference 文件
-2. 执行 Phase 3 的三轮 Critic 检查
-3. 输出质量报告 + 改进建议
-
-**选项 D: 帮助** — 展示使用指南
-
-展示以下内容：
-- reference 7 文件结构说明（按关注点维度）
-- YAML 规范要点
-- 各层（前端/BFF/后端）的差异
-- 示例 reference 文件路径
-
-**选项 E: 反馈回流** — 从 `/prd-distill` 蒸馏结果中提取 reference 矛盾，人工确认后回流更新
-
-**选项 F: 上下文收集** — 从历史需求素材中自动提取项目知识（零问答，建议在全量构建前先跑一次）
-
-选择后读取 `steps/step-00-context-enrichment.md` 执行：
-1. **Git 历史深挖**（自动）— 贡献者画像、热点变更模式、fixup/revert 信号
-2. **PRD ↔ Git Diff 对照**（用户提供素材，AI 自动分析）：
-   - 用户提供 2~3 个历史 PRD 文件路径 + 对应 git 分支名
-   - AI 自动分析：PRD 说了什么 → 实际改了哪些文件 → 按什么模式改
-   - 自动归纳：开发场景（playbook）、踩坑信号（war stories）、高风险文件（third rails）
-3. **后端技术文档解析**（可选）— 提取 API 变更、业务规则、字段映射
-4. 结果存入 `_output/context-enrichment.yaml`，供 Phase 2 深度分析时引用
-
-选择后：
-1. 扫描 `_output/distilled-*.md`，提取所有 `verification_source: code_contradicts_reference` 条目
-2. 如未找到矛盾条目：提示"未检测到 reference 矛盾，无需回流"
-3. 如找到矛盾条目：读取 `steps/step-04-feedback-ingest.md` 执行反馈回流流程
-4. 输出 `_output/feedback-ingest-report.yaml`（回流报告）
-
-### 4. 执行工作流
-
-模式选择完成后：
-
-- **全量构建** → 检查 `_output/context-enrichment.yaml` 是否存在，不存在则提示"建议先运行 Option F 收集业务上下文"。确认后读取 `workflow.md` 并按阶段执行
-- **增量更新** → 读取 `workflow.md` 跳到 Phase 2（只分析变更部分）
-- **质量检查** → 读取 `steps/step-03-quality-gate.md` 执行
-- **帮助** → 展示后重新回到模式选择
-- **反馈回流** → 读取 `steps/step-04-feedback-ingest.md` 执行
-- **上下文收集** → 读取 `steps/step-00-context-enrichment.md` 执行
-
-## 输出目录结构
-
-构建完成后，目标项目根目录下生成：
-
-```
+```text
 _reference/
-├── 00-index.md              # 导航索引 + 实体索引
-├── 01-entities.yaml         # 实体：枚举、核心类型、数据结构、注册信息
-├── 02-architecture.yaml     # 结构：目录结构、注册机制、数据流、模块依赖、第三轨、变更热力图
-├── 03-conventions.yaml      # 规范：命名、代码模式（gold patterns）、反模式、踩坑历史、代码风格
-├── 04-constraints.yaml      # 约束：白名单、校验规则、致命错误、检查清单
-├── 05-mapping.yaml          # 映射：PRD 路由表、能力边界、字段映射、变更分类、需求场景开发指南
-├── 06-glossary.yaml         # 术语：业务术语表、同义词、工作量标准
-└── 07-business-context.yaml # 业务：业务域概览、决策记录、隐式业务规则、项目里程碑
+├── 00-index.md
+├── 01-entities.yaml
+├── 02-architecture.yaml
+├── 03-conventions.yaml
+├── 04-constraints.yaml
+├── 05-routing.yaml
+├── 06-glossary.yaml
+├── 07-business-context.yaml
+├── 08-contracts.yaml
+└── 09-playbooks.yaml
 ```
+
+读取 `references/reference-v3.md` 获取每个文件的职责、必填字段、质量门控和旧版迁移规则。创建骨架时优先复用 `templates/`。
+
+## 分层适配器
+
+层级判断后，读取 `references/layer-adapters.md` 中对应章节：
+
+- 前端：组件、表单、状态、路由、API client、i18n、预览、客户端校验。
+- BFF：活动类型、schema template、联动、预览、批量、前端契约、上游契约。
+- 后端：API 契约、领域对象、服务端校验、持久化、异步任务、下游集成、审计、可观测。
+
+通用流程不变；适配器只决定扫描优先级、事实类型、质量门控和输出计划章节。
+
+## 证据规则
+
+必须遵守：
+
+- 只写验证过的事实；不确定写 `TODO` + `confidence: low`。
+- 每条事实带 `evidence` 或 `verified_by`，指向 PRD、技术文档、源码、git diff、负向搜索或人工确认。
+- 源码是最终权威；reference 是加速器。
+- 枚举、分支、方法签名、契约字段、业务规则不能从文件名或 import 推断，必须读源文件。
+- 跨层契约要记录 producer、consumer、request/response 字段、alignment_status、checked_by。
 
 ## 文件索引
 
-| 文件 | 职责 |
-|------|------|
-| `workflow.md` | 4 阶段工作流编排 |
-| `steps/step-00-context-enrichment.md` | Phase 0: 上下文富化（Git 深挖 + PRD↔Diff 对照分析） |
-| `steps/step-01-structure-scan.md` | Phase 1: 结构扫描 |
-| `steps/step-02-deep-analysis.md` | Phase 2: 深度分析（按关注点维度产出 8 文件） |
-| `steps/step-03-quality-gate.md` | Phase 3: 质量门控（含深度 Lint + 场景验证） |
-| `steps/step-04-feedback-ingest.md` | 反馈回流（从 prd-distill 蒸馏结果回流更新 reference） |
+| 文件 | 用途 |
+|---|---|
+| `workflow.md` | 主流程：上下文收集、扫描、深度分析、质量门控、反馈回流 |
+| `references/reference-v3.md` | reference v3 文件结构和质量规则 |
+| `references/layer-adapters.md` | 前端/BFF/后端分层适配器 |
+| `references/output-contracts.md` | IR、影响分析、契约差异、计划和反馈输出契约 |
+| `references/external-practices.md` | 外部 AI 工程化实践摘要 |
+| `references/selectable-reward-golden-sample.md` | 可选择奖励需求 golden sample |
+| `steps/step-00-greenfield.md` | 无/少代码项目的 v3 reference 构建 |
+| `templates/*.yaml` | reference v3 骨架模板 |

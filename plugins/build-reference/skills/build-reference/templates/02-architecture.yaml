@@ -1,56 +1,36 @@
-# 02-architecture.yaml 格式模板
+# 02-architecture.yaml
+version: "3.0"
+layer: "<frontend|bff|backend|multi-layer>"
+project: "<project>"
+last_verified: "<YYYY-MM-DD>"
+verify_cadence: "14d"
+owner: "<team>"
 
-version: "2.0"
-layer: <frontend|bff|backend>
-project: <string>
-last_verified: "<日期>"
+modules:
+  - id: "<module-id>"
+    path: "<path>"
+    responsibilities: []
+    key_files: []
+    entrypoints: []
+    evidence: []
+    confidence: medium
 
-# --- 目录结构 ---
-directory_structure: |
-  <用缩进表示的目录树，标注每个目录的职责>
+data_flows:
+  - id: "<flow-id>"
+    name: "<flow name>"
+    path:
+      - "<source>"
+      - "<target>"
+    contract_refs: []
+    evidence: []
+    confidence: medium
 
-# --- 注册机制 ---
-registration_mechanisms:
-  campaign_type_registration:
-    location: "src/config/template/render/rules/details/index.ts"
-    pattern: "switch-case"
-    description: "新增活动类型必须在 switch 中添加分支"
+registries:
+  - name: "<registry>"
+    file: "<path:line>"
+    registration_pattern: ""
+    evidence: []
 
-# --- 数据流 ---
-data_flow:
-  - path: "Controller → Service → ComponentModel → Schema"
-    description: "主渲染流程"
-    layers: ["controller", "service", "model"]
-
-# --- 跨模块依赖 ---
-cross_module_dependencies:
-  - from: "basic"
-    to: "rules"
-    type: "data_flow"
-    detail: "basic 中的 campaign_type 决定 rules 中 rewardCondition 的渲染模式"
-    critical: true
-
-dependency_rules:
-  - "修改 campaignType 枚举必须同步更新 rules 中的 switch-case"
-
-# --- 第三轨（高风险区域）---
-third_rails:
-  - file: "<被 ≥3 个文件 import 的枢纽文件>"
-    reason: "<为什么危险>"
-    impact: "<影响范围>"
-    guidance: "<修改时必须注意什么>"
-    related_war_story: "<关联的 war_story ID，如有>"
-
-# --- 变更热力图 ---
-change_heatmap:
-  hot:   # 30 天内 > 5 次提交
-    - file: "<路径>"
-      commits_30d: N
-      note: "<说明>"
-  warm:  # 30 天内 1-5 次提交
-    - file: "<路径>"
-      commits_30d: N
-      note: "<说明>"
-  cold:  # 90 天内未修改
-    - file: "<路径>"
-      note: "<说明>"
+third_rails: []
+change_heatmap: []
+dependency_hubs: []

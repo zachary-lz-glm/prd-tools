@@ -1,0 +1,24 @@
+# 08-contracts.yaml
+version: "3.0"
+layer: "<frontend|bff|backend|multi-layer>"
+project: "<project>"
+last_verified: "<YYYY-MM-DD>"
+verify_cadence: "14d"
+owner: "<team>"
+
+contracts:
+  - id: "CONTRACT-EXAMPLE"
+    name: ""
+    producer: "<frontend|bff|backend|external>"
+    consumers: []
+    change_type: "ADD | MODIFY | DELETE | NO_CHANGE"
+    contract_surface: "<endpoint|schema|event|payload|db_table|external_api>"
+    request_fields: []
+    response_fields: []
+    compatibility: ""
+    alignment_status: "aligned | needs_confirmation | blocked | not_applicable"
+    checked_by: []
+    evidence: []
+    confidence: medium
+
+alignment_rules: []

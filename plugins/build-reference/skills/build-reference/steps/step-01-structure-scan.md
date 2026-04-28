@@ -1,128 +1,44 @@
-# step-01: 结构扫描（Phase 1）
+# 步骤 1：结构扫描
 
-## MANDATORY RULES
+## 目标
 
-1. 只使用 Glob 和 Grep 工具扫描项目，不修改任何文件
-2. 模块划分基于目录结构和文件依赖关系，不猜测业务含义
-3. 所有文件路径必须是 Glob/Grep 实际找到的，不编造路径
-4. 不确定归属的文件标 TODO，不强行归类
-5. 扫描结果以 YAML 格式输出
-6. **只扫描业务源码** — 排除以下文件/目录（遵循 workflow.md 准则 7-8）：
-   - 排除目录：`node_modules`, `dist`, `build`, `.git`, `.husky`, `.vscode`, `.idea`, `coverage`, `__tests__`, `__mocks__`, `mock`, `mocks`, `.claude`, `_output`, `_reference`
-   - 排除模式：`*.config.ts`, `*.config.js`, `*.mock.*`, `*.test.*`, `*.spec.*`, `*.fixture.*`
-   - 排除配置：`.eslintrc*`, `.prettierrc*`, `.babelrc*`, `.env*`, `tsconfig.*`, `jest.*`, `webpack.*`, `vite.*`
-   - 排除依赖锁：`package-lock.json`, `yarn.lock`, `pnpm-lock.yaml`
-   - **例外**：`package.json` 仅在步骤 2 "检测项目类型" 时读取 `dependencies`/`scripts`
+创建 `_output/modules-index.yaml`，记录项目层级、模块、关键文件、入口点、潜在契约面和证据。
 
-## INPUT
+## 输入
 
-| 输入 | 来源 | 格式 |
-|------|------|------|
-| 项目目录 | 用户指定或当前目录 | 文件系统路径 |
-| 项目类型 | 自动检测 + 用户确认 | frontend / bff / backend |
+- 当前项目路径或用户提供的路径。
+- 可选层级提示：`frontend | bff | backend | multi-layer`。
+- `references/layer-adapters.md`。
 
-## OUTPUT
+## 执行
 
-| 输出 | 路径 | 格式 |
-|------|------|------|
-| 模块索引 | `_output/modules-index.yaml` | YAML |
-| 进度更新 | `_output/build-reference-progress.yaml` | YAML |
+1. 根据代码形态判断层级；不确定时让用户确认。
+2. 加载对应适配器的扫描根目录。
+3. 使用限定范围的 `rg`/glob，不扫描兄弟项目。
+4. 排除依赖、构建产物、测试、mock、fixture、生成物、`_reference`、`_output` 和 `.git`。
+5. 识别模块、关键文件、入口点、注册点、数据流线索和潜在契约面。
 
-### modules-index.yaml 结构
+## 输出
 
 ```yaml
-version: "1.0"
-project_type: frontend
-project_path: "."
-scan_at: "2026-04-24T10:00:00Z"
-git_stats:
-  total_files: N
-  main_languages: [TypeScript, CSS]
-
+version: "3.0"
+project: ""
+layer: "frontend | bff | backend | multi-layer"
+adapter: "frontend | bff | backend"
+scan_at: ""
 modules:
-  - name: "routing"
-    description: "路由配置模块"
-    key_files:
-      - path: "src/App.tsx"
-        role: "路由入口"
-    five_questions:
-      - "这组路由配置了哪些页面？"
-      - "新增页面要改哪些文件？"
-      - "路由懒加载是怎么做的？"
-      - "路由之间有什么隐式依赖？"
-      - "路由守卫/权限逻辑在哪？"
-    status: pending
-
-  - name: "components"
-    description: "组件注册与渲染模块"
-    key_files: [...]
-    five_questions: [...]
-    status: pending
+  - id: ""
+    path: ""
+    responsibilities: []
+    key_files: []
+    entrypoints: []
+    likely_contracts: []
+    evidence: []
+unclassified_files: []
 ```
 
-## EXECUTION
+## 校验
 
-### 执行步骤
-
-1. **初始化**
-   - 创建 `_output/` 目录
-   - 创建 `_output/build-reference-progress.yaml`（phase_1: in_progress）
-   - 初始化 `_reference/` 目录骨架（7 个空文件 + metadata 头）
-
-2. **检测项目类型**
-   - BFF 特征：`serverless.yml`、`config/template/render/`、`config/constant/campaignType.ts`
-   - 前端特征：`src/components/FormField/`、`src/pages/`、`package.json` 含 React
-   - 后端特征：`pom.xml`、`build.gradle`、`go.mod`、`src/main/java/`
-   - 用 Glob 逐一检查特征文件
-   - 向用户确认检测结果
-
-3. **扫描目录结构**
-   - Glob `**/*.{ts,tsx,js,jsx}` 获取源文件列表，**排除非业务文件**：
-     - 排除 `node_modules/`, `dist/`, `build/`, `coverage/`, `__tests__/`, `__mocks__/`, `mock/`, `mocks/`
-     - 排除 `*.config.*`, `*.mock.*`, `*.test.*`, `*.spec.*`, `*.fixture.*`
-     - 排除 `.eslintrc*`, `.prettierrc*`, `tsconfig.*`, `jest.*`, `webpack.*`, `vite.*`
-   - 统计目录层级和文件分布
-   - 识别入口文件（index.ts、app.tsx、main.ts 等）
-
-4. **识别模块边界**
-   - 按一级/二级目录划分候选模块
-   - 每个模块找到关键入口文件
-   - 为每个模块生成 5 个分析问题（Meta 五问框架）
-   - 不确定归属的文件标 TODO
-
-5. **生成模块索引**
-   - 写入 `_output/modules-index.yaml`
-   - 更新进度文件
-
-## CONFIRMATION POINT
-
-扫描完成后展示模块划分结果：
-
-```
-发现 N 个模块：
-1. routing — 路由配置（X 个文件）
-2. components — 组件注册（X 个文件）
-3. store — 状态管理（X 个文件）
-...
-未归属文件：X 个（标记 TODO）
-```
-
-用户可以：
-- 合并模块（两个模块合为一个）
-- 拆分模块（一个模块拆为多个）
-- 重命名模块
-- 添加遗漏的模块
-- 确认当前划分
-
-确认完成后更新 `_output/modules-index.yaml`。
-
-## VALIDATION
-
-1. **路径有效性** — modules-index 中所有 key_files 路径实际存在
-2. **覆盖完整** — 源文件总数的 90%+ 已归属到某个模块或标 TODO
-3. **问题完整** — 每个模块有 5 个分析问题
-4. **格式合规** — YAML 合法，符合 modules-index 结构
-
-## NEXT STEP
-
-确认完成 → 进入 [step-02-deep-analysis.md](./step-02-deep-analysis.md)
+- 所有关键文件都存在。
+- 当前层适配器的核心扫描根目录已检查。
+- 无法归类的文件要列入 `unclassified_files`，不要猜测归属。

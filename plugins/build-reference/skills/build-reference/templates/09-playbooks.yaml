@@ -1,0 +1,31 @@
+# 09-playbooks.yaml
+version: "3.0"
+layer: "<frontend|bff|backend|multi-layer>"
+project: "<project>"
+last_verified: "<YYYY-MM-DD>"
+verify_cadence: "14d"
+owner: "<team>"
+
+playbooks:
+  - id: "PLAYBOOK-001"
+    scenario: ""
+    trigger_signals: []
+    layer_steps:
+      frontend: []
+      bff: []
+      backend: []
+    contract_checks: []
+    qa_matrix: []
+    common_mistakes: []
+    evidence: []
+    confidence: medium
+
+golden_samples:
+  - id: "SAMPLE-001"
+    name: ""
+    source_docs: []
+    requirement_ids: []
+    changed_files: []
+    contract_refs: []
+    lessons: []
+    evidence: []
