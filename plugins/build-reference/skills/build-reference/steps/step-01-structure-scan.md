@@ -21,8 +21,8 @@
 ## 输出
 
 ```yaml
-schema_version: "3.1"
-tool_version: "2.2.0"
+schema_version: "4.0"
+tool_version: "<tool-version>"
 project: ""
 layer: "frontend | bff | backend | multi-layer"
 adapter: "frontend | bff | backend"

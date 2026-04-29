@@ -2,7 +2,7 @@
 
 ## 目标
 
-在构建 reference v3.1 之前，从历史 PRD、技术方案、分支和 diff 中提取可复用项目知识。
+在构建 reference v4.0 之前，从历史 PRD、技术方案、分支和 diff 中提取可复用项目知识。
 
 本步骤只收集事实，不修改 `_reference/`。
 
@@ -32,8 +32,8 @@
 写入 `_output/context-enrichment.yaml`：
 
 ```yaml
-schema_version: "3.1"
-tool_version: "2.2.0"
+schema_version: "4.0"
+tool_version: "<tool-version>"
 collected_at: ""
 samples:
   - id: "SAMPLE-001"
@@ -58,11 +58,13 @@ cross_sample_patterns:
   risks: []
 ```
 
-## 映射到 Reference v3.1
+## 映射到 Reference v4.0
 
-- 术语候选 -> `06-glossary.yaml`
-- 路由信号 -> `05-routing.yaml`
-- 契约面 -> `08-contracts.yaml`
-- playbook、坑点、QA 用例、golden sample -> `09-playbooks.yaml`
-- 高风险文件 -> `02-architecture.yaml.third_rails`
-- 业务决策 -> `07-business-context.yaml`
+- 术语候选 -> `05-domain.yaml`
+- 路由信号 -> `04-routing-playbooks.yaml`
+- 契约面 -> `03-contracts.yaml`
+- playbook、坑点、QA 用例、golden sample -> `04-routing-playbooks.yaml`
+- 高风险文件 -> `02-coding-rules.yaml`（danger_zones）
+- 业务决策 -> `05-domain.yaml`（decision_log）
+- 枚举、结构体、模块 -> `01-codebase.yaml`
+- 编码规范和约束 -> `02-coding-rules.yaml`

@@ -192,35 +192,28 @@ reference-update       把新知识回流到 _reference/
 
 ## 项目知识库：_reference/
 
-`_reference/` 是项目长期记忆，不是某一次 PRD 的临时输出。
+`_reference/` 是项目长期记忆，不是某一次 PRD 的临时输出。v4.0 采用 6 文件结构，每个事实只存在于一个文件（SSOT），其他文件通过 ID 引用。
 
 | 文件 | 一句话作用 | 不应该放什么 |
 |---|---|---|
-| `00-index.md` | 导航、版本、健康状态 | 大量事实细节 |
-| `project-profile.yaml` | 项目画像、技术栈、入口、测试命令 | 单次 PRD 计划 |
-| `01-entities.yaml` | 已存在的枚举、字段、DTO、endpoint、领域对象 | 流程和开发步骤 |
-| `02-architecture.yaml` | 模块职责、数据流、注册点、调用链 | 字段级契约 |
-| `03-conventions.yaml` | 项目通常怎么写代码 | 业务红线、跨层契约 |
-| `04-constraints.yaml` | 什么不能错、必须拦截 | 普通代码风格 |
-| `05-routing.yaml` | PRD 信号如何路由到层和能力面 | 完整实现方案 |
-| `06-glossary.yaml` | 业务术语、同义词、字段映射 | 完整业务规则 |
-| `07-business-context.yaml` | 背景、隐式规则、历史决策 | 代码实现细节 |
-| `08-contracts.yaml` | 跨层和外部系统契约 | 开发步骤 |
-| `09-playbooks.yaml` | 高频需求打法、QA 矩阵、常见坑 | 字段级契约重复 |
+| `00-portal.md` | 人类导航、项目画像摘要、按场景阅读指南 | 大量事实细节 |
+| `project-profile.yaml` | 项目画像、技术栈、入口、能力面、测试命令 | 单次 PRD 计划 |
+| `01-codebase.yaml` | 静态清单：目录、枚举、模块、注册点、数据流 | 字段级契约、编码规则、实现步骤 |
+| `02-coding-rules.yaml` | 编码规则：规范、约束、红线、反模式、踩坑经验 | 契约字段、打法步骤 |
+| `03-contracts.yaml` | 跨层和外部契约：字段级信息的唯一权威来源 | 编码规则、开发步骤、枚举值列表 |
+| `04-routing-playbooks.yaml` | PRD 路由信号 + 场景打法 + QA 矩阵 + golden samples | 枚举值、字段级契约、编码规则 |
+| `05-domain.yaml` | 业务领域：术语、背景、隐式规则、历史决策 | 代码路径、编码规则、契约字段 |
 
-### 03 和 04 的边界
+### 按场景阅读
 
-| 文件 | 核心问题 | 放这里的例子 |
+| 我想... | 先看 | 再看 |
 |---|---|---|
-| `03-conventions.yaml` | 这个项目通常怎么写？ | 命名、注册模式、mapper 写法、错误处理习惯 |
-| `04-constraints.yaml` | 哪些事不能错、不能生成、必须拦截？ | 枚举白名单、金额范围、必填规则、质量门禁 |
-
-判断口诀：
-
-| 如果它是在说 | 放哪 |
-|---|---|
-| “顺着项目习惯应该怎么写” | `03-conventions.yaml` |
-| “越过这条线就会出错或有线上风险” | `04-constraints.yaml` |
+| 了解项目整体结构 | `01-codebase.yaml` | `project-profile.yaml` |
+| 新增一个活动类型 | `04-routing-playbooks.yaml` | `02-coding-rules.yaml`, `03-contracts.yaml` |
+| 对齐跨层接口 | `03-contracts.yaml` | `01-codebase.yaml` |
+| 理解业务术语 | `05-domain.yaml` | - |
+| 查编码规范和红线 | `02-coding-rules.yaml` | - |
+| 查高频需求怎么改 | `04-routing-playbooks.yaml` | `02-coding-rules.yaml` |
 
 ## 构建过程文件
 

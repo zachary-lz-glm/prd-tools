@@ -1,5 +1,5 @@
 # project-profile.yaml
-schema_version: "3.1"
+schema_version: "4.0"
 tool_version: "<tool-version>"
 layer: "<frontend|bff|backend|multi-layer>"
 project: "<project>"

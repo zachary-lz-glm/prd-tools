@@ -1,4 +1,4 @@
 interface:
   display_name: "Build Reference"
   short_description: "构建项目画像、能力面 reference、契约和回流机制"
-  default_prompt: "使用 $build-reference 为当前项目构建 v3.1 reference：项目画像、能力面、契约、playbook、健康检查和质量门控。"
+  default_prompt: "使用 $build-reference 为当前项目构建 v4.0 reference：项目画像、能力面、契约、打法、健康检查和质量门控。"
