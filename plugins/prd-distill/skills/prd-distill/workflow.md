@@ -157,30 +157,33 @@ ADD/MODIFY/DELETE/NO_CHANGE 必须由源码或负向搜索支撑。
 
 ## 步骤 5：计划
 
-生成 `plan.md`：
+生成 `plan.md`（可执行的开发操作手册）：
 
-- 合并开发计划、QA 计划和契约对齐计划。
+- 精确到文件路径和行号。
+- 用 `- [ ]` checklist 格式，可直接勾选。
+- 每个任务包含：目标文件、操作描述、参考实现、关联 REQ/IMP/CONTRACT、验证命令。
+- 按 Phase 分组，Phase 间标注依赖。
 - 按命中的层分组；没有命中的层不要硬写空章节。
-- 每个任务引用 requirement_id、impact_id、contract_id。
-- 标注建议修改文件、实现顺序、风险、人工确认项。
+- 合并开发计划、QA 计划和契约对齐计划。
 - QA case 必须追溯到 `requirement_id` 或 `contract_id`。
 - 不直接写代码，除非用户明确要求进入实现。
+- 格式详见 `references/output-contracts.md` 中 plan.md 模板。
 
 ## 步骤 6：Reference 回流
 
 生成 `artifacts/reference-update-suggestions.yaml`：
 
 ```yaml
-schema_version: "4.0"
-tool_version: "<tool-version>"
+schema_version: “4.0”
+tool_version: “<tool-version>”
 suggestions:
-  - id: "REF-UPD-001"
-    type: "new_term | new_route | new_contract | new_playbook | contradiction | golden_sample_candidate"
-    target_file: "_reference/04-routing-playbooks.yaml"
-    summary: ""
-    evidence: ["EV-001"]
-    priority: "high | medium | low"
-    proposed_patch: ""
+  - id: “REF-UPD-001”
+    type: “new_term | new_route | new_contract | new_playbook | contradiction | golden_sample_candidate”
+    target_file: “_reference/04-routing-playbooks.yaml”
+    summary: “”
+    evidence: [“EV-001”]
+    priority: “high | medium | low”
+    proposed_patch: “”
 ```
 
 触发条件：
@@ -191,18 +194,23 @@ suggestions:
 
 ## 步骤 7：人类报告
 
-`report.md` 是给人看的汇总，优先一屏可读：
+`report.md` 采用渐进式披露（Progressive Disclosure）结构，同一文件内从结论到细节逐层展开：
 
-1. 需求摘要
-2. 命中的层和能力面
-3. 关键开发结论
-4. 契约风险和阻塞项
-5. Top open questions
-6. 计划和 artifacts 索引
+1. **需求摘要**（30秒决策）：一句话 + 变更类型统计
+2. **影响范围**：命中的层、能力面、关键文件
+3. **关键结论**：带 REQ-ID 和代码路径
+4. **变更明细表**：所有 IMP-* 项，精确到文件路径
+5. **字段清单**：按功能模块分组，含类型/必填/契约ID
+6. **校验规则**：规则描述 + 错误文案 + 目标文件
+7. **开发 Checklist**：可直接执行的操作列表
+8. **契约风险**：needs_confirmation / blocked 项
+9. **Top Open Questions**：最多5个
+
+格式详见 `references/output-contracts.md` 中 report.md 模板。
 
 报告里不要隐藏低置信度项；低置信度是价值，不是瑕疵。
 
-生成 `questions.md`，只放阻塞问题、需 owner 确认的问题和低置信度假设。若没有问题，明确写“暂无阻塞问题”。
+生成 `questions.md`，只放阻塞问题、需 owner 确认的问题和低置信度假设。若没有问题，明确写”暂无阻塞问题”。
 
 ## 暂停条件
 

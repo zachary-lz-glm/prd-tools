@@ -102,8 +102,8 @@ _output/prd-distill/<slug>/
 | `prd-ingest/tables/` | 抽出的表格 markdown，便于单独核对 | 不修正原表格内容 |
 | `prd-ingest/extraction-quality.yaml` | 读取质量门禁：是否缺文本、是否有图片未分析、是否有复杂表格 | 不写开发计划 |
 | `prd-ingest/conversion-warnings.md` | 给人看的转换风险列表 | 不替代 `questions.md` |
-| `report.md` | 给人看的结论摘要：需求、影响范围、关键风险、阻塞问题 | 不展开完整证据链，不写所有实现细节 |
-| `plan.md` | 开发任务、QA 矩阵、契约对齐任务、建议顺序 | 不复制 PRD 原文，不替代代码实现 |
+| `report.md` | 渐进式披露：需求摘要→变更明细表→字段清单→校验规则→开发Checklist→契约风险→Questions | 不展开完整 YAML 证据链（见 artifacts） |
+| `plan.md` | 可执行的开发操作手册：精确到文件路径+行号，checklist 格式，QA 矩阵 | 不复制 PRD 原文，不替代代码实现 |
 | `questions.md` | 阻塞问题、低置信度假设、需要 owner 确认的事项 | 不放普通备注或已确认结论 |
 | `artifacts/evidence.yaml` | 证据台账：PRD、技术方案、源码、负向搜索、人工确认 | 不下结论 |
 | `artifacts/requirement-ir.yaml` | 结构化需求：业务意图、规则、验收条件、变更类型 | 不写文件级实现细节 |

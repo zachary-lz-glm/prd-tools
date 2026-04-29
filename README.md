@@ -260,8 +260,8 @@ _output/prd-distill/<slug>/
 
 | 文件 | 用途 | 读者 |
 |---|---|---|
-| `report.md` | 一屏可读的结论报告：需求摘要、影响范围、关键风险、阻塞问题 | 负责人、PM、研发、QA |
-| `plan.md` | 合并后的开发、测试、契约对齐计划 | 研发、QA、技术负责人 |
+| `report.md` | 渐进式披露报告：需求摘要→变更明细表→字段清单→校验规则→开发Checklist→契约风险→Questions | 负责人、PM、研发、QA |
+| `plan.md` | 可执行的开发操作手册：精确到文件路径+行号，checklist格式，QA矩阵，回滚方案 | 研发、QA、技术负责人 |
 | `questions.md` | 阻塞问题、owner 确认项、低置信度假设 | PM、前端、BFF、后端、QA、外部 owner |
 
 PRD 读取和质量门禁：

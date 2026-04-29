@@ -9,60 +9,118 @@
 - `_output/prd-distill/<slug>/questions.md`
 - `_output/prd-distill/<slug>/artifacts/reference-update-suggestions.yaml`
 
-## 合并计划
+## 输入
 
-`plan.md` 合并开发、QA 和契约对齐计划，按命中的层分组：
+- `artifacts/evidence.yaml`
+- `artifacts/requirement-ir.yaml`
+- `artifacts/layer-impact.yaml`
+- `artifacts/contract-delta.yaml`
+- `references/output-contracts.md` 中 report.md 和 plan.md 的格式定义
 
-- 前端任务
-- BFF 任务
-- 后端任务
-- 契约对齐任务
-- 开放问题和风险
-- 建议实现顺序
-- QA 矩阵和回归重点
+## report.md（渐进式披露）
 
-每个任务引用 `REQ-*`、`IMP-*` 或 `CONTRACT-*`。
+`report.md` 是**给人看的完整分析文档**，采用渐进式披露结构，从结论到细节逐层展开，不需要跳到其他文件就能获取核心信息。
 
-QA 部分包含：
+必须包含以下章节：
 
-- Requirement 验收矩阵
-- 分层单元/集成检查
-- 契约测试
-- 回归流程
-- 边界和反向用例
-- 人工验收清单
+### 1. 需求摘要（30秒决策）
+- 一句话摘要
+- 变更类型统计：ADD/MODIFY/DELETE/NO_CHANGE 各几项
 
-每个 QA 用例引用 `REQ-*` 或 `CONTRACT-*`。
+### 2. 影响范围
+- 命中的层、能力面、关键文件/模块（表格形式）
 
-## 确认
+### 3. 关键结论
+- 新增/修改/不改什么，每个结论带 REQ-ID 和代码路径引用
 
-生成 `questions.md`：
+### 4. 变更明细表（核心可操作内容）
+- 列出所有 IMP-* 项
+- 格式：`| ID | 变更描述 | 类型 | 目标文件 | 验证来源 |`
+- 精确到文件路径，标注 code_verified / reference_only
 
-- 展示所有 `medium` 和 `low` confidence 项。
-- 展示 `needs_confirmation` 或 `blocked` 的 Contract Delta。
-- 展示 reference 矛盾和迁移建议。
-- 标注建议 owner、所需证据和当前默认策略。
+### 5. 字段清单（按功能模块分组）
+- 从 requirement-ir 和 contract-delta 中提取
+- 格式：`| 字段 | 类型 | 必填 | 来源 | 契约ID |`
+- 按业务模块分组（基础信息/活动规则/审核后权益赋值/批量Excel/User Query 等）
+
+### 6. 校验规则
+- 从 requirement-ir.rules 中提取可验证的校验规则
+- 格式：`| ID | 规则描述 | 错误文案/提示 | 目标文件 |`
+
+### 7. 开发 Checklist（可直接执行）
+- 用 `- [ ]` 格式
+- 按建议实现顺序排列
+- 每项标注具体操作 + 目标文件 + 关联 REQ/IMP/CONTRACT
+
+### 8. 契约风险
+- 只列 alignment_status 为 needs_confirmation 或 blocked 的契约
+
+### 9. Top Open Questions
+- 最多5个最关键的阻塞问题，带 Q-ID
+
+写作规则：
+- 自然语言为主，用 Markdown 表格提高可扫描性
+- 每个变更项都带目标文件路径
+- 关联 ID（REQ-*/IMP-*/CONTRACT-*）方便跳到 artifacts 查证
+- 低置信度项用 ⚠ 标注
+
+## plan.md（可执行的开发操作手册）
+
+`plan.md` 是**拿去就能干活的操作手册**，精确到文件路径和行号。
+
+必须包含以下章节：
+
+### 范围和假设
+- 覆盖的 REQ 范围、前置假设和依赖
+
+### 建议实现顺序
+- Phase 1 → Phase 2 → Phase 3
+- Phase 间标注依赖和前置条件
+
+### 分层任务（只展示命中的层）
+每个任务必须包含：
+- **具体文件路径**（尽量带行号）
+- **操作描述**（做什么）
+- **参考实现**（类似功能的已有代码路径）
+- **关联** REQ/IMP/CONTRACT
+- **验证命令**（grep/go test 等）
+
+用 `- [ ]` checklist 格式，开发人员可以直接勾选。
+
+### 契约对齐任务
+- 格式：`| 契约 | 状态 | 需要确认方 | 确认内容 |`
+- 只列 needs_confirmation 和 blocked
+
+### QA 矩阵
+- 格式：`| 场景 | 关键检查点 | 关联 REQ | 优先级 |`
+- 覆盖正常流 + 边界情况 + 异常流
+
+### 风险和回滚
+- 回滚方案
+- 观测建议
+- 已知坑点
+
+### 回归重点
+- 哪些已有功能可能受影响，需要回归验证
+
+## questions.md
+
+只放阻塞问题、需 owner 确认的问题和低置信度假设：
+
+- 问题
+- 影响的输出或开发任务
+- 建议 owner
+- 需要的证据
+- 当前建议默认策略
+
+若没有阻塞问题，明确写"暂无阻塞问题"。
 
 ## Reference 回流
 
-生成以下建议：
+生成 `artifacts/reference-update-suggestions.yaml`：
 
-- 新术语
-- 新路由
-- 新契约
-- 新 playbook
+- 新术语、新路由、新契约、新 playbook
 - golden sample 候选
 - reference 与代码的矛盾
 
 `/prd-distill` 不直接编辑 `_reference/`；实际修改交给 `/build-reference` 的反馈回流。
-
-## 最终报告
-
-`report.md` 汇总，优先一屏可读：
-
-1. 需求摘要
-2. 命中的层和能力面
-3. 关键开发结论
-4. 契约风险和阻塞项
-5. Top open questions
-6. `plan.md` 和 `artifacts/` 索引
