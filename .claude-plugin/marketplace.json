@@ -8,15 +8,15 @@
     {
       "name": "build-reference",
       "source": "./plugins/build-reference",
-      "description": "领域知识构建：生成前端/BFF/后端通用 reference v3.1（项目画像、能力面、契约、playbook、反馈回流）",
-      "version": "2.1.0",
+      "description": "领域知识构建：生成前端/BFF/后端通用 reference v4.0（项目画像、能力面、契约、打法、反馈回流）",
+      "version": "2.4.1",
       "tags": ["reference", "knowledge-base", "code-analysis", "contracts"]
     },
     {
       "name": "prd-distill",
       "source": "./plugins/prd-distill",
-      "description": "PRD 蒸馏：PRD -> report/plan/questions -> artifacts(IR/Impact/Contract) -> reference 回流",
-      "version": "2.1.0",
+      "description": "PRD 蒸馏：PRD → report/plan/questions → artifacts(IR/Impact/Contract) → reference 回流",
+      "version": "2.4.1",
       "tags": ["prd", "distillation", "contracts", "qa-plan"]
     }
   ]

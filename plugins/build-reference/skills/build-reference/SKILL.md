@@ -1,11 +1,11 @@
 ---
 name: build-reference
-description: 为前端、BFF、后端通用的 PRD-to-code 工作流构建、更新、健康检查或回流项目 reference 知识库。适用于用户调用 /build-reference，或在 Codex/Agent 中要求使用 build-reference skill、构建项目知识库、项目画像、能力面适配器、契约、playbook、golden sample、反馈回流机制时。
+description: 为前端、BFF、后端通用的 PRD-to-code 工作流构建、更新、健康检查或回流项目 reference 知识库。适用于用户调用 /build-reference，构建项目知识库、项目画像、能力面适配器、契约、打法、golden sample、反馈回流机制时。
 ---
 
 # build-reference
 
-Claude Code 中可通过 `/build-reference` 使用；Codex 中通过"使用 build-reference skill ..."触发。
+Claude Code 中可通过 `/build-reference` 使用。
 
 ## 这个 skill 是做什么的
 

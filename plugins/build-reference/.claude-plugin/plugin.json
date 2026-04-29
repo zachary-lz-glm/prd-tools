@@ -1,35 +1,50 @@
 {
   "name": "build-reference",
-  "version": "2.2.0",
-  "description": "领域知识构建工具 — 构建前端/BFF/后端通用 reference v3.1（项目画像、能力面、契约、playbook、反馈回流）",
+  "version": "2.4.1",
+  "description": "领域知识构建工具 — 构建前端/BFF/后端通用 reference v4.0（项目画像、能力面、契约、打法、反馈回流）",
   "skills": ["./skills/build-reference"],
   "author": {
     "name": "DevTools Team"
   },
   "changelog": [
     {
+      "version": "2.4.1",
+      "date": "2026-04-29",
+      "changes": ["P0 口径一致性修复：所有文件统一到 v2.4/v4.0", "report/plan/questions 增加职责边界和长度约束"]
+    },
+    {
+      "version": "2.4.0",
+      "date": "2026-04-29",
+      "changes": ["report.md 渐进式披露 9 章结构", "plan.md 可执行开发手册（checklist + 文件行号 + 验证命令）"]
+    },
+    {
+      "version": "2.3.0",
+      "date": "2026-04-29",
+      "changes": ["Reference 10 文件精简到 6 文件（SSOT）", "Boundary 声明 + 跨文件 ID 引用 + 去重检查"]
+    },
+    {
       "version": "2.2.0",
       "date": "2026-04-29",
-      "changes": ["同步输出契约：新增 prd-ingest 文档读取层", "明确 PRD 图片/表格质量门禁和 evidence 边界"]
+      "changes": ["新增 prd-ingest 文档读取层（docx/md/txt/pdf）", "PRD 读取质量门禁（pass/warn/block）"]
     },
     {
       "version": "2.1.0",
       "date": "2026-04-28",
-      "changes": ["能力面适配器替代路径优先规则", "Reference 默认视图瘦身", "明确 03/08/09 边界", "新增安装版本标记"]
+      "changes": ["能力面适配器替代路径优先规则", "Reference 默认视图瘦身", "明确文件边界", "新增安装版本标记"]
     },
     {
       "version": "2.0.0",
       "date": "2026-04-28",
-      "changes": ["Reference v3：支持 Requirement IR、分层适配器、契约面、playbook、golden sample 和反馈回流工作流"]
+      "changes": ["完整 7 步蒸馏工作流", "Reference v3.1（10 文件结构）", "契约差异分析", "反馈回流机制", "Golden sample"]
     },
     {
       "version": "1.1.0",
       "date": "2026-04-27",
-      "changes": ["增加确定性事实校验（verified_by 轨迹）、按严重级别分级的质量门控、结构化幻觉检测"]
+      "changes": ["确定性事实校验（verified_by 轨迹）", "分级质量门控", "结构化幻觉检测"]
     },
     {
       "version": "1.0.0",
-      "date": "2026-04-26",
+      "date": "2026-04-27",
       "changes": ["初始版本：4 步工作流，结构扫描 → 深度分析 → 质量门控 → 反馈回流"]
     }
   ]

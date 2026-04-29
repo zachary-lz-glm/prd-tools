@@ -292,8 +292,6 @@ PRD 读取和质量门禁：
 
 ### 安装
 
-默认同时安装 Claude Code 和 Codex 所需的 skill：
-
 ```bash
 curl -fsSL https://raw.githubusercontent.com/zachary-lz-glm/prd-tools/main/install.sh | bash
 ```
@@ -308,7 +306,6 @@ curl -fsSL https://raw.githubusercontent.com/zachary-lz-glm/prd-tools/main/insta
 
 ```text
 .claude/skills/   # Claude Code
-.agents/skills/   # Codex
 ```
 
 安装后目标项目会生成：
@@ -331,22 +328,6 @@ curl -fsSL https://raw.githubusercontent.com/zachary-lz-glm/prd-tools/main/insta
 
 ```text
 /prd-distill
-```
-
-### Codex
-
-Codex 不使用 `/prd-distill` 这类 slash command，推荐用自然语言显式触发 skill。
-
-构建项目知识库：
-
-```text
-使用 build-reference skill，为当前项目执行上下文收集、全量构建、健康检查和质量门控。
-```
-
-蒸馏新 PRD：
-
-```text
-使用 prd-distill skill，先对 PRD /path/to/prd.docx 做 prd-ingest 读取和质量检查，再基于当前项目 _reference/ 生成 report.md、plan.md、questions.md 和 artifacts 证据链。
 ```
 
 ## 推荐落地路径

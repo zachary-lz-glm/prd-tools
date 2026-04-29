@@ -277,7 +277,7 @@ reference-update       把新知识回流到 _reference/
 
 | 步骤 | 动作 | 产出 |
 |---:|---|---|
-| 1 | 安装 PRD Tools | `.claude/skills` / `.agents/skills` |
+| 1 | 安装 PRD Tools | `.claude/skills` |
 | 2 | 收集历史 PRD、技术方案、分支 diff | golden sample 候选 |
 | 3 | 运行 `build-reference` 的 `F 上下文收集` | `context-enrichment.yaml` |
 | 4 | 运行 `A 全量构建` | `_reference/` |
