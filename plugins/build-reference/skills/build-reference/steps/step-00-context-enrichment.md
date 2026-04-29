@@ -33,7 +33,7 @@
 
 ```yaml
 schema_version: "3.1"
-tool_version: "2.1.0"
+tool_version: "2.2.0"
 collected_at: ""
 samples:
   - id: "SAMPLE-001"

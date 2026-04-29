@@ -5,7 +5,9 @@
 把 PRD 蒸馏为工程可执行的结论、计划和证据链：
 
 ```text
-PRD + tech docs + reference + code
+PRD raw file/text
+  -> prd-ingest/*
+  -> tech docs + reference + code
   -> report.md
   -> plan.md
   -> questions.md
@@ -14,26 +16,54 @@ PRD + tech docs + reference + code
 
 主流程对前端、BFF、后端通用；层差异通过 `references/layer-adapters.md` 的能力面适配器生效。默认给人看轻量输出，机器可读细节放入 `artifacts/`。
 
-## 步骤 0：准备输入
+## 步骤 0：PRD Ingestion
 
 读取或收集：
 
-- PRD：`.docx | .md | pasted text`。
+- PRD：`.docx | .md | .txt | .pdf | pasted text`。
 - 技术方案 / API 文档：可选，但多层或后端相关需求强烈建议读取。
 - `_reference/`：优先 v3；若只有旧版 `05-mapping.yaml`，兼容读取并在回流建议里提示迁移。
 - 目标代码库：用于代码锚定。
-
-如果 PRD 是 docx，按可用工具转换为文本；转换失败时提示用户提供 md/text。
 
 创建输出目录：
 
 ```text
 _output/prd-distill/<slug>/
+├── prd-ingest/
 ├── report.md
 ├── plan.md
 ├── questions.md
 └── artifacts/
 ```
+
+文件型 PRD 必须优先执行：
+
+```bash
+python3 <skill-dir>/scripts/ingest_prd.py <prd-file> --out _output/prd-distill/<slug>/prd-ingest
+```
+
+`prd-ingest/` 产出：
+
+```text
+prd-ingest/
+├── source-manifest.yaml
+├── document.md
+├── document-structure.json
+├── evidence-map.yaml
+├── media/
+├── media-analysis.yaml
+├── tables/
+├── extraction-quality.yaml
+└── conversion-warnings.md
+```
+
+读取 `extraction-quality.yaml`：
+
+- `pass`：可进入后续蒸馏。
+- `warn`：可继续，但必须把图片未分析、复杂表格、PDF 读取风险写入 `questions.md` 或 `report.md`。
+- `block`：暂停，要求用户提供 markdown/text，或接入 OCR/layout/vision 工具。
+
+如果用户只粘贴文本，手工创建等价的 source、document、evidence-map 和 quality 记录，保证后续 evidence 仍可追溯。
 
 ## 步骤 1：证据台账
 
@@ -54,13 +84,14 @@ _output/prd-distill/<slug>/
 
 规则：
 
-- PRD 原文证据要能定位章节、页码、标题或段落。
+- PRD 原文证据优先从 `prd-ingest/evidence-map.yaml` 映射，定位到 block、line、table 或 image id。
 - 源码证据要能定位文件和符号；尽量带行号。
 - 搜不到也是证据，用 `negative_code_search`，记录 query 和搜索范围。
+- 没有 vision/OCR/人工确认的图片不能生成高置信度需求。
 
 ## 步骤 2：Requirement IR
 
-将 PRD 转成 `artifacts/requirement-ir.yaml`。
+将 `prd-ingest/document.md` 转成 `artifacts/requirement-ir.yaml`。
 
 每个 requirement 必须包含：
 
@@ -141,7 +172,7 @@ ADD/MODIFY/DELETE/NO_CHANGE 必须由源码或负向搜索支撑。
 
 ```yaml
 schema_version: "3.1"
-tool_version: "2.1.0"
+tool_version: "2.2.0"
 suggestions:
   - id: "REF-UPD-001"
     type: "new_term | new_route | new_contract | new_playbook | contradiction | golden_sample_candidate"

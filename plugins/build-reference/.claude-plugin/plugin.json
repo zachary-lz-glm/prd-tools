@@ -1,12 +1,17 @@
 {
   "name": "build-reference",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "description": "领域知识构建工具 — 构建前端/BFF/后端通用 reference v3.1（项目画像、能力面、契约、playbook、反馈回流）",
   "skills": ["./skills/build-reference"],
   "author": {
     "name": "DevTools Team"
   },
   "changelog": [
+    {
+      "version": "2.2.0",
+      "date": "2026-04-29",
+      "changes": ["同步输出契约：新增 prd-ingest 文档读取层", "明确 PRD 图片/表格质量门禁和 evidence 边界"]
+    },
     {
       "version": "2.1.0",
       "date": "2026-04-28",

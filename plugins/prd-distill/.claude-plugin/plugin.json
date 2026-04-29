@@ -1,12 +1,17 @@
 {
   "name": "prd-distill",
-  "version": "2.1.0",
-  "description": "PRD 蒸馏工具 — 默认输出 report、plan、questions，并把 IR、分层影响、契约差异和回流建议放入 artifacts",
+  "version": "2.2.0",
+  "description": "PRD 蒸馏工具 — 先做 prd-ingest 读取与质量门禁，再默认输出 report、plan、questions，并把 IR、分层影响、契约差异和回流建议放入 artifacts",
   "skills": ["./skills/prd-distill"],
   "author": {
     "name": "DevTools Team"
   },
   "changelog": [
+    {
+      "version": "2.2.0",
+      "date": "2026-04-29",
+      "changes": ["新增 PRD ingestion：docx/md/txt/pdf 基础读取", "输出 prd-ingest 文档结构、表格、图片和质量门禁", "图片/复杂表格未确认时强制进入 warning/question/block"]
+    },
     {
       "version": "2.1.0",
       "date": "2026-04-28",

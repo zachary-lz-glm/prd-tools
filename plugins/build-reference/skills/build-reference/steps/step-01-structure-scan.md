@@ -22,7 +22,7 @@
 
 ```yaml
 schema_version: "3.1"
-tool_version: "2.1.0"
+tool_version: "2.2.0"
 project: ""
 layer: "frontend | bff | backend | multi-layer"
 adapter: "frontend | bff | backend"
