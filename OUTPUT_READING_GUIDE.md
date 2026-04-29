@@ -1,923 +1,318 @@
 # PRD Tools 产出阅读指南
 
-这份文档面向第一次使用 PRD Tools 的同学，解释一次完整运行后会看到哪些目录和文件、每个文件解决什么问题、应该按什么顺序阅读，以及这些产物如何进入真实研发流程。
+这是一份给第一次使用 PRD Tools 的读者看的速查文档。目标很简单：看到 `_output/` 和 `_reference/` 后，知道先读什么、每个文件有什么用、哪些风险必须处理。
 
-## 一句话理解
-
-PRD Tools 的产出分三类：
-
-| 类型 | 目录 | 作用 |
-|---|---|---|
-| 项目长期知识 | `_reference/` | 让 AI 了解当前项目：项目结构、业务术语、契约、开发套路 |
-| 单次需求分析 | `_output/prd-distill/<slug>/` | 把一个 PRD 转成结论、计划、问题和证据链 |
-| 构建和质量过程 | `_output/*.yaml` | 记录知识库构建、健康检查、质量门控和回流结果 |
-
-可以把它理解为：
+## 先看这张图
 
 ```text
-_reference/ 负责长期记忆
-_output/prd-distill/<slug>/ 负责本次需求
-_output/*.yaml 负责过程审计
+PRD 原文
+  ↓
+prd-ingest/            证明 AI 读到了什么
+  ↓
+artifacts/             保存结构化证据和中间判断
+  ↓
+report.md              给人看的结论
+plan.md                给研发/QA 的执行计划
+questions.md           给 owner 的确认清单
+  ↓
+reference-update       把新知识回流到 _reference/
 ```
 
-## 推荐阅读顺序
+## 三分钟读法
 
-第一次看产物时，不要从 YAML 开始读。建议按下面顺序：
+如果你只是想快速判断这次产出有没有用，按这个顺序读：
 
-| 顺序 | 文件 | 你要看什么 |
-|---|---|---|
-| 1 | `_output/prd-distill/<slug>/report.md` | 先看这次需求是什么、影响哪些层、最大风险是什么 |
-| 2 | `_output/prd-distill/<slug>/questions.md` | 看哪些问题必须找 owner 确认，哪些会阻塞开发 |
-| 3 | `_output/prd-distill/<slug>/plan.md` | 看开发顺序、QA 矩阵、契约对齐任务 |
-| 4 | `_output/prd-distill/<slug>/prd-ingest/extraction-quality.yaml` | 看 PRD 是否读取完整，有没有图片/表格/解析风险 |
-| 5 | `_output/prd-distill/<slug>/artifacts/contract-delta.yaml` | 多团队协作时看接口、字段、枚举、外部系统是否对齐 |
-| 6 | `_output/prd-distill/<slug>/artifacts/evidence.yaml` | 对结论有疑问时查证据来源 |
-| 7 | `_output/prd-distill/<slug>/artifacts/reference-update-suggestions.yaml` | 需求结束后看哪些知识值得回流到 `_reference/` |
+| 顺序 | 文件 | 用 30 秒看什么 | 读完应该得到什么 |
+|---:|---|---|---|
+| 1 | `report.md` | 需求摘要、影响层、关键风险 | 这次需求大不大、影响哪里 |
+| 2 | `questions.md` | 阻塞问题、owner、默认策略 | 哪些事要先确认 |
+| 3 | `plan.md` | 实现顺序、QA 矩阵、契约任务 | 怎么拆开发和测试 |
+| 4 | `prd-ingest/extraction-quality.yaml` | `pass/warn/block` | PRD 是否读可靠 |
+| 5 | `artifacts/contract-delta.yaml` | `needs_confirmation/blocked` | 跨团队契约是否对齐 |
 
-日常使用时，大多数人只需要先读前三个文件：`report.md`、`questions.md`、`plan.md`。
+大多数日常评审只需要前 3 个文件。出现争议时，再看 `artifacts/`。
 
-## 单次 PRD 产出目录
+## 产物总览
 
-运行 `prd-distill` 后，会生成：
+一次 `prd-distill` 的标准输出如下：
 
-```text
-_output/prd-distill/<slug>/
-├── report.md
-├── plan.md
-├── questions.md
-├── prd-ingest/
-│   ├── source-manifest.yaml
-│   ├── document.md
-│   ├── document-structure.json
-│   ├── evidence-map.yaml
-│   ├── media/
-│   ├── media-analysis.yaml
-│   ├── tables/
-│   ├── extraction-quality.yaml
-│   └── conversion-warnings.md
-└── artifacts/
-    ├── evidence.yaml
-    ├── requirement-ir.yaml
-    ├── layer-impact.yaml
-    ├── contract-delta.yaml
-    └── reference-update-suggestions.yaml
-```
+| 区域 | 文件/目录 | 给谁看 | 一句话作用 |
+|---|---|---|---|
+| 人读结论 | `report.md` | TL、研发、QA、PM | 一屏说明需求、影响、风险 |
+| 执行计划 | `plan.md` | 研发、QA | 开发顺序、QA 矩阵、契约任务 |
+| 确认清单 | `questions.md` | PM、TL、owner | 阻塞问题和低置信度假设 |
+| PRD 读取 | `prd-ingest/` | 工具维护者、审计者 | 证明 PRD 被读成了什么 |
+| 证据链 | `artifacts/evidence.yaml` | 研发、审计者 | 每个结论的来源 |
+| 需求 IR | `artifacts/requirement-ir.yaml` | 研发、QA、AI | PRD 拆出来的结构化需求 |
+| 影响分析 | `artifacts/layer-impact.yaml` | 研发、TL | 前端/BFF/后端能力面影响 |
+| 契约差异 | `artifacts/contract-delta.yaml` | 跨团队 owner | 字段、接口、事件、外部系统对齐 |
+| 知识回流 | `artifacts/reference-update-suggestions.yaml` | TL、工具维护者 | 哪些新知识要沉淀到 `_reference/` |
+
+## 按角色阅读
+
+不同角色不用读同一堆文件：
+
+| 角色 | 必读 | 需要时再读 | 重点问题 |
+|---|---|---|---|
+| 后端研发 | `report.md`、`plan.md` | `layer-impact.yaml`、`evidence.yaml` | 改哪些模块，证据是否来自源码 |
+| 前端/BFF | `report.md`、`contract-delta.yaml` | `questions.md` | 是否有枚举、schema、payload、接口变化 |
+| QA | `plan.md`、`requirement-ir.yaml` | `questions.md` | 验收条件、边界值、回归范围是否完整 |
+| TL | `report.md`、`questions.md`、`contract-delta.yaml` | `reference-update-suggestions.yaml` | 有没有阻塞、漏层、外部依赖和沉淀价值 |
+| PM/业务 owner | `report.md`、`questions.md` | `plan.md` 的 QA 部分 | PRD 是否被理解正确，哪些规则要确认 |
+| 工具维护者 | `prd-ingest/`、`evidence.yaml`、`reference-update-suggestions.yaml` | `_output/reference-quality-report.yaml` | 读取质量、证据质量、知识库是否要更新 |
+
+## 人读文件
 
 ### report.md
 
-`report.md` 是给人看的结论报告，适合负责人、研发、QA、PM 快速阅读。
-
-它回答：
-
-- 这个 PRD 一句话是什么。
-- 影响前端、BFF、后端还是外部系统。
-- 最关键的开发结论是什么。
-- 最大的风险和阻塞点是什么。
-- 后续应该重点读哪些文件。
-
-边界：
-
-- 它不是完整开发方案。
-- 它不展开所有证据。
-- 它只保留足够做第一轮判断的信息。
-
-怎么用：
-
-- 评审前先看它，快速决定本次需求复杂度。
-- 如果报告里出现 `needs_confirmation` 或 `blocked`，不要直接开工，先读 `questions.md`。
+| 项 | 说明 |
+|---|---|
+| 它是什么 | 给人看的结论报告 |
+| 回答什么 | 需求是什么、影响哪些层、关键开发结论、最大风险 |
+| 不放什么 | 不展开完整证据链，不写所有实现细节 |
+| 怎么判断好坏 | 一屏内能说清需求范围、关键风险和下一步 |
+| 读完动作 | 如果看到阻塞或 `needs_confirmation`，去读 `questions.md` |
 
 ### questions.md
 
-`questions.md` 是阻塞问题和 owner 确认清单。
-
-它回答：
-
-- 哪些信息 PRD 没说清楚。
-- 哪些接口、字段、外部系统需要确认。
-- 每个问题影响哪些需求、计划或契约。
-- 建议找谁确认。
-- 如果暂时确认不了，默认策略是什么。
-
-边界：
-
-- 普通备注不放这里。
-- 已经确认的事实不放这里。
-- 只有会影响开发、测试、契约对齐或上线风险的问题才放这里。
-
-怎么用：
-
-- TL 可以用它拉 PM、前端、BFF、后端、外部 owner 对齐。
-- QA 可以用它识别哪些测试场景暂时不能定稿。
-- 确认后，应该把结论补回开发计划或回流到 reference。
+| 项 | 说明 |
+|---|---|
+| 它是什么 | 阻塞问题和 owner 确认清单 |
+| 回答什么 | 什么没确认、影响哪些输出、找谁确认、默认策略是什么 |
+| 不放什么 | 普通备注、已确认事实、无行动价值的问题 |
+| 怎么判断好坏 | 每个问题都有 owner、影响范围和需要的证据 |
+| 读完动作 | 拉 owner 确认，确认结果回写到计划或 reference |
 
 ### plan.md
 
-`plan.md` 是合并后的开发、测试、契约对齐计划。
-
-它回答：
-
-- 建议按什么顺序开发。
-- 每个阶段改哪些能力面或文件。
-- 哪些任务依赖 owner 确认。
-- QA 应该测哪些场景。
-- 哪些契约需要前端、BFF、后端或外部系统对齐。
-
-边界：
-
-- 它不直接改代码。
-- 它不替代详细技术方案。
-- 它是开发前的执行地图。
-
-怎么用：
-
-- 研发用它拆任务。
-- QA 用它写测试用例。
-- TL 用它检查是否遗漏批量、审核、回滚、外部接口、异步任务等高风险链路。
-
-## PRD 读取产物：prd-ingest/
-
-`prd-ingest/` 解决一个非常关键的问题：AI 到底把 PRD 读成了什么。
-
-它不是需求分析结果，而是 PRD 原文读取和质量门禁层。
-
-### source-manifest.yaml
-
-记录原始 PRD 文件信息。
-
-它回答：
-
-- AI 读的是哪个文件。
-- 文件格式是什么。
-- 文件大小和 hash 是什么。
-- 用什么方式读取。
-
-为什么需要：
-
-- 防止大家拿不同版本 PRD 讨论。
-- 方便复盘时确认当时分析的输入。
-
-### document.md
-
-PRD 转换后的可读 Markdown。
-
-它回答：
-
-- docx、txt、md 或 pdf 最终被转换成了什么文本。
-- 后续 Requirement IR 是基于哪些内容拆出来的。
-
-为什么需要：
-
-- 让人能快速检查 PRD 转换是否漏段落。
-- 让 AI 后续分析有稳定输入，而不是直接猜 docx。
-
-### document-structure.json
-
-PRD 的结构化块信息。
-
-它记录：
-
-- 段落。
-- 标题。
-- 表格。
-- 图片。
-- block id。
-- locator。
-
-为什么需要：
-
-- 后续 evidence 可以定位到具体 PRD block。
-- 如果某个需求结论有争议，可以追溯到 PRD 的具体位置。
-
-### evidence-map.yaml
-
-PRD 块级证据地图。
-
-它回答：
-
-- 每个 PRD 段落、表格、图片对应哪个证据 id。
-- 哪些内容置信度高，哪些内容需要人工确认。
-
-边界：
-
-- 它只记录 PRD 证据。
-- 源码证据、reference 证据、负向搜索证据放在 `artifacts/evidence.yaml`。
-
-### media/
-
-从 PRD 中抽出的图片、截图、流程图原文件。
-
-为什么需要：
-
-- 很多 PRD 的关键信息藏在截图或流程图里。
-- 工具必须把图片暴露出来，不能假装已经理解。
-
-注意：
-
-- 抽出图片不等于理解图片。
-- 没有 vision/OCR/人工确认时，图片内容不能作为高置信度结论。
-
-### media-analysis.yaml
-
-图片语义分析状态。
-
-默认情况下，它会标记为：
-
-```yaml
-analysis_status: "needs_vision_or_human_review"
-confidence: "low"
-```
-
-为什么需要：
-
-- 明确告诉用户：这里有图片，但当前没有确认图片语义。
-- 如果图片里包含关键规则，应该进入 `questions.md`。
-
-### tables/
-
-从 PRD 中单独抽出的表格 Markdown。
-
-为什么需要：
-
-- PRD 表格通常包含字段、枚举、校验、批量规则。
-- 单独抽出后，研发和 QA 可以更容易核对。
-
-注意：
-
-- 如果原表格有合并单元格，可能会出现读取风险。
-- 风险会记录在 `extraction-quality.yaml` 和 `conversion-warnings.md`。
-
-### extraction-quality.yaml
-
-PRD 读取质量门禁。
-
-核心字段：
-
-| 字段 | 含义 |
+| 项 | 说明 |
 |---|---|
-| `status: pass` | PRD 读取质量正常，可以继续分析 |
-| `status: warn` | 可以继续，但存在图片、复杂表格、PDF 顺序等风险 |
-| `status: block` | 读取失败或缺少关键文本，应暂停并补充输入 |
+| 它是什么 | 开发、QA、契约对齐的合并计划 |
+| 回答什么 | 先做什么、后做什么、测什么、哪些任务依赖确认 |
+| 不放什么 | PRD 原文复制、完整代码实现 |
+| 怎么判断好坏 | 任务能追到 `REQ-*`、`IMP-*` 或 `CONTRACT-*` |
+| 读完动作 | 拆任务、排期、补 QA case、确认跨团队契约 |
 
-常见 warning：
+## PRD 读取区：prd-ingest/
 
-- 图片未做 vision/OCR。
-- 表格存在合并单元格。
-- PDF 阅读顺序可能不可靠。
-- 文档中没有可读文本。
+`prd-ingest/` 的作用不是分析需求，而是回答：**AI 读到的 PRD 是否可靠？**
 
-怎么用：
+| 文件/目录 | 作用 | 什么时候看 | 风险信号 |
+|---|---|---|---|
+| `source-manifest.yaml` | 原始文件路径、格式、hash、读取方式 | 复盘、确认 PRD 版本 | 文件不是预期版本 |
+| `document.md` | 转换后的 PRD 正文 | 怀疑漏读、误读时 | 关键章节缺失 |
+| `document-structure.json` | 段落、表格、图片结构块 | 需要精确定位证据时 | 结构块异常少 |
+| `evidence-map.yaml` | PRD block 到证据 id 的映射 | 查 PRD 证据来源时 | 大量 low confidence |
+| `media/` | 抽出的图片、截图、流程图 | PRD 有图时 | 图片里有关键规则 |
+| `media-analysis.yaml` | 图片是否已被 vision/OCR/人工确认 | 有截图/流程图时 | `needs_vision_or_human_review` |
+| `tables/` | 抽出的表格 markdown | PRD 表格很多时 | 合并单元格、字段丢失 |
+| `extraction-quality.yaml` | PRD 读取质量门禁 | 每次都建议看 | `warn` 或 `block` |
+| `conversion-warnings.md` | 给人看的转换风险 | 评审前快速扫 | 图片/表格风险未进入问题清单 |
 
-- `pass`：继续看 `report.md`。
-- `warn`：继续看，但要确认 `report.md` 或 `questions.md` 是否暴露了这些风险。
-- `block`：不要使用后续结论，先补 markdown/text 或人工确认。
+### extraction-quality 怎么判断
 
-### conversion-warnings.md
+| 状态 | 含义 | 你该怎么做 |
+|---|---|---|
+| `pass` | PRD 读取质量正常 | 可以正常使用后续分析 |
+| `warn` | 可继续，但存在图片、复杂表格、PDF 顺序等风险 | 确认风险是否进入 `report.md` 或 `questions.md` |
+| `block` | 读取失败或缺少关键文本 | 暂停使用结论，补 markdown/text/OCR/人工确认 |
 
-给人看的转换风险摘要。
+常见 warning 的处理方式：
 
-它比 `extraction-quality.yaml` 更容易读，适合在评审时快速说明：
+| Warning | 代表什么 | 正确处理 |
+|---|---|---|
+| 图片未 OCR/vision | 图片内容没被确认 | 图片里的规则不能作为高置信度结论 |
+| 表格合并单元格 | 表格结构可能被读错 | 人工核对 `tables/` |
+| PDF 阅读顺序风险 | 段落顺序可能错乱 | 核对 `document.md` |
+| 没有可读文本 | 可能是扫描件 | 使用 OCR 或让用户提供文本版 |
 
-- 这次 PRD 哪些部分可能没读准。
-- 哪些图片或表格需要人工复核。
+## 机器和审计区：artifacts/
 
-## 机器和审计产物：artifacts/
+`artifacts/` 是给 AI、审计、复盘和知识回流用的。普通读者不用每次全读，但下面这些文件决定了产出的可信度。
 
-`artifacts/` 是给 AI、审计、复盘和知识回流使用的结构化中间产物。
+| 文件 | 它回答的问题 | 好产出的特征 | 风险信号 |
+|---|---|---|---|
+| `evidence.yaml` | 结论证据来自哪里 | PRD、源码、reference、负向搜索分清楚 | 关键结论只有 reference，没有源码或 PRD |
+| `requirement-ir.yaml` | PRD 被拆成哪些需求 | 每个 REQ 有规则、验收条件、证据 | 只写背景，没有可验收规则 |
+| `layer-impact.yaml` | 影响哪些层和能力面 | 每个 IMP 有 current_state、planned_delta、evidence | 只写“需要修改后端”，没有能力面和证据 |
+| `contract-delta.yaml` | 字段/接口/事件/外部系统怎么变 | producer、consumer、字段、状态清楚 | 多层需求没有 contract |
+| `reference-update-suggestions.yaml` | 哪些知识要回流 | 建议能落到具体 `_reference/` 文件 | 只有泛泛总结，没有 target_file |
 
-普通用户不需要每次都读，但当你要判断“AI 为什么这么说”时，就应该看这里。
+### evidence.yaml 速查
 
-### evidence.yaml
+| evidence kind | 含义 | 可信度提示 |
+|---|---|---|
+| `prd` | 来自 PRD | 需求来源必备 |
+| `tech_doc` | 来自技术方案/API 文档 | 对接口和实现判断很重要 |
+| `code` | 来自源码 | 工程判断最关键 |
+| `reference` | 来自 `_reference/` | 加速理解，但不是最终权威 |
+| `negative_code_search` | 搜过没找到 | 证明当前代码没有该能力 |
+| `human` | 人工确认 | 需要记录确认人或来源 |
 
-证据台账。
+### requirement-ir.yaml 速查
 
-它回答：
-
-- 每个结论来自 PRD、技术方案、源码、reference、git diff、负向搜索还是人工确认。
-- 证据位置在哪里。
-- 证据置信度如何。
-
-证据类型：
-
-| 类型 | 含义 |
+| 字段 | 你要看什么 |
 |---|---|
-| `prd` | 来自 PRD |
-| `tech_doc` | 来自技术方案或接口文档 |
-| `code` | 来自源码 |
-| `reference` | 来自 `_reference/` |
-| `negative_code_search` | 搜过但没找到，也是一种证据 |
-| `human` | 用户或 owner 明确确认 |
+| `change_type` | 是 `ADD`、`MODIFY`、`DELETE` 还是 `NO_CHANGE` |
+| `rules` | 业务规则是否拆完整 |
+| `acceptance_criteria` | QA 能不能据此验收 |
+| `target_layers` | 是否命中了正确层 |
+| `evidence` | 是否能追溯到 PRD/技术方案 |
+| `confidence` | 低置信度是否进入 `questions.md` |
 
-怎么用：
+### layer-impact.yaml 速查
 
-- 对某个结论不信时，先查 evidence id。
-- 发现 evidence 只有 reference、没有 code 时，要谨慎。
-- 发现 evidence 是 negative search 时，说明工具确认过“当前代码没有”。
-
-### requirement-ir.yaml
-
-结构化需求 IR。
-
-IR 是 Intermediate Representation，也就是把 PRD 从自然语言拆成稳定的需求单元。
-
-它回答：
-
-- 每个需求点是什么。
-- 是新增、修改、删除还是不变。
-- 业务实体是什么。
-- 规则和验收条件是什么。
-- 影响哪些层。
-- 证据是什么。
-
-边界：
-
-- IR 描述业务意图和验收规则。
-- 不写具体文件实现细节。
-- 文件和模块影响放在 `layer-impact.yaml`。
-
-怎么用：
-
-- QA 可以按 REQ 写测试用例。
-- 研发可以按 REQ 对照实现是否漏需求。
-- PM 可以核对 PRD 是否被拆错。
-
-### layer-impact.yaml
-
-分层影响分析。
-
-它回答：
-
-- 每个 requirement 影响前端、BFF、后端还是外部系统。
-- 命中哪个能力面。
-- 当前代码状态是什么。
-- 计划变化是什么。
-- 风险和依赖是什么。
-
-能力面示例：
-
-| 层 | 能力面示例 |
+| 字段 | 你要看什么 |
 |---|---|
-| frontend | `ui_route`、`view_component`、`form_or_schema`、`client_contract` |
-| bff | `edge_api`、`schema_or_template`、`transform_mapping`、`upstream_contract` |
-| backend | `api_surface`、`domain_model`、`validation_policy`、`external_integration` |
+| `layer` | 前端、BFF、后端、外部系统影响是否准确 |
+| `surface` | 命中的是 UI、schema、API、领域模型、校验、外部集成等哪个能力面 |
+| `current_state` | 当前代码是否已支持 |
+| `planned_delta` | 计划新增/修改什么 |
+| `risks` | 哪些实现风险要提前处理 |
+| `evidence` | 是否有源码或负向搜索支撑 |
 
-为什么不用固定路径：
+### contract-delta.yaml 速查
 
-- 不同项目目录结构可能完全不同。
-- 但能力面相对稳定。
-- 工具先按能力面判断，再用源码证据落到具体文件。
+| 状态 | 含义 | 动作 |
+|---|---|---|
+| `aligned` | producer 和 consumer 都有证据 | 可以进入开发/联调 |
+| `needs_confirmation` | PRD 有描述，但某层或 owner 未确认 | 拉 owner 确认 |
+| `blocked` | 字段、枚举、required、时序或责任冲突 | 停止推进，先解决冲突 |
+| `not_applicable` | 单层内部变化 | 不需要跨层契约对齐 |
 
-怎么用：
+必须看 contract 的场景：
 
-- TL 用它检查是否漏层。
-- 后端只看 backend impacts。
-- 前端/BFF 可以快速判断是否真的需要自己改。
-
-### contract-delta.yaml
-
-契约差异。
-
-它回答：
-
-- 本次需求新增或修改了哪些跨层/外部契约。
-- producer 是谁。
-- consumer 是谁。
-- request/response/event/payload 字段怎么变。
-- 当前是否对齐。
-
-核心状态：
-
-| 状态 | 含义 |
+| 场景 | 为什么 |
 |---|---|
-| `aligned` | producer 和 consumer 都有证据，基本对齐 |
-| `needs_confirmation` | PRD 有描述，但某层或 owner 未确认 |
-| `blocked` | 字段、枚举、required、时序或责任归属冲突 |
-| `not_applicable` | 单层内部变化，不涉及契约 |
-
-怎么用：
-
-- 跨前端/BFF/后端需求必须看这个文件。
-- 涉及外部系统、券、权益、支付、预算、审计、异步事件时也必须看。
-- `needs_confirmation` 和 `blocked` 应同步进入 `questions.md`。
-
-### reference-update-suggestions.yaml
-
-知识回流建议。
-
-它回答：
-
-- 本次需求发现了哪些 `_reference/` 没有的新知识。
-- 哪些术语、契约、路由、playbook 应该补充。
-- 哪些事实和现有 reference 矛盾。
-- 本次需求是否适合作为 golden sample。
-
-边界：
-
-- 它只是建议。
-- 不会自动修改 `_reference/`。
-- 需要通过 `build-reference` 的 `E 反馈回流` 或人工确认后再写回。
-
-怎么用：
-
-- 需求结束后，TL 或工具维护者看这个文件。
-- 确认过的新知识回流到 `_reference/`，下一次 PRD 分析会更准。
+| 前端/BFF/后端都受影响 | 字段和 required 容易不一致 |
+| 新增枚举或活动类型 | 多端必须同步 |
+| 涉及券、权益、支付、预算 | 外部系统契约风险高 |
+| 涉及 MQ/event/payload | 时序和幂等风险高 |
+| 涉及 DB 字段或存储格式 | 兼容和迁移风险高 |
 
 ## 项目知识库：_reference/
 
-`_reference/` 是项目长期知识库。它不是某次 PRD 的输出，而是后续每次 PRD 分析的上下文基础。
-
-推荐结构：
-
-```text
-_reference/
-├── 00-index.md
-├── project-profile.yaml
-├── 01-entities.yaml
-├── 02-architecture.yaml
-├── 03-conventions.yaml
-├── 04-constraints.yaml
-├── 05-routing.yaml
-├── 06-glossary.yaml
-├── 07-business-context.yaml
-├── 08-contracts.yaml
-└── 09-playbooks.yaml
-```
-
-### 00-index.md
-
-导航入口。
-
-它回答：
-
-- 这个 reference 当前是什么版本。
-- 哪些文件最重要。
-- 当前健康状态如何。
-- 新用户应该先看哪里。
-
-### project-profile.yaml
-
-项目画像。
-
-记录：
-
-- 技术栈。
-- 项目类型。
-- 构建/测试命令。
-- 关键入口。
-- 部署形态。
-- 主要能力面。
-
-它帮助 AI 快速知道“这是一个什么项目”。
-
-### 01-entities.yaml
-
-静态实体库。
-
-记录：
-
-- 枚举。
-- 字段。
-- DTO。
-- endpoint。
-- 组件。
-- 领域对象。
-- DB model。
-
-边界：
-
-- 只放已经存在的事实。
-- 不写开发步骤。
-
-### 02-architecture.yaml
-
-架构和运行流。
-
-记录：
-
-- 模块职责。
-- 数据流。
-- 注册点。
-- 调用链。
-- 依赖枢纽。
-- 高风险区域。
-
-边界：
-
-- 不写字段级契约详情。
-- 字段契约放 `08-contracts.yaml`。
-
-### 03-conventions.yaml
-
-工程惯例库。
-
-它回答：这个项目里代码通常怎么写。
-
-适合放：
-
-- 命名习惯。
-- 注册模式。
-- 转换模式。
-- 错误处理习惯。
-- 推荐写法。
-- 代码层面的反模式。
-
-不适合放：
-
-- 跨层字段契约。
-- 业务红线。
-- 某类需求完整打法。
-
-判断标准：
-
-```text
-如果它是在说“顺着项目习惯应该怎么写”，放 03。
-```
-
-### 04-constraints.yaml
-
-约束与护栏库。
-
-它回答：什么事情不能错、不能生成、必须拦截。
-
-适合放：
-
-- 枚举白名单。
-- 字段必填规则。
-- 金额范围。
-- 业务校验红线。
-- 生成边界。
-- 必须执行的质量门禁规则。
-
-不适合放：
-
-- 普通代码风格。
-- 推荐写法。
-- 历史经验故事。
-
-判断标准：
-
-```text
-如果它是在说“越过这条线就会出错或有线上风险”，放 04。
-```
-
-### 05-routing.yaml
-
-PRD 信号路由。
-
-它回答：
-
-- PRD 里出现某些关键词或结构时，应该路由到哪些需求类型。
-- 可能影响哪些层。
-- 应该优先检查哪些能力面。
-
-例如：
-
-- “新增活动类型”可能路由到 CampaignType、factory、schema、business object。
-- “批量配置”可能路由到 batch import/export。
-- “券/权益/奖励”可能路由到外部系统契约。
-
-### 06-glossary.yaml
-
-业务术语表。
-
-记录：
-
-- 业务词。
-- 同义词。
-- 英文名。
-- 代码字段名。
-- 枚举 label。
-
-它解决 PRD 语言和代码语言不一致的问题。
-
-### 07-business-context.yaml
-
-业务背景和隐式规则。
-
-记录：
-
-- 历史决策。
-- 隐式业务规则。
-- 已知歧义。
-- owner 约定。
-- 背景知识。
-
-边界：
-
-- 不写代码实现细节。
-- 不写完整 playbook。
-
-### 08-contracts.yaml
-
-跨层和外部契约库。
-
-记录：
-
-- producer。
-- consumer。
-- 字段。
-- required。
-- 类型。
-- 兼容性。
-- owner。
-- alignment_status。
-
-它回答：
-
-```text
-系统边界承诺了什么。
-```
-
-### 09-playbooks.yaml
-
-高频需求打法。
-
-记录：
-
-- 某类需求通常怎么推进。
-- 先看哪些文件。
-- 常见坑。
-- QA 矩阵。
-- golden sample。
-
-它回答：
-
-```text
-遇到某类需求应该怎么推进。
-```
-
-## 构建过程产物
-
-这些文件通常在 `_output/` 根目录。
-
-### context-enrichment.yaml
-
-上下文收集结果。
-
-记录：
-
-- 历史 PRD。
-- 技术方案。
-- 分支 diff。
-- golden sample 候选。
-- 历史返工经验。
-
-它用于首次建设 `_reference/` 前，让工具先理解真实业务样例。
-
-### modules-index.yaml
-
-项目扫描快照。
-
-记录：
-
-- 模块。
-- 能力面。
-- 关键文件。
-- 入口。
-- 候选契约。
-
-它是 build-reference 对项目结构的中间理解。
-
-### reference-health.yaml
-
-知识库健康检查。
-
-回答：
-
-- `_reference/` 是否完整。
-- 是否过期。
-- 是否缺证据。
-- 文件边界是否混乱。
-- 有没有 low confidence 项。
-
-### reference-quality-report.yaml
-
-质量门控结果。
-
-检查：
-
-- 证据是否充分。
-- 契约是否闭环。
-- 源码和 reference 是否一致。
-- 是否存在幻觉风险。
-- 是否有必须修复的问题。
-
-### feedback-ingest-report.yaml
-
-反馈回流审计。
-
-记录：
-
-- 哪些 `reference-update-suggestions` 被采纳。
-- 哪些被跳过。
-- 为什么跳过。
-- 更新了哪些 reference 文件。
-
-## 不同角色怎么读
-
-### 研发
-
-先读：
-
-1. `report.md`
-2. `plan.md`
-3. `artifacts/layer-impact.yaml`
-4. `artifacts/evidence.yaml`
-
-重点关注：
-
-- 建议实现顺序。
-- 目标文件/模块。
-- 当前代码状态。
-- 哪些结论有源码证据。
-- 哪些任务依赖 owner 确认。
-
-### QA
-
-先读：
-
-1. `report.md`
-2. `plan.md`
-3. `artifacts/requirement-ir.yaml`
-4. `questions.md`
-
-重点关注：
-
-- 每个 REQ 的验收条件。
-- QA 矩阵。
-- 边界值。
-- 回归范围。
-- 还没确认的测试前提。
-
-### TL / 技术负责人
-
-先读：
-
-1. `report.md`
-2. `questions.md`
-3. `artifacts/contract-delta.yaml`
-4. `plan.md`
-5. `artifacts/reference-update-suggestions.yaml`
-
-重点关注：
-
-- 是否漏层。
-- 是否漏外部系统。
-- 是否有跨团队契约未对齐。
-- 风险是否能接受。
-- 哪些知识应该沉淀。
-
-### PM / 业务 owner
-
-先读：
-
-1. `report.md`
-2. `questions.md`
-3. `plan.md` 中 QA 矩阵部分
-
-重点关注：
-
-- PRD 是否被理解正确。
-- 哪些规则或默认策略需要确认。
-- 验收标准是否覆盖业务目标。
-
-### 工具维护者
-
-先读：
-
-1. `prd-ingest/extraction-quality.yaml`
-2. `artifacts/evidence.yaml`
-3. `artifacts/reference-update-suggestions.yaml`
-4. `_output/reference-quality-report.yaml`
-
-重点关注：
-
-- 文档读取质量。
-- 证据链是否足够。
-- reference 是否需要更新。
-- 工具版本是否产生稳定收益。
-
-## 状态判断速查
-
-### extraction-quality.status
-
-| 状态 | 处理方式 |
+`_reference/` 是项目长期记忆，不是某一次 PRD 的临时输出。
+
+| 文件 | 一句话作用 | 不应该放什么 |
+|---|---|---|
+| `00-index.md` | 导航、版本、健康状态 | 大量事实细节 |
+| `project-profile.yaml` | 项目画像、技术栈、入口、测试命令 | 单次 PRD 计划 |
+| `01-entities.yaml` | 已存在的枚举、字段、DTO、endpoint、领域对象 | 流程和开发步骤 |
+| `02-architecture.yaml` | 模块职责、数据流、注册点、调用链 | 字段级契约 |
+| `03-conventions.yaml` | 项目通常怎么写代码 | 业务红线、跨层契约 |
+| `04-constraints.yaml` | 什么不能错、必须拦截 | 普通代码风格 |
+| `05-routing.yaml` | PRD 信号如何路由到层和能力面 | 完整实现方案 |
+| `06-glossary.yaml` | 业务术语、同义词、字段映射 | 完整业务规则 |
+| `07-business-context.yaml` | 背景、隐式规则、历史决策 | 代码实现细节 |
+| `08-contracts.yaml` | 跨层和外部系统契约 | 开发步骤 |
+| `09-playbooks.yaml` | 高频需求打法、QA 矩阵、常见坑 | 字段级契约重复 |
+
+### 03 和 04 的边界
+
+| 文件 | 核心问题 | 放这里的例子 |
+|---|---|---|
+| `03-conventions.yaml` | 这个项目通常怎么写？ | 命名、注册模式、mapper 写法、错误处理习惯 |
+| `04-constraints.yaml` | 哪些事不能错、不能生成、必须拦截？ | 枚举白名单、金额范围、必填规则、质量门禁 |
+
+判断口诀：
+
+| 如果它是在说 | 放哪 |
 |---|---|
-| `pass` | 可以正常使用后续分析 |
-| `warn` | 可以继续，但必须确认 warning 是否已进入报告或问题清单 |
-| `block` | 暂停使用结论，先补充 PRD 文本、OCR 或人工确认 |
+| “顺着项目习惯应该怎么写” | `03-conventions.yaml` |
+| “越过这条线就会出错或有线上风险” | `04-constraints.yaml` |
 
-### confidence
+## 构建过程文件
 
-| 值 | 含义 |
-|---|---|
-| `high` | 有较强证据，通常来自 PRD + 源码或明确文档 |
-| `medium` | 有依据，但仍有部分实现、owner 或上下游未确认 |
-| `low` | 只能作为假设或待确认问题，不应直接开发 |
+这些通常在 `_output/` 根目录，用来审计知识库构建过程。
 
-### alignment_status
+| 文件 | 什么时候看 | 作用 |
+|---|---|---|
+| `context-enrichment.yaml` | 首次接入或补历史样例时 | 记录历史 PRD、技术方案、分支 diff、golden sample |
+| `modules-index.yaml` | 检查项目扫描结果时 | 记录模块、能力面、关键文件、候选契约 |
+| `reference-health.yaml` | 怀疑知识库过期时 | 检查完整性、过期、缺证据、边界混乱 |
+| `reference-quality-report.yaml` | 上线或推广前 | 检查证据、契约闭环、源码一致性、幻觉风险 |
+| `feedback-ingest-report.yaml` | 执行回流后 | 记录哪些建议被采纳或跳过 |
 
-| 值 | 处理方式 |
-|---|---|
-| `aligned` | 可以按计划推进 |
-| `needs_confirmation` | 先找 owner 确认，再进入开发或联调 |
-| `blocked` | 不建议继续开发，必须解决冲突 |
-| `not_applicable` | 单层内部变化，不涉及跨层契约 |
+## 如何判断一次产出是否可靠
 
-## 一次完整使用流程
-
-### 首次接入项目
-
-1. 安装 PRD Tools。
-2. 收集 1-3 个历史 PRD、技术方案、分支 diff。
-3. 运行 `build-reference` 的 `F 上下文收集`。
-4. 运行 `A 全量构建` 生成 `_reference/`。
-5. 运行 `B2 健康检查`。
-6. 运行 `C 质量门控`。
-7. 用一个真实新 PRD 运行 `prd-distill`。
-
-### 日常新需求
-
-1. 运行 `prd-distill`。
-2. 先读 `report.md`。
-3. 再读 `questions.md`，拉 owner 确认。
-4. 读 `plan.md` 拆开发和 QA。
-5. 多层需求检查 `contract-delta.yaml`。
-6. 对结论有疑问时查 `evidence.yaml`。
-7. 需求结束后看 `reference-update-suggestions.yaml`。
-8. 通过 `build-reference` 的 `E 反馈回流` 更新 `_reference/`。
-
-## 如何判断这次产出是否可靠
-
-可以用下面清单快速判断：
+用这张表快速打分：
 
 | 检查项 | 可靠表现 | 风险表现 |
 |---|---|---|
-| PRD 读取 | `extraction-quality` 为 pass 或 warn 且 warning 已暴露 | block，或图片/表格风险未进入问题清单 |
-| 需求拆解 | REQ 覆盖核心业务规则和验收条件 | 只总结背景，没有拆规则 |
+| PRD 读取 | `extraction-quality` 是 pass，或 warn 已明确暴露 | block，或图片/表格风险没进入报告 |
+| 需求拆解 | REQ 覆盖规则、限制、验收条件 | 只总结背景 |
 | 代码证据 | 关键 impact 有 code evidence 或 negative search | 只引用 reference |
-| 契约 | 多层/外部系统有 contract delta | 接口字段只在计划里口头提到 |
-| 问题清单 | 阻塞项有 owner 和影响范围 | 问题泛泛而谈 |
-| QA | 测试项能追到 REQ 或 contract | 只有笼统“回归测试” |
-| 回流 | 有可采纳的 reference 更新建议 | 没有沉淀价值 |
+| 契约 | 多层/外部系统有 contract delta | 接口字段只在 plan 里口头出现 |
+| 问题清单 | 每个问题有 owner、影响、所需证据 | 问题泛泛而谈 |
+| QA | 测试项能追到 REQ 或 CONTRACT | 只有“回归测试” |
+| 回流 | 有具体 target_file 和建议 | 没有沉淀价值 |
 
 ## 常见误解
 
-### 看到很多 YAML，是不是太复杂？
+| 误解 | 正确认知 |
+|---|---|
+| YAML 很多，所以很复杂 | 普通用户只读 `report.md`、`questions.md`、`plan.md`；YAML 给审计和回流用 |
+| `warn` 表示失败 | `warn` 表示可以继续，但风险必须显式处理 |
+| `_reference/` 是最终事实 | `_reference/` 是加速器，最终仍要以源码、PRD、技术方案、owner 确认为准 |
+| 前端/BFF 为空就是漏了 | 当前仓库没有对应实现时，工具会把它放到契约确认，而不是硬写任务 |
+| evidence 只要有就够 | 关键结论最好同时有 PRD 证据和源码/技术方案证据 |
 
-默认不需要每个人都读 YAML。YAML 是给 AI、审计、回流和高级排查用的。普通协作优先读 `report.md`、`questions.md`、`plan.md`。
+## 15 分钟评审模板
 
-### `warn` 是失败吗？
+| 时间 | 看什么 | 产出什么 |
+|---:|---|---|
+| 3 分钟 | `report.md` | 对齐需求范围和影响层 |
+| 4 分钟 | `questions.md` | 确认阻塞问题、owner、截止时间 |
+| 4 分钟 | `contract-delta.yaml` | 确认跨层字段、枚举、外部系统 |
+| 3 分钟 | `plan.md` | 确认开发顺序和 QA 重点 |
+| 1 分钟 | `reference-update-suggestions.yaml` | 判断是否值得回流知识库 |
 
-不是。`warn` 表示可以继续，但存在读取或证据风险。比如 PRD 有图片未做 OCR、表格有合并单元格。这些风险必须出现在 `report.md` 或 `questions.md` 中。
+会议结束时，至少要明确：
 
-### `reference` 是最终事实吗？
+| 问题 | 结果 |
+|---|---|
+| 哪些任务可以直接开工 | 开发 owner 明确 |
+| 哪些问题要确认 | owner 和时间明确 |
+| 哪些契约要同步 | 前端/BFF/后端/外部团队明确 |
+| 哪些测试必须覆盖 | QA 重点明确 |
+| 哪些知识要沉淀 | reference 回流明确 |
 
-不是。`_reference/` 是加速器，不是最终权威。最终权威优先级通常是：
+## 完整流程速查
 
-```text
-源码 / PRD / 技术方案 / 接口文档 / owner 确认 > reference
-```
+### 首次接入项目
 
-### 为什么有些前端/BFF/后端层是空的？
+| 步骤 | 动作 | 产出 |
+|---:|---|---|
+| 1 | 安装 PRD Tools | `.claude/skills` / `.agents/skills` |
+| 2 | 收集历史 PRD、技术方案、分支 diff | golden sample 候选 |
+| 3 | 运行 `build-reference` 的 `F 上下文收集` | `context-enrichment.yaml` |
+| 4 | 运行 `A 全量构建` | `_reference/` |
+| 5 | 运行 `B2 健康检查` | `reference-health.yaml` |
+| 6 | 运行 `C 质量门控` | `reference-quality-report.yaml` |
+| 7 | 用真实 PRD 跑 `prd-distill` | 单次需求产物 |
 
-因为工具按能力面判断影响范围，不会为了凑格式硬写空任务。当前仓库如果只包含后端代码，前端/BFF 通常只会出现在契约确认里，而不是具体实现计划里。
+### 日常新需求
 
-### 什么时候必须看 artifacts？
+| 步骤 | 动作 | 重点 |
+|---:|---|---|
+| 1 | 运行 `prd-distill` | 生成本次需求分析 |
+| 2 | 读 `report.md` | 快速理解范围 |
+| 3 | 读 `questions.md` | 拉 owner 确认 |
+| 4 | 读 `plan.md` | 拆开发和 QA |
+| 5 | 多层需求读 `contract-delta.yaml` | 对齐字段和接口 |
+| 6 | 有争议读 `evidence.yaml` | 查证据 |
+| 7 | 需求结束读 `reference-update-suggestions.yaml` | 准备知识回流 |
+| 8 | 运行 `build-reference` 的 `E 反馈回流` | 更新 `_reference/` |
 
-以下情况必须看：
+## 这份文档的阅读原则
 
-- 结论有争议。
-- 需求影响多层。
-- 涉及接口、schema、event、payload、DB 字段。
-- 涉及权益、券、奖励、支付、预算、审计、异步任务、外部系统。
-- 要把本次需求沉淀为 reference。
+这份指南按三个原则组织：
 
-## 最小会议用法
+| 原则 | 落地方式 |
+|---|---|
+| 任务优先 | 先告诉你该读哪个文件，而不是先解释所有概念 |
+| 表格优先 | 文件职责、状态判断、角色路径都用表格呈现 |
+| 渐进展开 | 先看人读文件，再看 PRD 读取，再看 artifacts 和 reference |
 
-如果只有 15 分钟评审，可以这样用：
-
-1. 用 `report.md` 讲 3 分钟：需求、影响层、关键结论。
-2. 用 `questions.md` 讲 5 分钟：阻塞问题和 owner。
-3. 用 `contract-delta.yaml` 讲 4 分钟：跨层字段和外部系统。
-4. 用 `plan.md` 讲 3 分钟：开发顺序和 QA 重点。
-
-会议结束时应该得到：
-
-- 哪些问题谁来确认。
-- 哪些任务可以先开工。
-- 哪些契约需要同步前端/BFF/后端/外部团队。
-- 哪些测试场景必须覆盖。
-
-## 产出质量的目标
-
-PRD Tools 不是追求“AI 看完 PRD 后给一篇漂亮总结”，而是追求：
-
-- 需求拆得清。
-- 影响面找得准。
-- 证据能追溯。
-- 风险能提前暴露。
-- 契约能对齐。
-- 测试能落地。
-- 知识能回流。
-
-最终目标是降低返工、减少跨团队误解，让每次 PRD 分析都能沉淀成下一次更准确的项目知识。
+最终目标不是让每个人理解所有 YAML，而是让每个角色都能快速找到自己要看的东西，并把 PRD 分析结果推进到开发、测试、契约对齐和知识回流。
