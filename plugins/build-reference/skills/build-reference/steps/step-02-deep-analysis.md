@@ -2,40 +2,73 @@
 
 ## 目标
 
-生成 reference v3.1：
+生成 reference v4.0：
 
 ```text
-_reference/00-index.md
+_reference/00-portal.md
 _reference/project-profile.yaml
-_reference/01-entities.yaml
-_reference/02-architecture.yaml
-_reference/03-conventions.yaml
-_reference/04-constraints.yaml
-_reference/05-routing.yaml
-_reference/06-glossary.yaml
-_reference/07-business-context.yaml
-_reference/08-contracts.yaml
-_reference/09-playbooks.yaml
+_reference/01-codebase.yaml
+_reference/02-coding-rules.yaml
+_reference/03-contracts.yaml
+_reference/04-routing-playbooks.yaml
+_reference/05-domain.yaml
 ```
 
 ## 输入
 
 - `_output/modules-index.yaml`
 - `_output/context-enrichment.yaml`，如存在
-- `references/reference-v3.md`
+- `references/reference-v4.md`
 - `references/layer-adapters.md`
 - `references/output-contracts.md`
 - `templates/` 下的模板
 
 ## 执行
 
+按以下顺序生成文件，后生成的文件必须检查先生成的文件，避免内容重叠：
+
+### 阶段 1：代码库静态清单
+
 1. 为分析过程中发现的事实建立 evidence 台账。
-2. 提取实体：枚举、字段、组件、API、领域对象、validator、integration。
-3. 提取项目画像和架构：能力面、入口、数据流、注册点、依赖枢纽、third rails、heatmap。
-4. 提取契约：producer、consumers、契约面、字段、兼容性、对齐状态。
-5. 提取路由：PRD 信号如何映射到 Requirement IR 和 Layer Impact。
-6. 提取 playbook：高频需求场景、分层步骤、契约检查、QA 矩阵、常见错误。
-7. 提取规范、约束、术语和业务背景。
+2. 生成 `01-codebase.yaml`：目录结构、枚举、模块（能力面+入口点）、注册点（只记录在哪里）、数据流（只记录通用结构流）、外部系统（只记录名称和文件位置）、核心结构体（只有字段名列表）。
+
+### 阶段 2：编码规则
+
+3. 生成 `02-coding-rules.yaml`：编码规范与约束（用 severity 区分软硬）、高风险区域（third_rails → danger_zones）、踩坑经验。
+   - 检查 01-codebase 中的 registries，如果 registries 中包含了"怎么注册"的规则描述，将规则部分移到 02 的 rules 中。
+
+### 阶段 3：契约
+
+4. 生成 `03-contracts.yaml`：跨层和外部契约、字段级定义（type/required/compatibility）。
+   - 检查 01-codebase 中的 structures.fields，如果包含 type/required 信息，删除并添加 `contract_ref` 指向 03 中的契约。
+   - 检查 01-codebase 中的 external_systems，如果展开了 endpoint 列表，将 endpoint 详情移到 03，01 中只保留系统名和 contract_ref。
+
+### 阶段 4：路由与打法
+
+5. 生成 `04-routing-playbooks.yaml`：PRD 路由信号（只到能力面级别）、字段映射（prd_field → code_field → contract_ref）、场景打法（步骤只在这里）。
+   - 检查 02-coding-rules 中是否有场景驱动的开发步骤，如有，移到 04 的 playbook 中。
+   - routing 条目必须有 `playbook_ref` 指向对应的 playbook。
+   - field_mappings 中不放字段 type/required，只用 `contract_ref` 引用 03。
+
+### 阶段 5：业务领域
+
+6. 生成 `05-domain.yaml`：业务域概览、术语（只收录非枚举概念）、隐式业务规则、历史决策。
+   - 检查 01-codebase 中的枚举 label，如果 05-domain 的术语与枚举 label 重复，删除 05 中的重复条目，改为 `see_enum: "<EnumName>"`。
+
+### 阶段 6：导航
+
+7. 生成 `00-portal.md`：项目画像摘要、按场景阅读指南、文件地图、健康状态。
+8. 更新 `project-profile.yaml`（如需要）。
+
+## 去重检查（生成完成后必执行）
+
+按以下规则检查所有已生成文件，发现重叠时合并到对应权威文件：
+
+1. **字段级信息**：如果 01-codebase 或 04-routing-playbooks 中出现了字段 type/required 等契约信息，删除该内容并添加 `contract_ref: "CONTRACT-xxx"` 引用 03-contracts。
+2. **编码规则**：如果 04-routing-playbooks 的步骤中包含了编码级规则（如"需要注册到 factory"），将规则移到 02-coding-rules，步骤中只写 `ref_rule: "RULE-xxx"`。
+3. **实现步骤**：如果 01-codebase 的模块描述中包含了场景驱动的实现步骤，将步骤移到 04-routing-playbooks 的 playbook 中。
+4. **术语解释**：如果 05-domain 的术语与 01-codebase 的枚举 label 完全重复，删除 05-domain 中的重复条目，改为 `see_enum: "<EnumName>"`。
+5. **外部集成**：如果 01-codebase 的 external_systems 中展开了 endpoint 列表，将 endpoint 详情移到 03-contracts，01 中只保留系统名和 `contract_ref`。
 
 ## 确定性验证
 
@@ -55,7 +88,8 @@ _reference/09-playbooks.yaml
 ## 输出质量
 
 - 每个非显然条目都有 evidence。
-- 跨层假设写入 `08-contracts.yaml`。
-- 场景知识写入 `09-playbooks.yaml`，不要散落在说明文字中。
-- 代码写法写入 `03-conventions.yaml`，不要复制契约和 playbook。
+- 跨层假设写入 `03-contracts.yaml`。
+- 场景知识写入 `04-routing-playbooks.yaml`，不要散落在说明文字中。
+- 代码写法写入 `02-coding-rules.yaml`，不要复制契约和 playbook。
 - 层专属事实使用适配器中的 surface 名称。
+- 每个文件都有 `boundary` 字段声明。

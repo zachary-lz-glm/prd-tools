@@ -12,7 +12,8 @@
 
 - 来自 `.docx/.md/.txt/.pdf` 或粘贴内容的 PRD。
 - 可选后端/API/技术方案文档。
-- 如存在，读取 `_reference/05-routing.yaml`、`_reference/06-glossary.yaml`、`_reference/07-business-context.yaml`。
+- 如存在，读取 `_reference/04-routing-playbooks.yaml`、`_reference/05-domain.yaml`。
+- v3.1 兼容：`_reference/05-routing.yaml`、`_reference/06-glossary.yaml`、`_reference/07-business-context.yaml`。
 - 旧版兼容：`_reference/05-mapping.yaml`。
 
 ## 执行

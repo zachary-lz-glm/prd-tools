@@ -1,0 +1,71 @@
+# 04-routing-playbooks.yaml — PRD 路由信号 + 场景打法
+schema_version: "4.0"
+tool_version: "<tool-version>"
+layer: "<frontend|bff|backend|multi-layer>"
+project: "<project>"
+last_verified: "<YYYY-MM-DD>"
+verify_cadence: "14d"
+owner: "<team>"
+boundary: "PRD路由信号 + 场景打法。路由只记录信号到能力面的映射，不展开实现步骤。步骤只在 playbook 中。不放枚举值（见01-codebase）、不放字段级契约（见03-contracts）、不放编码规则（见02-coding-rules）。"
+
+# 能力边界
+capability_boundary:
+  can_do: []
+  cannot_do: []
+
+# PRD 路由（只到能力面级别，不含具体实现步骤）
+prd_routing:
+  - id: "ROUTE-001"
+    prd_pattern: ""
+    prd_keywords: []
+    structural_signals: []
+    requirement_ir_hints: []
+    target_surfaces: []       # 格式: "backend.domain_model"
+    default_change_type: "ADD|MODIFY|DELETE|NO_CHANGE"
+    playbook_ref: "PLAYBOOK-001"
+    confidence_rule: "high|medium|low"
+    evidence:
+      - "EV-001"
+
+# 字段映射（PRD 字段 -> 代码字段 -> 契约引用）
+field_mappings:
+  - prd_field: ""
+    code_field: ""
+    target_layer: ""
+    contract_ref: "CONTRACT-001"
+    evidence:
+      - "EV-001"
+
+change_type_rules:
+  ADD: "PRD 明确说新增、添加、支持新能力"
+  MODIFY: "PRD 明确说修改、调整、扩展现有能力"
+  DELETE: "PRD 明确说删除、下线、废弃能力"
+  NO_CHANGE: "PRD 描述与现有能力一致，无需代码改动"
+
+# 场景打法（开发步骤只在这里）
+playbooks:
+  - id: "PLAYBOOK-001"
+    scenario: ""
+    trigger_signals: []
+    layer_steps:
+      frontend: []
+      bff: []
+      backend: []
+    contract_checks:
+      - "CONTRACT-001"
+    qa_matrix: []
+    common_mistakes: []
+    evidence:
+      - "EV-001"
+
+golden_samples:
+  - id: "SAMPLE-001"
+    name: ""
+    source_docs: []
+    requirement_ids: []
+    changed_files: []
+    contract_refs:
+      - "CONTRACT-001"
+    lessons: []
+    evidence:
+      - "EV-001"

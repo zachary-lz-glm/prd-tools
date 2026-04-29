@@ -1,0 +1,32 @@
+# 03-contracts.yaml — 跨层和外部契约
+schema_version: "4.0"
+tool_version: "<tool-version>"
+layer: "<frontend|bff|backend|multi-layer>"
+project: "<project>"
+last_verified: "<YYYY-MM-DD>"
+verify_cadence: "14d"
+owner: "<team>"
+boundary: "契约：系统边界之间的承诺。endpoint、schema、event、payload 的字段级定义。不放编码规则（见02-coding-rules）、不放开发步骤（见04-routing-playbooks）、不放枚举值列表（见01-codebase）。这是字段级信息的唯一权威来源。"
+
+contracts:
+  - id: "CONTRACT-001"
+    name: ""
+    producer: "<frontend|bff|backend|external>"
+    consumers: []
+    change_type: "ADD|MODIFY|DELETE|NO_CHANGE"
+    contract_surface: "<endpoint|schema|event|payload|db_table|external_api>"
+    request_fields:
+      - name: ""
+        change_type: "ADD|MODIFY|DELETE|NO_CHANGE"
+        required: false
+        type: ""
+        source: "prd|tech_doc|code|inferred"
+        notes: ""
+    response_fields: []
+    compatibility: ""
+    alignment_status: "aligned|needs_confirmation|blocked|not_applicable"
+    checked_by: []
+    evidence:
+      - "EV-001"
+
+alignment_rules: []

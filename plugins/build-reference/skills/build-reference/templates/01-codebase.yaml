@@ -1,0 +1,70 @@
+# 01-codebase.yaml — 代码库静态清单
+schema_version: "4.0"
+tool_version: "<tool-version>"
+layer: "<frontend|bff|backend|multi-layer>"
+project: "<project>"
+last_verified: "<YYYY-MM-DD>"
+verify_cadence: "14d"
+owner: "<team>"
+boundary: "静态清单：代码库中已存在的事实。不放字段级契约（见03-contracts）、不放编码规则（见02-coding-rules）、不放业务术语解释（见05-domain）、不放场景打法步骤（见04-routing-playbooks）。"
+
+# 目录结构（树形文本）
+directory_tree: ""
+
+# 枚举（值的业务含义用 label 一行说明，不放跨层字段级信息）
+enums:
+  <EnumName>:
+    definition_file: "<path:line>"
+    values:
+      - name: "<NAME>"
+        value: "<value>"
+        label: "<一句话业务含义>"
+    evidence:
+      - "EV-001"
+
+# 模块（能力面+入口点，不放外部集成的 endpoint 详情）
+modules:
+  - id: "<MOD-001>"
+    path: "<path>"
+    responsibilities: []
+    entrypoints: []           # 文件:方法 格式
+    key_files: []
+    evidence:
+      - "EV-001"
+
+# 注册点（只记录"在哪里注册"，不记录"怎么写"——那是 02-coding-rules 的事）
+registries:
+  - name: "<registry-name>"
+    file: "<path:line>"
+    pattern: "switch-case by CampaignType"
+    evidence:
+      - "EV-001"
+
+# 数据流（只记录通用结构流，不放场景驱动的具体步骤——那是 04-routing-playbooks 的事）
+data_flows:
+  - id: "<FLOW-001>"
+    name: "<flow name>"
+    path:
+      - "<source>"
+      - "<target>"
+    contract_refs:
+      - "CONTRACT-001"
+    evidence:
+      - "EV-001"
+
+# 外部系统（只记录名称和文件位置，endpoint 详情在 03-contracts）
+external_systems:
+  - name: "<system-name>"
+    integration_file: "<path>"
+    contract_ref: "CONTRACT-001"
+    evidence:
+      - "EV-001"
+
+# 核心结构体（只有定义文件和字段名列表，不放字段级契约）
+structures:
+  - id: "<STRUCTURE-001>"
+    kind: "<type|interface|payload|db_model>"
+    definition_file: "<path:line>"
+    fields: []                # 只列字段名，不放 type/required（那是 03-contracts 的事）
+    evidence:
+      - "EV-001"

@@ -5,7 +5,7 @@ description: 为前端、BFF、后端通用的 PRD-to-code 工作流构建、更
 
 # build-reference
 
-Claude Code 中可通过 `/build-reference` 使用；Codex 中通过“使用 build-reference skill ...”触发。
+Claude Code 中可通过 `/build-reference` 使用；Codex 中通过"使用 build-reference skill ..."触发。
 
 ## 这个 skill 是做什么的
 
@@ -53,12 +53,16 @@ Claude Code 中可通过 `/build-reference` 使用；Codex 中通过“使用 bu
 
 ```text
 _reference/
-├── 00-index.md 或 README.md
-├── project-profile.yaml
-├── contracts.yaml 或 08-contracts.yaml
-├── playbooks.yaml 或 09-playbooks.yaml
-└── 01~09 兼容细节文件
+├── 00-portal.md                # 人类导航 + 场景阅读指南
+├── project-profile.yaml        # 项目画像
+├── 01-codebase.yaml            # 代码库静态清单
+├── 02-coding-rules.yaml        # 编码规则（规范+约束）
+├── 03-contracts.yaml           # 跨层和外部契约
+├── 04-routing-playbooks.yaml   # PRD 路由信号 + 场景打法
+└── 05-domain.yaml              # 业务领域知识
 ```
+
+兼容读取旧版 v3.1 文件（`01-entities.yaml` ~ `09-playbooks.yaml`），自动映射到 v4.0 结构。
 
 过程和质量报告输出到：
 
@@ -99,27 +103,23 @@ _output/
 - BFF：`edge_api`、`schema_or_template`、`orchestration`、`transform_mapping`、`frontend_contract`、`upstream_contract`。
 - 后端：`api_surface`、`application_service`、`domain_model`、`validation_policy`、`persistence_model`、`async_event`、`external_integration`。
 
-## 文件边界
+## 文件边界（v4.0）
 
 构建 `_reference/` 时必须遵守：
 
-- `01-entities`：只放已存在的静态事实，不写流程。
-- `02-architecture`：只放结构、入口、运行流和高风险区域，不写字段契约详情。
-- `03-conventions`：只放代码写法、命名、注册模式、反模式。
-- `04-constraints`：只放硬规则、校验红线和生成边界。
-- `05-routing`：只放 PRD 信号到需求、目标层、能力面的路由规则。
-- `06-glossary`：只放业务术语、同义词和字段/组件映射。
-- `07-business-context`：只放业务背景、隐式规则、历史决策和歧义。
-- `08-contracts`：只放跨层和外部契约，不写开发步骤。
-- `09-playbooks`：只放场景打法、QA 矩阵、常见坑和 golden sample，不复制字段级契约。
+- `01-codebase`：只放已存在的静态事实（目录、枚举、模块、注册点、数据流、外部系统、结构体）。不放字段级契约、不放编码规则、不放实现步骤。
+- `02-coding-rules`：只放编码规则（规范+约束合并，severity 区分软硬）、高风险区域、踩坑经验。不放契约字段、不放打法步骤。
+- `03-contracts`：只放跨层和外部契约的字段级定义。这是字段级信息的唯一权威来源。不放编码规则、不放开发步骤、不放枚举值列表。
+- `04-routing-playbooks`：路由只放信号到能力面的映射（不含实现步骤）。打法只放在 playbook 中。不放枚举值、不放字段级契约、不放编码规则。
+- `05-domain`：只放业务领域知识（术语、背景、隐式规则、决策日志）。不放代码路径、不放编码规则、不放契约字段。
 
-尤其注意：
+跨文件引用规则：
 
-```text
-03-conventions：代码通常怎么写
-08-contracts：系统边界承诺了什么
-09-playbooks：遇到某类需求怎么推进
-```
+- 字段 type/required 只在 `03-contracts`，其他文件用 `contract_ref` 引用。
+- 编码规则只在 `02-coding-rules`，playbook 步骤用 `ref_rule` 引用。
+- 开发步骤只在 `04-routing-playbooks` 的 playbook 中。
+- 术语只在 `05-domain`（枚举 label 在 `01-codebase` 的 enums 中）。
+- 外部系统 endpoint 详情只在 `03-contracts`，`01-codebase` 用 `contract_ref` 引用。
 
 ## 证据规则
 
@@ -147,7 +147,7 @@ _output/
 | 文件 | 何时读取 |
 |---|---|
 | `workflow.md` | 执行完整构建、健康检查、质量门控或反馈回流时 |
-| `references/reference-v3.md` | 需要确认 reference 文件职责、边界、质量规则时 |
+| `references/reference-v4.md` | 需要确认 reference 文件职责、边界、质量规则时 |
 | `references/layer-adapters.md` | 判断前端/BFF/后端能力面时 |
 | `references/output-contracts.md` | 需要和 prd-distill 输出契约对齐时 |
 | `templates/*.yaml` | 创建 reference 骨架时 |
@@ -155,7 +155,7 @@ _output/
 
 ## 完成标准
 
-完成后不要只说“已构建”。必须说明：
+完成后不要只说"已构建"。必须说明：
 
 - `_reference/` 新增或更新了哪些文件。
 - reference 当前健康状态：pass / warning / fail。

@@ -119,8 +119,8 @@ _output/prd-distill/<slug>/
    - 读取 `prd-ingest/extraction-quality.yaml`；`status: block` 时暂停。
    - 有图片、截图、流程图或复杂表格时，检查 `media-analysis.yaml` 和 `conversion-warnings.md`，未确认内容必须进入 `questions.md`。
 3. 读取 `_reference/`：
-   - 优先读取 `project-profile.yaml`、`contracts.yaml|08-contracts.yaml`、`playbooks.yaml|09-playbooks.yaml`。
-   - 兼容读取 `05-routing.yaml`、`06-glossary.yaml`、`07-business-context.yaml`。
+   - 优先读取 v4 文件：`project-profile.yaml`、`03-contracts.yaml`、`04-routing-playbooks.yaml`。
+   - 兼容读取 v3.1 文件：`contracts.yaml|08-contracts.yaml`、`playbooks.yaml|09-playbooks.yaml`、`05-routing.yaml`、`06-glossary.yaml`、`07-business-context.yaml`。
 4. 建立 `artifacts/evidence.yaml`，先映射 ingestion 证据，再补充技术方案、源码、负向搜索、reference 证据。
 5. 将 `prd-ingest/document.md` 拆成 `artifacts/requirement-ir.yaml`。
 6. 按能力面生成 `artifacts/layer-impact.yaml`。

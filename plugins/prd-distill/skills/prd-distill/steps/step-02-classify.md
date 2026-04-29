@@ -12,12 +12,11 @@
 - `artifacts/evidence.yaml`
 - `artifacts/requirement-ir.yaml`
 - `_reference/project-profile.yaml`，如存在
-- `_reference/01-entities.yaml`
-- `_reference/02-architecture.yaml`
-- `_reference/03-conventions.yaml`
-- `_reference/04-constraints.yaml`
-- `_reference/08-contracts.yaml`
-- `_reference/09-playbooks.yaml`
+- `_reference/01-codebase.yaml`
+- `_reference/02-coding-rules.yaml`
+- `_reference/03-contracts.yaml`
+- `_reference/04-routing-playbooks.yaml`
+- v3.1 兼容：`_reference/01-entities.yaml`、`_reference/02-architecture.yaml`、`_reference/03-conventions.yaml`、`_reference/04-constraints.yaml`、`_reference/08-contracts.yaml`、`_reference/09-playbooks.yaml`
 - `references/layer-adapters.md`
 
 ## 执行

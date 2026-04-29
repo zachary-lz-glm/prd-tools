@@ -1,0 +1,41 @@
+# 02-coding-rules.yaml — 编码规则
+schema_version: "4.0"
+tool_version: "<tool-version>"
+layer: "<frontend|bff|backend|multi-layer>"
+project: "<project>"
+last_verified: "<YYYY-MM-DD>"
+verify_cadence: "14d"
+owner: "<team>"
+boundary: "编码规则：怎么写代码。合并了规范（软）和约束（硬），用 severity 区分。不放字段级契约（见03-contracts）、不放场景打法步骤（见04-routing-playbooks）。"
+
+# 编码规范与约束
+rules:
+  - id: "<RULE-001>"
+    category: "<naming|registration|validation|error_handling|transform|style>"
+    severity: "fatal|warning|info"
+    description: ""
+    correct_approach: ""
+    wrong_approach: ""
+    detection: ""              # 如何检测违反
+    example_files: []
+    evidence:
+      - "EV-001"
+
+# 高风险区域（原 third_rails）
+danger_zones:
+  - id: "<DANGER-001>"
+    area: "<description>"
+    why: "<why it's dangerous>"
+    detection: ""
+    evidence:
+      - "EV-001"
+
+# 踩坑经验
+war_stories:
+  - id: "<WS-001>"
+    story: ""
+    lesson: ""
+    related_rules:
+      - "RULE-001"
+    evidence:
+      - "EV-001"

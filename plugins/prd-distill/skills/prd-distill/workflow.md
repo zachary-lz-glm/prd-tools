@@ -22,7 +22,7 @@ PRD raw file/text
 
 - PRD：`.docx | .md | .txt | .pdf | pasted text`。
 - 技术方案 / API 文档：可选，但多层或后端相关需求强烈建议读取。
-- `_reference/`：优先 v3；若只有旧版 `05-mapping.yaml`，兼容读取并在回流建议里提示迁移。
+- `_reference/`：优先 v4（6 文件结构）；若只有 v3.1（10 文件结构），兼容读取；若只有旧版 `05-mapping.yaml`，兼容读取并在回流建议里提示迁移。
 - 目标代码库：用于代码锚定。
 
 创建输出目录：
@@ -171,12 +171,12 @@ ADD/MODIFY/DELETE/NO_CHANGE 必须由源码或负向搜索支撑。
 生成 `artifacts/reference-update-suggestions.yaml`：
 
 ```yaml
-schema_version: "3.1"
-tool_version: "2.2.0"
+schema_version: "4.0"
+tool_version: "<tool-version>"
 suggestions:
   - id: "REF-UPD-001"
     type: "new_term | new_route | new_contract | new_playbook | contradiction | golden_sample_candidate"
-    target_file: "_reference/05-routing.yaml"
+    target_file: "_reference/04-routing-playbooks.yaml"
     summary: ""
     evidence: ["EV-001"]
     priority: "high | medium | low"

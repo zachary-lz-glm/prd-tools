@@ -188,40 +188,34 @@ BFF 常见能力面：
 
 `_reference/` 是项目长期知识，不是某次 PRD 的临时结论。
 
-推荐结构：
+推荐结构（v4.0，6 文件）：
 
 ```text
 _reference/
-├── 00-index.md 或 README.md
-├── project-profile.yaml
-├── contracts.yaml 或 08-contracts.yaml
-├── playbooks.yaml 或 09-playbooks.yaml
-└── 01~09 兼容细节文件
+├── 00-portal.md                # 人类导航 + 按场景阅读指南
+├── project-profile.yaml        # 项目画像
+├── 01-codebase.yaml            # 代码库静态清单（目录、枚举、模块、注册点）
+├── 02-coding-rules.yaml        # 编码规则（规范+约束合并，severity 区分软硬）
+├── 03-contracts.yaml           # 跨层和外部契约（字段级信息的唯一权威来源）
+├── 04-routing-playbooks.yaml   # PRD 路由信号 + 场景打法 + QA 矩阵
+└── 05-domain.yaml              # 业务领域知识（术语+背景+隐式规则+决策日志）
 ```
+
+兼容读取旧版 v3.1（10 文件结构：`01-entities.yaml` ~ `09-playbooks.yaml`），自动映射到 v4.0。
 
 核心文件说明：
 
-| 文件 | 用途 | 边界 |
+| 文件 | 用途 | 不放什么 |
 |---|---|---|
-| `00-index.md` / `README.md` | 人类导航、版本信息、关键入口、健康状态 | 只做导航，不维护大量事实 |
+| `00-portal.md` | 人类导航、项目画像摘要、按场景阅读指南、健康状态 | 不维护大量事实 |
 | `project-profile.yaml` | 项目画像：技术栈、入口、能力面、关键文件、测试命令 | 不写某个 PRD 的具体计划 |
-| `01-entities.yaml` | 已存在的静态事实：枚举、字段、组件、DTO、领域对象、endpoint | 不写流程和开发步骤 |
-| `02-architecture.yaml` | 结构和运行流：模块职责、数据流、注册点、依赖枢纽、高风险区域 | 不写字段契约详情 |
-| `03-conventions.yaml` | 代码写法：命名、注册模式、转换模式、反模式 | 不放跨层字段契约或需求 playbook |
-| `04-constraints.yaml` | 硬约束：白名单、校验红线、生成边界、质量门控 | 不放普通代码风格 |
-| `05-routing.yaml` | PRD 信号如何路由到需求 IR、目标层和能力面 | 不写完整实现方案 |
-| `06-glossary.yaml` | 业务术语、同义词、枚举 label、字段/组件映射 | 不写完整业务规则 |
-| `07-business-context.yaml` | 业务背景、隐式规则、历史决策、已知歧义 | 不写代码实现细节 |
-| `08-contracts.yaml` / `contracts.yaml` | 跨层和外部契约：producer、consumer、字段、兼容性、owner、alignment_status | 不写开发步骤 |
-| `09-playbooks.yaml` / `playbooks.yaml` | 高频需求打法、QA 矩阵、常见坑、golden sample | 不重复字段级契约 |
+| `01-codebase.yaml` | 静态清单：目录、枚举、模块、注册点、数据流、外部系统 | 不放字段级契约、不放编码规则、不放实现步骤 |
+| `02-coding-rules.yaml` | 编码规则：规范、约束、红线、反模式、踩坑经验 | 不放契约字段、不放打法步骤 |
+| `03-contracts.yaml` | 契约：endpoint、schema、event、字段级定义 | 不放编码规则、不放开发步骤、不放枚举值列表 |
+| `04-routing-playbooks.yaml` | PRD 路由信号 + 场景打法 + QA 矩阵 + golden samples | 不放枚举值、不放字段级契约、不放编码规则 |
+| `05-domain.yaml` | 业务领域：术语、背景、隐式规则、历史决策 | 不放代码路径、不放编码规则、不放契约字段 |
 
-重点边界：
-
-```text
-03-conventions：代码通常怎么写
-08-contracts：系统边界承诺了什么
-09-playbooks：遇到某类需求怎么推进
-```
+v4.0 核心原则：**每个事实只存在于一个文件（SSOT）**，其他文件通过 ID 引用。
 
 ### 构建过程产物：`_output/`
 
