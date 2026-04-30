@@ -132,6 +132,19 @@ _output/
 - 不确定就写 `confidence: low`，并进入开放问题或后续动作。
 - 每条关键事实都要有 `evidence`、`verified_by` 或明确的负向搜索。
 
+## 图谱增强（可选）
+
+当 GitNexus 或 Graphify 图谱可用时，build-reference 可以从图谱获取结构化证据，加速构建过程。
+
+详细规则见 `references/reference-v4.md` 的「图谱证据层」章节。
+
+| 图谱工具 | 维度 | 适用 reference 文件 |
+|---------|------|-------------------|
+| GitNexus | 代码结构 | 01-codebase、03-contracts |
+| Graphify | 业务语义 | 02-coding-rules、04-routing-playbooks、05-domain |
+
+核心原则：图谱是原始发现层，reference 是精选后的企业知识库。图谱结论仍需源码确认。
+
 ## 执行步骤
 
 1. 识别项目路径、层级、已有 `_reference/` 和 `_output/`。

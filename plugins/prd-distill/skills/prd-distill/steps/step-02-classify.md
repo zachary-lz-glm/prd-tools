@@ -16,16 +16,36 @@
 - `_reference/02-coding-rules.yaml`
 - `_reference/03-contracts.yaml`
 - `_reference/04-routing-playbooks.yaml`
+- `_output/graph/code-graph-evidence.yaml`，如存在（GitNexus）
+- `_output/graph/business-graph-evidence.yaml`，如存在（Graphify）
 - v3.1 兼容：`_reference/01-entities.yaml`、`_reference/02-architecture.yaml`、`_reference/03-conventions.yaml`、`_reference/04-constraints.yaml`、`_reference/08-contracts.yaml`、`_reference/09-playbooks.yaml`
 - `references/layer-adapters.md`
 
 ## 执行
+
+### 基础分析（始终执行）
 
 1. 为每个目标层选择能力面适配器。
 2. 对每个 requirement 搜索并读取代码，确认当前状态。
 3. 按适配器 surface 记录 Layer Impact。
 4. 对每个跨层/API/schema/event/downstream 契约面创建 Contract Delta。
 5. 从规范、约束、third rails、契约、playbook 中补充风险。
+
+### 代码影响分析（GitNexus 可用时增强）
+
+6. 对每个 requirement 涉及的代码符号：
+   a. `mcp__gitnexus__impact <symbol>` 获取爆炸半径。
+   b. 将影响的模块和调用链写入 layer-impact.yaml 的 `affected_symbols` 字段。
+   c. 如果影响范围超过 5 个模块，提升 `risk_level`。
+   d. 记录图谱证据到 artifacts/evidence.yaml。
+
+### 业务影响分析（Graphify 可用时增强）
+
+7. 对每个 requirement 的业务关键词：
+   a. `/graphify path "需求关键词" "受影响模块"` 追踪业务关联路径。
+   b. `/graphify explain "变更概念"` 获取设计原理和隐式规则。
+   c. 确认变更不会违反 rationale_for 中的设计决策。
+   d. 将业务影响和设计约束写入 layer-impact.yaml 的 `business_constraints` 字段。
 
 ## 代码锚定规则
 
@@ -46,3 +66,22 @@
 - producer/consumer 归属不清。
 
 任一侧未验证时，使用 `alignment_status: needs_confirmation`。
+
+## 图谱增强输出
+
+当图谱工具可用时，layer-impact.yaml 增加以下字段：
+
+```yaml
+affected_symbols:                     # GitNexus impact 结果
+  - symbol: ""
+    blast_radius: []
+    confidence: 0.0
+    graph_provider: "gitnexus"
+
+business_constraints:                 # Graphify 业务关联结果
+  - concept: ""
+    related_concepts: []
+    design_rationale: ""
+    risk_if_violated: ""
+    graph_provider: "graphify"
+```

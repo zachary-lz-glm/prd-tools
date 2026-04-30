@@ -4,6 +4,22 @@
 
 ---
 
+## [2.5.0] - 2026-04-30
+
+### Added
+- **图谱证据层（Graph Evidence）**：GitNexus + Graphify 双图谱集成，作为 reference 的结构化证据源
+- reference-v4.md 新增「图谱证据层」章节：统一图谱证据格式 `graph_evidence`、provider 映射、置信度映射规则
+- reference 文件按数据源分工：01/03 ← GitNexus（代码维度），02/04/05 ← Graphify（业务维度）
+- step-01-structure-scan.md 增加双图谱查询策略（代码层 GitNexus + 业务层 Graphify），自动回退 rg/glob
+- step-02-deep-analysis.md 按数据源分 6 阶段生成 reference，图谱不可用时回退到原有流程
+- prd-distill step-02-classify.md 增加双维度影响分析（代码影响 GitNexus + 业务影响 Graphify）
+- `_output/graph/` 目录：business-graph-evidence.yaml、code-graph-evidence.yaml
+- evidence kind 新增 `knowledge_graph`
+
+### Changed
+- workflow.md 新增三层架构说明：Graphify（业务维度）+ GitNexus（代码维度）+ prd-tools（治理维度）
+- SKILL.md 增加「图谱增强」章节和核心原则说明
+
 ## [2.4.1] - 2026-04-29
 
 ### Fixed

@@ -8,15 +8,29 @@
 
 reference 是"可验证指南针"，不是项目百科。6 个文件，每个事实只存在一处（SSOT），按场景阅读。
 
+## 三层架构
+
+```
+Graphify (业务维度)          GitNexus (代码维度)          prd-tools (治理维度)
+"为什么这样设计"              "代码怎么连接"               "怎么从 PRD 到代码"
+PRD/技术方案/截图/历史文档     代码仓库                     编排 + 证据治理 + 质量门控
+        │                          │                           │
+        └──────────────────────────┼───────────────────────────┘
+                                   ▼
+                         _reference/ 企业级可治理知识库
+```
+
+关键原则：**图谱是原始发现层，reference 是精选后的企业知识库。**
+
 ## 阶段
 
 | 阶段 | 名称 | 输入 | 输出 |
 |---|---|---|---|
 | 0 | 上下文收集 | 历史 PRD、技术方案、分支 diff、发布/返工记录 | `_output/context-enrichment.yaml` |
-| 1 | 结构扫描 | 项目目录、核心源码、git 历史 | `_output/modules-index.yaml` |
-| 2 | 深度分析 | modules-index、源码、context-enrichment、能力面适配器 | `_reference/` v4.0 |
-| 3 | 质量门控 | reference、源码、样例需求 | `_output/reference-quality-report.yaml` |
-| 4 | 反馈回流 | `/prd-distill` 输出、源码、reference | `_output/feedback-ingest-report.yaml` |
+| 1 | 结构扫描 | 项目目录、核心源码、git 历史 + **双图谱查询** | `_output/modules-index.yaml` + `_output/graph/*.yaml` |
+| 2 | 深度分析 | modules-index、图谱证据、源码、能力面适配器 | `_reference/` v4.0 |
+| 3 | 质量门控 | reference、源码、样例需求 + **图谱证据校验** | `_output/reference-quality-report.yaml` |
+| 4 | 反馈回流 | `/prd-distill` 输出、源码、reference + **图谱增量更新** | `_output/feedback-ingest-report.yaml` |
 
 ## 阶段 0：上下文收集
 
@@ -66,7 +80,15 @@ samples:
 - 排除 `node_modules`、`dist`、`build`、`coverage`、测试、mock、fixture、生成物。
 - 读取文件前先确认路径存在。
 
-输出 `_output/modules-index.yaml`，同时沉淀 `_reference/project-profile.yaml`：
+### 图谱增强（如可用）
+
+**代码结构层（GitNexus）**：`mcp__gitnexus__query` 获取模块和符号，`mcp__gitnexus__context` 获取调用关系。AST 精度替代 regex 扫描。
+
+**业务语义层（Graphify）**：`/graphify query` 提取业务概念，God Nodes 映射为核心模块，Surprising Connections 映射为跨域依赖。
+
+图谱不可用时自动回退到原有 rg/glob 流程。
+
+输出 `_output/modules-index.yaml` + `_output/graph/*.yaml`，同时沉淀 `_reference/project-profile.yaml`：
 
 ```yaml
 schema_version: "4.0"
@@ -74,6 +96,7 @@ tool_version: "<tool-version>"
 project: ""
 layer: "frontend | bff | backend | multi-layer"
 adapter: "frontend | bff | backend"
+graph_providers: []
 capability_surfaces:
   - id: ""
     layer: ""
@@ -84,6 +107,7 @@ capability_surfaces:
     symbols: []
     status: "candidate | verified | negative_search"
     evidence: []
+    graph_source: "gitnexus | graphify | none"
 ```
 
 ## 阶段 2：深度分析

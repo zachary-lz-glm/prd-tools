@@ -3,6 +3,13 @@
 All notable changes to the **prd-distill** plugin are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [2.5.0] - 2026-04-30
+
+### Added
+- **双维度影响分析**：step-02-classify.md 增加 GitNexus（代码爆炸半径）+ Graphify（业务关联）图谱增强
+- layer-impact.yaml 新增 `affected_symbols`（GitNexus）和 `business_constraints`（Graphify）字段
+- 图谱不可用时自动回退到原有分析流程
+
 ## [2.4.1] - 2026-04-29
 
 ### Fixed

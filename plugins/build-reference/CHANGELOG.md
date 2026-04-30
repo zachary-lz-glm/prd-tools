@@ -3,6 +3,20 @@
 All notable changes to the **build-reference** plugin are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [2.5.0] - 2026-04-30
+
+### Added
+- **图谱证据层**：GitNexus（代码结构）+ Graphify（业务语义）双图谱集成
+- reference-v4.md 新增「图谱证据层」章节：统一证据格式、provider 映射、置信度映射
+- step-01-structure-scan.md 增加双图谱查询策略，自动回退 rg/glob
+- step-02-deep-analysis.md 按数据源分工 6 阶段生成 reference
+- `_output/graph/` 输出目录：code-graph-evidence.yaml、business-graph-evidence.yaml
+- evidence kind 新增 `knowledge_graph`
+
+### Changed
+- workflow.md 新增三层架构说明和图谱增强阶段描述
+- SKILL.md 增加「图谱增强」章节
+
 ## [2.4.1] - 2026-04-29
 
 ### Fixed
