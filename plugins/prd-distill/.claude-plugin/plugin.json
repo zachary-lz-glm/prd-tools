@@ -5,42 +5,5 @@
   "skills": ["./skills/prd-distill"],
   "author": {
     "name": "DevTools Team"
-  },
-  "changelog": [
-    {
-      "version": "2.4.1",
-      "date": "2026-04-29",
-      "changes": ["P0 口径一致性修复：所有文件统一到 v2.4/v4.0", "report/plan/questions 增加职责边界和长度约束"]
-    },
-    {
-      "version": "2.4.0",
-      "date": "2026-04-29",
-      "changes": ["report.md 渐进式披露 9 章结构（30 秒决策 → 变更明细 → 契约风险）", "plan.md 可执行开发手册（checklist + 文件行号 + 验证命令 + 参考实现）"]
-    },
-    {
-      "version": "2.3.0",
-      "date": "2026-04-29",
-      "changes": ["适配 reference v4.0（6 文件结构）", "兼容读取旧版 v3.1 reference"]
-    },
-    {
-      "version": "2.2.0",
-      "date": "2026-04-29",
-      "changes": ["新增 PRD ingestion：docx/md/txt/pdf 基础读取", "输出 prd-ingest 文档结构、表格、图片和质量门禁", "图片/复杂表格未确认时强制进入 warning/question/block"]
-    },
-    {
-      "version": "2.1.0",
-      "date": "2026-04-28",
-      "changes": ["默认输出瘦身为 report/plan/questions", "证据链迁入 artifacts", "Layer Impact 改为能力面 surface"]
-    },
-    {
-      "version": "2.0.0",
-      "date": "2026-04-28",
-      "changes": ["新工作流：PRD → Requirement IR → Layer Impact → Contract Delta → Plan → Report"]
-    },
-    {
-      "version": "1.0.0",
-      "date": "2026-04-27",
-      "changes": ["初始版本：3 步工作流，解析和路由 → 分类 → 确认"]
-    }
-  ]
+  }
 }
