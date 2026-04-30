@@ -1,0 +1,70 @@
+#!/usr/bin/env bash
+# pre-commit hook: 版本一致性 + CHANGELOG 校验
+# 只在 VERSION 被 staged 时触发，否则静默通过
+
+set -euo pipefail
+
+REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
+
+# 只在 VERSION 被 staged 时触发
+if ! git diff --cached --name-only | grep -q '^VERSION$'; then
+  exit 0
+fi
+
+version=$(tr -d '[:space:]' < "${REPO_ROOT}/VERSION")
+errors=0
+
+echo "==> [pre-commit] 检测到 VERSION 变更 (${version})，执行版本校验..."
+
+# --- 检查 1: 5 处版本一致性 ---
+for plugin in build-reference prd-distill; do
+  pv=$(jq -r '.version' "${REPO_ROOT}/plugins/${plugin}/.claude-plugin/plugin.json" 2>/dev/null || echo "MISSING")
+  if [ "$pv" != "$version" ]; then
+    echo "ERROR: plugins/${plugin}/.claude-plugin/plugin.json 版本 '${pv}'，期望 '${version}'"
+    errors=$((errors + 1))
+  fi
+done
+
+m0=$(jq -r '.plugins[0].version' "${REPO_ROOT}/.claude-plugin/marketplace.json" 2>/dev/null || echo "MISSING")
+m1=$(jq -r '.plugins[1].version' "${REPO_ROOT}/.claude-plugin/marketplace.json" 2>/dev/null || echo "MISSING")
+if [ "$m0" != "$version" ]; then
+  echo "ERROR: .claude-plugin/marketplace.json plugins[0] 版本 '${m0}'，期望 '${version}'"
+  errors=$((errors + 1))
+fi
+if [ "$m1" != "$version" ]; then
+  echo "ERROR: .claude-plugin/marketplace.json plugins[1] 版本 '${m1}'，期望 '${version}'"
+  errors=$((errors + 1))
+fi
+
+# --- 检查 2: 至少一个 CHANGELOG 被更新 ---
+changelog_changed=false
+for cl in CHANGELOG.md plugins/build-reference/CHANGELOG.md plugins/prd-distill/CHANGELOG.md; do
+  if git diff --cached --name-only | grep -q "^${cl}$"; then
+    changelog_changed=true
+    break
+  fi
+done
+
+if [ "$changelog_changed" = false ]; then
+  echo "ERROR: VERSION 已修改但没有任何 CHANGELOG.md 被更新。"
+  echo "请至少更新以下文件之一："
+  echo "  - CHANGELOG.md"
+  echo "  - plugins/build-reference/CHANGELOG.md"
+  echo "  - plugins/prd-distill/CHANGELOG.md"
+  errors=$((errors + 1))
+fi
+
+# --- 检查 3: tag 不重复 ---
+if git tag -l "v${version}" | grep -q .; then
+  echo "ERROR: Tag 'v${version}' 已存在。请确认版本号是否正确。"
+  errors=$((errors + 1))
+fi
+
+# --- 结果 ---
+if [ $errors -gt 0 ]; then
+  echo ""
+  echo "版本校验失败 (${errors} 个错误)。请使用 scripts/release.sh 进行发版。"
+  exit 1
+fi
+
+echo "==> [pre-commit] 版本校验通过 ✓"
