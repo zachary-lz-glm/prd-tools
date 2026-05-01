@@ -170,6 +170,20 @@ _output/prd-distill/<slug>/
 - 不确定就标 `confidence: low`，不要补脑。
 - 不直接修改 `_reference/`，只生成回流建议。
 
+## 图谱增强（可选）
+
+当 GitNexus 或 Graphify 可用时，prd-distill 做轻量级补充查询，**不做图谱全量扫描**。图谱数据的主要消费者是 build-reference。
+
+| 场景 | 图谱工具 | 查询类型 |
+|------|---------|---------|
+| 代码影响范围评估 | GitNexus | `mcp__gitnexus__impact` 获取受影响符号和爆炸半径，写入 impact 条目的 `affected_symbols` |
+| 业务规则约束检查 | Graphify | `/graphify path` 追踪业务关联，`/graphify explain` 获取设计原理，写入 impact 条目的 `business_constraints` |
+| 契约 consumer 发现 | GitNexus | `mcp__gitnexus__route_map` / `api_impact` 补充 consumer 信息 |
+
+图谱不可用时完全回退到源码 Read + rg/glob，不影响 prd-distill 核心流程。
+
+如果 `_output/graph/graph-sync-report.yaml` 存在且 provider available，优先读取图谱证据作为辅助输入。图谱结论仍然需要 EV-xxx 审计证据支撑。
+
 ## 暂停条件
 
 遇到以下情况应暂停并说明：

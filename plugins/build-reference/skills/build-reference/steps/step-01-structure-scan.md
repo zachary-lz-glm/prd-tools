@@ -53,6 +53,63 @@
 | 只有人工扫描发现 | 保留，标注 `status: candidate` |
 | 图谱和扫描结果冲突 | 以源码确认结果为准，记录冲突到 evidence |
 
+### 图谱证据文件创建（必执行）
+
+无论图谱工具是否可用，本步骤**必须**执行以下操作：
+
+1. 创建 `_output/graph/` 目录（如不存在）。
+2. 根据实际查询结果写入图谱证据文件：
+   - 如有 GitNexus 查询结果 → 写入 `_output/graph/code-graph-evidence.yaml`。
+   - 如有 Graphify 查询结果 → 写入 `_output/graph/business-graph-evidence.yaml`。
+3. **始终**写入 `_output/graph/graph-sync-report.yaml`，即使两个图谱都不可用。
+
+`graph-sync-report.yaml` 格式：
+
+```yaml
+schema_version: "1.0"
+generated_at: "<ISO-8601>"
+project: "<project>"
+repo_path: "<absolute-path>"
+branch: "<git-branch>"
+commit: "<git-commit-short>"
+providers:
+  gitnexus:
+    available: true|false
+    reason: "ok | tool_missing | index_missing"
+    result_count: 0
+  graphify:
+    available: true|false
+    reason: "ok | tool_missing | graph_missing"
+    result_count: 0
+fusion_summary:
+  total_surfaces: 0
+  gitnexus_primary: 0
+  graphify_primary: 0
+  both: 0
+  neither: 0
+```
+
+provider 不可用时必须记录原因（`tool_missing` 或 `index_missing` / `graph_missing`），不能假装跑过。
+
+### 证据 ID 桥接规则
+
+reference 使用两套独立的证据追踪机制，**不能互相替代**：
+
+| 证据类型 | ID 格式 | 用途 | 写入字段 |
+|---------|---------|------|---------|
+| 审计证据 | `EV-001` | 源码、文档、人工确认等可审计的原始证据 | `evidence` |
+| 代码图谱溯源 | `GEV-001` | GitNexus 的结构化发现（模块、符号、调用链） | `graph_evidence_refs` |
+| 业务图谱溯源 | `GEV-B001` | Graphify 的业务语义发现（概念、规则、原理） | `graph_evidence_refs` |
+
+核心规则：
+
+- reference 模板中 `evidence` 字段只放 `EV-xxx` ID（可审计证据）。
+- reference 模板中 `graph_evidence_refs` 字段只放 `GEV-xxx` / `GEV-Bxxx` ID（图谱溯源）。
+- 关键 reference 条目（契约字段、枚举值、业务规则）必须至少有 EV 审计证据或明确标注豁免原因。
+- 图谱结论需源码确认时，创建对应的 EV-xxx 条目，并在 GEV 条目的 `used_for` 中记录关联。
+- GitNexus AST `confidence: high` 的结构发现（模块列表、符号定义、调用链）不需要额外 EV 确认。
+- Graphify `EXTRACTED` 且有 `source locator` 的条目可直接标 `confidence: high`；`INFERRED` 默认 `medium`/`low`。
+
 ## 输出
 
 ```yaml
@@ -74,7 +131,8 @@ capability_surfaces:
     status: "candidate | verified | negative_search"
     likely_contracts: []
     evidence: []
-    graph_source: "gitnexus | graphify | none"  # 该 surface 的主要图谱来源
+    graph_sources: []           # gitnexus, graphify，可为空
+    graph_evidence_refs: []     # GEV-xxx / GEV-Bxxx 列表
 unclassified_files: []
 ```
 
@@ -113,4 +171,5 @@ graph_evidence:
 - 所有关键文件都存在。
 - 当前层适配器的核心能力面已检查。
 - 无法归类的文件要列入 `unclassified_files`，不要猜测归属。
-- 如果图谱工具可用，至少一个 capability_surface 标注了 `graph_source`。
+- 如果图谱工具可用，至少一个 capability_surface 有非空 `graph_sources` 和 `graph_evidence_refs`。
+- `_output/graph/graph-sync-report.yaml` 必须存在，且 `providers` 的 `reason` 字段已填写。

@@ -31,6 +31,8 @@ capability_surfaces:
     symbols: []
     contract_refs: []
     status: "candidate | verified | negative_search"
+    graph_sources: []           # gitnexus（结构发现）、graphify（语义关联）、或两者
+    graph_evidence_refs: []     # GEV-xxx 列表
     evidence: []
     confidence: "high | medium | low"
 
@@ -38,5 +40,13 @@ candidate_paths:
   frontend: []
   bff: []
   backend: []
+
+graph_providers:
+  - provider: "gitnexus"
+    graph: "code"
+    available: false
+  - provider: "graphify"
+    graph: "business"
+    available: false
 
 unknowns: []

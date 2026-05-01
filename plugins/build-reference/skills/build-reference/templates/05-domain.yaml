@@ -7,6 +7,10 @@ last_verified: "<YYYY-MM-DD>"
 verify_cadence: "14d"
 owner: "<team>"
 boundary: "业务领域知识：术语、背景、隐式规则、历史决策。不放代码路径（见01-codebase）、不放编码规则（见02-coding-rules）、不放契约字段（见03-contracts）。术语只收录无法归入 01-codebase 枚举 label 的业务概念。"
+graph_providers:
+  - provider: "graphify"
+    graph: "business"
+    available: false
 
 # 业务域概览
 domain_overview: ""
@@ -19,6 +23,8 @@ terms:
     prd_keywords: []
     related_enum: ""            # 如有关联枚举，引用 01-codebase 中的枚举名
     notes: ""
+    graph_sources: ["graphify"]
+    graph_evidence_refs: []
     evidence:
       - "EV-001"
 
@@ -27,6 +33,8 @@ implicit_rules:
   - id: "<BIZ-RULE-001>"
     rule: ""
     business_justification: ""
+    graph_sources: ["graphify"]
+    graph_evidence_refs: []
     evidence:
       - "EV-001"
 
@@ -36,6 +44,8 @@ decision_log:
     decision: ""
     reason: ""
     date: ""
+    graph_sources: ["graphify"]
+    graph_evidence_refs: []
     evidence:
       - "EV-001"
 

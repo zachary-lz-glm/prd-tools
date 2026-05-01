@@ -133,6 +133,12 @@ prd-ingest/
 
 ADD/MODIFY/DELETE/NO_CHANGE 必须由源码或负向搜索支撑。
 
+图谱增强（可选，当图谱可用时）：
+
+- 如 `_output/graph/graph-sync-report.yaml` 存在且 GitNexus available：对涉及符号做 `mcp__gitnexus__impact` 查询，结果写入 impact 条目的 `affected_symbols` 和 `graph_evidence_refs`。
+- 如 Graphify available：对业务关键词做 `/graphify path` 查询，结果写入 impact 条目的 `business_constraints`。
+- 图谱不可用时这些字段留空，不影响核心流程。
+
 ## 步骤 4：Contract Delta
 
 多层、接口、schema、事件、外部权益/券/支付/审计等需求必须生成 `artifacts/contract-delta.yaml`。单层且无契约变化时也创建最小文件，写明 `alignment_summary.status: not_applicable`。
@@ -147,6 +153,7 @@ ADD/MODIFY/DELETE/NO_CHANGE 必须由源码或负向搜索支撑。
 - alignment_status
 - checked_by
 - evidence
+- graph_evidence_refs（可选，图谱可用时填充）
 
 判断：
 

@@ -7,6 +7,13 @@ last_verified: "<YYYY-MM-DD>"
 verify_cadence: "14d"
 owner: "<team>"
 boundary: "编码规则：怎么写代码。合并了规范（软）和约束（硬），用 severity 区分。不放字段级契约（见03-contracts）、不放场景打法步骤（见04-routing-playbooks）。"
+graph_providers:
+  - provider: "gitnexus"
+    graph: "code"
+    available: false
+  - provider: "graphify"
+    graph: "business"
+    available: false
 
 # 编码规范与约束
 rules:
@@ -18,6 +25,8 @@ rules:
     wrong_approach: ""
     detection: ""              # 如何检测违反
     example_files: []
+    graph_sources: []          # gitnexus（结构性规则）、graphify（设计原理）、或两者皆有
+    graph_evidence_refs: []    # GEV-xxx / GEV-Bxxx 列表
     evidence:
       - "EV-001"
 
@@ -27,6 +36,8 @@ danger_zones:
     area: "<description>"
     why: "<why it's dangerous>"
     detection: ""
+    graph_sources: []          # gitnexus（blast radius）、graphify（God Nodes/Surprising Connections）、或两者皆有
+    graph_evidence_refs: []
     evidence:
       - "EV-001"
 
@@ -37,5 +48,7 @@ war_stories:
     lesson: ""
     related_rules:
       - "RULE-001"
+    graph_sources: []          # 纯 graphify：历史决策、踩坑叙事
+    graph_evidence_refs: []    # GEV-Bxxx 列表
     evidence:
       - "EV-001"

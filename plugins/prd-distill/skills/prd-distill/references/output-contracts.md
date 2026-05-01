@@ -300,6 +300,18 @@ layers:
         risks: []
         evidence: ["EV-001"]
         confidence: "high | medium | low"
+        affected_symbols:                     # GitNexus impact（可选，图谱可用时填充）
+          - symbol: ""
+            blast_radius: []
+            confidence: 0.0
+            graph_provider: "gitnexus"
+        business_constraints:                 # Graphify 业务关联（可选，图谱可用时填充）
+          - concept: ""
+            related_concepts: []
+            design_rationale: ""
+            risk_if_violated: ""
+            graph_provider: "graphify"
+        graph_evidence_refs: []               # GEV-xxx / GEV-Bxxx 溯源
   bff:
     impacts: []
   backend:
@@ -332,6 +344,7 @@ contracts:
     alignment_status: "aligned | needs_confirmation | blocked | not_applicable"
     checked_by: ["frontend", "bff"]
     evidence: ["EV-001"]
+    graph_evidence_refs: []               # GEV-xxx 图谱溯源（可选）
 alignment_summary:
   status: "aligned | needs_confirmation | blocked | not_applicable"
   blockers: []

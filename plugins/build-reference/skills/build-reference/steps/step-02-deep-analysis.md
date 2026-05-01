@@ -27,6 +27,14 @@ _reference/05-domain.yaml
 
 ## 执行
 
+### 前置：图谱证据加载
+
+1. 检查 `_output/graph/graph-sync-report.yaml` 是否存在。
+2. 如存在且任一 provider 的 `available: true`：
+   a. 读取 `_output/graph/code-graph-evidence.yaml`（如存在），建立 GEV ID 查找表。
+   b. 读取 `_output/graph/business-graph-evidence.yaml`（如存在），建立 GEV-B ID 查找表。
+3. 如不存在或全部 `available: false`：全部使用 rg/glob/Read 流程，不查询图谱。所有条目的 `graph_sources` 设为 `[]`。
+
 按以下顺序生成文件，后生成的文件必须检查先生成的文件，避免内容重叠：
 
 ### 阶段 1：代码库静态清单（GitNexus 主导）
@@ -38,6 +46,10 @@ _reference/05-domain.yaml
    c. 图谱结果标注 `evidence.kind: knowledge_graph`、`confidence: high`。
 3. 如果没有代码图谱：按原有方式通过源码 Read 提取。
 4. 生成 `01-codebase.yaml`：目录结构、枚举、模块（能力面+入口点）、注册点（只记录在哪里）、数据流（只记录通用结构流）、外部系统（只记录名称和文件位置）、核心结构体（只有字段名列表）。
+   - 每个条目根据图谱贡献填写 `graph_sources` 和 `graph_evidence_refs`。
+   - 图谱发现的模块/符号：`graph_sources: ["gitnexus"]`，GEV ID 填入 `graph_evidence_refs`。
+   - 无图谱数据的条目：`graph_sources: []`，`graph_evidence_refs: []`。
+   - 文件级 `graph_providers` 根据 graph-sync-report 的 available 状态填写。
 
 ### 阶段 2：编码规则（Graphify 主导）
 
@@ -47,6 +59,9 @@ _reference/05-domain.yaml
    c. Graphify `EXTRACTED` → `high`，`INFERRED` → `medium`/`low`（按 confidence 映射）。
 6. 如果没有业务图谱：从源码注释（`# WHY:`、`# NOTE:`、`# HACK:`）和历史 diff 提取。
 7. 生成 `02-coding-rules.yaml`：编码规范与约束（用 severity 区分软硬）、高风险区域（third_rails → danger_zones）、踩坑经验。
+   - `rules` 的 `graph_sources` 按来源填写：结构性规则←`["gitnexus"]`，设计原理←`["graphify"]`，两者皆有←`["gitnexus", "graphify"]`。
+   - `danger_zones` 的 `graph_sources`：blast radius←`["gitnexus"]`，God Nodes/Surprising Connections←`["graphify"]`，或两者。
+   - `war_stories` 的 `graph_sources` 只设 `["graphify"]`（历史决策、踩坑叙事）。
    - 检查 01-codebase 中的 registries，如果 registries 中包含了"怎么注册"的规则描述，将规则部分移到 02 的 rules 中。
 
 ### 阶段 3：契约（GitNexus 主导，Graphify 辅助）
@@ -57,6 +72,7 @@ _reference/05-domain.yaml
 9. 如果有业务图谱：
    a. Graphify 补充业务语义描述（契约背后的业务原因）。
 10. 生成 `03-contracts.yaml`：跨层和外部契约、字段级定义（type/required/compatibility）。
+    - 每个 contract 条目的 `graph_sources` 设为 `["gitnexus"]`，GEV ID 填入 `graph_evidence_refs`。
     - 检查 01-codebase 中的 structures.fields，如果包含 type/required 信息，删除并添加 `contract_ref` 指向 03 中的契约。
     - 检查 01-codebase 中的 external_systems，如果展开了 endpoint 列表，将 endpoint 详情移到 03，01 中只保留系统名和 contract_ref。
 
@@ -69,6 +85,8 @@ _reference/05-domain.yaml
 12. 如果有代码图谱：
     a. GitNexus impact 补充 PRD 路由到代码模块的映射。
 13. 生成 `04-routing-playbooks.yaml`：PRD 路由信号（只到能力面级别）、字段映射（prd_field → code_field → contract_ref）、场景打法（步骤只在这里）。
+    - `prd_routing` 的 `graph_sources`：Graphify Leiden 聚类←`["graphify"]`，GitNexus 代码路径←`["gitnexus"]`，或两者。
+    - `playbooks` 和 `golden_samples` 的 `graph_sources` 主要设为 `["graphify"]`。
     - 检查 02-coding-rules 中是否有场景驱动的开发步骤，如有，移到 04 的 playbook 中。
     - routing 条目必须有 `playbook_ref` 指向对应的 playbook。
     - field_mappings 中不放字段 type/required，只用 `contract_ref` 引用 03。
@@ -81,6 +99,8 @@ _reference/05-domain.yaml
     c. 历史决策从 `rationale_for` 节点提取。
 15. 如果没有业务图谱：从 PRD、技术方案、QA 记录人工提取。
 16. 生成 `05-domain.yaml`：业务域概览、术语（只收录非枚举概念）、隐式业务规则、历史决策。
+    - 所有条目的 `graph_sources` 设为 `["graphify"]`，GEV-B ID 填入 `graph_evidence_refs`。
+    - 无图谱数据时：`graph_sources: []`，`graph_evidence_refs: []`。
     - 检查 01-codebase 中的枚举 label，如果 05-domain 的术语与枚举 label 重复，删除 05 中的重复条目，改为 `see_enum: "<EnumName>"`。
 
 ### 阶段 6：导航
@@ -88,7 +108,8 @@ _reference/05-domain.yaml
 17. 生成 `00-portal.md`：项目画像摘要、按场景阅读指南、文件地图、健康状态。
     - 标注哪些 reference 文件有图谱数据源支撑。
 18. 更新 `project-profile.yaml`（如需要）。
-    - 增加 `graph_providers` 字段记录可用图谱。
+    - `graph_providers` 字段记录可用图谱，结构为 `[{provider, graph, available}]`。
+    - 每个 `capability_surfaces` 条目根据图谱贡献填写 `graph_sources` 和 `graph_evidence_refs`。
 
 ## 去重检查（生成完成后必执行）
 

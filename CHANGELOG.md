@@ -4,6 +4,26 @@
 
 ---
 
+## [2.5.1] - 2026-05-01
+
+### Fixed
+- **图谱融合端到端补齐**：修复 v2.5.0 图谱证据层规范完整但实现断裂的问题（详见 [ADR-0006](docs/adr/0006-图谱融合与知识库架构.md)）
+- 6 个模板（01-05 + project-profile）增加 `graph_sources: []` 和 `graph_evidence_refs: []` 字段，AI 填模板时能产出图谱数据
+- step-01-structure-scan 增加图谱证据文件创建指令（必执行）、EV/GEV 证据 ID 桥接规则
+- step-02-deep-analysis 增加前置图谱证据加载、per-phase 模板字段填充指令
+- step-03-quality-gate 增加图谱证据检查（GEV 孤立引用、置信度校验、provider 一致性）
+- build-reference SKILL.md 升级图谱增强 section（双证据字段说明、置信度映射表）
+- prd-distill output-contracts.md 补全 layer-impact 的 `affected_symbols`/`business_constraints`（放 impact 条目内）和 contract-delta 的 `graph_evidence_refs`
+- prd-distill SKILL.md 加图谱增强 section，workflow.md Step 3/4 加图谱引用
+- `graph-sync-report.yaml` 必须始终产出，记录 provider 可用状态和不可用原因
+
+### Changed
+- 所有 `graph_source` 单值改为 `graph_sources: []` 数组（支持多 provider 交汇）
+- 文件级 `graph_providers` 改为结构化列表 `[{provider, graph, available}]`
+- Graphify 置信度映射收紧：EXTRACTED 需有 source locator 才能标 high
+
+---
+
 ## [2.5.0] - 2026-04-30
 
 ### Added

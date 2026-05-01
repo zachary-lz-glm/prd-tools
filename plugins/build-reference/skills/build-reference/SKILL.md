@@ -72,7 +72,11 @@ _output/
 ├── modules-index.yaml
 ├── reference-health.yaml
 ├── reference-quality-report.yaml
-└── feedback-ingest-report.yaml
+├── feedback-ingest-report.yaml
+└── graph/
+    ├── graph-sync-report.yaml        # 始终生成，记录图谱可用状态
+    ├── code-graph-evidence.yaml      # GitNexus 证据（如可用）
+    └── business-graph-evidence.yaml  # Graphify 证据（如可用）
 ```
 
 ## 工作模式
@@ -143,7 +147,27 @@ _output/
 | GitNexus | 代码结构 | 01-codebase、03-contracts |
 | Graphify | 业务语义 | 02-coding-rules、04-routing-playbooks、05-domain |
 
-核心原则：图谱是原始发现层，reference 是精选后的企业知识库。图谱结论仍需源码确认。
+核心原则：**图谱是原始发现层，reference 是精选后的企业知识库。Raw Graph 不等于 Reference。** 图谱结论仍需源码确认（GitNexus AST high 精度的结构发现除外）。
+
+### 图谱证据桥接
+
+每个 reference 条目使用两套独立的证据追踪，**不能互相替代**：
+
+- `evidence: ["EV-xxx"]` — 可审计证据（源码、文档、人工确认）。关键 reference 条目必须至少有 EV 或明确豁免原因。
+- `graph_evidence_refs: ["GEV-xxx"]` — 图谱溯源（GitNexus/Graphify 的结构化发现）。
+
+图谱状态始终记录在 `_output/graph/graph-sync-report.yaml`（即使图谱不可用也会生成，记录 unavailable 原因）。质量门控会校验图谱证据与 reference 的一致性。
+
+### 置信度映射
+
+| 图谱来源 | confidence | 是否需要源码确认 |
+|---------|-----------|--------------|
+| GitNexus AST 提取 | high | 不需要 |
+| Graphify EXTRACTED + source locator | high | 不需要 |
+| Graphify EXTRACTED 无 locator | medium | 需要 |
+| Graphify INFERRED ≥ 0.8 | medium | 需要 |
+| Graphify INFERRED < 0.8 | low | 必须确认 |
+| Graphify AMBIGUOUS | low | 必须人工确认 |
 
 ## 执行步骤
 
