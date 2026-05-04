@@ -4,6 +4,23 @@
 
 ---
 
+## [2.6.0] - 2026-05-04
+
+### Added
+- **MarkItDown 集成**：用 microsoft/markitdown 替换手写 OOXML 解析和 pdftotext，作为 prd-ingest 的文件转换后端
+- **LLM Vision 图片分析**：自动检测环境变量（OPENAI_API_KEY 或智谱 ANTHROPIC_AUTH_TOKEN），启用 markitdown-ocr 插件分析 PRD 中的流程图、截图、设计稿内容
+- **智谱（bigmodel.cn）自动适配**：检测到 ANTHROPIC_BASE_URL 含 bigmodel.cn 时，自动转换为 OpenAI 兼容端点（glm-4v-flash）
+- **新增格式支持**：pptx/xlsx/html/epub（原仅 docx/pdf/md/txt）
+- install.sh 增加 `pip install markitdown[all] markitdown-ocr` 自动安装
+
+### Changed
+- `ingest_prd.py` 完全重写（645行→~400行），保留原有 prd-ingest 输出格式不变
+- SKILL.md / workflow.md 更新格式列表、图片分析说明、LLM Vision 环境变量配置
+
+### Removed
+- 手写 OOXML 解析代码（parse_docx 函数及底层 XML helpers）
+- pdftotext 依赖（由 MarkItDown 内置 PDF 解析替代）
+
 ## [2.5.1] - 2026-05-01
 
 ### Fixed
