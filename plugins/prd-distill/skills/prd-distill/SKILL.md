@@ -47,7 +47,7 @@ Claude Code 中可通过 `/prd-distill` 使用。
 
 PRD 读取规则：
 
-- 如果输入是文件，优先运行 `scripts/ingest_prd.py` 生成 `_output/prd-distill/<slug>/prd-ingest/`。
+- 如果输入是文件，优先运行 `uv run <skill>/scripts/ingest_prd.py <prd> --out _output/prd-distill/<slug>/prd-ingest`。
 - 如果用户只粘贴文本，手工创建同等语义的 ingestion 证据：来源、段落定位、质量说明。
 - 使用 MarkItDown (microsoft/markitdown) 作为文件转换后端，支持 docx/pdf/pptx/xlsx/html 等格式。
 - 如果设置了 `OPENAI_API_KEY` 环境变量，自动启用 LLM Vision 分析 PRD 中的图片内容（流程图、截图、设计稿）。
@@ -115,7 +115,7 @@ _output/prd-distill/<slug>/
 
 1. 确认 PRD 来源和目标项目路径。
 2. 对 PRD 执行 ingestion：
-   - 文件输入优先运行 `python3 <skill>/scripts/ingest_prd.py <prd> --out _output/prd-distill/<slug>/prd-ingest`。
+   - 文件输入优先运行 `uv run <skill>/scripts/ingest_prd.py <prd> --out _output/prd-distill/<slug>/prd-ingest`。
    - 读取 `prd-ingest/extraction-quality.yaml`；`status: block` 时暂停。
    - 有图片、截图、流程图或复杂表格时，检查 `media-analysis.yaml` 和 `conversion-warnings.md`，未确认内容必须进入 `questions.md`。
 3. 读取 `_reference/`：

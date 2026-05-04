@@ -39,7 +39,7 @@ _output/prd-distill/<slug>/
 文件型 PRD 必须优先执行：
 
 ```bash
-python3 <skill-dir>/scripts/ingest_prd.py <prd-file> --out _output/prd-distill/<slug>/prd-ingest
+uv run <skill-dir>/scripts/ingest_prd.py <prd-file> --out _output/prd-distill/<slug>/prd-ingest
 ```
 
 `prd-ingest/` 产出：

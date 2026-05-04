@@ -1,9 +1,20 @@
+# /// script
+# requires-python = ">=3.10"
+# dependencies = [
+#     "markitdown[all]",
+#     "markitdown-ocr",
+#     "openai",
+# ]
+# ///
 #!/usr/bin/env python3
 """Create deterministic PRD ingestion artifacts for prd-distill.
 
 Uses MarkItDown (microsoft/markitdown) as the conversion backend for
 docx/pdf/pptx/xlsx/html/image files, with optional LLM Vision for
 image content analysis via the markitdown-ocr plugin.
+
+Run with:  uv run ingest_prd.py <prd-file> [--out <dir>]
+Deps are auto-installed by uv via PEP 723 inline metadata above.
 
 Produces the same prd-ingest/ output structure expected by prd-distill:
   source-manifest.yaml, document.md, document-structure.json,
