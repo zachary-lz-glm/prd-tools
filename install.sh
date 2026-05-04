@@ -54,6 +54,20 @@ for skill in build-reference prd-distill; do
   fi
 done
 
+# Install Python dependencies for prd-distill (MarkItDown + OCR plugin)
+PYTHON="${PYTHON:-python3}"
+if command -v "$PYTHON" &>/dev/null; then
+  echo "==> Installing Python dependencies..."
+  if "$PYTHON" -m pip install -q 'markitdown[all]' markitdown-ocr 2>/dev/null; then
+    echo "    Installed: markitdown + markitdown-ocr"
+  else
+    echo "    WARNING: pip install failed. prd-distill requires markitdown." >&2
+    echo "    Install manually: pip install 'markitdown[all]' markitdown-ocr" >&2
+  fi
+else
+  echo "    WARNING: python3 not found. prd-distill requires Python 3.10+." >&2
+fi
+
 cat > "$TARGET/.prd-tools-version" <<EOF
 version=$TOOL_VERSION
 installed_at=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
@@ -67,3 +81,6 @@ echo ""
 echo "Usage in Claude Code:"
 echo "  /build-reference  —  Build domain knowledge"
 echo "  /prd-distill      —  Distill PRD document"
+echo ""
+echo "Image analysis (optional):"
+echo "  Set OPENAI_API_KEY to enable LLM Vision for PRD image analysis"

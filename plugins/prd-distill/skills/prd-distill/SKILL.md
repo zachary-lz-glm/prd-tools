@@ -9,7 +9,7 @@ Claude Code 中可通过 `/prd-distill` 使用。
 
 ## 这个 skill 是做什么的
 
-`prd-distill` 负责把单个 PRD 转成工程可执行的计划。它先做 PRD ingestion，把原始 `.docx/.md/.txt/.pdf` 转成可追溯的结构化输入，再结合 `_reference/` 和源码完成分析。
+`prd-distill` 负责把单个 PRD 转成工程可执行的计划。它先做 PRD ingestion，使用 MarkItDown 把原始 `.docx/.md/.txt/.pdf/.pptx/.xlsx/.html` 转成可追溯的结构化输入，再结合 `_reference/` 和源码完成分析。
 
 它不是简单总结 PRD，而是结合 `_reference/` 和源码，回答五个问题：
 
@@ -39,7 +39,7 @@ Claude Code 中可通过 `/prd-distill` 使用。
 
 优先收集：
 
-- PRD：`.docx`、`.md`、`.txt`、`.pdf` 或用户粘贴文本。
+- PRD：`.docx`、`.md`、`.txt`、`.pdf`、`.pptx`、`.xlsx`、`.html` 或用户粘贴文本。
 - 可选技术方案、API 文档、接口定义。
 - 当前项目源码路径。
 - 当前项目 `_reference/`。
@@ -49,10 +49,10 @@ PRD 读取规则：
 
 - 如果输入是文件，优先运行 `scripts/ingest_prd.py` 生成 `_output/prd-distill/<slug>/prd-ingest/`。
 - 如果用户只粘贴文本，手工创建同等语义的 ingestion 证据：来源、段落定位、质量说明。
-- `.docx` 使用本地 OOXML 解析作为基础能力，能稳定抽取正文、表格和内嵌图片文件。
+- 使用 MarkItDown (microsoft/markitdown) 作为文件转换后端，支持 docx/pdf/pptx/xlsx/html 等格式。
+- 如果设置了 `OPENAI_API_KEY` 环境变量，自动启用 LLM Vision 分析 PRD 中的图片内容（流程图、截图、设计稿）。
 - `.md/.txt` 保留原文行号和 markdown 图片引用。
-- `.pdf` 仅在本机存在 `pdftotext` 时做基础文本抽取；否则要求用户提供 markdown/text，或接入专门 OCR/layout 工具。
-- 图片、截图、流程图、复杂表格、合并单元格如果没有 vision/OCR 或人工确认，不能作为高置信度需求依据。
+- 图片、截图、流程图、复杂表格如果没有 LLM Vision 或人工确认，不能作为高置信度需求依据。
 
 ## 输出
 

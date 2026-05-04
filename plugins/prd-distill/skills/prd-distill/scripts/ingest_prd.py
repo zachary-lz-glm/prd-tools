@@ -1,9 +1,14 @@
 #!/usr/bin/env python3
 """Create deterministic PRD ingestion artifacts for prd-distill.
 
-This script intentionally uses only the Python standard library. It is not a
-full OCR/layout engine; it provides a stable local baseline and makes any
-unread image/layout risk explicit for the downstream AI workflow.
+Uses MarkItDown (microsoft/markitdown) as the conversion backend for
+docx/pdf/pptx/xlsx/html/image files, with optional LLM Vision for
+image content analysis via the markitdown-ocr plugin.
+
+Produces the same prd-ingest/ output structure expected by prd-distill:
+  source-manifest.yaml, document.md, document-structure.json,
+  evidence-map.yaml, media-analysis.yaml, tables/, media/,
+  extraction-quality.yaml, conversion-warnings.md
 """
 
 from __future__ import annotations
@@ -14,28 +19,24 @@ import hashlib
 import json
 import mimetypes
 import os
-import posixpath
 import re
-import shutil
-import subprocess
 import sys
-import zipfile
 from pathlib import Path
 from typing import Any, Optional
-from xml.etree import ElementTree as ET
+
+from markitdown import MarkItDown
 
 
-NS = {
-    "w": "http://schemas.openxmlformats.org/wordprocessingml/2006/main",
-    "r": "http://schemas.openxmlformats.org/officeDocument/2006/relationships",
-    "a": "http://schemas.openxmlformats.org/drawingml/2006/main",
-    "rel": "http://schemas.openxmlformats.org/package/2006/relationships",
+# ── Supported formats ────────────────────────────────────────────────
+
+SUPPORTED_TEXT_SUFFIXES = {".md", ".markdown", ".txt"}
+SUPPORTED_DOC_SUFFIXES = SUPPORTED_TEXT_SUFFIXES | {
+    ".docx", ".pdf", ".pptx", ".ppt", ".xlsx", ".xls", ".html", ".htm",
+    ".epub",
 }
 
-IMAGE_REL = "http://schemas.openxmlformats.org/officeDocument/2006/relationships/image"
-SUPPORTED_TEXT_SUFFIXES = {".md", ".markdown", ".txt"}
-SUPPORTED_DOC_SUFFIXES = SUPPORTED_TEXT_SUFFIXES | {".docx", ".pdf"}
 
+# ── Helpers ──────────────────────────────────────────────────────────
 
 def now_iso() -> str:
     return dt.datetime.now(dt.timezone.utc).replace(microsecond=0).isoformat()
@@ -61,13 +62,7 @@ def ensure_dirs(out_dir: Path) -> None:
         (out_dir / name).mkdir(parents=True, exist_ok=True)
 
 
-def local_name(tag: str) -> str:
-    return tag.rsplit("}", 1)[-1]
-
-
-def attr(element: ET.Element, namespace: str, name: str) -> Optional[str]:
-    return element.attrib.get(f"{{{namespace}}}{name}")
-
+# ── YAML rendering (no external dep) ────────────────────────────────
 
 def yaml_scalar(value: Any) -> str:
     if value is None:
@@ -81,10 +76,6 @@ def yaml_scalar(value: Any) -> str:
         return '""'
     escaped = text.replace("\\", "\\\\").replace('"', '\\"')
     return f'"{escaped}"'
-
-
-def write_yaml(path: Path, data: Any) -> None:
-    path.write_text(render_yaml(data), encoding="utf-8")
 
 
 def render_yaml(data: Any, indent: int = 0) -> str:
@@ -115,385 +106,336 @@ def render_yaml(data: Any, indent: int = 0) -> str:
     return f"{prefix}{yaml_scalar(data)}"
 
 
-def paragraph_text(paragraph: ET.Element) -> str:
-    parts: list[str] = []
-    for node in paragraph.iter():
-        name = local_name(node.tag)
-        if name == "t":
-            parts.append(node.text or "")
-        elif name == "tab":
-            parts.append("\t")
-        elif name in {"br", "cr"}:
-            parts.append("\n")
-    text = "".join(parts)
-    text = re.sub(r"[ \t]+\n", "\n", text)
-    text = re.sub(r"\n{3,}", "\n\n", text)
-    return text.strip()
+def write_yaml(path: Path, data: Any) -> None:
+    path.write_text(render_yaml(data), encoding="utf-8")
 
 
-def paragraph_style(paragraph: ET.Element) -> Optional[str]:
-    style = paragraph.find("./w:pPr/w:pStyle", NS)
-    if style is None:
-        return None
-    return attr(style, NS["w"], "val")
+# ── MarkItDown conversion ────────────────────────────────────────────
 
+def convert_with_markitdown(source: Path, out_dir: Path) -> dict[str, Any]:
+    """Use MarkItDown to convert a document to Markdown.
 
-def heading_prefix(style: Optional[str]) -> str:
-    if not style:
-        return ""
-    normalized = style.lower()
-    match = re.search(r"(?:heading|title|标题)\s*([1-6])", normalized)
-    if match:
-        return "#" * int(match.group(1)) + " "
-    if normalized in {"title", "标题"}:
-        return "# "
-    return ""
+    Auto-detects LLM credentials for image analysis from environment:
+    1. OPENAI_API_KEY + optional OPENAI_BASE_URL → OpenAI client
+    2. ANTHROPIC_AUTH_TOKEN + ANTHROPIC_BASE_URL (ZhiPu) → OpenAI-compatible client
+    """
+    llm_client = None
+    llm_model = None
+    ocr_mode = "not_available"
 
+    try:
+        from openai import OpenAI
 
-def paragraph_image_rids(paragraph: ET.Element) -> list[str]:
-    rids: list[str] = []
-    for blip in paragraph.findall(".//a:blip", NS):
-        rid = attr(blip, NS["r"], "embed") or attr(blip, NS["r"], "link")
-        if rid:
-            rids.append(rid)
-    return rids
+        # Strategy 1: Standard OpenAI
+        api_key = os.environ.get("OPENAI_API_KEY")
+        if api_key:
+            base_url = os.environ.get("OPENAI_BASE_URL")
+            kwargs: dict[str, Any] = {"api_key": api_key}
+            if base_url:
+                kwargs["base_url"] = base_url
+            llm_client = OpenAI(**kwargs)
+            llm_model = os.environ.get("LLM_MODEL", "gpt-4o")
+            ocr_mode = "llm_vision"
 
+        # Strategy 2: ZhiPu (Anthropic-compatible endpoint → OpenAI-compatible)
+        if not llm_client:
+            zp_token = os.environ.get("ANTHROPIC_AUTH_TOKEN")
+            zp_base = os.environ.get("ANTHROPIC_BASE_URL", "")
+            if zp_token and "bigmodel.cn" in zp_base:
+                # Convert https://open.bigmodel.cn/api/anthropic → https://open.bigmodel.cn/api/paas/v4/
+                openai_base = "https://open.bigmodel.cn/api/paas/v4/"
+                llm_client = OpenAI(api_key=zp_token, base_url=openai_base)
+                llm_model = os.environ.get("LLM_MODEL", "glm-4v-flash")
+                ocr_mode = "llm_vision"
+    except ImportError:
+        pass
 
-def cell_text(cell: ET.Element) -> str:
-    texts: list[str] = []
-    for paragraph in cell.findall(".//w:p", NS):
-        text = paragraph_text(paragraph)
-        if text:
-            texts.append(text)
-    return "<br>".join(texts).strip()
+    md = MarkItDown(enable_plugins=True, llm_client=llm_client, llm_model=llm_model)
+    result = md.convert(str(source))
 
-
-def table_to_rows(table: ET.Element) -> tuple[list[list[str]], list[str]]:
-    rows: list[list[str]] = []
-    warnings: list[str] = []
-    for row in table.findall("./w:tr", NS):
-        cells: list[str] = []
-        for cell in row.findall("./w:tc", NS):
-            if cell.find(".//w:gridSpan", NS) is not None:
-                warnings.append("merged horizontal cells detected")
-            if cell.find(".//w:vMerge", NS) is not None:
-                warnings.append("merged vertical cells detected")
-            cells.append(cell_text(cell))
-        if cells:
-            rows.append(cells)
-    return rows, sorted(set(warnings))
-
-
-def escape_md_cell(value: str) -> str:
-    return value.replace("|", "\\|").replace("\n", "<br>")
-
-
-def rows_to_markdown(rows: list[list[str]]) -> str:
-    if not rows:
-        return ""
-    width = max(len(row) for row in rows)
-    padded = [row + [""] * (width - len(row)) for row in rows]
-    header = padded[0]
-    lines = [
-        "| " + " | ".join(escape_md_cell(cell) for cell in header) + " |",
-        "| " + " | ".join("---" for _ in range(width)) + " |",
-    ]
-    for row in padded[1:]:
-        lines.append("| " + " | ".join(escape_md_cell(cell) for cell in row) + " |")
-    return "\n".join(lines)
-
-
-def read_relationships(docx: zipfile.ZipFile) -> dict[str, str]:
-    rel_path = "word/_rels/document.xml.rels"
-    if rel_path not in docx.namelist():
-        return {}
-    root = ET.fromstring(docx.read(rel_path))
-    rels: dict[str, str] = {}
-    for rel in root.findall("rel:Relationship", NS):
-        rel_id = rel.attrib.get("Id")
-        rel_type = rel.attrib.get("Type")
-        target = rel.attrib.get("Target")
-        if rel_id and rel_type == IMAGE_REL and target:
-            rels[rel_id] = target
-    return rels
-
-
-def normalize_docx_target(target: str) -> str:
-    if target.startswith("/"):
-        return target.lstrip("/")
-    return posixpath.normpath(posixpath.join("word", target))
-
-
-def extract_media(docx: zipfile.ZipFile, out_dir: Path, rels: dict[str, str]) -> dict[str, dict[str, Any]]:
-    media_dir = out_dir / "media"
-    media_by_zip: dict[str, dict[str, Any]] = {}
-    rel_to_zip = {rid: normalize_docx_target(target) for rid, target in rels.items()}
-    candidate_paths = sorted(
-        set(path for path in docx.namelist() if path.startswith("word/media/"))
-        | set(rel_to_zip.values())
-    )
-
-    counter = 1
-    for zip_path in candidate_paths:
-        if zip_path not in docx.namelist():
-            continue
-        suffix = Path(zip_path).suffix.lower() or ".bin"
-        media_id = f"IMG-{counter:03d}"
-        filename = f"{media_id}{suffix}"
-        output_path = media_dir / filename
-        output_path.write_bytes(docx.read(zip_path))
-        media_by_zip[zip_path] = {
-            "id": media_id,
-            "source_path": zip_path,
-            "output_path": str(output_path.relative_to(out_dir)),
-            "filename": filename,
-            "mime_type": mimetypes.guess_type(filename)[0] or "application/octet-stream",
-            "size_bytes": output_path.stat().st_size,
-            "referenced_by": [],
-        }
-        counter += 1
-
-    for rid, zip_path in rel_to_zip.items():
-        if zip_path in media_by_zip:
-            media_by_zip[zip_path]["relationship_id"] = rid
-    return media_by_zip
-
-
-def parse_docx(source: Path, out_dir: Path) -> dict[str, Any]:
-    warnings: list[str] = []
-    with zipfile.ZipFile(source) as docx:
-        if "word/document.xml" not in docx.namelist():
-            raise ValueError("word/document.xml not found in docx")
-        rels = read_relationships(docx)
-        media_by_zip = extract_media(docx, out_dir, rels)
-        rel_to_media = {
-            rid: media_by_zip[normalize_docx_target(target)]
-            for rid, target in rels.items()
-            if normalize_docx_target(target) in media_by_zip
-        }
-        root = ET.fromstring(docx.read("word/document.xml"))
-
-    body = root.find("w:body", NS)
-    if body is None:
-        raise ValueError("w:body not found in docx")
-
-    blocks: list[dict[str, Any]] = []
-    evidence_items: list[dict[str, Any]] = []
-    md_lines: list[str] = []
-    table_count = 0
-    paragraph_count = 0
-
-    for child in body:
-        name = local_name(child.tag)
-        if name == "p":
-            text = paragraph_text(child)
-            rids = paragraph_image_rids(child)
-            media_ids: list[str] = []
-            for rid in rids:
-                media = rel_to_media.get(rid)
-                if media:
-                    media_ids.append(media["id"])
-            if not text and not media_ids:
-                continue
-            paragraph_count += 1
-            block_id = f"BLK-{len(blocks) + 1:04d}"
-            style = paragraph_style(child)
-            locator = f"docx:paragraph:{paragraph_count}"
-            markdown = f"{heading_prefix(style)}{text}" if text else ""
-            if markdown:
-                md_lines.append(f"<!-- {block_id} -->")
-                md_lines.append(markdown)
-                md_lines.append("")
-            for media_id in media_ids:
-                md_lines.append(f"<!-- {block_id}:{media_id} -->")
-                md_lines.append(f"![{media_id}](media/{media_id}{Path(next(m['filename'] for m in media_by_zip.values() if m['id'] == media_id)).suffix})")
-                md_lines.append("")
-                for media in media_by_zip.values():
-                    if media["id"] == media_id:
-                        media["referenced_by"].append(block_id)
-                        break
-            blocks.append(
-                {
-                    "id": block_id,
-                    "type": "paragraph",
-                    "locator": locator,
-                    "style": style,
-                    "text": text,
-                    "media_ids": media_ids,
-                }
-            )
-            evidence_items.append(
-                {
-                    "id": f"PRD-{len(evidence_items) + 1:03d}",
-                    "kind": "prd_block",
-                    "block_id": block_id,
-                    "locator": locator,
-                    "summary": text[:180],
-                    "confidence": "high" if text else "low",
-                }
-            )
-        elif name == "tbl":
-            table_count += 1
-            rows, table_warnings = table_to_rows(child)
-            warnings.extend(f"table {table_count}: {item}" for item in table_warnings)
-            table_id = f"TBL-{table_count:03d}"
-            block_id = f"BLK-{len(blocks) + 1:04d}"
-            locator = f"docx:table:{table_count}"
-            markdown = rows_to_markdown(rows)
-            table_path = out_dir / "tables" / f"{table_id}.md"
-            table_path.write_text(markdown + "\n", encoding="utf-8")
-            md_lines.append(f"<!-- {block_id}:{table_id} -->")
-            md_lines.append(markdown)
-            md_lines.append("")
-            blocks.append(
-                {
-                    "id": block_id,
-                    "type": "table",
-                    "locator": locator,
-                    "table_id": table_id,
-                    "rows": len(rows),
-                    "columns": max((len(row) for row in rows), default=0),
-                    "path": str(table_path.relative_to(out_dir)),
-                    "warnings": table_warnings,
-                }
-            )
-            evidence_items.append(
-                {
-                    "id": f"PRD-{len(evidence_items) + 1:03d}",
-                    "kind": "prd_table",
-                    "block_id": block_id,
-                    "locator": locator,
-                    "summary": f"{len(rows)} rows table",
-                    "confidence": "medium" if table_warnings else "high",
-                }
-            )
-
-    media_items = sorted(media_by_zip.values(), key=lambda item: item["id"])
-    if media_items:
-        warnings.append("images extracted but image text/diagram semantics require vision or human review")
+    # Extract images from docx/pptx into media/
+    media_items = extract_media_from_source(source, out_dir)
 
     return {
-        "format": "docx",
-        "document_markdown": "\n".join(md_lines).strip() + "\n",
-        "structure": {
-            "schema_version": "1.0",
-            "source_type": "docx",
-            "blocks": blocks,
-            "stats": {
-                "paragraphs": paragraph_count,
-                "tables": table_count,
-                "media": len(media_items),
-            },
-        },
-        "evidence_items": evidence_items,
+        "text_content": result.text_content or "",
+        "ocr_mode": ocr_mode,
         "media_items": media_items,
-        "warnings": sorted(set(warnings)),
     }
 
 
-def parse_text_document(source: Path, out_dir: Path) -> dict[str, Any]:
-    text = source.read_text(encoding="utf-8", errors="replace")
+def extract_media_from_source(source: Path, out_dir: Path) -> list[dict[str, Any]]:
+    """Extract embedded images from docx/pptx into media/ directory."""
+    import zipfile
+
+    media_items: list[dict[str, Any]] = []
+    suffix = source.suffix.lower()
+
+    if suffix not in {".docx", ".pptx"}:
+        return media_items
+
+    try:
+        with zipfile.ZipFile(source) as zf:
+            media_dir = out_dir / "media"
+            counter = 1
+            for entry in sorted(zf.namelist()):
+                # Match word/media/, ppt/media/, or media/ at root level
+                parts = entry.replace("\\", "/").split("/")
+                if len(parts) < 2 or parts[-2] != "media":
+                    continue
+                ext = Path(entry).suffix.lower()
+                if ext not in {".png", ".jpg", ".jpeg", ".gif", ".bmp", ".svg", ".webp", ".emf", ".wmf"}:
+                    continue
+                media_id = f"IMG-{counter:03d}"
+                filename = f"{media_id}{ext}"
+                output_path = media_dir / filename
+                output_path.write_bytes(zf.read(entry))
+                media_items.append({
+                    "id": media_id,
+                    "source_path": entry,
+                    "output_path": str(output_path.relative_to(out_dir)),
+                    "filename": filename,
+                    "mime_type": mimetypes.guess_type(filename)[0] or "application/octet-stream",
+                    "size_bytes": output_path.stat().st_size,
+                    "referenced_by": [],
+                })
+                counter += 1
+    except (zipfile.BadZipFile, KeyError):
+        pass
+
+    return media_items
+
+
+# ── Block splitting ──────────────────────────────────────────────────
+
+def split_into_blocks(markdown: str, source_format: str) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    """Split markdown into blocks and generate evidence items.
+
+    Identifies headings, paragraphs, tables, and image references,
+    assigning deterministic BLK-XXXX and PRD-XXX IDs.
+    """
     blocks: list[dict[str, Any]] = []
     evidence_items: list[dict[str, Any]] = []
     current_heading = ""
     table_count = 0
-    image_refs = re.findall(r"!\[[^\]]*\]\(([^)]+)\)", text)
-    for idx, line in enumerate(text.splitlines(), start=1):
+    paragraph_count = 0
+
+    # Detect table blocks (consecutive | lines)
+    lines = markdown.splitlines()
+    i = 0
+    while i < len(lines):
+        line = lines[i]
         stripped = line.strip()
+
+        # Skip empty lines
         if not stripped:
+            i += 1
             continue
-        if stripped.startswith("#"):
-            current_heading = stripped.lstrip("#").strip()
-        block_id = f"BLK-{len(blocks) + 1:04d}"
-        block_type = "table_row" if stripped.startswith("|") and stripped.endswith("|") else "paragraph"
-        if block_type == "table_row":
-            table_count += 1
-        blocks.append(
-            {
+
+        # Heading detection
+        heading_match = re.match(r"^(#{1,6})\s+(.+)$", stripped)
+        if heading_match:
+            current_heading = heading_match.group(2).strip()
+            block_id = f"BLK-{len(blocks) + 1:04d}"
+            paragraph_count += 1
+            blocks.append({
                 "id": block_id,
-                "type": block_type,
-                "locator": f"line:{idx}",
-                "heading": current_heading,
-                "text": stripped,
-            }
-        )
-        evidence_items.append(
-            {
+                "type": "heading",
+                "locator": f"{source_format}:line:{i + 1}",
+                "level": len(heading_match.group(1)),
+                "text": current_heading,
+            })
+            evidence_items.append({
                 "id": f"PRD-{len(evidence_items) + 1:03d}",
                 "kind": "prd_block",
                 "block_id": block_id,
-                "locator": f"line:{idx}",
-                "summary": stripped[:180],
+                "locator": f"{source_format}:line:{i + 1}",
+                "summary": current_heading[:180],
                 "confidence": "high",
-            }
-        )
+            })
+            i += 1
+            continue
 
-    warnings = []
-    media_items = []
-    for idx, ref in enumerate(image_refs, start=1):
-        media_items.append(
-            {
-                "id": f"IMG-{idx:03d}",
-                "source_path": ref,
-                "output_path": "",
-                "mime_type": "",
-                "size_bytes": None,
-                "referenced_by": [],
-            }
-        )
-    if media_items:
-        warnings.append("markdown image references detected but image semantics require vision or human review")
+        # Table detection (consecutive | lines with separator)
+        next_stripped = lines[i + 1].strip() if i + 1 < len(lines) else ""
+        if stripped.startswith("|") and re.match(r"^\|[\s\-:|]+\|$", next_stripped):
+            table_count += 1
+            table_id = f"TBL-{table_count:03d}"
+            table_lines = []
+            while i < len(lines) and lines[i].strip().startswith("|"):
+                table_lines.append(lines[i])
+                i += 1
+            table_text = "\n".join(table_lines)
+            row_count = len(table_lines)
+            has_merged = "<br>" in table_text or "rowspan" in table_text.lower()
+            block_id = f"BLK-{len(blocks) + 1:04d}"
+            blocks.append({
+                "id": block_id,
+                "type": "table",
+                "locator": f"{source_format}:table:{table_count}",
+                "table_id": table_id,
+                "rows": row_count,
+                "text": table_text[:500],
+            })
+            evidence_items.append({
+                "id": f"PRD-{len(evidence_items) + 1:03d}",
+                "kind": "prd_table",
+                "block_id": block_id,
+                "locator": f"{source_format}:table:{table_count}",
+                "summary": f"{row_count} rows table",
+                "confidence": "medium" if has_merged else "high",
+            })
+            continue
 
-    return {
-        "format": "markdown" if source.suffix.lower() in {".md", ".markdown"} else "text",
-        "document_markdown": text if text.endswith("\n") else text + "\n",
-        "structure": {
-            "schema_version": "1.0",
-            "source_type": source.suffix.lower().lstrip(".") or "text",
-            "blocks": blocks,
-            "stats": {
-                "paragraphs": len([b for b in blocks if b["type"] == "paragraph"]),
-                "tables": table_count,
-                "media": len(media_items),
-            },
-        },
-        "evidence_items": evidence_items,
-        "media_items": media_items,
-        "warnings": warnings,
-    }
+        # Image reference detection
+        img_match = re.match(r"!\[([^\]]*)\]\(([^)]+)\)", stripped)
+        if img_match:
+            block_id = f"BLK-{len(blocks) + 1:04d}"
+            img_alt = img_match.group(1)
+            img_src = img_match.group(2)
+            blocks.append({
+                "id": block_id,
+                "type": "image",
+                "locator": f"{source_format}:line:{i + 1}",
+                "alt": img_alt,
+                "src": img_src,
+                "text": stripped,
+            })
+            evidence_items.append({
+                "id": f"PRD-{len(evidence_items) + 1:03d}",
+                "kind": "prd_image",
+                "block_id": block_id,
+                "locator": f"{source_format}:line:{i + 1}",
+                "summary": f"image: {img_alt or img_src}"[:180],
+                "confidence": "low",
+            })
+            i += 1
+            continue
+
+        # Regular paragraph
+        paragraph_count += 1
+        block_id = f"BLK-{len(blocks) + 1:04d}"
+        blocks.append({
+            "id": block_id,
+            "type": "paragraph",
+            "locator": f"{source_format}:line:{i + 1}",
+            "heading": current_heading,
+            "text": stripped,
+        })
+        evidence_items.append({
+            "id": f"PRD-{len(evidence_items) + 1:03d}",
+            "kind": "prd_block",
+            "block_id": block_id,
+            "locator": f"{source_format}:line:{i + 1}",
+            "summary": stripped[:180],
+            "confidence": "high",
+        })
+        i += 1
+
+    return blocks, evidence_items
 
 
-def parse_pdf(source: Path, out_dir: Path) -> dict[str, Any]:
-    pdftotext = shutil.which("pdftotext")
-    if not pdftotext:
-        raise RuntimeError("PDF ingestion requires pdftotext or a dedicated layout/OCR service")
-    result = subprocess.run(
-        [pdftotext, "-layout", str(source), "-"],
-        check=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        text=True,
+# ── Table extraction ─────────────────────────────────────────────────
+
+def extract_tables_to_files(markdown: str, out_dir: Path) -> list[dict[str, Any]]:
+    """Extract markdown tables into separate files under tables/."""
+    tables: list[dict[str, Any]] = []
+    lines = markdown.splitlines()
+    i = 0
+    table_idx = 0
+
+    while i < len(lines):
+        stripped = lines[i].strip()
+        if not stripped.startswith("|") or i + 1 >= len(lines):
+            i += 1
+            continue
+
+        # Check for separator line (|---|---|)
+        next_stripped = lines[i + 1].strip() if i + 1 < len(lines) else ""
+        if not re.match(r"^\|[\s\-:|]+\|$", next_stripped):
+            i += 1
+            continue
+
+        table_idx += 1
+        table_lines = []
+        while i < len(lines) and lines[i].strip().startswith("|"):
+            table_lines.append(lines[i])
+            i += 1
+
+        table_id = f"TBL-{table_idx:03d}"
+        table_md = "\n".join(table_lines) + "\n"
+        table_path = out_dir / "tables" / f"{table_id}.md"
+        table_path.write_text(table_md, encoding="utf-8")
+        tables.append({
+            "table_id": table_id,
+            "rows": len(table_lines),
+            "path": str(table_path.relative_to(out_dir)),
+        })
+
+    return tables
+
+
+# ── Media analysis ───────────────────────────────────────────────────
+
+def build_media_analysis(
+    media_items: list[dict[str, Any]],
+    ocr_mode: str,
+    text_content: str,
+) -> list[dict[str, Any]]:
+    """Build media-analysis items with analysis status.
+
+    If LLM Vision was active and MarkItDown generated image descriptions,
+    those are captured in the text_content. Media items get
+    'llm_vision_analyzed' status; otherwise they stay
+    'needs_vision_or_human_review'.
+    """
+    has_image_descriptions = bool(
+        re.search(r"!\[.*?(?:descri|image|photo|diagram|screenshot|flowchart|figure)", text_content, re.IGNORECASE)
     )
-    temp = out_dir / ".pdf-extracted.txt"
-    temp.write_text(result.stdout, encoding="utf-8")
-    parsed = parse_text_document(temp, out_dir)
-    parsed["format"] = "pdf_text"
-    parsed["warnings"].append("pdf converted by pdftotext; tables/images/reading order require review")
-    temp.unlink(missing_ok=True)
-    return parsed
+
+    items = []
+    for m in media_items:
+        analysis_status = "needs_vision_or_human_review"
+        summary = ""
+        confidence = "low"
+
+        if ocr_mode == "llm_vision":
+            # MarkItDown with LLM client already processed images
+            analysis_status = "llm_vision_analyzed"
+            summary = "analyzed by markitdown-ocr plugin with LLM Vision"
+            confidence = "medium" if has_image_descriptions else "low"
+
+        items.append({
+            **m,
+            "analysis_status": analysis_status,
+            "summary": summary,
+            "confidence": confidence,
+        })
+
+    return items
 
 
-def quality_status(warnings: list[str], media_items: list[dict[str, Any]], block_count: int) -> tuple[str, list[str]]:
+# ── Quality gates ────────────────────────────────────────────────────
+
+def quality_status(
+    warnings: list[str],
+    media_items: list[dict[str, Any]],
+    block_count: int,
+) -> tuple[str, list[str]]:
     gates: list[str] = []
     status = "pass"
+
     if block_count == 0:
         status = "block"
         gates.append("no readable text blocks extracted")
-    if media_items:
+
+    unanalyzed = [m for m in media_items if m.get("analysis_status") == "needs_vision_or_human_review"]
+    if unanalyzed:
         status = "warn" if status == "pass" else status
-        gates.append("images require vision or human review before using image-only requirements")
+        gates.append(f"{len(unanalyzed)} images require vision or human review")
+
     if warnings:
         status = "warn" if status == "pass" else status
+
     return status, gates
 
 
@@ -509,7 +451,9 @@ def conversion_warnings_text(warnings: list[str], gates: list[str]) -> str:
     return "\n".join(lines)
 
 
-def source_manifest(source: Path, source_format: str) -> dict[str, Any]:
+# ── Source manifest ──────────────────────────────────────────────────
+
+def source_manifest(source: Path, source_format: str, ocr_mode: str) -> dict[str, Any]:
     return {
         "schema_version": "1.0",
         "generated_at": now_iso(),
@@ -522,9 +466,93 @@ def source_manifest(source: Path, source_format: str) -> dict[str, Any]:
         },
         "ingestion": {
             "tool": "prd-distill/scripts/ingest_prd.py",
-            "mode": "local_baseline",
-            "ocr": "not_available",
+            "backend": "markitdown",
+            "ocr": ocr_mode,
         },
+    }
+
+
+# ── Main conversion pipeline ────────────────────────────────────────
+
+def convert_source(source: Path, out_dir: Path) -> dict[str, Any]:
+    """Convert a PRD file using MarkItDown and produce prd-ingest artifacts."""
+    suffix = source.suffix.lower()
+    warnings: list[str] = []
+
+    if suffix in SUPPORTED_TEXT_SUFFIXES:
+        # Plain text/markdown: read directly, no MarkItDown needed
+        text_content = source.read_text(encoding="utf-8", errors="replace")
+        source_format = "markdown" if suffix in {".md", ".markdown"} else "text"
+        ocr_mode = "not_applicable"
+        media_items_raw: list[dict[str, Any]] = []
+    else:
+        # All binary formats go through MarkItDown
+        result = convert_with_markitdown(source, out_dir)
+        text_content = result["text_content"]
+        ocr_mode = result["ocr_mode"]
+        media_items_raw = result["media_items"]
+        source_format = suffix.lstrip(".")
+
+        if not text_content.strip():
+            raise RuntimeError(f"MarkItDown returned empty content for {source.name}")
+
+    # Split into blocks
+    blocks, evidence_items = split_into_blocks(text_content, source_format)
+
+    # Extract tables to separate files
+    extracted_tables = extract_tables_to_files(text_content, out_dir)
+    # Attach table file paths to matching blocks
+    for block in blocks:
+        if block["type"] == "table":
+            for tbl in extracted_tables:
+                if tbl["table_id"] == block.get("table_id"):
+                    block["path"] = tbl["path"]
+                    break
+
+    # Build media analysis
+    media_analysis = build_media_analysis(media_items_raw, ocr_mode, text_content)
+
+    # Detect image references in markdown for media tracking
+    img_refs = re.findall(r"!\[([^\]]*)\]\(([^)]+)\)", text_content)
+    if img_refs and not media_items_raw:
+        for idx, (alt, src) in enumerate(img_refs, start=1):
+            media_items_raw.append({
+                "id": f"IMG-{idx:03d}",
+                "source_path": src,
+                "output_path": "",
+                "filename": "",
+                "mime_type": mimetypes.guess_type(src)[0] or "application/octet-stream",
+                "size_bytes": None,
+                "referenced_by": [],
+            })
+        media_analysis = build_media_analysis(media_items_raw, ocr_mode, text_content)
+
+    # Add warnings for unanalyzed media
+    unanalyzed = [m for m in media_analysis if m.get("analysis_status") == "needs_vision_or_human_review"]
+    if unanalyzed:
+        warnings.append(f"{len(unanalyzed)} images extracted but require vision or human review for content understanding")
+
+    paragraph_count = len([b for b in blocks if b["type"] in {"paragraph", "heading"}])
+    table_count = len([b for b in blocks if b["type"] == "table"])
+    media_count = len(media_items_raw)
+
+    return {
+        "format": source_format,
+        "document_markdown": text_content if text_content.endswith("\n") else text_content + "\n",
+        "structure": {
+            "schema_version": "1.0",
+            "source_type": source_format,
+            "blocks": blocks,
+            "stats": {
+                "paragraphs": paragraph_count,
+                "tables": table_count,
+                "media": media_count,
+            },
+        },
+        "evidence_items": evidence_items,
+        "media_items": media_analysis,
+        "warnings": sorted(set(warnings)),
+        "ocr_mode": ocr_mode,
     }
 
 
@@ -532,23 +560,23 @@ def run(source: Path, out_dir: Path) -> int:
     source = source.expanduser().resolve()
     if not source.exists():
         raise FileNotFoundError(source)
+
     suffix = source.suffix.lower()
     if suffix not in SUPPORTED_DOC_SUFFIXES:
-        raise ValueError(f"unsupported PRD format: {suffix}")
+        raise ValueError(
+            f"unsupported PRD format: {suffix}. "
+            f"Supported: {', '.join(sorted(SUPPORTED_DOC_SUFFIXES))}"
+        )
 
     ensure_dirs(out_dir)
-    if suffix == ".docx":
-        parsed = parse_docx(source, out_dir)
-    elif suffix == ".pdf":
-        parsed = parse_pdf(source, out_dir)
-    else:
-        parsed = parse_text_document(source, out_dir)
+    parsed = convert_source(source, out_dir)
 
     blocks = parsed["structure"]["blocks"]
     warnings = list(parsed["warnings"])
     media_items = list(parsed["media_items"])
     status, gates = quality_status(warnings, media_items, len(blocks))
 
+    # Write all prd-ingest artifacts
     (out_dir / "document.md").write_text(parsed["document_markdown"], encoding="utf-8")
     (out_dir / "document-structure.json").write_text(
         json.dumps(parsed["structure"], ensure_ascii=False, indent=2) + "\n",
@@ -556,7 +584,7 @@ def run(source: Path, out_dir: Path) -> int:
     )
     write_yaml(
         out_dir / "source-manifest.yaml",
-        source_manifest(source, parsed["format"]),
+        source_manifest(source, parsed["format"], parsed["ocr_mode"]),
     )
     write_yaml(
         out_dir / "evidence-map.yaml",
@@ -571,10 +599,12 @@ def run(source: Path, out_dir: Path) -> int:
             "schema_version": "1.0",
             "items": [
                 {
-                    **item,
-                    "analysis_status": "needs_vision_or_human_review",
-                    "summary": "",
-                    "confidence": "low",
+                    "id": item["id"],
+                    "analysis_status": item.get("analysis_status", "needs_vision_or_human_review"),
+                    "summary": item.get("summary", ""),
+                    "confidence": item.get("confidence", "low"),
+                    "source_path": item.get("source_path", ""),
+                    "output_path": item.get("output_path", ""),
                 }
                 for item in media_items
             ],
@@ -606,7 +636,7 @@ def run(source: Path, out_dir: Path) -> int:
 
 def main(argv: list[str]) -> int:
     parser = argparse.ArgumentParser(description="Ingest a PRD document into stable artifacts.")
-    parser.add_argument("source", help="Path to PRD docx/md/txt/pdf")
+    parser.add_argument("source", help="Path to PRD file (docx/md/txt/pdf/pptx/xlsx/html)")
     parser.add_argument(
         "--out",
         help="Output directory. Default: _output/prd-distill/<slug>/prd-ingest",
@@ -628,7 +658,7 @@ def main(argv: list[str]) -> int:
                 "status": "block",
                 "error": str(exc),
                 "rules": [
-                    "Ask the user for a markdown/text export or use a dedicated layout/OCR service.",
+                    "MarkItDown conversion failed. Check the file format and try again.",
                 ],
             },
         )

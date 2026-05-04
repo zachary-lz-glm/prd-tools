@@ -20,7 +20,7 @@ PRD raw file/text
 
 读取或收集：
 
-- PRD：`.docx | .md | .txt | .pdf | pasted text`。
+- PRD：`.docx | .md | .txt | .pdf | .pptx | .xlsx | .html | pasted text`。
 - 技术方案 / API 文档：可选，但多层或后端相关需求强烈建议读取。
 - `_reference/`：优先 v4（6 文件结构）；若只有 v3.1（10 文件结构），兼容读取；若只有旧版 `05-mapping.yaml`，兼容读取并在回流建议里提示迁移。
 - 目标代码库：用于代码锚定。
@@ -60,8 +60,14 @@ prd-ingest/
 读取 `extraction-quality.yaml`：
 
 - `pass`：可进入后续蒸馏。
-- `warn`：可继续，但必须把图片未分析、复杂表格、PDF 读取风险写入 `questions.md` 或 `report.md`。
-- `block`：暂停，要求用户提供 markdown/text，或接入 OCR/layout/vision 工具。
+- `warn`：可继续，但必须把图片未分析、复杂表格风险写入 `questions.md` 或 `report.md`。
+- `block`：暂停，要求用户提供 markdown/text，或检查 MarkItDown 安装。
+
+图片分析说明：
+
+- `source-manifest.yaml` 中 `ingestion.ocr` 字段记录图片分析模式：`llm_vision`（已分析）或 `not_available`（未分析）。
+- `media-analysis.yaml` 中每个图片的 `analysis_status` 为 `llm_vision_analyzed`（LLM 已分析）或 `needs_vision_or_human_review`（需人工确认）。
+- 设置 `OPENAI_API_KEY` 环境变量后，ingestion 自动启用 LLM Vision 图片分析。
 
 如果用户只粘贴文本，手工创建等价的 source、document、evidence-map 和 quality 记录，保证后续 evidence 仍可追溯。
 
