@@ -171,8 +171,14 @@ fi
 
 mkdir -p "$CLAUDE_SKILLS_DIR"
 
-SRC_DIR="$TMP_DIR/prd-tools-2.0/plugins"
-VERSION_FILE="$TMP_DIR/prd-tools-2.0/VERSION"
+ARCHIVE_ROOT="$(find "$TMP_DIR" -mindepth 1 -maxdepth 1 -type d | head -1)"
+if [ -z "$ARCHIVE_ROOT" ] || [ ! -d "$ARCHIVE_ROOT/plugins" ]; then
+  echo "ERROR: Downloaded archive has unexpected structure." >&2
+  exit 1
+fi
+
+SRC_DIR="$ARCHIVE_ROOT/plugins"
+VERSION_FILE="$ARCHIVE_ROOT/VERSION"
 TOOL_VERSION="unknown"
 if [ -f "$VERSION_FILE" ]; then
   TOOL_VERSION="$(tr -d '[:space:]' < "$VERSION_FILE")"

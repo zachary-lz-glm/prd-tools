@@ -35,7 +35,7 @@ build-reference
         ↓
 prd-distill
         ↓
-report / plan / questions / artifacts
+report / plan / artifacts
         ↓
 反馈回流到 _reference/
 ```

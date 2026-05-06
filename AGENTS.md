@@ -63,4 +63,3 @@ scripts/install-hooks.sh
 |------|------|
 | `CHANGELOG.md` | 项目级版本迭代总览 |
 | `plugins/*/CHANGELOG.md` | 各插件独立版本变更 |
-
