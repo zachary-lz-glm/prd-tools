@@ -21,16 +21,54 @@ echo "║        prd-tools  one-click install      ║"
 echo "╚══════════════════════════════════════════╝"
 echo ""
 
-# ── Step 1: Install uv (Python dependency manager) ────────────────
+# ── Proxy detection ────────────────────────────────────────────────
 
-echo "==> [1/5] Checking uv (Python dependency manager)..."
+# Auto-detect system proxy for curl (critical in corporate networks)
+if [ -z "${http_proxy:-}" ] && [ -z "${HTTP_PROXY:-}" ]; then
+  # Check common macOS/Linux proxy configs
+  _SYS_PROXY=""
+  if [ -f "$HOME/.config/proxy" ]; then
+    _SYS_PROXY="$(head -1 "$HOME/.config/proxy" 2>/dev/null)"
+  fi
+  # Try to detect proxy from networksetup (macOS)
+  if [ -z "$_SYS_PROXY" ] && command -v networksetup &>/dev/null; then
+    _SYS_PROXY="$(networksetup -getwebproxy Wi-Fi 2>/dev/null | awk '/Enabled: Yes/{getline; getline; print "http://"$2":"$1}' | head -1)"
+    if [ -z "$_SYS_PROXY" ]; then
+      _SYS_PROXY="$(networksetup -getwebproxy Ethernet 2>/dev/null | awk '/Enabled: Yes/{getline; getline; print "http://"$2":"$1}' | head -1)"
+    fi
+  fi
+  if [ -n "$_SYS_PROXY" ]; then
+    export http_proxy="$_SYS_PROXY"
+    export https_proxy="$_SYS_PROXY"
+    echo "  Auto-detected proxy: $_SYS_PROXY"
+    echo ""
+  fi
+fi
+
+# Ensure curl uses proxy
+if [ -n "${http_proxy:-}" ] || [ -n "${HTTP_PROXY:-}" ]; then
+  echo "  Using proxy: ${http_proxy:-${HTTP_PROXY:-set}}"
+  echo ""
+fi
+
+# ── Status tracking ────────────────────────────────────────────────
+
+MCP_CMD=""
+MCP_ARGS=""
+GITNEXUS_STATUS="missing"
+GRAPHIFY_STATUS="missing"
+MARKITDOWN_STATUS="missing"
+GITNEXUS_INDEXED=false
+
+# ── Step 1/7: Install uv (Python dependency manager) ───────────────
+
+echo "==> [1/7] Checking uv (Python dependency manager)..."
 
 if command -v uv &>/dev/null; then
   echo "    uv already installed: $(uv --version 2>/dev/null || echo 'ok')"
 else
   echo "    Installing uv..."
   curl -LsSf https://astral.sh/uv/install.sh | sh 2>/dev/null
-  # Source the shell env so uv is available in this script
   export PATH="$HOME/.local/bin:$HOME/.cargo/bin:$PATH"
   if command -v uv &>/dev/null; then
     echo "    uv installed: $(uv --version)"
@@ -43,12 +81,29 @@ fi
 
 export PATH="$HOME/.local/bin:$HOME/.cargo/bin:$PATH"
 
-# ── Step 2: Install GitNexus runtime (npx or bun) ────────────────
+# ── Step 2/7: Install MarkItDown (document reader) ─────────────────
 
-echo "==> [2/5] Checking GitNexus runtime..."
+echo "==> [2/7] Checking MarkItDown (PDF/DOCX/PPTX reader)..."
 
-MCP_CMD=""
-MCP_ARGS=""
+if command -v markitdown &>/dev/null; then
+  echo "    markitdown already installed"
+  MARKITDOWN_STATUS="ok"
+else
+  echo "    Installing markitdown via uv (with OCR support)..."
+  uv tool install "markitdown[all]" 2>/dev/null
+  uv tool install markitdown-ocr 2>/dev/null
+  if command -v markitdown &>/dev/null; then
+    echo "    markitdown installed (with OCR support)"
+    MARKITDOWN_STATUS="ok"
+  else
+    echo "    WARNING: markitdown installation failed." >&2
+    echo "    Install manually: uv tool install markitdown" >&2
+  fi
+fi
+
+# ── Step 3/7: Install GitNexus runtime (npx or bun) ────────────────
+
+echo "==> [3/7] Checking GitNexus runtime..."
 
 if command -v npx &>/dev/null; then
   MCP_CMD="npx"
@@ -72,9 +127,9 @@ else
   fi
 fi
 
-# ── Step 3: Install Graphify (knowledge graph) ────────────────────
+# ── Step 4/7: Install Graphify (knowledge graph) ────────────────────
 
-echo "==> [3/5] Checking Graphify (knowledge graph)..."
+echo "==> [4/7] Checking Graphify (knowledge graph)..."
 
 GRAPHIFY_INSTALLED=false
 
@@ -94,13 +149,13 @@ else
 fi
 
 if [ "$GRAPHIFY_INSTALLED" = true ]; then
-  # graphify install creates ~/.claude/skills/graphify/SKILL.md and registers in CLAUDE.md
   graphify install 2>/dev/null && echo "    Graphify skill registered" || echo "    WARNING: graphify install failed (skill not registered)" >&2
+  GRAPHIFY_STATUS="ok"
 fi
 
-# ── Step 4: Download and install prd-tools skills ────────────────
+# ── Step 5/7: Download and install prd-tools skills ────────────────
 
-echo "==> [4/5] Downloading prd-tools..."
+echo "==> [5/7] Downloading prd-tools..."
 
 ARCHIVE_URL="https://github.com/$REPO/archive/refs/heads/$BRANCH.tar.gz"
 
@@ -144,18 +199,18 @@ branch=$BRANCH
 runtime_uv=$(command -v uv 2>/dev/null || echo "not_found")
 runtime_gitnexus=$MCP_CMD
 runtime_graphify=$(command -v graphify 2>/dev/null || echo "not_found")
+runtime_markitdown=$(command -v markitdown 2>/dev/null || echo "not_found")
 EOF
 
-# ── Step 5: Configure GitNexus MCP server ─────────────────────────
+# ── Step 6/7: Configure GitNexus MCP + Index project ───────────────
 
-echo "==> [5/5] Configuring GitNexus MCP server..."
+echo "==> [6/7] Configuring GitNexus and indexing project..."
 
+# Configure MCP server
 if [ -n "$MCP_CMD" ]; then
   MCP_CONFIG="$CLAUDE_CONFIG_DIR/.mcp.json"
 
-  # Read existing config or start fresh
   if [ -f "$MCP_CONFIG" ]; then
-    # Merge gitnexus into existing config (preserve other servers)
     python3 -c "
 import json, sys
 try:
@@ -174,7 +229,6 @@ with open('$MCP_CONFIG', 'w') as f:
 print('    Configured: gitnexus MCP server ($MCP_CMD)')
 " 2>/dev/null || echo "    WARNING: Could not update $MCP_CONFIG. Add gitnexus manually." >&2
   else
-    # Create new config
     mkdir -p "$CLAUDE_CONFIG_DIR"
     cat > "$MCP_CONFIG" <<MCPJSON
 {
@@ -189,10 +243,48 @@ MCPJSON
     echo "    Created: $MCP_CONFIG (gitnexus via $MCP_CMD)"
   fi
 else
-  echo "    Skipped: No GitNexus runtime available"
+  echo "    Skipped MCP config: No GitNexus runtime available"
 fi
 
-# ── Done ──────────────────────────────────────────────────────────
+# GitNexus: full code structure graph (AST-based)
+if [ -n "$MCP_CMD" ] && [ -d "$TARGET/.git" ]; then
+  echo "    Indexing with GitNexus (AST-based code structure)..."
+  if [ "$MCP_CMD" = "npx" ]; then
+    if npx -y gitnexus analyze "$TARGET" 2>&1 | tail -5; then
+      echo "    GitNexus: code structure indexed"
+      GITNEXUS_INDEXED=true
+      GITNEXUS_STATUS="ok"
+    else
+      echo "    WARNING: GitNexus indexing failed" >&2
+    fi
+  elif [ "$MCP_CMD" = "bunx" ]; then
+    if bunx --bun gitnexus analyze "$TARGET" 2>&1 | tail -5; then
+      echo "    GitNexus: code structure indexed"
+      GITNEXUS_INDEXED=true
+      GITNEXUS_STATUS="ok"
+    else
+      echo "    WARNING: GitNexus indexing failed" >&2
+    fi
+  fi
+elif [ -z "$MCP_CMD" ]; then
+  echo "    GitNexus skipped: no runtime available"
+else
+  echo "    GitNexus skipped: not a git repo"
+fi
+
+# Graphify: code structure extraction (no LLM; full business graph via /graphify in Claude Code)
+if [ "$GRAPHIFY_INSTALLED" = true ] && [ -d "$TARGET/.git" ]; then
+  echo "    Extracting code structure with Graphify..."
+  if graphify update "$TARGET" 2>/dev/null; then
+    echo "    Graphify: code structure extracted (run /graphify in Claude Code for LLM-enhanced business graph)"
+  else
+    echo "    Graphify: structure extraction failed (run /graphify in Claude Code for full graph)"
+  fi
+fi
+
+# ── Step 7/7: Health check + API key ───────────────────────────────
+
+echo "==> [7/7] Health check..."
 
 echo ""
 echo "========================================="
@@ -201,14 +293,103 @@ echo "========================================="
 echo ""
 echo "Runtime:"
 echo "  uv:         $(command -v uv 2>/dev/null || echo 'NOT FOUND')"
-echo "  GitNexus:   ${MCP_CMD:-NOT CONFIGURED}"
+echo "  GitNexus:   ${MCP_CMD:-NOT CONFIGURED}${GITNEXUS_INDEXED:+ (indexed)}"
 echo "  Graphify:   $(command -v graphify 2>/dev/null || echo 'NOT FOUND')"
+echo "  MarkItDown: $(command -v markitdown 2>/dev/null || echo 'NOT FOUND')"
 echo ""
 echo "Skills:"
 echo "  /build-reference  —  Build domain knowledge (with graph)"
 echo "  /prd-distill      —  Distill PRD document (with Vision)"
 echo "  /graphify         —  Knowledge graph from code/docs"
 echo ""
-echo "Image analysis:"
-echo "  Set OPENAI_API_KEY or ANTHROPIC_AUTH_TOKEN to enable LLM Vision"
+
+# Report issues
+ISSUES=0
+
+# Check API keys for LLM Vision (image analysis in prd-distill)
+VISION_KEY=""
+
+if [ -n "${OPENAI_API_KEY:-}" ]; then
+  VISION_KEY="OPENAI_API_KEY"
+elif [ -n "${ANTHROPIC_AUTH_TOKEN:-}" ]; then
+  VISION_KEY="ANTHROPIC_AUTH_TOKEN"
+fi
+
+if [ "$GITNEXUS_STATUS" != "ok" ]; then
+  ISSUES=$((ISSUES + 1))
+  echo "  ❌ GitNexus: FAILED — code structure graph unavailable"
+  if [ -z "$MCP_CMD" ]; then
+    echo "     Fix: curl -fsSL https://bun.sh/install | bash && rerun install.sh"
+  else
+    echo "     Fix: rerun install.sh to retry indexing"
+  fi
+fi
+
+if [ "$GRAPHIFY_STATUS" != "ok" ]; then
+  ISSUES=$((ISSUES + 1))
+  echo "  ❌ Graphify: FAILED — business semantic graph unavailable"
+  echo "     Fix: uv tool install graphifyy"
+fi
+
+if [ "$MARKITDOWN_STATUS" != "ok" ]; then
+  ISSUES=$((ISSUES + 1))
+  echo "  ❌ MarkItDown: FAILED — PRD document reading (PDF/DOCX/PPTX) unavailable"
+  echo "     Fix: uv tool install markitdown"
+fi
+
+if [ "$ISSUES" -gt 0 ]; then
+  echo ""
+  echo "  ⚠️  $ISSUES tool(s) failed. prd-tools will work but with reduced capability."
+  echo "     Fix the issues above and rerun: bash install.sh $TARGET"
+  echo ""
+fi
+
+# API key check — interactive prompt for LLM Vision (prd-distill image analysis)
+if [ -z "$VISION_KEY" ]; then
+  echo "  ⚠️  No API key found for LLM Vision (image analysis disabled)."
+  echo "     PRD images will be marked as 'needs_vision_or_human_review'."
+  echo ""
+  echo "  You can enter an API key now, or skip and set it later."
+  echo ""
+  read -p "  Enter OPENAI_API_KEY (or press Enter to skip): " USER_OPENAI_KEY
+  if [ -n "$USER_OPENAI_KEY" ]; then
+    export OPENAI_API_KEY="$USER_OPENAI_KEY"
+    # Persist to shell profile
+    PROFILE_FILE=""
+    if [ -f "$HOME/.zshrc" ]; then
+      PROFILE_FILE="$HOME/.zshrc"
+    elif [ -f "$HOME/.bashrc" ]; then
+      PROFILE_FILE="$HOME/.bashrc"
+    fi
+    if [ -n "$PROFILE_FILE" ]; then
+      sed -i.bak '/^export OPENAI_API_KEY=/d' "$PROFILE_FILE" 2>/dev/null
+      echo "export OPENAI_API_KEY=\"$USER_OPENAI_KEY\"" >> "$PROFILE_FILE"
+      rm -f "$PROFILE_FILE.bak"
+      echo "  ✅ OPENAI_API_KEY saved to $PROFILE_FILE"
+    fi
+    echo "  ℹ️  LLM Vision enabled via OPENAI_API_KEY"
+    echo ""
+  else
+    echo "  Skipped. Set later: export OPENAI_API_KEY=sk-xxx"
+    echo ""
+  fi
+else
+  echo "  ℹ️  LLM Vision enabled via $VISION_KEY"
+  echo ""
+fi
+
+# Final summary
+TOOLS_OK=true
+[ "$GITNEXUS_STATUS" != "ok" ] && TOOLS_OK=false
+[ "$GRAPHIFY_STATUS" != "ok" ] && TOOLS_OK=false
+[ "$MARKITDOWN_STATUS" != "ok" ] && TOOLS_OK=false
+
+if [ "$TOOLS_OK" = true ]; then
+  echo "  ✅ All tools installed. Ready to use /build-reference and /prd-distill."
+  echo ""
+fi
+
+# Restart reminder
+echo "  ⚡ IMPORTANT: Restart Claude Code to activate GitNexus MCP server."
+echo "     (MCP config was written to ~/.claude/.mcp.json)"
 echo ""
