@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+# post-commit hook: feat/fix 提交后自动触发 release.sh --auto
+# 生成版本号更新 + CHANGELOG + commit + tag
+
+set -uo pipefail
+
+# 允许通过环境变量禁用（PRD_TOOLS_NO_AUTO_RELEASE=1 git commit ...）
+[ "${PRD_TOOLS_NO_AUTO_RELEASE:-}" = "1" ] && exit 0
+
+REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
+
+# 获取最近一次 commit 的 subject
+subject=$(git log -1 --format="%s")
+
+# 跳过 release 提交（避免无限循环）
+echo "$subject" | grep -qE '^release:' && exit 0
+
+# 跳过非触发型提交（docs/chore/refactor 不触发发版）
+echo "$subject" | grep -qE '^(feat|fix)' || exit 0
+
+# 执行自动发版
+echo ""
+echo "==> [post-commit] 检测到 ${subject}，自动发版..."
+if ! "${REPO_ROOT}/scripts/release.sh" --auto --no-edit; then
+  echo "==> [post-commit] 自动发版失败，可手动运行: scripts/release.sh --auto" >&2
+fi

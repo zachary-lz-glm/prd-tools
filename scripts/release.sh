@@ -6,11 +6,12 @@
 #   --dry-run     只看会改什么，不写文件
 #   --no-tag      不创建 git tag
 #   --no-edit     不打开编辑器
+#   --auto        自动从 conventional commits 推导 bump 等级
 #   -h, --help    显示用法
 #
 # VERSION:
 #   显式版本号如 "2.5.0"，或 bump 关键字: patch / minor / major
-#   默认: patch
+#   默认: patch（--auto 时自动推导）
 
 set -euo pipefail
 
@@ -22,6 +23,7 @@ cd "$REPO_ROOT"
 DRY_RUN=false
 NO_TAG=false
 NO_EDIT=false
+AUTO=false
 VERSION_ARG=""
 
 while [[ $# -gt 0 ]]; do
@@ -29,6 +31,7 @@ while [[ $# -gt 0 ]]; do
     --dry-run)  DRY_RUN=true; shift ;;
     --no-tag)   NO_TAG=true; shift ;;
     --no-edit)  NO_EDIT=true; shift ;;
+    --auto)     AUTO=true; shift ;;
     -h|--help)
       head -12 "$0" | tail -10 | sed 's/^# \?//'
       exit 0
@@ -107,7 +110,35 @@ info "当前版本: ${current}，5 处版本一致 ✓"
 
 info "Step 1: 计算新版本"
 
-bump="${VERSION_ARG:-patch}"
+if [ "$AUTO" = true ]; then
+  # --auto: 从 conventional commits 推导 bump 等级
+  last_tag_for_auto=$(git describe --tags --match='v[0-9]*' --abbrev=0 2>/dev/null || true)
+  if [ -z "$last_tag_for_auto" ]; then
+    die "--auto 需要至少一个现有 tag"
+  fi
+
+  auto_range="${last_tag_for_auto}..HEAD"
+  has_breaking=$(git log "${auto_range}" --format="%s%n%b" | grep -cE '^(BREAKING CHANGE:|.*[a-z]!:)' || true)
+  has_feat=$(git log "${auto_range}" --format="%s" | grep -c '^feat' || true)
+  has_fix=$(git log "${auto_range}" --format="%s" | grep -c '^fix' || true)
+
+  total=$((has_breaking + has_feat + has_fix))
+  if [ "$total" -eq 0 ]; then
+    info "${last_tag_for_auto} 以来没有 feat/fix commits，跳过发版"
+    exit 0
+  fi
+
+  if [ "$has_breaking" -gt 0 ]; then
+    bump="major"
+  elif [ "$has_feat" -gt 0 ]; then
+    bump="minor"
+  else
+    bump="patch"
+  fi
+  info "自动检测: ${has_breaking} breaking, ${has_feat} feat, ${has_fix} fix → ${bump}"
+else
+  bump="${VERSION_ARG:-patch}"
+fi
 
 if validate_semver "$bump"; then
   # 显式版本号
@@ -163,6 +194,9 @@ parse_commits() {
   for hash in $hashes; do
     local subject
     subject=$(git log -1 --format="%s" "$hash")
+
+    # 跳过自动生成的 release 提交
+    echo "$subject" | grep -qE '^release:' && continue
 
     # 路径过滤
     if [ -n "$filter_prefix" ]; then
@@ -267,15 +301,27 @@ insert_changelog_entry() {
     return
   fi
 
+  # 写入临时文件（避免 awk -v 不支持多行字符串）
+  local entry_tmp
+  entry_tmp=$(mktemp)
+  printf '%s\n' "$entry" > "$entry_tmp"
+
   # 找到第一个 --- 分隔符或 ## 标题，在其后插入
-  # 使用 awk 在第一个 --- 或 ## 之前的位置插入
   local tmp="${file}.tmp"
-  awk -v entry="$entry" '
+  awk -v efile="$entry_tmp" '
     BEGIN { inserted = 0 }
-    /^---/ && !inserted { print; print ""; print entry; inserted = 1; next }
-    /^## / && !inserted { print entry; print; inserted = 1; next }
+    /^---/ && !inserted {
+      print; print ""
+      while ((getline < efile) > 0) print
+      print ""; inserted = 1; next
+    }
+    /^## / && !inserted {
+      while ((getline < efile) > 0) print
+      print ""; print; inserted = 1; next
+    }
     { print }
   ' "$file" > "$tmp" && mv "$tmp" "$file"
+  rm -f "$entry_tmp"
 }
 
 insert_changelog_entry "${REPO_ROOT}/CHANGELOG.md" "$root_section"
