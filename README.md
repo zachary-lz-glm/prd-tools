@@ -66,12 +66,15 @@ Layer Impact / Contract Delta / Plan
 
 当前内置能力：
 
-| 输入 | 当前处理方式 | 风险处理 |
+| 输入 | 处理方式 | 风险处理 |
 |---|---|---|
-| `.docx` | 使用本地 OOXML 解析抽取正文、表格、图片文件 | 图片语义、复杂合并表格默认进入质量警告 |
-| `.md/.txt` | 保留原文和行号，识别 markdown 图片引用 | 图片引用需要 vision 或人工确认 |
-| `.pdf` | 本机有 `pdftotext` 时做基础文本抽取 | 表格、图片、阅读顺序默认进入质量警告 |
+| `.docx` | MarkItDown 抽取正文、表格、图片 | 图片语义、复杂合并表格默认进入质量警告 |
+| `.pdf` | MarkItDown 内置 PDF 解析 | 表格、图片、阅读顺序默认进入质量警告 |
+| `.pptx` / `.xlsx` | MarkItDown 转换 | 复杂动画/公式可能丢失细节 |
+| `.html` / `.epub` | MarkItDown 转换 | 样式依赖的内容可能丢失 |
+| `.md` / `.txt` | 保留原文和行号，识别 markdown 图片引用 | 图片引用需要 vision 或人工确认 |
 | 粘贴文本 | 手工建立来源、段落定位和质量说明 | 缺少原文件 hash，置信度按输入质量标注 |
+| PRD 中的图片/流程图 | LLM Vision（markitdown-ocr）自动分析 | 未配置 API Key 时标记为待确认 |
 
 内置 ingestion 会生成：
 
@@ -90,10 +93,29 @@ _output/prd-distill/<slug>/prd-ingest/
 
 准确性原则：
 
-- 不承诺“100% 自动正确”，承诺“不静默丢信息”：图片、复杂表格、读取失败会变成显式 warning、question 或 block。
+- 不承诺”100% 自动正确”，承诺”不静默丢信息”：图片、复杂表格、读取失败会变成显式 warning、question 或 block。
 - 每个 requirement 必须能追到 PRD block/table/image、技术方案、源码或人工确认。
 - 没有 OCR/vision/人工确认的截图、流程图、图片文字，只能作为待确认问题，不能作为高置信度结论。
-- 如果团队需要处理大量扫描件、复杂版式 PDF 或图片型 PRD，建议把内置 ingestion 替换或增强为 Docling、Azure AI Document Intelligence、Google Document AI 或 AWS Textract 等 layout/OCR 服务。
+
+LLM Vision 图片分析（可选增强）：
+
+- 检测到 `OPENAI_API_KEY` 或 `ANTHROPIC_AUTH_TOKEN` 时自动启用。
+- 支持 OpenAI 兼容端点（含智谱 bigmodel.cn 自动适配）。
+- 对 PRD 中的流程图、设计稿、截图进行语义分析，产出结构化描述。
+
+## 外部工具
+
+PRD Tools 的部分能力依赖外部工具，安装脚本会自动处理：
+
+| 工具 | 用途 | 安装方式 |
+|---|---|---|
+| **MarkItDown** (microsoft/markitdown) | 文档转换后端，支持 docx/pdf/pptx/xlsx/html/epub | `uv tool install "markitdown[all]"` |
+| **MarkItDown-OCR** | LLM Vision 图片分析（流程图、设计稿、截图） | `uv tool install markitdown-ocr` |
+| **GitNexus** | 代码知识图谱：代码结构、调用链、影响分析、执行流追踪 | npm/npx，自动配置为 MCP Server |
+| **Graphify** | 通用知识图谱：从代码/文档/论文/图片生成聚类社区 | Claude Code Skill，自动安装 |
+| **Web Reader** | 网页内容读取，用于在线 PRD 或技术文档 | MCP Server，自动配置 |
+
+安装后这些工具会被注册到 `~/.claude/.mcp.json`，Claude Code 重启后自动加载。
 
 ## 两个技能
 
@@ -292,29 +314,36 @@ PRD 读取和质量门禁：
 
 ### 安装
 
+一键安装（7 步自动向导）：
+
 ```bash
-curl -fsSL https://raw.githubusercontent.com/zachary-lz-glm/prd-tools/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/zachary-lz-glm/prd-tools/v2.0/install.sh | bash
 ```
 
 指定目标项目：
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/zachary-lz-glm/prd-tools/main/install.sh | bash -s /path/to/project
+curl -fsSL https://raw.githubusercontent.com/zachary-lz-glm/prd-tools/v2.0/install.sh | bash -s /path/to/project
 ```
 
-默认安装位置：
+安装向导会自动完成 7 个步骤：
 
-```text
-.claude/skills/   # Claude Code
-```
+1. 安装 uv（Python 依赖管理）
+2. 安装 MarkItDown + OCR（文档转换 + 图片分析）
+3. 安装 GitNexus 运行时
+4. 安装 Graphify（知识图谱 Skill）
+5. 下载并安装 prd-tools Skills
+6. 配置 MCP Server（GitNexus + Graphify + Web Reader）并自动索引当前项目
+7. 健康检查 + 可选 API Key 配置
 
 安装后目标项目会生成：
 
 ```text
-.prd-tools-version
+.claude/skills/          # Claude Code Skills
+.prd-tools-version       # 版本标记
 ```
 
-用于确认当前安装版本和来源。
+MCP Server 配置写入 `~/.claude/.mcp.json`，重启 Claude Code 后生效。
 
 ### Claude Code
 
@@ -359,7 +388,22 @@ curl -fsSL https://raw.githubusercontent.com/zachary-lz-glm/prd-tools/main/insta
 
 ## 版本机制
 
-- 仓库根目录 `VERSION` 是工具版本。
+- 仓库根目录 `VERSION` 是工具版本，5 处版本号保持一致（lockstep versioning）。
 - Claude 插件元数据里的 `version` 与 `VERSION` 保持一致。
 - 安装脚本会在目标项目写 `.prd-tools-version`。
 - schema 使用 `schema_version`，工具使用 `tool_version`；老版本输出可兼容读取。
+
+### 自动发版
+
+使用 Conventional Commits 规范提交后，post-commit hook 会自动触发发版：
+
+| 提交前缀 | 版本变更 | 自动触发 |
+|---|---|---|
+| `feat:` | minor（如 2.7.0 → 2.8.0） | 是 |
+| `fix:` | patch（如 2.7.0 → 2.7.1） | 是 |
+| `feat!:` 或 footer `BREAKING CHANGE:` | major（如 2.7.0 → 3.0.0） | 是 |
+| `docs:` / `chore:` / `refactor:` | 不触发 | 否 |
+
+自动发版流程：更新 5 处版本号 → 生成 CHANGELOG → 提交 → 创建 tag。
+
+临时禁用：`PRD_TOOLS_NO_AUTO_RELEASE=1 git commit -m "feat: ..."`
