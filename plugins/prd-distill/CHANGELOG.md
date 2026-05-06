@@ -3,7 +3,12 @@
 All notable changes to the **prd-distill** plugin are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
-## [2.6.0] - 2026-05-04
+## [2.7.0] - 2026-05-06
+
+### Changed
+- (待补充)
+
+- (待补充)
 
 ### Added
 - **MarkItDown 集成**：用 microsoft/markitdown 替换手写 OOXML 解析和 pdftotext，作为文件转换后端

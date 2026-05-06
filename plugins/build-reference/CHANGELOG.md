@@ -3,7 +3,12 @@
 All notable changes to the **build-reference** plugin are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
-## [2.5.1] - 2026-05-01
+## [2.7.0] - 2026-05-06
+
+### Changed
+- (待补充)
+
+- (待补充)
 
 ### Fixed
 - 6 个模板（01-05 + project-profile）增加 `graph_sources: []` 和 `graph_evidence_refs: []` 字段

@@ -4,6 +4,12 @@
 
 ---
 
+## [2.7.0] - 2026-05-06
+
+### Added
+- feat: 版本迭代自动化 — release.sh --auto + post-commit hook 自动发版
+
+
 ## [2.6.0] - 2026-05-04
 
 ### Added
