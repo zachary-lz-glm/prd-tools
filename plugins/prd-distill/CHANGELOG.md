@@ -3,7 +3,12 @@
 All notable changes to the **prd-distill** plugin are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
-## [2.7.0] - 2026-05-06
+## [2.8.0] - 2026-05-06
+
+### Added
+- feat: prd-distill v2.8 质量复盘 — 修复图片confidence + questions合并 + plan升级技术方案 + 线索保留
+
+- feat: prd-distill v2.8 质量复盘 — 修复图片confidence + questions合并 + plan升级技术方案 + 线索保留
 
 ### Changed
 - (待补充)

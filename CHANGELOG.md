@@ -4,6 +4,15 @@
 
 ---
 
+## [2.8.0] - 2026-05-06
+
+### Added
+- feat: prd-distill v2.8 质量复盘 — 修复图片confidence + questions合并 + plan升级技术方案 + 线索保留
+
+### Changed
+- docs: README 同步 v2.7 — MarkItDown/外部工具/安装向导/自动发版
+
+
 ## [2.7.0] - 2026-05-06
 
 ### Added

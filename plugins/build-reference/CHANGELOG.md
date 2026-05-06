@@ -3,7 +3,12 @@
 All notable changes to the **build-reference** plugin are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
-## [2.7.0] - 2026-05-06
+## [2.8.0] - 2026-05-06
+
+### Changed
+- (待补充)
+
+- (待补充)
 
 ### Changed
 - (待补充)
