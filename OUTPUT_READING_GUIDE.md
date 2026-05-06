@@ -13,7 +13,6 @@ artifacts/             保存结构化证据和中间判断
   ↓
 report.md              给人看的结论
 plan.md                给研发/QA 的执行计划
-questions.md           给 owner 的确认清单
   ↓
 reference-update       把新知识回流到 _reference/
 ```
@@ -24,11 +23,11 @@ reference-update       把新知识回流到 _reference/
 
 | 顺序 | 文件 | 用 30 秒看什么 | 读完应该得到什么 |
 |---:|---|---|---|
-| 1 | `report.md` | 需求摘要、影响层、关键风险 | 这次需求大不大、影响哪里 |
-| 2 | `questions.md` | 阻塞问题、owner、默认策略 | 哪些事要先确认 |
-| 3 | `plan.md` | 实现顺序、QA 矩阵、契约任务 | 怎么拆开发和测试 |
+| 1 | `report.md` | 需求摘要、影响层、关键风险、§10 阻塞问题 | 这次需求大不大、影响哪里、哪些事要先确认 |
+| 2 | `plan.md` | 实现顺序、QA 矩阵、契约任务 | 怎么拆开发和测试 |
+| 3 | `artifacts/contract-delta.yaml` | `needs_confirmation/blocked` | 跨团队契约是否对齐 |
 | 4 | `prd-ingest/extraction-quality.yaml` | `pass/warn/block` | PRD 是否读可靠 |
-| 5 | `artifacts/contract-delta.yaml` | `needs_confirmation/blocked` | 跨团队契约是否对齐 |
+| 5 | `artifacts/evidence.yaml` | 关键结论证据来源 | 是否需要继续查证 |
 
 大多数日常评审只需要前 3 个文件。出现争议时，再看 `artifacts/`。
 
@@ -38,9 +37,8 @@ reference-update       把新知识回流到 _reference/
 
 | 区域 | 文件/目录 | 给谁看 | 一句话作用 |
 |---|---|---|---|
-| 人读结论 | `report.md` | TL、研发、QA、PM | 一屏说明需求、影响、风险 |
+| 人读结论 | `report.md` | TL、研发、QA、PM | 一屏说明需求、影响、风险，并收口阻塞问题 |
 | 执行计划 | `plan.md` | 研发、QA | 开发顺序、QA 矩阵、契约任务 |
-| 确认清单 | `questions.md` | PM、TL、owner | 阻塞问题和低置信度假设 |
 | PRD 读取 | `prd-ingest/` | 工具维护者、审计者 | 证明 PRD 被读成了什么 |
 | 证据链 | `artifacts/evidence.yaml` | 研发、审计者 | 每个结论的来源 |
 | 需求 IR | `artifacts/requirement-ir.yaml` | 研发、QA、AI | PRD 拆出来的结构化需求 |
@@ -55,10 +53,10 @@ reference-update       把新知识回流到 _reference/
 | 角色 | 必读 | 需要时再读 | 重点问题 |
 |---|---|---|---|
 | 后端研发 | `report.md`、`plan.md` | `layer-impact.yaml`、`evidence.yaml` | 改哪些模块，证据是否来自源码 |
-| 前端/BFF | `report.md`、`contract-delta.yaml` | `questions.md` | 是否有枚举、schema、payload、接口变化 |
-| QA | `plan.md`、`requirement-ir.yaml` | `questions.md` | 验收条件、边界值、回归范围是否完整 |
-| TL | `report.md`、`questions.md`、`contract-delta.yaml` | `reference-update-suggestions.yaml` | 有没有阻塞、漏层、外部依赖和沉淀价值 |
-| PM/业务 owner | `report.md`、`questions.md` | `plan.md` 的 QA 部分 | PRD 是否被理解正确，哪些规则要确认 |
+| 前端/BFF | `report.md`、`contract-delta.yaml` | `layer-impact.yaml` | 是否有枚举、schema、payload、接口变化 |
+| QA | `plan.md`、`requirement-ir.yaml` | `report.md` §10 | 验收条件、边界值、回归范围是否完整 |
+| TL | `report.md`、`contract-delta.yaml` | `reference-update-suggestions.yaml` | 有没有阻塞、漏层、外部依赖和沉淀价值 |
+| PM/业务 owner | `report.md` | `plan.md` 的 QA 部分 | PRD 是否被理解正确，哪些规则要确认 |
 | 工具维护者 | `prd-ingest/`、`evidence.yaml`、`reference-update-suggestions.yaml` | `_output/reference-quality-report.yaml` | 读取质量、证据质量、知识库是否要更新 |
 
 ## 人读文件
@@ -67,21 +65,11 @@ reference-update       把新知识回流到 _reference/
 
 | 项 | 说明 |
 |---|---|
-| 它是什么 | 给人看的结论报告 |
-| 回答什么 | 需求是什么、影响哪些层、关键开发结论、最大风险 |
+| 它是什么 | 给人看的结论报告，也是阻塞问题和 owner 确认项的唯一人读入口 |
+| 回答什么 | 需求是什么、影响哪些层、关键开发结论、最大风险、哪些问题需要谁确认 |
 | 不放什么 | 不展开完整证据链，不写所有实现细节 |
-| 怎么判断好坏 | 一屏内能说清需求范围、关键风险和下一步 |
-| 读完动作 | 如果看到阻塞或 `needs_confirmation`，去读 `questions.md` |
-
-### questions.md
-
-| 项 | 说明 |
-|---|---|
-| 它是什么 | 阻塞问题和 owner 确认清单 |
-| 回答什么 | 什么没确认、影响哪些输出、找谁确认、默认策略是什么 |
-| 不放什么 | 普通备注、已确认事实、无行动价值的问题 |
-| 怎么判断好坏 | 每个问题都有 owner、影响范围和需要的证据 |
-| 读完动作 | 拉 owner 确认，确认结果回写到计划或 reference |
+| 怎么判断好坏 | 一屏内能说清需求范围、关键风险和下一步，§10 每个问题都有 owner、影响范围和需要证据 |
+| 读完动作 | 如果看到阻塞或 `needs_confirmation`，拉 owner 确认，确认结果回写到计划或 reference |
 
 ### plan.md
 
@@ -107,14 +95,14 @@ reference-update       把新知识回流到 _reference/
 | `media-analysis.yaml` | 图片是否已被 vision/OCR/人工确认 | 有截图/流程图时 | `needs_vision_or_human_review` |
 | `tables/` | 抽出的表格 markdown | PRD 表格很多时 | 合并单元格、字段丢失 |
 | `extraction-quality.yaml` | PRD 读取质量门禁 | 每次都建议看 | `warn` 或 `block` |
-| `conversion-warnings.md` | 给人看的转换风险 | 评审前快速扫 | 图片/表格风险未进入问题清单 |
+| `conversion-warnings.md` | 给人看的转换风险 | 评审前快速扫 | 图片/表格风险未进入 `report.md` §10 |
 
 ### extraction-quality 怎么判断
 
 | 状态 | 含义 | 你该怎么做 |
 |---|---|---|
 | `pass` | PRD 读取质量正常 | 可以正常使用后续分析 |
-| `warn` | 可继续，但存在图片、复杂表格、PDF 顺序等风险 | 确认风险是否进入 `report.md` 或 `questions.md` |
+| `warn` | 可继续，但存在图片、复杂表格、PDF 顺序等风险 | 确认风险是否进入 `report.md` §10 |
 | `block` | 读取失败或缺少关键文本 | 暂停使用结论，补 markdown/text/OCR/人工确认 |
 
 常见 warning 的处理方式：
@@ -158,7 +146,7 @@ reference-update       把新知识回流到 _reference/
 | `acceptance_criteria` | QA 能不能据此验收 |
 | `target_layers` | 是否命中了正确层 |
 | `evidence` | 是否能追溯到 PRD/技术方案 |
-| `confidence` | 低置信度是否进入 `questions.md` |
+| `confidence` | 低置信度是否进入 `report.md` §10 |
 
 ### layer-impact.yaml 速查
 
@@ -237,7 +225,7 @@ reference-update       把新知识回流到 _reference/
 | 需求拆解 | REQ 覆盖规则、限制、验收条件 | 只总结背景 |
 | 代码证据 | 关键 impact 有 code evidence 或 negative search | 只引用 reference |
 | 契约 | 多层/外部系统有 contract delta | 接口字段只在 plan 里口头出现 |
-| 问题清单 | 每个问题有 owner、影响、所需证据 | 问题泛泛而谈 |
+| 阻塞问题 | `report.md` §10 每个问题有 owner、影响、所需证据 | 问题泛泛而谈 |
 | QA | 测试项能追到 REQ 或 CONTRACT | 只有“回归测试” |
 | 回流 | 有具体 target_file 和建议 | 没有沉淀价值 |
 
@@ -245,7 +233,7 @@ reference-update       把新知识回流到 _reference/
 
 | 误解 | 正确认知 |
 |---|---|
-| YAML 很多，所以很复杂 | 普通用户只读 `report.md`、`questions.md`、`plan.md`；YAML 给审计和回流用 |
+| YAML 很多，所以很复杂 | 普通用户只读 `report.md` 和 `plan.md`；YAML 给审计和回流用 |
 | `warn` 表示失败 | `warn` 表示可以继续，但风险必须显式处理 |
 | `_reference/` 是最终事实 | `_reference/` 是加速器，最终仍要以源码、PRD、技术方案、owner 确认为准 |
 | 前端/BFF 为空就是漏了 | 当前仓库没有对应实现时，工具会把它放到契约确认，而不是硬写任务 |
@@ -255,11 +243,10 @@ reference-update       把新知识回流到 _reference/
 
 | 时间 | 看什么 | 产出什么 |
 |---:|---|---|
-| 3 分钟 | `report.md` | 对齐需求范围和影响层 |
-| 4 分钟 | `questions.md` | 确认阻塞问题、owner、截止时间 |
+| 5 分钟 | `report.md` | 对齐需求范围、影响层、阻塞问题、owner、截止时间 |
 | 4 分钟 | `contract-delta.yaml` | 确认跨层字段、枚举、外部系统 |
 | 3 分钟 | `plan.md` | 确认开发顺序和 QA 重点 |
-| 1 分钟 | `reference-update-suggestions.yaml` | 判断是否值得回流知识库 |
+| 3 分钟 | `reference-update-suggestions.yaml` | 判断是否值得回流知识库 |
 
 会议结束时，至少要明确：
 
@@ -291,7 +278,7 @@ reference-update       把新知识回流到 _reference/
 |---:|---|---|
 | 1 | 运行 `prd-distill` | 生成本次需求分析 |
 | 2 | 读 `report.md` | 快速理解范围 |
-| 3 | 读 `questions.md` | 拉 owner 确认 |
+| 3 | 读 `report.md` §10 | 拉 owner 确认 |
 | 4 | 读 `plan.md` | 拆开发和 QA |
 | 5 | 多层需求读 `contract-delta.yaml` | 对齐字段和接口 |
 | 6 | 有争议读 `evidence.yaml` | 查证据 |

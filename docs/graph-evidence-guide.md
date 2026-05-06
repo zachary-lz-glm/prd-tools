@@ -8,7 +8,7 @@
 
 v2.5.0 没有改变 prd-tools 的任何现有用法。
 
-`/build-reference` 还是那个命令，`/prd-distill` 也还是那个命令。产出还是 6 个 reference 文件 + report/plan/questions。
+`/build-reference` 还是那个命令，`/prd-distill` 也还是那个命令。产出还是 6 个 reference 文件 + report/plan；阻塞问题和待确认项收口在 `report.md` §10。
 
 唯一的变化是：**如果你装了 GitNexus 或 Graphify，build-reference 和 prd-distill 会自动从图谱拿数据，产出质量更高。没装？跟以前一模一样。**
 
@@ -59,7 +59,7 @@ v2.5.0 没有改变 prd-tools 的任何现有用法。
 ### Graphify
 
 ```bash
-pip install graphifyy
+uv tool install graphifyy
 graphify install
 ```
 

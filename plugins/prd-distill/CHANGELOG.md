@@ -8,14 +8,6 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 ### Added
 - feat: prd-distill v2.8 质量复盘 — 修复图片confidence + questions合并 + plan升级技术方案 + 线索保留
 
-- feat: prd-distill v2.8 质量复盘 — 修复图片confidence + questions合并 + plan升级技术方案 + 线索保留
-
-### Changed
-- (待补充)
-
-- (待补充)
-
-### Added
 - **MarkItDown 集成**：用 microsoft/markitdown 替换手写 OOXML 解析和 pdftotext，作为文件转换后端
 - **LLM Vision 图片分析**：自动检测环境变量，启用 markitdown-ocr 分析 PRD 流程图/截图/设计稿
 - **智谱（bigmodel.cn）自动适配**：检测 ANTHROPIC_BASE_URL 含 bigmodel.cn 时自动转换 OpenAI 兼容端点
@@ -25,6 +17,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 ### Changed
 - `ingest_prd.py` 完全重写（645行→~400行），保留原有输出格式不变
 - SKILL.md / workflow.md 更新格式列表、图片分析说明
+- report.md / plan.md / report.md §10 增加职责边界和长度约束
 
 ### Removed
 - 手写 OOXML 解析代码（parse_docx 函数及底层 XML helpers）

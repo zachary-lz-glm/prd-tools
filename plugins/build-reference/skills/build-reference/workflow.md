@@ -107,7 +107,8 @@ capability_surfaces:
     symbols: []
     status: "candidate | verified | negative_search"
     evidence: []
-    graph_source: "gitnexus | graphify | none"
+    graph_sources: []
+    graph_evidence_refs: []
 ```
 
 ## 阶段 2：深度分析

@@ -134,10 +134,10 @@ echo "==> [4/7] Checking Graphify (knowledge graph)..."
 GRAPHIFY_INSTALLED=false
 
 if command -v graphify &>/dev/null; then
-  echo "    graphify already installed"
+  echo "    graphify already installed (CLI command; official PyPI package is graphifyy)"
   GRAPHIFY_INSTALLED=true
 else
-  echo "    Installing graphify via uv..."
+  echo "    Installing Graphify via uv (official package: graphifyy, CLI: graphify)..."
   uv tool install graphifyy 2>/dev/null
   if command -v graphify &>/dev/null; then
     echo "    graphify installed"
@@ -199,6 +199,7 @@ branch=$BRANCH
 runtime_uv=$(command -v uv 2>/dev/null || echo "not_found")
 runtime_gitnexus=$MCP_CMD
 runtime_graphify=$(command -v graphify 2>/dev/null || echo "not_found")
+runtime_graphify_package=graphifyy
 runtime_markitdown=$(command -v markitdown 2>/dev/null || echo "not_found")
 EOF
 
@@ -387,6 +388,48 @@ TOOLS_OK=true
 if [ "$TOOLS_OK" = true ]; then
   echo "  ✅ All tools installed. Ready to use /build-reference and /prd-distill."
   echo ""
+fi
+
+# Write a human-readable runtime contract so users can see which enhanced
+# capabilities are active before they run the skills.
+GRAPHIFY_HTML="$TARGET/graphify-out/graph.html"
+GRAPHIFY_REPORT="$TARGET/graphify-out/GRAPH_REPORT.md"
+GITNEXUS_INDEX="$TARGET/.gitnexus"
+cat > "$TARGET/.prd-tools-runtime.yaml" <<EOF
+schema_version: "1.0"
+generated_at: "$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+target: "$TARGET"
+tools:
+  markitdown:
+    status: "$MARKITDOWN_STATUS"
+    command: "$(command -v markitdown 2>/dev/null || echo "not_found")"
+    purpose: "PRD document conversion; image OCR requires a vision-capable API key"
+  gitnexus:
+    status: "$GITNEXUS_STATUS"
+    command: "${MCP_CMD:-not_configured}"
+    indexed: $GITNEXUS_INDEXED
+    index_path: "$GITNEXUS_INDEX"
+    purpose: "code graph, call chains, impact analysis"
+  graphify:
+    status: "$GRAPHIFY_STATUS"
+    package: "graphifyy"
+    command: "$(command -v graphify 2>/dev/null || echo "not_found")"
+    graph_path: "$TARGET/graphify-out/graph.json"
+    visual_page: "$GRAPHIFY_HTML"
+    report: "$GRAPHIFY_REPORT"
+    purpose: "business semantic graph from code, docs, screenshots, diagrams"
+next_steps:
+  - "Restart Claude Code to activate GitNexus MCP."
+  - "Run /build-reference to generate _reference/ and _output/graph/GRAPH_STATUS.md."
+  - "Run /graphify . --mode deep when you want the full LLM-enhanced business graph."
+EOF
+
+echo "  Runtime status written: $TARGET/.prd-tools-runtime.yaml"
+if [ -f "$GRAPHIFY_HTML" ]; then
+  echo "  Graphify visual page: $GRAPHIFY_HTML"
+elif [ "$GRAPHIFY_STATUS" = "ok" ]; then
+  echo "  Graphify visual page will appear after: /graphify . --mode deep"
+  echo "     Expected path: $GRAPHIFY_HTML"
 fi
 
 # Restart reminder

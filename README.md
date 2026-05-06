@@ -269,7 +269,6 @@ _output/prd-distill/<slug>/
 │   └── conversion-warnings.md
 ├── report.md
 ├── plan.md
-├── questions.md
 └── artifacts/
     ├── evidence.yaml
     ├── requirement-ir.yaml
@@ -282,9 +281,8 @@ _output/prd-distill/<slug>/
 
 | 文件 | 用途 | 读者 |
 |---|---|---|
-| `report.md` | 渐进式披露报告：需求摘要→变更明细表→字段清单→校验规则→开发Checklist→契约风险→Questions | 负责人、PM、研发、QA |
+| `report.md` | 渐进式披露报告：需求摘要→变更明细表→字段清单→校验规则→开发Checklist→契约风险→阻塞问题与待确认项 | 负责人、PM、研发、QA |
 | `plan.md` | 可执行的开发操作手册：精确到文件路径+行号，checklist格式，QA矩阵，回滚方案 | 研发、QA、技术负责人 |
-| `questions.md` | 阻塞问题、owner 确认项、低置信度假设 | PM、前端、BFF、后端、QA、外部 owner |
 
 PRD 读取和质量门禁：
 
@@ -298,7 +296,7 @@ PRD 读取和质量门禁：
 | `prd-ingest/media-analysis.yaml` | 记录图片是否已被 vision/OCR/人工确认 | 默认不产生高置信度结论 |
 | `prd-ingest/tables/` | 保存抽出的表格 markdown，便于单独核验 | 不修复原表格 |
 | `prd-ingest/extraction-quality.yaml` | 读取质量门禁，决定 pass、warn 或 block | 不写开发计划 |
-| `prd-ingest/conversion-warnings.md` | 给人看的转换风险清单 | 不替代 `questions.md` |
+| `prd-ingest/conversion-warnings.md` | 给人看的转换风险清单 | 不替代 `report.md` §10 |
 
 机器和审计阅读：
 
@@ -373,7 +371,7 @@ MCP Server 配置写入 `~/.claude/.mcp.json`，重启 Claude Code 后生效。
 日常使用：
 
 1. 新需求进来后运行 `prd-distill`。
-2. 研发和 QA 先看 `report.md`、`plan.md`、`questions.md`。
+2. 研发和 QA 先看 `report.md` 和 `plan.md`。
 3. 对需要对齐的字段和 owner 查看 `artifacts/contract-delta.yaml`。
 4. 需求完成后，将有效知识通过 `build-reference` 的 `E 反馈回流` 写回 `_reference/`。
 

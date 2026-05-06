@@ -159,6 +159,9 @@ validate_semver "$new" || die "版本号格式无效: ${new}"
 
 info "新版本: ${current} → ${new}"
 
+# contract drift
+"${REPO_ROOT}/scripts/validate-contracts.sh" > /dev/null || die "契约校验失败，请先修复输出口径漂移"
+
 # ==================== Step 2: 确定 commit 范围 ====================
 
 info "Step 2: 确定 commit 范围"
@@ -418,7 +421,11 @@ fi
 info "发版完成: v${current} → v${new} ✓"
 info ""
 info "下一步:"
-info "  git push origin v2.0 --tags"
+push_ref="$(git branch --show-current 2>/dev/null || true)"
+if [ -z "$push_ref" ]; then
+  push_ref="HEAD"
+fi
+info "  git push origin ${push_ref} --tags"
 info ""
 if [ -n "$BACKUP_DIR" ]; then
   info "备份位置: ${BACKUP_DIR}"

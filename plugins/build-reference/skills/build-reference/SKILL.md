@@ -75,6 +75,7 @@ _output/
 ├── feedback-ingest-report.yaml
 └── graph/
     ├── graph-sync-report.yaml        # 始终生成，记录图谱可用状态
+    ├── GRAPH_STATUS.md               # 给人看的图谱状态、可视化入口和下一步
     ├── code-graph-evidence.yaml      # GitNexus 证据（如可用）
     └── business-graph-evidence.yaml  # Graphify 证据（如可用）
 ```
@@ -157,6 +158,13 @@ _output/
 - `graph_evidence_refs: ["GEV-xxx"]` — 图谱溯源（GitNexus/Graphify 的结构化发现）。
 
 图谱状态始终记录在 `_output/graph/graph-sync-report.yaml`（即使图谱不可用也会生成，记录 unavailable 原因）。质量门控会校验图谱证据与 reference 的一致性。
+
+同时生成 `_output/graph/GRAPH_STATUS.md`，面向用户展示：
+
+- GitNexus 是否可用、索引是否新鲜、对应 `.gitnexus/` 路径。
+- Graphify 是否可用、是否已生成 `graphify-out/graph.json`、可视化页面 `graphify-out/graph.html` 和 `GRAPH_REPORT.md`。
+- 本次 reference 哪些文件消费了图谱证据，哪些退回到源码扫描。
+- 如果图谱缺失或过期，给出下一步命令，如 `npx gitnexus analyze --incremental` 或 `/graphify . --mode deep`。
 
 ### 置信度映射
 

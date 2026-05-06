@@ -6,6 +6,11 @@ set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 
+if ! "${REPO_ROOT}/scripts/validate-contracts.sh" > /dev/null; then
+  echo "ERROR: 契约口径校验失败。请运行 scripts/validate-contracts.sh 查看详情。" >&2
+  exit 1
+fi
+
 # 只在 VERSION 被 staged 时触发
 if ! git diff --cached --name-only | grep -q '^VERSION$'; then
   exit 0

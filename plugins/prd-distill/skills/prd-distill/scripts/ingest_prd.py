@@ -31,6 +31,7 @@ import json
 import mimetypes
 import os
 import re
+import subprocess
 import sys
 from pathlib import Path
 from typing import Any, Optional
@@ -45,6 +46,21 @@ SUPPORTED_DOC_SUFFIXES = SUPPORTED_TEXT_SUFFIXES | {
     ".docx", ".pdf", ".pptx", ".ppt", ".xlsx", ".xls", ".html", ".htm",
     ".epub",
 }
+
+
+def markitdown_version() -> str:
+    try:
+        result = subprocess.run(
+            [sys.executable, "-m", "pip", "show", "markitdown"],
+            check=False,
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+    except Exception:
+        return "unknown"
+    match = re.search(r"^Version:\s*(.+)$", result.stdout, re.MULTILINE)
+    return match.group(1).strip() if match else "unknown"
 
 
 # ── Helpers ──────────────────────────────────────────────────────────
@@ -133,6 +149,7 @@ def convert_with_markitdown(source: Path, out_dir: Path) -> dict[str, Any]:
     llm_client = None
     llm_model = None
     ocr_mode = "not_available"
+    vision_provider = "none"
 
     try:
         from openai import OpenAI
@@ -147,6 +164,7 @@ def convert_with_markitdown(source: Path, out_dir: Path) -> dict[str, Any]:
             llm_client = OpenAI(**kwargs)
             llm_model = os.environ.get("LLM_MODEL", "gpt-4o")
             ocr_mode = "llm_vision"
+            vision_provider = "openai_compatible"
 
         # Strategy 2: ZhiPu (Anthropic-compatible endpoint → OpenAI-compatible)
         if not llm_client:
@@ -158,6 +176,7 @@ def convert_with_markitdown(source: Path, out_dir: Path) -> dict[str, Any]:
                 llm_client = OpenAI(api_key=zp_token, base_url=openai_base)
                 llm_model = os.environ.get("LLM_MODEL", "glm-4v-flash")
                 ocr_mode = "llm_vision"
+                vision_provider = "zhipu_openai_compatible"
     except ImportError:
         pass
 
@@ -170,6 +189,8 @@ def convert_with_markitdown(source: Path, out_dir: Path) -> dict[str, Any]:
     return {
         "text_content": result.text_content or "",
         "ocr_mode": ocr_mode,
+        "vision_provider": vision_provider,
+        "vision_model": llm_model or "",
         "media_items": media_items,
     }
 
@@ -474,7 +495,14 @@ def conversion_warnings_text(warnings: list[str], gates: list[str]) -> str:
 
 # ── Source manifest ──────────────────────────────────────────────────
 
-def source_manifest(source: Path, source_format: str, ocr_mode: str) -> dict[str, Any]:
+def source_manifest(
+    source: Path,
+    source_format: str,
+    backend: str,
+    ocr_mode: str,
+    vision_provider: str,
+    vision_model: str,
+) -> dict[str, Any]:
     return {
         "schema_version": "1.0",
         "generated_at": now_iso(),
@@ -487,8 +515,16 @@ def source_manifest(source: Path, source_format: str, ocr_mode: str) -> dict[str
         },
         "ingestion": {
             "tool": "prd-distill/scripts/ingest_prd.py",
-            "backend": "markitdown",
+            "backend": backend,
+            "backend_version": markitdown_version() if backend == "markitdown" else "not_applicable",
             "ocr": ocr_mode,
+            "vision_provider": vision_provider,
+            "vision_model": vision_model,
+            "notes": [
+                "markdown/text inputs are read directly to preserve line fidelity",
+                "binary document inputs are converted through MarkItDown",
+                "image-derived requirements require llm_vision or human confirmation",
+            ],
         },
     }
 
@@ -504,15 +540,21 @@ def convert_source(source: Path, out_dir: Path) -> dict[str, Any]:
         # Plain text/markdown: read directly, no MarkItDown needed
         text_content = source.read_text(encoding="utf-8", errors="replace")
         source_format = "markdown" if suffix in {".md", ".markdown"} else "text"
+        backend = "direct_text"
         ocr_mode = "not_applicable"
+        vision_provider = "not_applicable"
+        vision_model = ""
         media_items_raw: list[dict[str, Any]] = []
     else:
         # All binary formats go through MarkItDown
         result = convert_with_markitdown(source, out_dir)
         text_content = result["text_content"]
         ocr_mode = result["ocr_mode"]
+        vision_provider = result["vision_provider"]
+        vision_model = result["vision_model"]
         media_items_raw = result["media_items"]
         source_format = suffix.lstrip(".")
+        backend = "markitdown"
 
         if not text_content.strip():
             raise RuntimeError(f"MarkItDown returned empty content for {source.name}")
@@ -584,7 +626,10 @@ def convert_source(source: Path, out_dir: Path) -> dict[str, Any]:
         "evidence_items": evidence_items,
         "media_items": media_analysis,
         "warnings": sorted(set(warnings)),
+        "backend": backend,
         "ocr_mode": ocr_mode,
+        "vision_provider": vision_provider,
+        "vision_model": vision_model,
     }
 
 
@@ -616,7 +661,14 @@ def run(source: Path, out_dir: Path) -> int:
     )
     write_yaml(
         out_dir / "source-manifest.yaml",
-        source_manifest(source, parsed["format"], parsed["ocr_mode"]),
+        source_manifest(
+            source,
+            parsed["format"],
+            parsed["backend"],
+            parsed["ocr_mode"],
+            parsed["vision_provider"],
+            parsed["vision_model"],
+        ),
     )
     write_yaml(
         out_dir / "evidence-map.yaml",
@@ -659,6 +711,28 @@ def run(source: Path, out_dir: Path) -> int:
     )
     (out_dir / "conversion-warnings.md").write_text(
         conversion_warnings_text(warnings, gates),
+        encoding="utf-8",
+    )
+    (out_dir / "INGESTION_STATUS.md").write_text(
+        "\n".join([
+            "# PRD Ingestion Status",
+            "",
+            f"- Source: `{source}`",
+            f"- Backend: `{parsed['backend']}`",
+            f"- OCR / Vision: `{parsed['ocr_mode']}`",
+            f"- Vision provider: `{parsed['vision_provider']}`",
+            f"- Vision model: `{parsed['vision_model'] or 'not_applicable'}`",
+            f"- Quality: `{status}`",
+            f"- Blocks: `{len(blocks)}`",
+            f"- Tables: `{parsed['structure']['stats']['tables']}`",
+            f"- Media: `{parsed['structure']['stats']['media']}`",
+            "",
+            "Next checks:",
+            "- Read `extraction-quality.yaml` before trusting downstream conclusions.",
+            "- Read `media-analysis.yaml` when the PRD includes screenshots, flowcharts, or diagrams.",
+            "- Ensure unresolved warnings are copied into `report.md` section 10.",
+            "",
+        ]),
         encoding="utf-8",
     )
 

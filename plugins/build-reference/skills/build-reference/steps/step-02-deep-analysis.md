@@ -81,7 +81,7 @@ _reference/05-domain.yaml
 11. 如果有业务图谱：
     a. `/graphify path "PRD 关键词" "目标模块"` 追踪业务关联。
     b. 从 Graphify 的 Leiden 聚类结果提取场景模式。
-    c. 图谱的 routing 候选标注 `graph_source: graphify`。
+    c. 图谱的 routing 候选标注 `graph_sources: ["graphify"]`。
 12. 如果有代码图谱：
     a. GitNexus impact 补充 PRD 路由到代码模块的映射。
 13. 生成 `04-routing-playbooks.yaml`：PRD 路由信号（只到能力面级别）、字段映射（prd_field → code_field → contract_ref）、场景打法（步骤只在这里）。

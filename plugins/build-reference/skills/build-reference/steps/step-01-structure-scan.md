@@ -62,6 +62,7 @@
    - 如有 GitNexus 查询结果 → 写入 `_output/graph/code-graph-evidence.yaml`。
    - 如有 Graphify 查询结果 → 写入 `_output/graph/business-graph-evidence.yaml`。
 3. **始终**写入 `_output/graph/graph-sync-report.yaml`，即使两个图谱都不可用。
+4. **始终**写入 `_output/graph/GRAPH_STATUS.md`，给用户展示本次图谱阶段状态和可视化入口。
 
 `graph-sync-report.yaml` 格式：
 
@@ -88,6 +89,32 @@ fusion_summary:
   both: 0
   neither: 0
 ```
+
+`GRAPH_STATUS.md` 必须包含：
+
+```markdown
+# Graph Status
+
+## Providers
+| Provider | Status | Reason | Result Count | User Action |
+|---|---|---|---:|---|
+| GitNexus | available/unavailable | ok/index_missing/tool_missing/stale | 0 | `npx gitnexus analyze --incremental` |
+| Graphify | available/unavailable | ok/graph_missing/tool_missing/stale | 0 | `/graphify . --mode deep` |
+
+## Visual Pages
+- Graphify visual page: `graphify-out/graph.html`
+- Graphify report: `graphify-out/GRAPH_REPORT.md`
+- GitNexus local index: `.gitnexus/`
+
+## How This Run Used Graphs
+- `01-codebase.yaml`: GitNexus / fallback scan
+- `02-coding-rules.yaml`: Graphify / fallback docs+code scan
+- `03-contracts.yaml`: GitNexus / fallback code scan
+- `04-routing-playbooks.yaml`: Graphify + GitNexus / fallback scan
+- `05-domain.yaml`: Graphify / fallback docs scan
+```
+
+如果 Graphify 的 `graphify-out/graph.html` 不存在，仍然写出预期路径，并提示用户运行 `/graphify . --mode deep` 后即可打开。不要只把状态藏在 YAML 里。
 
 provider 不可用时必须记录原因（`tool_missing` 或 `index_missing` / `graph_missing`），不能假装跑过。
 
