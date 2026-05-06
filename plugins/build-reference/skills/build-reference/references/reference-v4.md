@@ -2,6 +2,8 @@
 
 Reference v4 是 PRD-to-code 工作流的项目长期记忆。前端、BFF、后端共用同一套结构，内容由各层适配器决定。
 
+`_reference/` 的默认治理范围是**单仓权威**：它对当前仓库中可验证的事实负责，不直接充当全平台团队 wiki。跨仓信息可以记录为协作线索，但在对应 owner 仓库或 owner 团队确认前，必须标记为 `needs_confirmation` 或 `unknown`。
+
 v4 相比 v3 的核心变化：**从 10 文件精简到 6 文件**，统一分类维度为"知识在开发生命周期中的角色"，每个事实只存在于一个文件（SSOT），通过 ID 跨文件引用。
 
 ## 默认视图
@@ -22,6 +24,13 @@ _reference/
 ### 00-portal.md
 导航、项目画像摘要、按场景阅读指南、健康状态。
 
+### project-profile.yaml
+**项目画像：当前仓库的身份、技术栈、入口、能力面和协作边界。**
+
+包含：项目层级、技术栈、运行/测试命令、能力面、图谱 provider、`reference_scope`、`related_repositories`。
+
+`reference_scope.authority` 固定表达当前 `_reference/` 的权威范围，默认是 `single_repo`。`related_repositories` 只记录与当前仓库有关的上下游/消费者/生产者线索，不能替代对方仓库的 reference。
+
 ### 01-codebase.yaml
 **静态清单：代码库中已存在的事实。**
 
@@ -41,6 +50,12 @@ _reference/
 
 包含：endpoint、schema、event、payload 的字段级定义（request_fields / response_fields 含 type、required、compatibility）。
 
+契约必须区分本仓已确认事实和跨仓待确认信号：
+
+- 当前仓是 producer：可以记录 producer 侧字段定义，但 consumer 侧实际使用必须有 `consumer_repos[].verification`。
+- 当前仓是 consumer：可以记录本仓消费方式，但 producer 的内部实现和最终 schema owner 必须由 producer 仓确认。
+- 跨仓契约、字段 owner、上下游影响面如果只有 PRD 或推断证据，`alignment_status` 和对应 verification 必须是 `needs_confirmation`。
+
 **不放**：编码规则（见 02）、开发步骤（见 04）、枚举值列表（见 01）。
 
 ### 04-routing-playbooks.yaml
@@ -49,6 +64,8 @@ _reference/
 路由部分只记录信号到能力面的映射，不展开实现步骤。步骤只在 playbook 中。
 
 包含：能力边界、PRD 路由（prd_keywords → target_surfaces → playbook_ref）、字段映射（prd_field → code_field → contract_ref）、场景打法（layer_steps、QA 矩阵、common_mistakes）、golden samples。
+
+跨仓协作只记录 handoff：目标仓、层级、原因、期望 owner、确认状态。不要在本仓 playbook 中展开其他仓库的内部实现步骤。
 
 **不放**：枚举值（见 01）、字段级契约（见 03）、编码规则（见 02）。
 
@@ -79,6 +96,25 @@ _reference/
 5. 已存在的静态事实（枚举、模块、入口） → **01-codebase**
 6. 其他文件只引用 ID，**绝不复制正文**
 
+## 单仓与团队知识库边界
+
+当前 prd-tools 面向单仓使用：后端仓、前端仓、BFF 仓都可以各自拥有一份 `_reference/`。每份 reference 只对本仓事实提供权威结论。
+
+跨仓协作按三种状态维护：
+
+| 状态 | 含义 | 允许用途 |
+|------|------|---------|
+| `confirmed` | 已由当前仓证据或对应 owner 确认 | 可进入 plan/report 的确定性结论 |
+| `needs_confirmation` | 有 PRD、图谱、调用线索或历史样例，但缺 owner 确认 | 可作为阻塞问题、handoff、回流候选 |
+| `unknown` | 仅知道可能相关，缺少足够证据 | 只能作为开放问题 |
+
+未来如果建设 B 端团队级知识库，应从各仓 `_reference/` 和 `reference-update-suggestions.yaml` 聚合：
+
+1. 只自动聚合 `confirmed` 且证据可追溯的事实。
+2. `team_reference_candidate: true` 只是候选标记，不代表已经同步到团队知识库。
+3. 团队级知识库负责跨仓 taxonomy、公共契约目录、领域术语和 owner 索引；单仓 `_reference/` 仍保留本仓事实权威。
+4. 跨仓冲突以 producer owner 或平台治理确认结果为准，并回写到相关仓的 reference。
+
 ## 元信息
 
 每个 YAML 文件以如下字段开头：
@@ -92,6 +128,20 @@ last_verified: "YYYY-MM-DD"
 verify_cadence: "14d"
 owner: ""
 boundary: "<本文件只放什么、不放什么>"
+```
+
+`project-profile.yaml` 额外维护治理字段：
+
+```yaml
+reference_scope:
+  authority: "single_repo"
+  repo_role: "frontend | bff | backend | multi-layer"
+  team_reference_ready: false
+related_repositories:
+  - repo: ""
+    role: "frontend | bff | backend | external"
+    relationship: "upstream | downstream | consumer | producer | peer"
+    verification: "confirmed | needs_confirmation | unknown"
 ```
 
 ## 证据要求
@@ -123,6 +173,7 @@ confidence: "high | medium | low"
 | INFERRED 默认非高置信度 | Graphify 的 INFERRED 关系必须降级为 medium/low，除非能追到原文 |
 | 不把完整 graph 塞进 prompt | 只用 query 拉小子图，避免 context 爆炸 |
 | Provider 可替换 | 不绑定具体工具，未来可替换为内部 MCP、Neo4j、Sourcegraph、CodeQL |
+| 单仓先行 | 图谱可以发现跨仓线索，但 reference 默认只固化本仓确认事实 |
 
 ### 统一图谱证据格式
 

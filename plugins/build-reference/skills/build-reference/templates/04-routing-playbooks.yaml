@@ -30,6 +30,12 @@ prd_routing:
     target_surfaces: []       # 格式: "backend.domain_model"
     default_change_type: "ADD|MODIFY|DELETE|NO_CHANGE"
     playbook_ref: "PLAYBOOK-001"
+    handoff_surfaces:
+      - repo: ""
+        layer: "<frontend|bff|backend|external>"
+        reason: ""
+        expected_owner: ""
+        verification: "confirmed|needs_confirmation|unknown"
     confidence_rule: "high|medium|low"
     graph_sources: []         # graphify（Leiden聚类→路由模式）、gitnexus（代码路径验证）、或两者
     graph_evidence_refs: []
@@ -64,6 +70,12 @@ playbooks:
       backend: []
     contract_checks:
       - "CONTRACT-001"
+    cross_repo_handoffs:
+      - repo: ""
+        layer: "<frontend|bff|backend|external>"
+        handoff_reason: ""
+        verification: "confirmed|needs_confirmation|unknown"
+        owner_to_confirm: ""
     qa_matrix: []
     common_mistakes: []
     graph_sources: []         # graphify（业务聚类发现场景）
@@ -79,6 +91,8 @@ golden_samples:
     changed_files: []
     contract_refs:
       - "CONTRACT-001"
+    team_reference_candidate: false
+    related_repos: []
     lessons: []
     graph_sources: []         # graphify（历史样例关联）
     graph_evidence_refs: []

@@ -7,6 +7,10 @@ last_verified: "<YYYY-MM-DD>"
 verify_cadence: "14d"
 owner: "<team>"
 boundary: "契约：系统边界之间的承诺。endpoint、schema、event、payload 的字段级定义。不放编码规则（见02-coding-rules）、不放开发步骤（见04-routing-playbooks）、不放枚举值列表（见01-codebase）。这是字段级信息的唯一权威来源。"
+repo_scope:
+  authority: "single_repo"
+  local_repo_role: "<frontend|bff|backend|multi-layer>"
+  rule: "本文件只对本仓已验证的生产方/消费方契约负责；跨仓契约在对方 owner 确认前必须标记为 needs_confirmation。"
 graph_providers:
   - provider: "gitnexus"
     graph: "code"
@@ -16,7 +20,15 @@ contracts:
   - id: "CONTRACT-001"
     name: ""
     producer: "<frontend|bff|backend|external>"
+    producer_repo: ""
+    producer_verification: "confirmed|needs_confirmation|unknown"
     consumers: []
+    consumer_repos:
+      - repo: ""
+        role: "<frontend|bff|backend|external>"
+        verification: "confirmed|needs_confirmation|unknown"
+        owner_to_confirm: ""
+        evidence: []
     change_type: "ADD|MODIFY|DELETE|NO_CHANGE"
     contract_surface: "<endpoint|schema|event|payload|db_table|external_api>"
     request_fields:
@@ -29,6 +41,12 @@ contracts:
     response_fields: []
     compatibility: ""
     alignment_status: "aligned|needs_confirmation|blocked|not_applicable"
+    owner_to_confirm: []
+    team_reference_candidate: false
+    team_scope:
+      type: "contract"
+      related_repos: []
+      aggregation_status: "candidate|confirmed|rejected|not_applicable"
     checked_by: []
     graph_sources: ["gitnexus"]
     graph_evidence_refs: []

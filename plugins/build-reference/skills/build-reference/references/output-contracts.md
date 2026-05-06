@@ -41,7 +41,7 @@ _output/prd-distill/<slug>/
 | `layer-impact.yaml` | `artifacts/layer-impact.yaml` |
 | `contract-delta.yaml` | `artifacts/contract-delta.yaml` |
 | `reference-update-suggestions.yaml` | `artifacts/reference-update-suggestions.yaml` |
-| `questions.md` | `report.md` §10 |
+| `questions.md` | `report.md` §11 |
 
 ## prd-ingest/
 
@@ -57,7 +57,7 @@ _output/prd-distill/<slug>/
 | `media-analysis.yaml` | 图片分析状态；LLM Vision 分析过为 `llm_vision_analyzed`（medium），否则 `needs_vision_or_human_review`（low） | 没有 vision/OCR/人工确认时不推断图片含义 |
 | `tables/` | 单独抽出的表格 markdown | 不修复原表格，只保留转换结果 |
 | `extraction-quality.yaml` | 读取质量门禁：`pass | warn | block`、统计、风险 | 不写开发计划 |
-| `conversion-warnings.md` | 给人看的转换风险 | 不替代 report.md §10 |
+| `conversion-warnings.md` | 给人看的转换风险 | 不替代 report.md §11 |
 
 `extraction-quality.yaml` 示例：
 
@@ -77,7 +77,7 @@ rules:
 质量规则：
 
 - `block`：暂停蒸馏，要求用户提供 markdown/text，或接入 OCR/layout/vision。
-- `warn`：允许继续，但必须在 `report.md` §10 中暴露风险。
+- `warn`：允许继续，但必须在 `report.md` §11 中暴露风险。
 - 图片、截图、流程图里的信息，没有 vision/OCR/人工确认时，只能作为待确认问题，不能作为高置信度结论。
 
 ## report.md
@@ -95,36 +95,40 @@ rules:
 ## 2. 影响范围
 命中的层、能力面、关键文件/模块（表格形式）。
 
-## 3. 关键结论
+## 3. 图谱命中摘要
+| Provider | Status | 命中内容 | 用于哪些结论 | 缺口 |
+列出 GitNexus 命中的关键函数/调用链/API consumer，以及 Graphify 命中的业务约束。图谱不可用时写 unavailable reason 和 fallback 搜索范围。
+
+## 4. 关键结论
 新增/修改/不改什么，每个结论带 REQ-ID 和代码路径引用。
 
-## 4. 变更明细表（核心可操作内容）
-| ID | 变更描述 | 类型 | 目标文件 | 验证来源 |
-列出所有 IMP-* 项，精确到文件路径，标注 code_verified / reference_only。
+## 5. 变更明细表（核心可操作内容）
+| ID | 变更描述 | 类型 | 目标文件 | 关键函数/符号 | 验证来源 |
+列出所有 IMP-* 项，精确到文件路径和关键 symbol，标注 code_verified / graph_verified / reference_only。
 
-## 5. 字段清单（按功能模块分组）
+## 6. 字段清单（按功能模块分组）
 | 字段 | 类型 | 必填 | 来源 | 契约ID |
 从 requirement-ir 和 contract-delta 中提取，按业务模块分组。
 
-## 6. 校验规则
+## 7. 校验规则
 | ID | 规则描述 | 错误文案/提示 | 目标文件 |
 从 requirement-ir.rules 中提取可验证的校验规则。
 
-## 7. 开发 Checklist（可直接执行）
+## 8. 开发 Checklist（可直接执行）
 - [ ] 1. <具体操作>（<目标文件>）— REQ-001, IMP-001
 - [ ] 2. <具体操作>（<目标文件>）— REQ-002, IMP-002
 ...
 按建议实现顺序排列，每项标注关联的 REQ/IMP/CONTRACT。
 
-## 8. 契约风险
+## 9. 契约风险
 只列 alignment_status 为 needs_confirmation 或 blocked 的契约。
 
-## 9. Top Open Questions
+## 10. Top Open Questions
 最多5个最关键的阻塞问题，带 Q-ID。
 
-## 10. 阻塞问题与待确认项
+## 11. 阻塞问题与待确认项
 
-### 10.1 阻塞问题
+### 11.1 阻塞问题
 每个阻塞问题必须包含 6 要素：
 - **问题**：阻塞项的具体描述
 - **线索**：代码/文档线索（如 `proxy/bpm.go:311 注释暗示冲单挑战系统已存在`）
@@ -133,10 +137,10 @@ rules:
 - **需要证据**：确认人需要提供什么
 - **默认策略**：如果不确认，默认采取什么行动
 
-### 10.2 低置信度假设
+### 11.2 低置信度假设
 ⚠ 标注的低置信度结论，说明为什么置信度低、需要什么才能提升。
 
-### 10.3 Owner 确认项
+### 11.3 Owner 确认项
 需要特定角色确认的契约字段、枚举值、外部接口行为等。
 
 如无阻塞问题，显式写"当前无阻塞问题"。
@@ -150,7 +154,7 @@ rules:
 - **自然语言为主**，避免纯 YAML/JSON 格式；用 Markdown 表格提高可扫描性。
 - **具体到文件路径**：每个变更项都带目标文件路径（如 `model/business_object/xxx/`）。
 - **关联 ID**：每个条目引用 REQ-*/IMP-*/CONTRACT-*，方便跳到 artifacts 查证。
-- **不隐藏低置信度**：低置信度项用 ⚠ 标注，进入 §10.2。
+- **不隐藏低置信度**：低置信度项用 ⚠ 标注，进入 §11.2。
 - **Checklist 可直接执行**：开发人员拿到就能按步骤干活。
 - **线索式证据不能省略**：代码注释、已有结构体名、文件路径等线索必须保留（如 `proxy/bpm.go:311 注释暗示冲单挑战系统已存在`）。这些线索对开发定位问题有极高价值。
 
@@ -159,11 +163,11 @@ rules:
 - **report.md 是决策文档，不是所有细节的全集**。
 - 不要把完整 YAML 证据链展开到 report 里，那是 artifacts 的职责。
 - 不要复制 PRD 原文，只引用 REQ-ID。
-- 建议总长度控制在 250-500 行（Markdown 源码）。超限时精简优先级：变更明细表 > 字段清单 > 校验规则（先精简）；阻塞问题与线索 > 契约风险 > 影响范围（不精简）。
+- 建议总长度控制在 300-650 行（Markdown 源码）。超限时精简优先级：字段清单 > 校验规则（先精简）；图谱命中摘要 > 变更明细表 > 阻塞问题与线索 > 契约风险 > 影响范围（不精简）。
 
 ## plan.md
 
-可 review 的初步技术方案文档 + 可执行的开发计划。精确到文件路径和行号，包含架构决策和数据模型。
+可 review 的函数级技术方案文档 + 可执行的开发计划。精确到文件路径、行号、关键函数/方法/结构体，包含架构决策、调用链、数据模型和回归范围。
 
 ### 结构模板
 
@@ -181,6 +185,10 @@ rules:
 需要先完成的基础设施、其他团队接口、外部系统准备。
 
 ## 2. 整体架构
+### 图谱命中与代码坐标
+| REQ | 入口/函数/结构体 | 文件:行号 | 调用链角色 | 来源 |
+来自 `artifacts/graph-context.md`。必须标注 GitNexus query/context/impact/api_impact 或 fallback rg/Read。
+
 ### 方案概述
 用文字描述+简单框图说明整体方案。
 
@@ -197,7 +205,10 @@ rules:
 ### Phase 1: 基础设施
 - [ ] **1.1** <任务描述>
   - 文件：`path/to/file.go:27`
+  - 关键函数/结构体：`SymbolName`
   - 操作：具体操作描述
+  - 调用链影响：入口 -> 当前函数 -> 下游函数/consumer
+  - 图谱依据：`GCTX-001` / `GEV-001` / `EV-001`
   - 关联：REQ-001, IMP-BE-001
   - 验证：`grep -n "XXX" path/to/file.go`
 
@@ -267,6 +278,8 @@ rules:
 ### 写作规则
 
 - **精确到文件和行号**：每个任务给出目标文件路径，尽量带行号。不确定行号时标注"约在 XX 附近"，不要编造。
+- **精确到函数级**：MODIFY/DELETE 任务必须给出入口函数、关键函数/方法/结构体、调用方/被调用方和回归影响；ADD 任务必须给出相邻参考实现或负向搜索证据。
+- **Graph Context 优先**：先消费 `artifacts/graph-context.md`，再写 plan。不能只根据 `_reference` 写计划。
 - **给出验证命令**：每个关键步骤附带 grep/go test 等验证命令。
 - **给出参考实现**：类似功能的已有代码路径，开发人员可以参照。
 - **代码线索不可省略**：每个任务必须保留文件路径、行号、参考结构体名、proxy 路径等线索。
@@ -279,6 +292,54 @@ rules:
 - 不要重复 report.md 的分析结论，只写"做什么、怎么做、为什么这样做"。
 - 不要复制 PRD 原文。
 - 建议总长度控制在 300-600 行（Markdown 源码）。超限时精简优先级：工作量估算 > 配置与开关 > 数据存储细节（先精简）；实现计划 > QA 矩阵 > 风险与回滚（不精简）。
+
+## graph-context.md
+
+```markdown
+# 图谱技术上下文：<需求名称>
+
+## 1. Provider 状态
+| Provider | Status | Index/Graph | 备注 |
+
+## 2. PRD 概念到代码路由
+| REQ | 查询词 | 命中流程/模块 | 关键文件 | 置信度 |
+
+## 3. GitNexus 函数级上下文
+### GCTX-001 <symbol/process>
+- 查询来源：REQ-001 / 字段 / 接口 / 业务实体
+- 符号：`SymbolName`
+- 位置：`path/to/file.go:123`
+- 类型：function | method | class | route | schema
+- 角色：entrypoint | validator | transformer | persistence | external_call | consumer
+- 调用方：`CallerA`, `CallerB`
+- 被调用方：`CalleeA`, `CalleeB`
+- 影响半径：模块/函数/route consumer 列表
+- 计划用途：modify | add-nearby | verify-no-change | regression-scope
+- 证据：EV-xxx / GEV-xxx
+
+## 4. API / Contract Consumers
+| Route/Contract | Producer | Consumers | Consumer 字段访问 | Shape 风险 |
+
+## 5. Graphify 业务约束
+### GCTX-B001 <concept>
+- 概念：<业务概念>
+- 关联路径：A -> B -> C
+- 设计原理：<rationale>
+- 隐式约束：<constraint>
+- 风险：<risk_if_violated>
+- 置信度：high | medium | low
+- 证据：EV-xxx / GEV-Bxxx
+
+## 6. Fallback 搜索与未命中
+| Query | Scope | Result | 结论 |
+```
+
+规则：
+
+- `graph-context.md` 是 plan/report 的前置上下文，不是最终报告。
+- GitNexus AST 精确命中的符号、调用链、route consumer 可以作为 high-confidence 代码线索。
+- Graphify `INFERRED` 默认为 medium/low，必须经源码、PRD、技术文档或人工确认后才可升级。
+- 所有 GCTX 条目必须被 `plan.md` 或 `report.md` 消费，未消费要说明原因。
 
 ## evidence.yaml
 
@@ -414,7 +475,25 @@ suggestions:
     type: "new_term | new_route | new_contract | new_playbook | contradiction | golden_sample_candidate"
     target_file: "_reference/04-routing-playbooks.yaml"
     summary: ""
+    current_repo_scope:
+      authority: "single_repo"
+      action: "apply_to_current_repo | record_as_signal | needs_owner_confirmation"
+    owner_to_confirm: []
+    team_reference_candidate: false
+    team_scope:
+      type: "contract | domain_term | playbook | decision | routing_signal | golden_sample"
+      related_repos: []
+      aggregation_status: "candidate | confirmed | rejected | not_applicable"
     evidence: ["EV-001"]
+    graph_context_refs: []
     priority: "high | medium | low"
+    confidence: "high | medium | low"
     proposed_patch: ""
 ```
+
+生成规则：
+
+- 当前仓可由源码、技术文档或 owner 确认的事实，`current_repo_scope.action` 才能是 `apply_to_current_repo`。
+- 跨仓契约、上下游 owner、团队级术语只作为 `record_as_signal` 或 `needs_owner_confirmation`，并填写 `owner_to_confirm`。
+- `team_reference_candidate: true` 只表示未来团队知识库候选，不代表 `/prd-distill` 或 `/build-reference` 会自动同步到团队级知识库。
+- 能被 `artifacts/graph-context.md` 佐证的建议必须填写 `graph_context_refs`，但图谱推断不能替代 owner 确认。

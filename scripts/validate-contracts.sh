@@ -39,7 +39,7 @@ current_contract_files=(
 )
 
 check_absent 'questions\.md.*(默认|生成|读|输出|不替代|清单|阻塞|owner|证据链|artifacts)' \
-  "questions.md must not be described as a current standalone output; use report.md §10." \
+  "questions.md must not be described as a current standalone output; use report.md §11." \
   "${current_contract_files[@]}"
 
 check_absent 'graph_source:' \

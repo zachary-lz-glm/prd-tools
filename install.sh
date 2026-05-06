@@ -90,8 +90,12 @@ if command -v markitdown &>/dev/null; then
   MARKITDOWN_STATUS="ok"
 else
   echo "    Installing markitdown via uv (with OCR support)..."
-  uv tool install "markitdown[all]" 2>/dev/null
-  uv tool install markitdown-ocr 2>/dev/null
+  if ! uv tool install "markitdown[all]" 2>/dev/null; then
+    echo "    WARNING: markitdown installation failed." >&2
+  fi
+  if ! uv tool install markitdown-ocr 2>/dev/null; then
+    echo "    WARNING: markitdown-ocr installation failed; document conversion may still work without image OCR." >&2
+  fi
   if command -v markitdown &>/dev/null; then
     echo "    markitdown installed (with OCR support)"
     MARKITDOWN_STATUS="ok"
@@ -106,21 +110,28 @@ fi
 echo "==> [3/7] Checking GitNexus runtime..."
 
 if command -v npx &>/dev/null; then
-  MCP_CMD="npx"
-  MCP_ARGS='["-y","gitnexus@latest","serve","--mcp"]'
+  MCP_CMD="$(command -v npx)"
+  MCP_ARGS='["-y","gitnexus@latest","mcp"]'
   echo "    npx available — GitNexus will use Node.js"
 elif command -v bun &>/dev/null; then
-  MCP_CMD="bunx"
-  MCP_ARGS='["--bun","gitnexus@latest","mcp"]'
-  echo "    bun available — GitNexus will use Bun"
+  if command -v bunx &>/dev/null; then
+    MCP_CMD="$(command -v bunx)"
+    MCP_ARGS='["--bun","gitnexus@latest","mcp"]'
+    echo "    bun available — GitNexus will use Bun"
+  else
+    echo "    WARNING: bun found but bunx is missing. GitNexus (graph) will not be available." >&2
+  fi
 else
   echo "    Neither npx nor bun found. Installing bun..."
-  curl -fsSL https://bun.sh/install | bash 2>/dev/null
-  export PATH="$HOME/.bun/bin:$PATH"
-  if command -v bun &>/dev/null; then
-    MCP_CMD="bunx"
-    MCP_ARGS='["--bun","gitnexus@latest","mcp"]'
-    echo "    bun installed — GitNexus will use Bun"
+  if curl -fsSL https://bun.sh/install | bash 2>/dev/null; then
+    export PATH="$HOME/.bun/bin:$PATH"
+    if command -v bunx &>/dev/null; then
+      MCP_CMD="$(command -v bunx)"
+      MCP_ARGS='["--bun","gitnexus@latest","mcp"]'
+      echo "    bun installed — GitNexus will use Bun"
+    else
+      echo "    WARNING: bun installation completed but bunx is missing. GitNexus (graph) will not be available." >&2
+    fi
   else
     echo "    WARNING: bun installation failed. GitNexus (graph) will not be available." >&2
     echo "    Install manually: curl -fsSL https://bun.sh/install | bash" >&2
@@ -138,7 +149,9 @@ if command -v graphify &>/dev/null; then
   GRAPHIFY_INSTALLED=true
 else
   echo "    Installing Graphify via uv (official package: graphifyy, CLI: graphify)..."
-  uv tool install graphifyy 2>/dev/null
+  if ! uv tool install graphifyy 2>/dev/null; then
+    echo "    WARNING: graphify installation failed." >&2
+  fi
   if command -v graphify &>/dev/null; then
     echo "    graphify installed"
     GRAPHIFY_INSTALLED=true
@@ -256,16 +269,16 @@ fi
 # GitNexus: full code structure graph (AST-based)
 if [ -n "$MCP_CMD" ] && [ -d "$TARGET/.git" ]; then
   echo "    Indexing with GitNexus (AST-based code structure)..."
-  if [ "$MCP_CMD" = "npx" ]; then
-    if npx -y gitnexus analyze "$TARGET" 2>&1 | tail -5; then
+  if [[ "$MCP_CMD" == *npx ]]; then
+    if "$MCP_CMD" -y gitnexus@latest analyze "$TARGET" 2>&1 | tail -5; then
       echo "    GitNexus: code structure indexed"
       GITNEXUS_INDEXED=true
       GITNEXUS_STATUS="ok"
     else
       echo "    WARNING: GitNexus indexing failed" >&2
     fi
-  elif [ "$MCP_CMD" = "bunx" ]; then
-    if bunx --bun gitnexus analyze "$TARGET" 2>&1 | tail -5; then
+  elif [[ "$MCP_CMD" == *bunx ]]; then
+    if "$MCP_CMD" --bun gitnexus@latest analyze "$TARGET" 2>&1 | tail -5; then
       echo "    GitNexus: code structure indexed"
       GITNEXUS_INDEXED=true
       GITNEXUS_STATUS="ok"
@@ -300,7 +313,9 @@ echo "========================================="
 echo ""
 echo "Runtime:"
 echo "  uv:         $(command -v uv 2>/dev/null || echo 'NOT FOUND')"
-echo "  GitNexus:   ${MCP_CMD:-NOT CONFIGURED}${GITNEXUS_INDEXED:+ (indexed)}"
+GITNEXUS_LABEL="${MCP_CMD:-NOT CONFIGURED}"
+[ "$GITNEXUS_INDEXED" = true ] && GITNEXUS_LABEL="${GITNEXUS_LABEL} (indexed)"
+echo "  GitNexus:   $GITNEXUS_LABEL"
 echo "  Graphify:   $(command -v graphify 2>/dev/null || echo 'NOT FOUND')"
 echo "  MarkItDown: $(command -v markitdown 2>/dev/null || echo 'NOT FOUND')"
 echo ""
@@ -313,13 +328,13 @@ echo ""
 # Report issues
 ISSUES=0
 
-# Check API keys for LLM Vision (image analysis in prd-distill)
+# Check API keys for LLM Vision (PRD image OCR and Graphify deep semantic graph)
 VISION_KEY=""
 
-if [ -n "${OPENAI_API_KEY:-}" ]; then
-  VISION_KEY="OPENAI_API_KEY"
-elif [ -n "${ANTHROPIC_AUTH_TOKEN:-}" ]; then
+if [ -n "${ANTHROPIC_AUTH_TOKEN:-}" ]; then
   VISION_KEY="ANTHROPIC_AUTH_TOKEN"
+elif [ -n "${OPENAI_API_KEY:-}" ]; then
+  VISION_KEY="OPENAI_API_KEY"
 fi
 
 if [ "$GITNEXUS_STATUS" != "ok" ]; then
@@ -351,16 +366,27 @@ if [ "$ISSUES" -gt 0 ]; then
   echo ""
 fi
 
-# API key check — interactive prompt for LLM Vision (prd-distill image analysis)
+# API key check — interactive prompt for LLM Vision (PRD image OCR and Graphify deep semantic graph)
 if [ -z "$VISION_KEY" ]; then
-  echo "  ⚠️  No API key found for LLM Vision (image analysis disabled)."
+  echo "  ⚠️  No API key found for LLM Vision."
+  echo "     PRD image OCR and Graphify deep semantic extraction may be disabled."
   echo "     PRD images will be marked as 'needs_vision_or_human_review'."
   echo ""
-  echo "  You can enter an API key now, or skip and set it later."
+  echo "  Step 7 can save an ANTHROPIC_AUTH_TOKEN now, or you can skip and set it later:"
+  echo "     export ANTHROPIC_AUTH_TOKEN=sk-ant-xxx"
+  echo "     # If PRD image OCR uses an OpenAI-compatible vision endpoint, also set:"
+  echo "     export ANTHROPIC_BASE_URL=https://your-provider.example/v1"
+  echo "     # Or use OPENAI_API_KEY / OPENAI_BASE_URL instead."
   echo ""
-  read -p "  Enter OPENAI_API_KEY (or press Enter to skip): " USER_OPENAI_KEY
-  if [ -n "$USER_OPENAI_KEY" ]; then
-    export OPENAI_API_KEY="$USER_OPENAI_KEY"
+  USER_ANTHROPIC_TOKEN=""
+  if [ -t 0 ]; then
+    read -p "  Enter ANTHROPIC_AUTH_TOKEN (or press Enter to skip): " USER_ANTHROPIC_TOKEN
+  else
+    echo "  Non-interactive shell detected; skipping API key prompt."
+    echo ""
+  fi
+  if [ -n "$USER_ANTHROPIC_TOKEN" ]; then
+    export ANTHROPIC_AUTH_TOKEN="$USER_ANTHROPIC_TOKEN"
     # Persist to shell profile
     PROFILE_FILE=""
     if [ -f "$HOME/.zshrc" ]; then
@@ -369,19 +395,19 @@ if [ -z "$VISION_KEY" ]; then
       PROFILE_FILE="$HOME/.bashrc"
     fi
     if [ -n "$PROFILE_FILE" ]; then
-      sed -i.bak '/^export OPENAI_API_KEY=/d' "$PROFILE_FILE" 2>/dev/null
-      echo "export OPENAI_API_KEY=\"$USER_OPENAI_KEY\"" >> "$PROFILE_FILE"
+      sed -i.bak '/^export ANTHROPIC_AUTH_TOKEN=/d' "$PROFILE_FILE" 2>/dev/null
+      echo "export ANTHROPIC_AUTH_TOKEN=\"$USER_ANTHROPIC_TOKEN\"" >> "$PROFILE_FILE"
       rm -f "$PROFILE_FILE.bak"
-      echo "  ✅ OPENAI_API_KEY saved to $PROFILE_FILE"
+      echo "  ✅ ANTHROPIC_AUTH_TOKEN saved to $PROFILE_FILE"
     fi
-    echo "  ℹ️  LLM Vision enabled via OPENAI_API_KEY"
+    echo "  ℹ️  LLM Vision / Graphify deep extraction can use ANTHROPIC_AUTH_TOKEN"
     echo ""
   else
-    echo "  Skipped. Set later: export OPENAI_API_KEY=sk-xxx"
+    echo "  Skipped. Set later with: export ANTHROPIC_AUTH_TOKEN=sk-ant-xxx"
     echo ""
   fi
 else
-  echo "  ℹ️  LLM Vision enabled via $VISION_KEY"
+  echo "  ℹ️  LLM Vision / Graphify deep extraction can use $VISION_KEY"
   echo ""
 fi
 
@@ -425,7 +451,8 @@ tools:
     report: "$GRAPHIFY_REPORT"
     purpose: "business semantic graph from code, docs, screenshots, diagrams"
 next_steps:
-  - "Restart Claude Code to activate GitNexus MCP."
+  - "Close and reopen Claude Code to activate GitNexus MCP from ~/.claude/.mcp.json."
+  - "If you skipped Step 7 API key input, set ANTHROPIC_AUTH_TOKEN before running /prd-distill on image-heavy PRDs or /graphify . --mode deep."
   - "Run /build-reference to generate _reference/ and _output/graph/GRAPH_STATUS.md."
   - "Run /graphify . --mode deep when you want the full LLM-enhanced business graph."
 EOF
@@ -439,6 +466,13 @@ elif [ "$GRAPHIFY_STATUS" = "ok" ]; then
 fi
 
 # Restart reminder
-echo "  ⚡ IMPORTANT: Restart Claude Code to activate GitNexus MCP server."
-echo "     (MCP config was written to ~/.claude/.mcp.json)"
+echo "  ⚡ IMPORTANT: Close and reopen Claude Code to activate GitNexus MCP server."
+echo "     MCP config was written to ~/.claude/.mcp.json."
+echo "     After reopening, /build-reference and /prd-distill can use GitNexus MCP tools."
+echo ""
+echo "  🔑 API key note:"
+echo "     PRD image OCR and Graphify deep semantic extraction need a vision-capable key."
+echo "     Step 7 accepts ANTHROPIC_AUTH_TOKEN interactively; otherwise set it before use:"
+echo "       export ANTHROPIC_AUTH_TOKEN=sk-ant-xxx"
+echo "     For OpenAI-compatible vision endpoints, also set ANTHROPIC_BASE_URL or use OPENAI_API_KEY."
 echo ""

@@ -7,6 +7,27 @@ last_verified: "<YYYY-MM-DD>"
 verify_cadence: "14d"
 owner: "<team>"
 
+reference_scope:
+  authority: "single_repo"     # 当前 _reference/ 只对本仓事实负责
+  repo_role: "<frontend|bff|backend|multi-layer>"
+  owns:
+    - "facts verified in this repository"
+    - "contracts where this repository is producer or verified consumer"
+    - "playbooks executable by this repository's owners"
+  does_not_own:
+    - "other repositories' internal implementation"
+    - "cross-repo contracts without producer or consumer owner confirmation"
+    - "team-level taxonomy that has not been accepted by platform governance"
+  team_reference_ready: false
+
+related_repositories:
+  - repo: ""
+    role: "<frontend|bff|backend|external>"
+    relationship: "<upstream|downstream|consumer|producer|peer>"
+    verification: "confirmed|needs_confirmation|unknown"
+    owner_to_confirm: ""
+    evidence: []
+
 tech_stack:
   languages: []
   frameworks: []

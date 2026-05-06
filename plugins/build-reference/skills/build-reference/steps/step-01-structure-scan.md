@@ -22,7 +22,7 @@
    d. 记录图谱证据到 `_output/graph/code-graph-evidence.yaml`。
 3. 如果没有索引：
    a. 回退到原有 `rg`/glob 扫描流程。
-   b. 建议用户运行 `npx gitnexus analyze` 以获得更好的扫描质量。
+   b. 建议用户运行 `npx -y gitnexus@latest analyze`（无 Node 时用 `bunx --bun gitnexus@latest analyze`）以获得更好的扫描质量。
 
 ### 业务语义层（优先使用 Graphify）
 
@@ -98,7 +98,7 @@ fusion_summary:
 ## Providers
 | Provider | Status | Reason | Result Count | User Action |
 |---|---|---|---:|---|
-| GitNexus | available/unavailable | ok/index_missing/tool_missing/stale | 0 | `npx gitnexus analyze --incremental` |
+| GitNexus | available/unavailable | ok/index_missing/tool_missing/stale | 0 | `npx -y gitnexus@latest analyze --incremental` 或 `bunx --bun gitnexus@latest analyze --incremental` |
 | Graphify | available/unavailable | ok/graph_missing/tool_missing/stale | 0 | `/graphify . --mode deep` |
 
 ## Visual Pages

@@ -6,6 +6,7 @@
 
 - `_output/prd-distill/<slug>/artifacts/layer-impact.yaml`
 - `_output/prd-distill/<slug>/artifacts/contract-delta.yaml`
+- `_output/prd-distill/<slug>/artifacts/graph-context.md`
 
 ## 输入
 
@@ -23,17 +24,30 @@
 
 ## 执行
 
+### 图谱上下文构建（始终执行，工具不可用时写 fallback）
+
+1. 先生成 `artifacts/graph-context.md`：
+   a. 从 requirement-ir 提取业务实体、字段、枚举、接口、动作词和目标层。
+   b. 如 GitNexus 可用，使用 `mcp__gitnexus__query` 找 execution flows 和候选符号。
+   c. 对候选符号使用 `mcp__gitnexus__context` 获取 callers/callees/processes/file path。
+   d. 对 MODIFY/DELETE 或高风险改动使用 `mcp__gitnexus__impact` 获取 blast radius。
+   e. 对 API/route/schema 改动使用 `mcp__gitnexus__api_impact` / `route_map` / `shape_check` 找 consumer 和字段访问。
+   f. 如 Graphify 可用，使用 `/graphify query/path/explain` 获取业务关联、设计原理和隐式约束。
+   g. 如工具不可用，记录 unavailable reason，并列出实际执行的 `rg`/Read fallback 查询。
+
+`graph-context.md` 必须给每条关键线索分配 GCTX ID，供 plan.md / report.md 引用。
+
 ### 基础分析（始终执行）
 
-1. 为每个目标层选择能力面适配器。
-2. 对每个 requirement 搜索并读取代码，确认当前状态。
-3. 按适配器 surface 记录 Layer Impact。
-4. 对每个跨层/API/schema/event/downstream 契约面创建 Contract Delta。
-5. 从规范、约束、third rails、契约、playbook 中补充风险。
+2. 为每个目标层选择能力面适配器。
+3. 对每个 requirement 搜索并读取代码，确认当前状态。
+4. 按适配器 surface 记录 Layer Impact。
+5. 对每个跨层/API/schema/event/downstream 契约面创建 Contract Delta。
+6. 从规范、约束、third rails、契约、playbook 和 `graph-context.md` 中补充风险。
 
 ### 代码影响分析（GitNexus 可用时增强）
 
-6. 对每个 requirement 涉及的代码符号：
+7. 对每个 requirement 涉及的代码符号：
    a. `mcp__gitnexus__impact <symbol>` 获取爆炸半径。
    b. 将影响的模块和调用链写入 layer-impact.yaml 的 `affected_symbols` 字段。
    c. 如果影响范围超过 5 个模块，提升 `risk_level`。
@@ -41,7 +55,7 @@
 
 ### 业务影响分析（Graphify 可用时增强）
 
-7. 对每个 requirement 的业务关键词：
+8. 对每个 requirement 的业务关键词：
    a. `/graphify path "需求关键词" "受影响模块"` 追踪业务关联路径。
    b. `/graphify explain "变更概念"` 获取设计原理和隐式规则。
    c. 确认变更不会违反 rationale_for 中的设计决策。
@@ -85,3 +99,5 @@ business_constraints:                 # Graphify 业务关联结果
     risk_if_violated: ""
     graph_provider: "graphify"
 ```
+
+`graph-context.md` 输出格式见 `references/output-contracts.md`。plan.md 中每个 MODIFY/DELETE 任务必须引用至少一个 GCTX ID；无法引用时，必须在 graph-context 的 fallback/未命中表中说明。

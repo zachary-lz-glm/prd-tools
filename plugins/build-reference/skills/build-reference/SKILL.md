@@ -11,12 +11,14 @@ Claude Code 中可通过 `/build-reference` 使用。
 
 `build-reference` 负责把一个项目中会影响 PRD-to-code 的长期知识沉淀到 `_reference/`。
 
+`_reference/` 默认是单仓权威知识库：它只对当前仓库中可验证的事实负责。跨仓契约、上下游 owner、其他仓实现细节可以作为线索记录，但在对应 owner 确认前必须标记为 `needs_confirmation`，不能写成确定事实。
+
 它不是生成项目百科，也不是简单罗列目录；它只记录后续 PRD 蒸馏真正需要的事实：
 
 - 项目画像：技术栈、入口、构建/测试命令、部署形态。
-- 能力面：前端/BFF/后端各自承担哪些能力，关键文件和入口在哪里。
+- 能力面：当前仓承担哪些能力，关键文件和入口在哪里。
 - 业务实体：枚举、字段、组件、DTO、领域对象、endpoint、DB model。
-- 跨层契约：producer、consumer、字段、required、type、owner、alignment_status。
+- 跨层契约：producer、consumer、字段、required、type、owner、alignment_status、跨仓确认状态。
 - 开发套路：高频需求如何改、先看哪里、要测什么、常见坑是什么。
 - 历史样例：真实 PRD、技术方案、分支 diff、返工经验和 golden sample。
 
@@ -132,6 +134,7 @@ _output/
 
 - 源码、PRD、技术文档、API 文档、git diff 是权威证据。
 - reference 是加速器，不是最终权威。
+- 当前仓源码只能证明当前仓事实；其他仓的契约 owner、字段语义和实现细节必须由对方 reference、接口文档或 owner 确认。
 - 枚举、字段、方法签名、契约字段、业务规则不能从文件名或 import 推断，必须读源文件。
 - 搜不到也是证据，使用 `negative_code_search` 记录 query 和范围。
 - 不确定就写 `confidence: low`，并进入开放问题或后续动作。
@@ -164,7 +167,7 @@ _output/
 - GitNexus 是否可用、索引是否新鲜、对应 `.gitnexus/` 路径。
 - Graphify 是否可用、是否已生成 `graphify-out/graph.json`、可视化页面 `graphify-out/graph.html` 和 `GRAPH_REPORT.md`。
 - 本次 reference 哪些文件消费了图谱证据，哪些退回到源码扫描。
-- 如果图谱缺失或过期，给出下一步命令，如 `npx gitnexus analyze --incremental` 或 `/graphify . --mode deep`。
+- 如果图谱缺失或过期，给出下一步命令，如 `npx -y gitnexus@latest analyze --incremental`（无 Node 时用 `bunx --bun gitnexus@latest analyze --incremental`）或 `/graphify . --mode deep`。
 
 ### 置信度映射
 
@@ -182,10 +185,11 @@ _output/
 1. 识别项目路径、层级、已有 `_reference/` 和 `_output/`。
 2. 根据用户目标选择模式。
 3. 限定在当前项目内搜索，不跨兄弟项目。
-4. 使用 `rg` / glob 找候选，再读取源码确认事实。
-5. 生成或更新 `_reference/`。
-6. 执行健康检查或质量门控。
-7. 给用户摘要：新增/更新文件、质量状态、风险、下一步建议。
+4. 标注 `reference_scope.authority: single_repo`，并把跨仓线索写入确认状态字段。
+5. 使用 `rg` / glob 找候选，再读取源码确认事实。
+6. 生成或更新 `_reference/`。
+7. 执行健康检查或质量门控。
+8. 给用户摘要：新增/更新文件、质量状态、风险、下一步建议。
 
 ## 需要读取的参考文件
 

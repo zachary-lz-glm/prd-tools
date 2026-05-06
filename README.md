@@ -50,6 +50,8 @@ report / plan / artifacts
 
 PRD Tools 用 `_reference/` 做长期记忆，用 `_output/` 做单次需求分析，用 evidence 机制保证结论可追溯。
 
+当前 `_reference/` 是单仓知识库：后端仓、前端仓、BFF 仓各自维护自己的事实。跨仓契约和团队级知识可以先作为候选信号沉淀，后续再由团队知识库聚合 confirmed 事实。
+
 ## PRD 读取链路
 
 PRD Tools 不把 `.docx` 或 PDF 直接交给 LLM 猜。`prd-distill` 会先做一层 PRD Ingestion，把原始文档转成可审计的中间产物，再进入 Requirement IR 和分层影响分析。
@@ -99,7 +101,8 @@ _output/prd-distill/<slug>/prd-ingest/
 
 LLM Vision 图片分析（可选增强）：
 
-- 检测到 `OPENAI_API_KEY` 或 `ANTHROPIC_AUTH_TOKEN` 时自动启用。
+- 检测到 `ANTHROPIC_AUTH_TOKEN` 或 `OPENAI_API_KEY` 时自动启用。
+- 一键安装脚本第 7 步会提示输入 `ANTHROPIC_AUTH_TOKEN`；也可以安装前或运行前手动设置：`export ANTHROPIC_AUTH_TOKEN=sk-ant-xxx`。
 - 支持 OpenAI 兼容端点（含智谱 bigmodel.cn 自动适配）。
 - 对 PRD 中的流程图、设计稿、截图进行语义分析，产出结构化描述。
 
@@ -111,11 +114,10 @@ PRD Tools 的部分能力依赖外部工具，安装脚本会自动处理：
 |---|---|---|
 | **MarkItDown** (microsoft/markitdown) | 文档转换后端，支持 docx/pdf/pptx/xlsx/html/epub | `uv tool install "markitdown[all]"` |
 | **MarkItDown-OCR** | LLM Vision 图片分析（流程图、设计稿、截图） | `uv tool install markitdown-ocr` |
-| **GitNexus** | 代码知识图谱：代码结构、调用链、影响分析、执行流追踪 | npm/npx，自动配置为 MCP Server |
+| **GitNexus** | 代码知识图谱：代码结构、调用链、影响分析、执行流追踪 | npx 或 bunx，自动配置为 MCP Server |
 | **Graphify** | 通用知识图谱：从代码/文档/论文/图片生成聚类社区 | Claude Code Skill，自动安装 |
-| **Web Reader** | 网页内容读取，用于在线 PRD 或技术文档 | MCP Server，自动配置 |
 
-安装后这些工具会被注册到 `~/.claude/.mcp.json`，Claude Code 重启后自动加载。
+安装后 GitNexus MCP 会被注册到 `~/.claude/.mcp.json`，Claude Code 重启后自动加载。Graphify 通过 Claude Code Skill 提供 `/graphify` 系列命令。
 
 ## 两个技能
 
@@ -208,7 +210,7 @@ BFF 常见能力面：
 
 ### 项目知识库：`_reference/`
 
-`_reference/` 是项目长期知识，不是某次 PRD 的临时结论。
+`_reference/` 是项目长期知识，不是某次 PRD 的临时结论。它默认对当前仓库负责，不替代其他仓库的 reference，也不直接充当全平台 wiki。
 
 推荐结构（v4.0，6 文件）：
 
@@ -238,6 +240,15 @@ _reference/
 | `05-domain.yaml` | 业务领域：术语、背景、隐式规则、历史决策 | 不放代码路径、不放编码规则、不放契约字段 |
 
 v4.0 核心原则：**每个事实只存在于一个文件（SSOT）**，其他文件通过 ID 引用。
+
+单仓与跨仓边界：
+
+- 当前仓源码、技术文档和 owner 确认过的内容，可以作为本仓 confirmed 事实。
+- 其他仓的实现细节、字段 owner、上下游契约，如果没有对应 owner 确认，只能标记为 `needs_confirmation`。
+- `project-profile.yaml` 记录当前仓的 `reference_scope` 和 `related_repositories`，用于说明本仓角色和协作边界。
+- `03-contracts.yaml` 记录 producer/consumer、字段定义和跨仓确认状态，是字段级契约的唯一权威来源。
+- `04-routing-playbooks.yaml` 记录 PRD 路由、场景打法和跨仓 handoff，不展开其他仓的内部实现步骤。
+- 未来团队级知识库应聚合各仓 `_reference/` 和 `reference-update-suggestions.yaml` 中 confirmed 或 candidate 事实，而不是让单个仓库维护全平台知识。
 
 ### 构建过程产物：`_output/`
 
@@ -296,7 +307,7 @@ PRD 读取和质量门禁：
 | `prd-ingest/media-analysis.yaml` | 记录图片是否已被 vision/OCR/人工确认 | 默认不产生高置信度结论 |
 | `prd-ingest/tables/` | 保存抽出的表格 markdown，便于单独核验 | 不修复原表格 |
 | `prd-ingest/extraction-quality.yaml` | 读取质量门禁，决定 pass、warn 或 block | 不写开发计划 |
-| `prd-ingest/conversion-warnings.md` | 给人看的转换风险清单 | 不替代 `report.md` §10 |
+| `prd-ingest/conversion-warnings.md` | 给人看的转换风险清单 | 不替代 `report.md` §11 |
 
 机器和审计阅读：
 
@@ -331,7 +342,7 @@ curl -fsSL https://raw.githubusercontent.com/zachary-lz-glm/prd-tools/v2.0/insta
 3. 安装 GitNexus 运行时
 4. 安装 Graphify（知识图谱 Skill）
 5. 下载并安装 prd-tools Skills
-6. 配置 MCP Server（GitNexus + Graphify + Web Reader）并自动索引当前项目
+6. 配置 GitNexus MCP Server，并用 GitNexus / Graphify 自动索引当前项目
 7. 健康检查 + 可选 API Key 配置
 
 安装后目标项目会生成：
@@ -341,7 +352,16 @@ curl -fsSL https://raw.githubusercontent.com/zachary-lz-glm/prd-tools/v2.0/insta
 .prd-tools-version       # 版本标记
 ```
 
-MCP Server 配置写入 `~/.claude/.mcp.json`，重启 Claude Code 后生效。
+MCP Server 配置写入 `~/.claude/.mcp.json`。安装完成后需要关闭并重新打开 Claude Code，GitNexus MCP 工具才会生效。
+
+第 7 步健康检查会检测 LLM Vision API Key。PRD 图片 OCR 和 `/graphify . --mode deep` 的深度语义提取建议配置 vision-capable key：
+
+```bash
+export ANTHROPIC_AUTH_TOKEN=sk-ant-xxx
+# OpenAI-compatible provider 可额外设置：
+export ANTHROPIC_BASE_URL=https://your-provider.example/v1
+# 也兼容 OPENAI_API_KEY / OPENAI_BASE_URL
+```
 
 ### Claude Code
 

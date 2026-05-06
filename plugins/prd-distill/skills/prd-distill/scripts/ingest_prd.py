@@ -143,8 +143,8 @@ def convert_with_markitdown(source: Path, out_dir: Path) -> dict[str, Any]:
     """Use MarkItDown to convert a document to Markdown.
 
     Auto-detects LLM credentials for image analysis from environment:
-    1. OPENAI_API_KEY + optional OPENAI_BASE_URL → OpenAI client
-    2. ANTHROPIC_AUTH_TOKEN + ANTHROPIC_BASE_URL (ZhiPu) → OpenAI-compatible client
+    1. ANTHROPIC_AUTH_TOKEN + ANTHROPIC_BASE_URL (ZhiPu) → OpenAI-compatible client
+    2. OPENAI_API_KEY + optional OPENAI_BASE_URL → OpenAI client
     """
     llm_client = None
     llm_model = None
@@ -154,29 +154,29 @@ def convert_with_markitdown(source: Path, out_dir: Path) -> dict[str, Any]:
     try:
         from openai import OpenAI
 
-        # Strategy 1: Standard OpenAI
-        api_key = os.environ.get("OPENAI_API_KEY")
-        if api_key:
-            base_url = os.environ.get("OPENAI_BASE_URL")
-            kwargs: dict[str, Any] = {"api_key": api_key}
-            if base_url:
-                kwargs["base_url"] = base_url
-            llm_client = OpenAI(**kwargs)
-            llm_model = os.environ.get("LLM_MODEL", "gpt-4o")
+        # Strategy 1: ZhiPu (Anthropic-compatible endpoint -> OpenAI-compatible)
+        zp_token = os.environ.get("ANTHROPIC_AUTH_TOKEN")
+        zp_base = os.environ.get("ANTHROPIC_BASE_URL", "")
+        if zp_token and "bigmodel.cn" in zp_base:
+            # Convert https://open.bigmodel.cn/api/anthropic -> https://open.bigmodel.cn/api/paas/v4/
+            openai_base = "https://open.bigmodel.cn/api/paas/v4/"
+            llm_client = OpenAI(api_key=zp_token, base_url=openai_base)
+            llm_model = os.environ.get("LLM_MODEL", "glm-4v-flash")
             ocr_mode = "llm_vision"
-            vision_provider = "openai_compatible"
+            vision_provider = "zhipu_openai_compatible"
 
-        # Strategy 2: ZhiPu (Anthropic-compatible endpoint → OpenAI-compatible)
+        # Strategy 2: Standard OpenAI / OpenAI-compatible endpoint.
         if not llm_client:
-            zp_token = os.environ.get("ANTHROPIC_AUTH_TOKEN")
-            zp_base = os.environ.get("ANTHROPIC_BASE_URL", "")
-            if zp_token and "bigmodel.cn" in zp_base:
-                # Convert https://open.bigmodel.cn/api/anthropic → https://open.bigmodel.cn/api/paas/v4/
-                openai_base = "https://open.bigmodel.cn/api/paas/v4/"
-                llm_client = OpenAI(api_key=zp_token, base_url=openai_base)
-                llm_model = os.environ.get("LLM_MODEL", "glm-4v-flash")
+            api_key = os.environ.get("OPENAI_API_KEY")
+            if api_key:
+                base_url = os.environ.get("OPENAI_BASE_URL")
+                kwargs: dict[str, Any] = {"api_key": api_key}
+                if base_url:
+                    kwargs["base_url"] = base_url
+                llm_client = OpenAI(**kwargs)
+                llm_model = os.environ.get("LLM_MODEL", "gpt-4o")
                 ocr_mode = "llm_vision"
-                vision_provider = "zhipu_openai_compatible"
+                vision_provider = "openai_compatible"
     except ImportError:
         pass
 

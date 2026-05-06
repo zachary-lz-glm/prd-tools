@@ -8,9 +8,11 @@
 
 v2.5.0 没有改变 prd-tools 的任何现有用法。
 
-`/build-reference` 还是那个命令，`/prd-distill` 也还是那个命令。产出还是 6 个 reference 文件 + report/plan；阻塞问题和待确认项收口在 `report.md` §10。
+`/build-reference` 还是那个命令，`/prd-distill` 也还是那个命令。产出还是 6 个 reference 文件 + report/plan；阻塞问题和待确认项收口在 `report.md` §11。
 
-唯一的变化是：**如果你装了 GitNexus 或 Graphify，build-reference 和 prd-distill 会自动从图谱拿数据，产出质量更高。没装？跟以前一模一样。**
+核心变化是：**如果你装了 GitNexus 或 Graphify，build-reference 和 prd-distill 会自动从图谱拿数据，产出质量更高。** prd-distill 会先生成 `artifacts/graph-context.md`，再把函数级代码坐标、调用链、API consumer 和业务约束写进 `report.md` 与 `plan.md`。没装图谱工具时仍可用，只是回退到 rg/Read 和 `_reference`。
+
+还有一个边界要记住：`_reference/` 默认是单仓知识库。图谱可以发现跨仓线索，但没有 owner 确认时只能写成 `needs_confirmation`、handoff 或团队知识库候选，不能当成其他仓的确定事实。
 
 ---
 
@@ -44,12 +46,22 @@ v2.5.0 没有改变 prd-tools 的任何现有用法。
 
 ### GitNexus
 
-在 `~/.claude/settings.json` 的 `mcpServers` 里加一段：
+如果机器有 Node/npx，在 `~/.claude/.mcp.json` 的 `mcpServers` 里加一段：
 
 ```json
 "gitnexus": {
   "command": "npx",
-  "args": ["-y", "gitnexus@latest", "serve", "--mcp"],
+  "args": ["-y", "gitnexus@latest", "mcp"],
+  "env": {}
+}
+```
+
+没有 Node 也可以用 Bun：
+
+```json
+"gitnexus": {
+  "command": "bunx",
+  "args": ["--bun", "gitnexus@latest", "mcp"],
   "env": {}
 }
 ```
@@ -83,7 +95,8 @@ graphify install
 cd /Users/didi/work/dive-bff
 
 # 建代码结构图（1-3 分钟）
-npx gitnexus analyze
+npx -y gitnexus@latest analyze
+# 没有 Node 时可用：bunx --bun gitnexus@latest analyze
 
 # 建业务语义图（把 PRD 和技术方案也吃进去）
 /graphify . --mode deep
@@ -166,7 +179,8 @@ evidence:
 
 ```bash
 # 代码改了？增量更新代码图谱
-npx gitnexus analyze --incremental
+npx -y gitnexus@latest analyze --incremental
+# 没有 Node 时可用：bunx --bun gitnexus@latest analyze --incremental
 
 # 加了新 PRD 文档？增量更新业务图谱
 /graphify . --update
@@ -208,12 +222,21 @@ Graphify 追踪业务关联：
 
 ### 4.3 看产出
 
-打开 `report.md`。影响分析部分现在有两个维度的数据：
+打开 `report.md`。影响分析部分现在有三个维度的数据：
 
 - **代码影响**："修改 reward-type.enum.ts 将影响 rewardService、rewardController、rewardExporter 共 3 个模块"
+- **契约影响**："新增 rewardType 字段会影响 /api/reward consumer 的字段读取和导出链路"
 - **业务影响**："冲单奖与班次签到奖存在互斥规则，新增时需确认互斥逻辑是否需要调整"
 
-以前这些只能靠 AI 读代码猜。现在是图谱查出来的。
+打开 `plan.md`。实现计划会优先消费 `artifacts/graph-context.md`：
+
+```text
+REQ -> GitNexus query/context/impact/api_impact -> GCTX 函数级线索
+REQ -> Graphify query/path/explain -> GCTX-B 业务约束
+GCTX/GCTX-B -> plan.md 的文件、行号、关键函数、调用链、回归范围
+```
+
+以前这些只能靠 AI 读代码猜。现在是图谱查出来，再由源码/PRD/技术文档证据确认。
 
 ---
 
@@ -251,7 +274,8 @@ Graphify 会画出两个概念之间的关联路径。
 
 ```bash
 # 代码改了
-npx gitnexus analyze --incremental          # 30 秒左右
+npx -y gitnexus@latest analyze --incremental          # 30 秒左右
+# 没有 Node 时可用：bunx --bun gitnexus@latest analyze --incremental
 
 # 文档改了
 /graphify . --update                        # 1-2 分钟
@@ -270,7 +294,7 @@ npx gitnexus analyze --incremental          # 30 秒左右
         "hooks": [
           {
             "type": "command",
-            "command": "cd $PROJECT_DIR && npx gitnexus analyze --incremental 2>/dev/null || true"
+            "command": "cd $PROJECT_DIR && (npx -y gitnexus@latest analyze --incremental || bunx --bun gitnexus@latest analyze --incremental) 2>/dev/null || true"
           },
           {
             "type": "command",
@@ -320,7 +344,7 @@ npx gitnexus analyze --incremental          # 30 秒左右
 
 ## 8. 注意事项
 
-**图谱 ≠ reference。** 图谱是原始数据，reference 是精选后的知识库。build-reference 会自动过滤图谱噪声，只把确认后的事实写进 reference。
+**图谱 ≠ reference。** 图谱是原始数据，reference 是精选后的知识库。build-reference 会自动过滤图谱噪声，只把确认后的本仓事实写进 reference。
 
 **Graphify 的推断不是高置信度。** Graphify 标记为 INFERRED 的关系，build-reference 会自动降级为 medium/low，不会直接当事实用。
 
@@ -328,4 +352,4 @@ npx gitnexus analyze --incremental          # 30 秒左右
 
 **不要把完整图谱塞进上下文。** build-reference 和 prd-distill 内部只用 query 拉小子图，不会把整个 graph.json 读进去。手动查询时也注意控制范围。
 
-**图谱本地存储，不外传。** GitNexus 的 `.gitnexus/` 和 Graphify 的 `graphify-out/` 都在项目本地，建议加入 `.gitignore`。团队共享图谱可以只提交 `GRAPH_REPORT.md`。
+**图谱本地存储，不外传。** GitNexus 的 `.gitnexus/` 和 Graphify 的 `graphify-out/` 都在项目本地，建议加入 `.gitignore`。团队共享图谱可以只提交 `GRAPH_REPORT.md`，或由未来团队知识库聚合各仓 confirmed/candidate 事实。

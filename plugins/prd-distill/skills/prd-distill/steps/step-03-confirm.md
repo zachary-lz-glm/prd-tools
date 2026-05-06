@@ -12,6 +12,7 @@
 
 - `artifacts/evidence.yaml`
 - `artifacts/requirement-ir.yaml`
+- `artifacts/graph-context.md`
 - `artifacts/layer-impact.yaml`
 - `artifacts/contract-delta.yaml`
 - `references/output-contracts.md` 中 report.md 和 plan.md 的格式定义
@@ -29,37 +30,42 @@
 ### 2. 影响范围
 - 命中的层、能力面、关键文件/模块（表格形式）
 
-### 3. 关键结论
-- 新增/修改/不改什么，每个结论带 REQ-ID 和代码路径引用
+### 3. 图谱命中摘要
+- GitNexus：列出命中的关键函数/调用链/API consumer；不可用时说明原因和 fallback 查询
+- Graphify：列出命中的业务关联、设计原理、隐式约束；INFERRED 默认标 medium/low
+- 每条图谱命中引用 GCTX/GEV/EV ID，并说明用于哪些 REQ/IMP/CONTRACT
 
-### 4. 变更明细表（核心可操作内容）
+### 4. 关键结论
+- 新增/修改/不改什么，每个结论带 REQ-ID、代码路径和图谱证据引用
+
+### 5. 变更明细表（核心可操作内容）
 - 列出所有 IMP-* 项
-- 格式：`| ID | 变更描述 | 类型 | 目标文件 | 验证来源 |`
-- 精确到文件路径，标注 code_verified / reference_only
+- 格式：`| ID | 变更描述 | 类型 | 目标文件 | 关键函数/符号 | 验证来源 |`
+- 精确到文件路径和关键 symbol，标注 code_verified / graph_verified / reference_only
 
-### 5. 字段清单（按功能模块分组）
+### 6. 字段清单（按功能模块分组）
 - 从 requirement-ir 和 contract-delta 中提取
 - 格式：`| 字段 | 类型 | 必填 | 来源 | 契约ID |`
 - 按业务模块分组
 
-### 6. 校验规则
+### 7. 校验规则
 - 从 requirement-ir.rules 中提取可验证的校验规则
 - 格式：`| ID | 规则描述 | 错误文案/提示 | 目标文件 |`
 
-### 7. 开发 Checklist（可直接执行）
+### 8. 开发 Checklist（可直接执行）
 - 用 `- [ ]` 格式
 - 按建议实现顺序排列
 - 每项标注具体操作 + 目标文件 + 关联 REQ/IMP/CONTRACT
 
-### 8. 契约风险
+### 9. 契约风险
 - 只列 alignment_status 为 needs_confirmation 或 blocked 的契约
 
-### 9. Top Open Questions
+### 10. Top Open Questions
 - 最多5个最关键的阻塞问题，带 Q-ID
 
-### 10. 阻塞问题与待确认项
+### 11. 阻塞问题与待确认项
 
-#### 10.1 阻塞问题
+#### 11.1 阻塞问题
 每个阻塞问题必须包含 6 要素：
 - **问题**：阻塞项的具体描述
 - **线索**：代码/文档线索（如 `proxy/bpm.go:311 注释暗示冲单挑战系统已存在`）
@@ -68,10 +74,10 @@
 - **需要证据**：确认人需要提供什么
 - **默认策略**：如果不确认，默认采取什么行动
 
-#### 10.2 低置信度假设
+#### 11.2 低置信度假设
 ⚠ 标注的低置信度结论，说明为什么置信度低、需要什么才能提升。
 
-#### 10.3 Owner 确认项
+#### 11.3 Owner 确认项
 需要特定角色确认的契约字段、枚举值、外部接口行为等。
 
 如无阻塞问题，显式写"当前无阻塞问题"。
@@ -80,20 +86,20 @@
 - 自然语言为主，用 Markdown 表格提高可扫描性
 - 每个变更项都带目标文件路径
 - 关联 ID（REQ-*/IMP-*/CONTRACT-*）方便跳到 artifacts 查证
-- 低置信度项用 ⚠ 标注，进入 §10.2
+- 低置信度项用 ⚠ 标注，进入 §11.2
 - **线索式证据不能省略**：代码注释、已有结构体名、文件路径等线索必须保留，这些对开发定位问题有极高价值
 
 职责边界：
 - **report.md 是决策文档，不是所有细节的全集**
 - 不要把完整 YAML 证据链展开到 report 里，那是 artifacts 的职责
 - 不要复制 PRD 原文，只引用 REQ-ID
-- 建议总长度控制在 250-500 行（Markdown 源码）。超限时精简优先级：变更明细表 > 字段清单 > 校验规则（先精简）；阻塞问题与线索 > 契约风险 > 影响范围（不精简）
+- 建议总长度控制在 300-650 行（Markdown 源码）。超限时精简优先级：字段清单 > 校验规则（先精简）；图谱命中摘要 > 变更明细表 > 阻塞问题与线索 > 契约风险 > 影响范围（不精简）
 
 ## plan.md（技术方案 + 开发计划）
 
-`plan.md` 是**可 review 的初步技术方案文档**，也是**拿去就能干活的操作手册**。
+`plan.md` 是**可 review 的函数级技术方案文档**，也是**拿去就能干活的操作手册**。必须优先消费 `artifacts/graph-context.md`。
 
-必须包含以下 11 个章节：
+必须包含以下 12 个章节：
 
 ### 1. 范围与假设
 - **目标**：本方案覆盖的 REQ 范围和预期产出
@@ -101,6 +107,7 @@
 - **前置条件与依赖**：需要先完成的基础设施、其他团队接口、外部系统准备
 
 ### 2. 整体架构
+- **图谱命中与代码坐标**：REQ 到关键函数/结构体/API consumer 的映射表，引用 GCTX ID
 - **方案概述**：文字描述 + 简单框图
 - **核心数据模型**：关键结构体/Schema 用伪代码展示字段结构
 - **关键设计决策**：主要 trade-off 和选择理由
@@ -109,7 +116,10 @@
 ### 3. 实现计划
 每个任务必须包含：
 - **具体文件路径**（尽量带行号，不确定时标注"约在 XX 附近"）
+- **关键函数/结构体**（入口函数、validator、service、repository、consumer 等）
 - **操作描述**（做什么）
+- **调用链影响**（入口 -> 当前函数 -> 下游函数/consumer）
+- **图谱依据**（GCTX/GEV/EV ID；图谱不可用时引用 fallback 搜索证据）
 - **参考实现**（类似功能的已有代码路径）
 - **关联** REQ/IMP/CONTRACT
 - **验证命令**（grep/go test 等）
@@ -167,5 +177,8 @@
 - 新术语、新路由、新契约、新 playbook
 - golden sample 候选
 - reference 与代码的矛盾
+- 跨仓契约、owner、handoff 或团队级知识库候选
+
+每条建议必须按 `references/output-contracts.md` 标注 `current_repo_scope`。当前仓可验证的事实才能标记为 `apply_to_current_repo`；其他仓实现细节、跨仓 owner、团队级 taxonomy 必须标记为 `record_as_signal` 或 `needs_owner_confirmation`，并填写 `owner_to_confirm`。`team_reference_candidate: true` 只表示未来团队知识库候选。
 
 `/prd-distill` 不直接编辑 `_reference/`；实际修改交给 `/build-reference` 的反馈回流。

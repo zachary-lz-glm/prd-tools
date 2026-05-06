@@ -8,6 +8,8 @@
 
 reference 是"可验证指南针"，不是项目百科。6 个文件，每个事实只存在一处（SSOT），按场景阅读。
 
+默认治理范围是单仓：当前仓 `_reference/` 只沉淀本仓确认事实。跨仓契约、上下游 owner、团队级 taxonomy 可以作为候选或 handoff 记录，但在 owner 确认前不能升级为确定事实。
+
 ## 三层架构
 
 ```
@@ -17,7 +19,10 @@ PRD/技术方案/截图/历史文档     代码仓库                     编排
         │                          │                           │
         └──────────────────────────┼───────────────────────────┘
                                    ▼
-                         _reference/ 企业级可治理知识库
+                         _reference/ 单仓可治理知识库
+                                   │
+                                   ▼
+                    未来团队知识库聚合 confirmed/candidate 事实
 ```
 
 关键原则：**图谱是原始发现层，reference 是精选后的企业知识库。**
@@ -96,6 +101,15 @@ tool_version: "<tool-version>"
 project: ""
 layer: "frontend | bff | backend | multi-layer"
 adapter: "frontend | bff | backend"
+reference_scope:
+  authority: "single_repo"
+  repo_role: "frontend | bff | backend | multi-layer"
+  team_reference_ready: false
+related_repositories:
+  - repo: ""
+    role: "frontend | bff | backend | external"
+    relationship: "upstream | downstream | consumer | producer | peer"
+    verification: "confirmed | needs_confirmation | unknown"
 graph_providers: []
 capability_surfaces:
   - id: ""
@@ -135,8 +149,8 @@ project-profile.yaml        # 项目画像
 
 1. `01-codebase`：目录、枚举、模块、注册点、数据流、外部系统、结构体。
 2. `02-coding-rules`：编码规范与约束、高风险区域、踩坑经验。
-3. `03-contracts`：producer/consumer、endpoint/schema/event、字段级定义。
-4. `04-routing-playbooks`：PRD 路由信号、字段映射、场景打法、golden samples。
+3. `03-contracts`：producer/consumer、endpoint/schema/event、字段级定义、跨仓确认状态。
+4. `04-routing-playbooks`：PRD 路由信号、字段映射、场景打法、跨仓 handoff、golden samples。
 5. `05-domain`：业务域概览、术语、隐式规则、历史决策。
 6. `00-portal` + `project-profile`：导航和画像汇总。
 
@@ -196,6 +210,8 @@ next_actions: []
 
 读取 `_output/prd-distill/**/artifacts/reference-update-suggestions.yaml` 和 `report.md`。兼容读取旧版文件名。
 
+回流仍以单仓为边界：只自动处理当前仓可验证事实。跨仓建议必须保留 `team_reference_candidate`、`team_scope` 和 `owner_to_confirm`，除非用户或 owner 明确确认，否则不要把其他仓事实写成本仓确定结论。
+
 只处理有证据的建议：
 
 - `new_term`
@@ -212,6 +228,7 @@ next_actions: []
 - 建议变更
 - 证据来源
 - 风险和置信度
+- 是否是未来团队知识库候选，以及需要哪个 owner 确认
 
 用户确认后再修改 reference，并更新 `last_verified`。
 
@@ -221,5 +238,6 @@ next_actions: []
 2. 不确定就写 low confidence，不要补脑。
 3. 多层需求必须显式记录契约面。
 4. 前端、BFF、后端保持同一 reference 结构，层差异用能力面适配器表达。
-5. 每个 reference 文件尽量短；复杂样例放 `04-routing-playbooks.golden_samples`。
-6. 完成后给用户一份摘要：新增/更新文件、质量门控结果、下一步建议。
+5. 跨仓事实默认是线索，不是结论；没有 owner 确认时写 `needs_confirmation`。
+6. 每个 reference 文件尽量短；复杂样例放 `04-routing-playbooks.golden_samples`。
+7. 完成后给用户一份摘要：新增/更新文件、质量门控结果、下一步建议。
