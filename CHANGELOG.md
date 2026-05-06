@@ -4,6 +4,15 @@
 
 ---
 
+## [2.10.0] - 2026-05-06
+
+### Added
+- feat: reference 单仓治理 + graph-context 图谱中间层 + install 改进
+
+### Fixed
+- fix: 修复安装归档路径与输出口径漂移
+
+
 ## [2.9.0] - 2026-05-06
 
 ### Added

@@ -3,7 +3,15 @@
 All notable changes to the **prd-distill** plugin are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
-## [2.9.0] - 2026-05-06
+## [2.10.0] - 2026-05-06
+
+### Added
+- feat: reference 单仓治理 + graph-context 图谱中间层 + install 改进
+
+### Fixed
+- fix: 修复安装归档路径与输出口径漂移
+
+- fix: 修复安装归档路径与输出口径漂移
 
 ### Added
 - feat: v2.8 质量复盘 — 输出契约全面升级 + 契约校验自动化
