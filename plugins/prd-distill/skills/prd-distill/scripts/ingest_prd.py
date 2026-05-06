@@ -297,12 +297,21 @@ def split_into_blocks(markdown: str, source_format: str) -> tuple[list[dict[str,
             })
             continue
 
-        # Image reference detection
+        # Image reference detection (standard ![alt](src) or MarkItDown-OCR *[Image OCR]*)
         img_match = re.match(r"!\[([^\]]*)\]\(([^)]+)\)", stripped)
-        if img_match:
+        ocr_match = re.match(r"\*\[Image OCR\](.*)", stripped) if not img_match else None
+        if img_match or ocr_match:
             block_id = f"BLK-{len(blocks) + 1:04d}"
-            img_alt = img_match.group(1)
-            img_src = img_match.group(2)
+            if img_match:
+                img_alt = img_match.group(1)
+                img_src = img_match.group(2)
+                ocr_text = ""
+                img_confidence = "low"
+            else:
+                img_alt = "Image OCR"
+                img_src = ""
+                ocr_text = ocr_match.group(1).strip() if ocr_match else ""
+                img_confidence = "medium"  # LLM Vision analyzed
             blocks.append({
                 "id": block_id,
                 "type": "image",
@@ -310,6 +319,7 @@ def split_into_blocks(markdown: str, source_format: str) -> tuple[list[dict[str,
                 "alt": img_alt,
                 "src": img_src,
                 "text": stripped,
+                "ocr_text": ocr_text,
             })
             evidence_items.append({
                 "id": f"PRD-{len(evidence_items) + 1:03d}",
@@ -317,7 +327,7 @@ def split_into_blocks(markdown: str, source_format: str) -> tuple[list[dict[str,
                 "block_id": block_id,
                 "locator": f"{source_format}:line:{i + 1}",
                 "summary": f"image: {img_alt or img_src}"[:180],
-                "confidence": "low",
+                "confidence": img_confidence,
             })
             i += 1
             continue
@@ -400,7 +410,7 @@ def build_media_analysis(
     'needs_vision_or_human_review'.
     """
     has_image_descriptions = bool(
-        re.search(r"!\[.*?(?:descri|image|photo|diagram|screenshot|flowchart|figure)", text_content, re.IGNORECASE)
+        re.search(r"(!\[.*?(?:descri|image|photo|diagram|screenshot|flowchart|figure)|\*\[Image OCR\])", text_content, re.IGNORECASE)
     )
 
     items = []
@@ -413,7 +423,7 @@ def build_media_analysis(
             # MarkItDown with LLM client already processed images
             analysis_status = "llm_vision_analyzed"
             summary = "analyzed by markitdown-ocr plugin with LLM Vision"
-            confidence = "medium" if has_image_descriptions else "low"
+            confidence = "medium"  # LLM Vision analyzed = medium confidence
 
         items.append({
             **m,
@@ -525,7 +535,8 @@ def convert_source(source: Path, out_dir: Path) -> dict[str, Any]:
 
     # Detect image references in markdown for media tracking
     img_refs = re.findall(r"!\[([^\]]*)\]\(([^)]+)\)", text_content)
-    if img_refs and not media_items_raw:
+    ocr_blocks = re.findall(r"\*\[Image OCR\](.*?)\*\[End OCR\]\*", text_content, re.DOTALL)
+    if (img_refs or ocr_blocks) and not media_items_raw:
         for idx, (alt, src) in enumerate(img_refs, start=1):
             media_items_raw.append({
                 "id": f"IMG-{idx:03d}",
@@ -533,6 +544,16 @@ def convert_source(source: Path, out_dir: Path) -> dict[str, Any]:
                 "output_path": "",
                 "filename": "",
                 "mime_type": mimetypes.guess_type(src)[0] or "application/octet-stream",
+                "size_bytes": None,
+                "referenced_by": [],
+            })
+        for idx, ocr_text in enumerate(ocr_blocks, start=len(img_refs) + 1):
+            media_items_raw.append({
+                "id": f"IMG-{idx:03d}",
+                "source_path": "llm_vision_inline",
+                "output_path": "",
+                "filename": "",
+                "mime_type": "image/llm-vision",
                 "size_bytes": None,
                 "referenced_by": [],
             })

@@ -8,9 +8,8 @@
 PRD raw file/text
   -> prd-ingest/*
   -> tech docs + reference + code
-  -> report.md
-  -> plan.md
-  -> questions.md
+  -> report.md（含阻塞问题）
+  -> plan.md（技术方案）
   -> artifacts/*
 ```
 
@@ -32,7 +31,6 @@ _output/prd-distill/<slug>/
 ├── prd-ingest/
 ├── report.md
 ├── plan.md
-├── questions.md
 └── artifacts/
 ```
 
@@ -60,7 +58,7 @@ prd-ingest/
 读取 `extraction-quality.yaml`：
 
 - `pass`：可进入后续蒸馏。
-- `warn`：可继续，但必须把图片未分析、复杂表格风险写入 `questions.md` 或 `report.md`。
+- `warn`：可继续，但必须把图片未分析、复杂表格风险写入 `report.md` §10。
 - `block`：暂停，要求用户提供 markdown/text，或检查 MarkItDown 安装。
 
 图片分析说明：
@@ -170,15 +168,14 @@ ADD/MODIFY/DELETE/NO_CHANGE 必须由源码或负向搜索支撑。
 
 ## 步骤 5：计划
 
-生成 `plan.md`（可执行的开发操作手册）：
+生成 `plan.md`（可 review 的技术方案文档 + 开发计划）：
 
 - 精确到文件路径和行号。
+- 包含 11 个章节：范围与假设、整体架构、实现计划、API 设计、数据存储、配置与开关、校验规则汇总、QA 矩阵、契约对齐、风险与回滚、工作量估算。
 - 用 `- [ ]` checklist 格式，可直接勾选。
 - 每个任务包含：目标文件、操作描述、参考实现、关联 REQ/IMP/CONTRACT、验证命令。
+- **代码线索不可省略**：文件路径、行号、参考结构体名必须保留。
 - 按 Phase 分组，Phase 间标注依赖。
-- 按命中的层分组；没有命中的层不要硬写空章节。
-- 合并开发计划、QA 计划和契约对齐计划。
-- QA case 必须追溯到 `requirement_id` 或 `contract_id`。
 - 不直接写代码，除非用户明确要求进入实现。
 - 格式详见 `references/output-contracts.md` 中 plan.md 模板。
 
@@ -207,7 +204,7 @@ suggestions:
 
 ## 步骤 7：人类报告
 
-`report.md` 采用渐进式披露（Progressive Disclosure）结构，同一文件内从结论到细节逐层展开：
+`report.md` 采用渐进式披露（Progressive Disclosure）结构，同一文件内从结论到细节逐层展开，最后以阻塞问题收尾：
 
 1. **需求摘要**（30秒决策）：一句话 + 变更类型统计
 2. **影响范围**：命中的层、能力面、关键文件
@@ -218,12 +215,11 @@ suggestions:
 7. **开发 Checklist**：可直接执行的操作列表
 8. **契约风险**：needs_confirmation / blocked 项
 9. **Top Open Questions**：最多5个
+10. **阻塞问题与待确认项**：阻塞问题（6 要素）+ 低置信度假设 + Owner 确认项
 
 格式详见 `references/output-contracts.md` 中 report.md 模板。
 
-报告里不要隐藏低置信度项；低置信度是价值，不是瑕疵。
-
-生成 `questions.md`，只放阻塞问题、需 owner 确认的问题和低置信度假设。若没有问题，明确写”暂无阻塞问题”。
+报告里不要隐藏低置信度项；低置信度是价值，不是瑕疵。**线索式证据不能省略**：代码注释、已有结构体名、文件路径等线索必须保留。
 
 ## 暂停条件
 

@@ -1,6 +1,6 @@
 ---
 name: prd-distill
-description: 将 PRD 和可选技术文档先做稳定读取与质量检查，再蒸馏为有证据支撑的 report、plan、questions 和 artifacts，包括 Requirement IR、Layer Impact、Contract Delta、开发/测试/契约计划和 reference 回流建议，适用于前端、BFF、后端项目。
+description: 将 PRD 和可选技术文档先做稳定读取与质量检查，再蒸馏为有证据支撑的 report、plan 和 artifacts，包括 Requirement IR、Layer Impact、Contract Delta、技术方案、开发/测试/契约计划和 reference 回流建议，适用于前端、BFF、后端项目。
 ---
 
 # prd-distill
@@ -72,7 +72,6 @@ _output/prd-distill/<slug>/
 │   └── conversion-warnings.md
 ├── report.md
 ├── plan.md
-├── questions.md
 └── artifacts/
     ├── evidence.yaml
     ├── requirement-ir.yaml
@@ -81,11 +80,10 @@ _output/prd-distill/<slug>/
     └── reference-update-suggestions.yaml
 ```
 
-用户默认阅读前三个文件：
+用户默认阅读两个文件：
 
-- `report.md`：结论报告。
-- `plan.md`：开发、测试、契约对齐合并计划。
-- `questions.md`：阻塞问题和 owner 确认项。
+- `report.md`：决策报告（含阻塞问题与待确认项）。
+- `plan.md`：技术方案与开发、测试、契约对齐计划。
 
 `prd-ingest/` 是 PRD 原始读取结果，`artifacts/` 是证据链和机器可读中间结果，用于审计、复盘和知识回流。
 
@@ -101,10 +99,9 @@ _output/prd-distill/<slug>/
 | `prd-ingest/media-analysis.yaml` | 图片语义分析状态；默认标记待 vision 或人工确认 | 不在没有证据时推断图片含义 |
 | `prd-ingest/tables/` | 抽出的表格 markdown，便于单独核对 | 不修正原表格内容 |
 | `prd-ingest/extraction-quality.yaml` | 读取质量门禁：是否缺文本、是否有图片未分析、是否有复杂表格 | 不写开发计划 |
-| `prd-ingest/conversion-warnings.md` | 给人看的转换风险列表 | 不替代 `questions.md` |
-| `report.md` | 渐进式披露：需求摘要→变更明细表→字段清单→校验规则→开发Checklist→契约风险→Questions | 不展开完整 YAML 证据链（见 artifacts） |
-| `plan.md` | 可执行的开发操作手册：精确到文件路径+行号，checklist 格式，QA 矩阵 | 不复制 PRD 原文，不替代代码实现 |
-| `questions.md` | 阻塞问题、低置信度假设、需要 owner 确认的事项 | 不放普通备注或已确认结论 |
+| `prd-ingest/conversion-warnings.md` | 给人看的转换风险列表 | 不替代 report.md §10 |
+| `report.md` | 渐进式披露：需求摘要→变更明细表→字段清单→校验规则→开发Checklist→契约风险→阻塞问题与待确认项 | 不展开完整 YAML 证据链（见 artifacts） |
+| `plan.md` | 可 review 的技术方案文档：架构设计+数据模型+API设计+实现计划+QA矩阵+风险回滚 | 不复制 PRD 原文，不替代代码实现 |
 | `artifacts/evidence.yaml` | 证据台账：PRD、技术方案、源码、负向搜索、人工确认 | 不下结论 |
 | `artifacts/requirement-ir.yaml` | 结构化需求：业务意图、规则、验收条件、变更类型 | 不写文件级实现细节 |
 | `artifacts/layer-impact.yaml` | 分层影响：目标层、能力面、当前状态、计划变化、风险 | 不维护字段级跨层契约 |
@@ -117,7 +114,7 @@ _output/prd-distill/<slug>/
 2. 对 PRD 执行 ingestion：
    - 文件输入优先运行 `uv run <skill>/scripts/ingest_prd.py <prd> --out _output/prd-distill/<slug>/prd-ingest`。
    - 读取 `prd-ingest/extraction-quality.yaml`；`status: block` 时暂停。
-   - 有图片、截图、流程图或复杂表格时，检查 `media-analysis.yaml` 和 `conversion-warnings.md`，未确认内容必须进入 `questions.md`。
+   - 有图片、截图、流程图或复杂表格时，检查 `media-analysis.yaml` 和 `conversion-warnings.md`，未确认内容必须进入 `report.md` §10。
 3. 读取 `_reference/`：
    - 优先读取 v4 文件：`project-profile.yaml`、`03-contracts.yaml`、`04-routing-playbooks.yaml`。
    - 兼容读取 v3.1 文件：`contracts.yaml|08-contracts.yaml`、`playbooks.yaml|09-playbooks.yaml`、`05-routing.yaml`、`06-glossary.yaml`、`07-business-context.yaml`。
@@ -125,10 +122,9 @@ _output/prd-distill/<slug>/
 5. 将 `prd-ingest/document.md` 拆成 `artifacts/requirement-ir.yaml`。
 6. 按能力面生成 `artifacts/layer-impact.yaml`。
 7. 多层、接口、schema、event、权益、券、奖励、支付、审计、异步等场景生成 `artifacts/contract-delta.yaml`。
-8. 生成 `plan.md`，合并开发计划、QA 计划和契约对齐计划。
-9. 生成 `questions.md`，集中列出阻塞问题和 owner 确认项。
-10. 生成 `report.md`，给人一屏可读结论。
-11. 生成 `artifacts/reference-update-suggestions.yaml`，供 build-reference 反馈回流。
+8. 生成 `plan.md`，包含技术方案、实现计划、QA 矩阵和契约对齐计划。
+9. 生成 `report.md`，渐进式披露 + §10 阻塞问题与待确认项。
+10. 生成 `artifacts/reference-update-suggestions.yaml`，供 build-reference 反馈回流。
 
 ## 能力面适配器
 
@@ -164,9 +160,9 @@ _output/prd-distill/<slug>/
 - 每个 requirement 至少有 PRD 或技术文档证据。
 - 每个 requirement 的 PRD 证据优先来自 `prd-ingest/evidence-map.yaml` 或更强的人工/vision/OCR 证据。
 - 每个 layer impact 至少有源码证据或负向搜索证据。
-- `prd-ingest/extraction-quality.yaml` 如果是 `warn`，必须在 `report.md` 或 `questions.md` 中暴露影响。
+- `prd-ingest/extraction-quality.yaml` 如果是 `warn`，必须在 `report.md` §10 中暴露影响。
 - 业务关键规则不能只靠前端守。
-- 中低置信度项必须进入 `questions.md`。
+- 中低置信度项必须进入 `report.md` §10。
 - 不确定就标 `confidence: low`，不要补脑。
 - 不直接修改 `_reference/`，只生成回流建议。
 
@@ -211,6 +207,6 @@ _output/prd-distill/<slug>/
 
 - 输出目录路径。
 - `report.md` 中最重要的结论。
-- `questions.md` 中最重要的阻塞项。
+- `report.md` §10 中最重要的阻塞项。
 - 是否存在 `needs_confirmation` 或 `blocked` 的契约。
 - 是否生成 reference 回流建议。
