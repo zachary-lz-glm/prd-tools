@@ -3,7 +3,12 @@
 All notable changes to the **build-reference** plugin are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
-## [2.8.0] - 2026-05-06
+## [2.9.0] - 2026-05-06
+
+### Added
+- feat: v2.8 质量复盘 — 输出契约全面升级 + 契约校验自动化
+
+- feat: v2.8 质量复盘 — 输出契约全面升级 + 契约校验自动化
 
 ### Changed
 - (待补充)
