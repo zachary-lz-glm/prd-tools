@@ -3,6 +3,20 @@
 All notable changes to the **build-reference** plugin are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [2.5.1] - 2026-05-01
+
+### Fixed
+- 6 个模板（01-05 + project-profile）增加 `graph_sources: []` 和 `graph_evidence_refs: []` 字段
+- step-01-structure-scan 增加图谱证据文件创建指令、EV/GEV 证据 ID 桥接规则
+- step-02-deep-analysis 增加前置图谱证据加载、per-phase 模板字段填充指令
+- step-03-quality-gate 增加图谱证据检查（GEV 孤立引用、置信度校验、provider 一致性）
+- SKILL.md 升级图谱增强 section（双证据字段说明、置信度映射表）
+
+### Changed
+- 所有 `graph_source` 单值改为 `graph_sources: []` 数组
+- 文件级 `graph_providers` 改为结构化列表 `[{provider, graph, available}]`
+- Graphify 置信度映射收紧：EXTRACTED 需有 source locator 才能标 high
+
 ## [2.5.0] - 2026-04-30
 
 ### Added

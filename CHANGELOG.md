@@ -11,7 +11,8 @@
 - **LLM Vision 图片分析**：自动检测环境变量（OPENAI_API_KEY 或智谱 ANTHROPIC_AUTH_TOKEN），启用 markitdown-ocr 插件分析 PRD 中的流程图、截图、设计稿内容
 - **智谱（bigmodel.cn）自动适配**：检测到 ANTHROPIC_BASE_URL 含 bigmodel.cn 时，自动转换为 OpenAI 兼容端点（glm-4v-flash）
 - **新增格式支持**：pptx/xlsx/html/epub（原仅 docx/pdf/md/txt）
-- install.sh 增加 `pip install markitdown[all] markitdown-ocr` 自动安装
+- **install.sh 完全重写**（~40 行 → 395 行 7 步向导）：自动代理检测、uv 安装、MarkItDown+OCR、GitNexus CLI 安装+自动索引、Graphify MCP、Claude Code MCP 配置、安装状态汇总
+- PEP 723 依赖声明：Graphify 和 MarkItDown 的脚本头部声明独立依赖，无需手动 pip install
 
 ### Changed
 - `ingest_prd.py` 完全重写（645行→~400行），保留原有 prd-ingest 输出格式不变

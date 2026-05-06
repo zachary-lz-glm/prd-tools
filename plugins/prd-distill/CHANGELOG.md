@@ -3,6 +3,29 @@
 All notable changes to the **prd-distill** plugin are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [2.6.0] - 2026-05-04
+
+### Added
+- **MarkItDown 集成**：用 microsoft/markitdown 替换手写 OOXML 解析和 pdftotext，作为文件转换后端
+- **LLM Vision 图片分析**：自动检测环境变量，启用 markitdown-ocr 分析 PRD 流程图/截图/设计稿
+- **智谱（bigmodel.cn）自动适配**：检测 ANTHROPIC_BASE_URL 含 bigmodel.cn 时自动转换 OpenAI 兼容端点
+- 新增格式支持：pptx/xlsx/html/epub（原仅 docx/pdf/md/txt）
+- PEP 723 依赖声明：ingest_prd.py 头部声明 MarkItDown 依赖
+
+### Changed
+- `ingest_prd.py` 完全重写（645行→~400行），保留原有输出格式不变
+- SKILL.md / workflow.md 更新格式列表、图片分析说明
+
+### Removed
+- 手写 OOXML 解析代码（parse_docx 函数及底层 XML helpers）
+- pdftotext 依赖（由 MarkItDown 内置 PDF 解析替代）
+
+## [2.5.1] - 2026-05-01
+
+### Fixed
+- output-contracts.md 补全 layer-impact 的 `affected_symbols`/`business_constraints` 和 contract-delta 的 `graph_evidence_refs`
+- SKILL.md 加图谱增强 section，workflow.md Step 3/4 加图谱引用
+
 ## [2.5.0] - 2026-04-30
 
 ### Added
