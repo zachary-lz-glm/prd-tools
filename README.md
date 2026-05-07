@@ -366,7 +366,15 @@ PRD 读取和质量门禁：
 
 ### 安装
 
-一键安装（7 步自动向导）：
+安装分三层，每层职责单一（详见 [ADR-0008](docs/adr/0008-安装脚本职责拆分.md)）：
+
+| 层 | 谁负责 | 装什么 | 失败行为 |
+|---|---|---|---|
+| 1. `install.sh` | prd-tools 仓库 | build-reference / prd-distill skills、`/reference` 命令、本地 `doctor.sh` | 网络挂直接 exit 1，前面没装的东西不会被污染 |
+| 2. `doctor.sh` | 用户按需运行 | 诊断 uv / MarkItDown / Graphify / GitNexus / API key，给可复制的 fix 命令 | 默认只报告；`--strict` 出错即退；`--fix` 交互式逐条修 |
+| 3. skill 运行时自检 | `/reference` `/prd-distill` 自身 | 在使用某个工具的步骤前就近检查 | 缺什么就降级什么，并在 portal/report 里标明 |
+
+#### 第一步：安装 skills
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/zachary-lz-glm/prd-tools/v2.0/install.sh | bash
@@ -378,28 +386,39 @@ curl -fsSL https://raw.githubusercontent.com/zachary-lz-glm/prd-tools/v2.0/insta
 curl -fsSL https://raw.githubusercontent.com/zachary-lz-glm/prd-tools/v2.0/install.sh | bash -s /path/to/project
 ```
 
-安装向导会自动完成 7 个步骤：
-
-1. 安装 uv（Python 依赖管理）
-2. 安装 MarkItDown + OCR（文档转换 + 图片分析）
-3. 安装 GitNexus 运行时
-4. 安装 Graphify（知识图谱 Skill）
-5. 下载并安装 prd-tools Skills
-6. 配置 GitNexus MCP Server，并用 GitNexus / Graphify 自动索引当前项目
-7. 健康检查 + 可选 API Key 配置
-
-安装后目标项目会生成：
+完成后目标项目下生成：
 
 ```text
-.claude/skills/          # Claude Code Skills
+.claude/skills/          # build-reference / prd-distill skills
 .claude/commands/        # /reference 轻量入口
 .prd-tools-version       # 版本标记
-.prd-tools-runtime.yaml  # 运行时状态（工具可用性、路径）
+.prd-tools/doctor.sh     # 本地副本，可随时跑
 ```
 
-MCP Server 配置写入 `~/.claude/.mcp.json`。安装完成后需要关闭并重新打开 Claude Code，GitNexus MCP 工具才会生效。
+`install.sh` 不再修改 `~/.claude/.mcp.json`、不装 PyPI/npm 包、不写 shell profile。
 
-第 7 步健康检查会检测 LLM Vision API Key。PRD 图片 OCR 和 `/graphify . --mode deep` 的深度语义提取建议配置 vision-capable key：
+#### 第二步：诊断外部依赖
+
+```bash
+bash .prd-tools/doctor.sh           # 仅报告
+bash .prd-tools/doctor.sh --fix     # 交互式逐条修复
+bash .prd-tools/doctor.sh --strict  # 任一项缺失即退出 1（CI 用）
+```
+
+doctor 会逐项检查：
+
+| 项 | 用途 | 缺失影响 |
+|---|---|---|
+| uv | Python 工具运行时 | MarkItDown / Graphify 装不上 |
+| markitdown | PRD 文档转换 | 无法读 .docx/.pdf/.pptx |
+| graphify (`graphifyy`) | 业务语义图谱 | `/graphify . --mode deep` 不可用 |
+| gitnexus runtime (npx/bunx) | 代码图谱 | reference 退化为 grep/glob 扫描 |
+| `~/.claude/.mcp.json` 中的 gitnexus 声明 | MCP 接入 | Claude Code 启动时无 gitnexus 工具 |
+| ANTHROPIC_AUTH_TOKEN / OPENAI_API_KEY | Vision OCR + Graphify deep | PRD 图片标 pending、deep 模式禁用 |
+
+每一项都附带可复制的 fix 命令；`.mcp.json` 缺失时会打出可粘贴的 JSON 片段。
+
+#### 第三步：配置 Vision API key（可选但推荐）
 
 ```bash
 export ANTHROPIC_AUTH_TOKEN=sk-ant-xxx
@@ -407,6 +426,18 @@ export ANTHROPIC_AUTH_TOKEN=sk-ant-xxx
 export ANTHROPIC_BASE_URL=https://your-provider.example/v1
 # 也兼容 OPENAI_API_KEY / OPENAI_BASE_URL
 ```
+
+#### 第四步：重启 Claude Code
+
+新增的 skills 和 MCP 配置需要重启才会加载。
+
+#### 三种典型路径
+
+| 场景 | 推荐 |
+|---|---|
+| 标准网络 + 本机已装 Node + macOS | install.sh → `bash .prd-tools/doctor.sh --fix` 一遍过 |
+| 内网/SOCKS 代理 | install.sh 走 curl 拉 tarball；外部依赖手动按 doctor 输出装（npm/uv 不走 SOCKS） |
+| CI / 自动化 | install.sh + `bash .prd-tools/doctor.sh --strict`，缺啥就在 CI 里加哪一行 |
 
 ### Claude Code
 

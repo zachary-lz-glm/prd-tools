@@ -20,6 +20,7 @@
 | [0004-口径一致性修复](0004-口径一致性修复.md) | P0 版本口径清理 + 输出边界约束 |
 | [0005-Agent-Skills融合落地方案](0005-Agent-Skills融合落地方案.md) | Agent Skills 架构、Slash 命令、Persona、Hook 规划 |
 | [0006-图谱融合与知识库架构](0006-图谱融合与知识库架构.md) | GitNexus + Graphify 双图谱融合和跨项目知识库规划 |
+| [0008-安装脚本职责拆分](0008-安装脚本职责拆分.md) | install.sh 拆为 install / doctor / 运行时自检三层 |
 
 ## ADR 格式
 

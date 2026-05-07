@@ -1,5 +1,18 @@
 # 步骤 2：深度分析
 
+## Pre-flight 依赖检查
+
+进入本步骤前，按需自检（缺失即降级，并在 portal/report 中标注）：
+
+| 阶段 | 必需工具 | 检查方式 | 缺失时的行为 |
+|------|---------|---------|-------------|
+| 阶段 1（代码静态清单） | GitNexus MCP | 调 `mcp__gitnexus__list_repos`；为空说明未索引 | 退化为 grep/glob 扫描，在 `01-codebase.yaml` 标 `graph_sources: []` |
+| 阶段 2（编码规则） | Graphify | 检查 `graphify-out/graph.json` 是否存在 | 跳过 rationale/war-story 抽取，仅保留结构性规则 |
+| 阶段 3（契约） | GitNexus MCP | 同阶段 1 | 仅靠源码扫描；contract 置信度降级为 medium |
+| 阶段 4（路由打法） | Graphify | 同阶段 2 | 仅做关键词匹配，标 `confidence: low` |
+
+任一项缺失，提示用户运行 `bash .prd-tools/doctor.sh` 查看修复命令；本步骤不阻塞继续，但必须在 `00-portal.md` 顶部写明降级清单。
+
 ## 目标
 
 生成 reference v4.0：

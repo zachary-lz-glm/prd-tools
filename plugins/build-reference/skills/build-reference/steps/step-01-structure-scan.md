@@ -1,5 +1,14 @@
 # 步骤 1：结构扫描
 
+## Pre-flight 依赖检查
+
+| 工具 | 检查方式 | 缺失时的行为 |
+|------|---------|-------------|
+| GitNexus MCP | `mcp__gitnexus__list_repos` 返回非空 | 退化为 grep/glob，扫描结果在 `modules-index.yaml` 标 `graph_sources: []` 并提示用户跑 `npx -y gitnexus@latest analyze .` |
+| Graphify (`graphify-out/graph.json`) | 文件存在 | 跳过业务图谱证据，`build/graph/business-evidence.yaml` 不生成 |
+
+任一缺失不阻塞步骤继续，但必须在 `modules-index.yaml` 顶部写明本次扫描的图谱可用性，避免下游 step-02 误以为有图谱证据。修复命令统一指向 `bash .prd-tools/doctor.sh`。
+
 ## 目标
 
 创建 `_prd-tools/build/modules-index.yaml`，记录项目层级、能力面、关键文件、入口点、潜在契约面和证据。同时构建图谱证据（如图谱工具可用）。

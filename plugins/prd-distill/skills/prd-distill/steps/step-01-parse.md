@@ -1,5 +1,17 @@
 # 步骤 1：证据与 Requirement IR
 
+## Pre-flight 依赖检查
+
+进入本步骤前，按 PRD 输入类型自检：
+
+| 输入类型 | 必需工具 | 检查方式 | 缺失时的行为 |
+|---------|---------|---------|-------------|
+| `.docx` / `.pdf` / `.pptx` / `.xlsx` / `.html` / `.epub` | `markitdown` 在 PATH | `command -v markitdown` | **停止本步骤**，提示运行 `bash .prd-tools/doctor.sh --fix` |
+| PRD 含图片/流程图/截图 | Vision API key | `$ANTHROPIC_AUTH_TOKEN` 或 `$OPENAI_API_KEY` | 继续，但所有图片在 `media-analysis.yaml` 标 `status: pending_human_review` |
+| `.md` / `.txt` / 粘贴文本 | 无 | — | 直接进入 ingest |
+
+依赖缺失时不要伪造证据。`extraction-quality.yaml` 必须如实记录跳过的图片/表格，evidence 链路只能引用真实读到的内容。
+
 ## 目标
 
 将 PRD 和可选技术文档解析为：

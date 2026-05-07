@@ -1,212 +1,53 @@
 #!/usr/bin/env bash
+# install.sh — Install prd-tools skills and commands into a target project.
+#
+# Scope: only what this repo OWNS (build-reference / prd-distill skills,
+# /reference command, version marker). External tools (uv, MarkItDown,
+# Graphify, GitNexus, API keys) are NOT touched here — run `prd-tools-doctor`
+# afterwards to check and fix those.
+#
+# See docs/adr/0008-安装脚本职责拆分.md for rationale.
+
 set -euo pipefail
 
 REPO="zachary-lz-glm/prd-tools"
 BRANCH="v2.0"
 TARGET="${1:-.}"
-
-# Resolve to absolute path
 TARGET="$(cd "$TARGET" && pwd)"
 
 CLAUDE_SKILLS_DIR="$TARGET/.claude/skills"
 CLAUDE_COMMANDS_DIR="$TARGET/.claude/commands"
-CLAUDE_CONFIG_DIR="$HOME/.claude"
 TMP_DIR="$(mktemp -d)"
-
 cleanup() { rm -rf "$TMP_DIR"; }
 trap cleanup EXIT
 
 echo ""
 echo "╔══════════════════════════════════════════╗"
-echo "║        prd-tools  one-click install      ║"
+echo "║        prd-tools  install                ║"
 echo "╚══════════════════════════════════════════╝"
 echo ""
 
-# ── Proxy detection ────────────────────────────────────────────────
-
-# Auto-detect system proxy for curl (critical in corporate networks)
-# Priority: env vars > SOCKS proxy > HTTP proxy (SOCKS proxies like VPN/accelerators
-# often handle GitHub better than corporate HTTP proxies)
-_DETECT_PROXY=""
-if [ -n "${http_proxy:-}" ] || [ -n "${HTTP_PROXY:-}" ]; then
-  _DETECT_PROXY="env"
-elif [ -z "${_DETECT_PROXY}" ] && command -v networksetup &>/dev/null; then
-  # Try SOCKS proxy first (commonly used by VPN/accelerator tools)
-  _SOCKS_PROXY=""
-  for _iface in Wi-Fi Ethernet; do
-    _SOCKS_PROXY="$(networksetup -getsocksfirewallproxy "$_iface" 2>/dev/null | awk '/Enabled: Yes/{getline; server=$2; getline; port=$2; print "socks5://"server":"port}' | head -1)" || true
-    [ -n "$_SOCKS_PROXY" ] && break
-  done
-  # Then try HTTP proxy
-  _HTTP_PROXY=""
-  for _iface in Wi-Fi Ethernet; do
-    _HTTP_PROXY="$(networksetup -getwebproxy "$_iface" 2>/dev/null | awk '/Enabled: Yes/{getline; server=$2; getline; port=$2; print "http://"server":"port}' | head -1)" || true
-    [ -n "$_HTTP_PROXY" ] && break
-  done
-  # Verify which one actually works (prefer SOCKS for GitHub access)
-  if [ -n "$_SOCKS_PROXY" ]; then
-    if curl -fsSL --connect-timeout 3 --max-time 5 --proxy "$_SOCKS_PROXY" -o /dev/null https://github.com 2>/dev/null; then
-      export http_proxy="$_SOCKS_PROXY"
-      export https_proxy="$_SOCKS_PROXY"
-      _DETECT_PROXY="socks"
-      echo "  Auto-detected proxy (SOCKS): $_SOCKS_PROXY"
-      echo ""
-    fi
-  fi
-  if [ -z "$_DETECT_PROXY" ] && [ -n "$_HTTP_PROXY" ]; then
-    if curl -fsSL --connect-timeout 3 --max-time 5 --proxy "$_HTTP_PROXY" -o /dev/null https://github.com 2>/dev/null; then
-      export http_proxy="$_HTTP_PROXY"
-      export https_proxy="$_HTTP_PROXY"
-      _DETECT_PROXY="http"
-      echo "  Auto-detected proxy (HTTP): $_HTTP_PROXY"
-      echo ""
-    fi
-  fi
-  if [ -z "$_DETECT_PROXY" ]; then
-    echo "  WARNING: System proxy detected but cannot reach GitHub." >&2
-    echo "  SOCKS: ${_SOCKS_PROXY:-none}  HTTP: ${_HTTP_PROXY:-none}" >&2
-    echo "  Continuing without proxy..." >&2
-    echo ""
-  fi
+# ── Proxy (curl only) ─────────────────────────────────────────────
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+if [ -f "$SCRIPT_DIR/scripts/lib/detect_proxy.sh" ]; then
+  # shellcheck disable=SC1091
+  source "$SCRIPT_DIR/scripts/lib/detect_proxy.sh"
+  detect_proxy_for_curl
 fi
 
-# Ensure curl uses proxy
-if [ -n "${http_proxy:-}" ] || [ -n "${HTTP_PROXY:-}" ]; then
-  echo "  Using proxy: ${http_proxy:-${HTTP_PROXY:-set}}"
-  echo ""
-fi
-
-# ── Status tracking ────────────────────────────────────────────────
-
-MCP_CMD=""
-MCP_ARGS=""
-GRAPHIFY_STATUS="missing"
-MARKITDOWN_STATUS="missing"
-
-# ── Step 1/7: Install uv (Python dependency manager) ───────────────
-
-echo "==> [1/7] Checking uv (Python dependency manager)..."
-
-if command -v uv &>/dev/null; then
-  echo "    uv already installed: $(uv --version 2>/dev/null || echo 'ok')"
-else
-  echo "    Installing uv..."
-  curl -LsSf https://astral.sh/uv/install.sh | sh 2>/dev/null
-  export PATH="$HOME/.local/bin:$HOME/.cargo/bin:$PATH"
-  if command -v uv &>/dev/null; then
-    echo "    uv installed: $(uv --version)"
-  else
-    echo "    ERROR: uv installation failed." >&2
-    echo "    Install manually: curl -LsSf https://astral.sh/uv/install.sh | sh" >&2
-    exit 1
-  fi
-fi
-
-export PATH="$HOME/.local/bin:$HOME/.cargo/bin:$PATH"
-
-# ── Step 2/7: Install MarkItDown (document reader) ─────────────────
-
-echo "==> [2/7] Checking MarkItDown (PDF/DOCX/PPTX reader)..."
-
-if command -v markitdown &>/dev/null; then
-  echo "    markitdown already installed"
-  MARKITDOWN_STATUS="ok"
-else
-  echo "    Installing markitdown via uv (with OCR support)..."
-  if ! uv tool install "markitdown[all]" 2>/dev/null; then
-    echo "    WARNING: markitdown installation failed." >&2
-  fi
-  if ! uv tool install markitdown-ocr 2>/dev/null; then
-    echo "    WARNING: markitdown-ocr installation failed; document conversion may still work without image OCR." >&2
-  fi
-  if command -v markitdown &>/dev/null; then
-    echo "    markitdown installed (with OCR support)"
-    MARKITDOWN_STATUS="ok"
-  else
-    echo "    WARNING: markitdown installation failed." >&2
-    echo "    Install manually: uv tool install markitdown" >&2
-  fi
-fi
-
-# ── Step 3/7: Install GitNexus runtime (npx or bun) ────────────────
-
-echo "==> [3/7] Checking GitNexus runtime..."
-
-if command -v npx &>/dev/null; then
-  MCP_CMD="$(command -v npx)"
-  MCP_ARGS='["-y","gitnexus@latest","mcp"]'
-  echo "    npx available — GitNexus will use Node.js"
-elif command -v bun &>/dev/null; then
-  if command -v bunx &>/dev/null; then
-    MCP_CMD="$(command -v bunx)"
-    MCP_ARGS='["--bun","gitnexus@latest","mcp"]'
-    echo "    bun available — GitNexus will use Bun"
-  else
-    echo "    WARNING: bun found but bunx is missing. GitNexus (graph) will not be available." >&2
-  fi
-else
-  echo "    Neither npx nor bun found. Installing bun..."
-  if curl -fsSL https://bun.sh/install | bash 2>/dev/null; then
-    export PATH="$HOME/.bun/bin:$PATH"
-    if command -v bunx &>/dev/null; then
-      MCP_CMD="$(command -v bunx)"
-      MCP_ARGS='["--bun","gitnexus@latest","mcp"]'
-      echo "    bun installed — GitNexus will use Bun"
-    else
-      echo "    WARNING: bun installation completed but bunx is missing. GitNexus (graph) will not be available." >&2
-    fi
-  else
-    echo "    WARNING: bun installation failed. GitNexus (graph) will not be available." >&2
-    echo "    Install manually: curl -fsSL https://bun.sh/install | bash" >&2
-  fi
-fi
-
-# ── Step 4/7: Install Graphify (knowledge graph) ────────────────────
-
-echo "==> [4/7] Checking Graphify (knowledge graph)..."
-
-GRAPHIFY_INSTALLED=false
-
-if command -v graphify &>/dev/null; then
-  echo "    graphify already installed (CLI command; official PyPI package is graphifyy)"
-  GRAPHIFY_INSTALLED=true
-else
-  echo "    Installing Graphify via uv (official package: graphifyy, CLI: graphify)..."
-  if ! uv tool install graphifyy 2>/dev/null; then
-    echo "    WARNING: graphify installation failed." >&2
-  fi
-  if command -v graphify &>/dev/null; then
-    echo "    graphify installed"
-    GRAPHIFY_INSTALLED=true
-  else
-    echo "    WARNING: graphify installation failed." >&2
-    echo "    Install manually: uv tool install graphifyy" >&2
-  fi
-fi
-
-if [ "$GRAPHIFY_INSTALLED" = true ]; then
-  graphify install 2>/dev/null && echo "    Graphify skill registered" || echo "    WARNING: graphify install failed (skill not registered)" >&2
-  GRAPHIFY_STATUS="ok"
-fi
-
-# ── Step 5/7: Download and install prd-tools skills ────────────────
-
-echo "==> [5/7] Downloading prd-tools..."
-
+# ── Download archive ──────────────────────────────────────────────
+echo "==> Downloading prd-tools ($BRANCH)..."
 ARCHIVE_URL="https://github.com/$REPO/archive/refs/heads/$BRANCH.tar.gz"
-
-if ! curl -fsSL --connect-timeout 10 --max-time 60 "$ARCHIVE_URL" | tar -xz -C "$TMP_DIR" 2>/dev/null; then
+if ! curl -fsSL --connect-timeout 10 --max-time 60 "$ARCHIVE_URL" \
+     | tar -xz -C "$TMP_DIR" 2>/dev/null; then
   echo "" >&2
-  echo "ERROR: Download from GitHub failed (network issue?)" >&2
+  echo "ERROR: GitHub archive download failed." >&2
   echo "" >&2
-  echo "Fallback — clone via git and install locally:" >&2
-  echo "  git clone --depth 1 https://github.com/$REPO.git /tmp/prd-tools" >&2
-  echo "  cp -r /tmp/prd-tools/plugins/*/skills/* $CLAUDE_SKILLS_DIR/" >&2
+  echo "Fallback — clone via git, then copy manually:" >&2
+  echo "  git clone --depth 1 -b $BRANCH https://github.com/$REPO.git /tmp/prd-tools" >&2
+  echo "  bash /tmp/prd-tools/install.sh $TARGET" >&2
   exit 1
 fi
-
-mkdir -p "$CLAUDE_SKILLS_DIR"
-mkdir -p "$CLAUDE_COMMANDS_DIR"
 
 ARCHIVE_ROOT="$(find "$TMP_DIR" -mindepth 1 -maxdepth 1 -type d | head -1)"
 if [ -z "$ARCHIVE_ROOT" ] || [ ! -d "$ARCHIVE_ROOT/plugins" ]; then
@@ -214,312 +55,62 @@ if [ -z "$ARCHIVE_ROOT" ] || [ ! -d "$ARCHIVE_ROOT/plugins" ]; then
   exit 1
 fi
 
-SRC_DIR="$ARCHIVE_ROOT/plugins"
-VERSION_FILE="$ARCHIVE_ROOT/VERSION"
-TOOL_VERSION="unknown"
-if [ -f "$VERSION_FILE" ]; then
-  TOOL_VERSION="$(tr -d '[:space:]' < "$VERSION_FILE")"
-fi
-
+# ── Copy skills ───────────────────────────────────────────────────
+mkdir -p "$CLAUDE_SKILLS_DIR" "$CLAUDE_COMMANDS_DIR"
+echo "==> Installing skills to $CLAUDE_SKILLS_DIR"
 for skill in build-reference prd-distill; do
-  src="$SRC_DIR/$skill/skills/$skill"
+  src="$ARCHIVE_ROOT/plugins/$skill/skills/$skill"
   if [ -d "$src" ]; then
-    dst="$CLAUDE_SKILLS_DIR/$skill"
-    rm -rf "$dst"
-    cp -r "$src" "$dst"
+    rm -rf "$CLAUDE_SKILLS_DIR/$skill"
+    cp -r "$src" "$CLAUDE_SKILLS_DIR/$skill"
     echo "    Installed: $skill"
   else
     echo "    WARNING: $skill not found in archive" >&2
   fi
 done
 
+# ── Copy commands ─────────────────────────────────────────────────
 COMMAND_SRC="$ARCHIVE_ROOT/.claude/commands/reference.md"
 if [ -f "$COMMAND_SRC" ]; then
   cp "$COMMAND_SRC" "$CLAUDE_COMMANDS_DIR/reference.md"
-  echo "    Installed command alias: /reference"
+  echo "    Installed command: /reference"
 fi
 
-# Write version marker
+# ── Copy doctor script (so users have it locally) ─────────────────
+DOCTOR_SRC="$ARCHIVE_ROOT/scripts/doctor.sh"
+if [ -f "$DOCTOR_SRC" ]; then
+  mkdir -p "$TARGET/.prd-tools"
+  cp "$DOCTOR_SRC" "$TARGET/.prd-tools/doctor.sh"
+  if [ -d "$ARCHIVE_ROOT/scripts/lib" ]; then
+    mkdir -p "$TARGET/.prd-tools/lib"
+    cp -r "$ARCHIVE_ROOT/scripts/lib/." "$TARGET/.prd-tools/lib/"
+  fi
+  chmod +x "$TARGET/.prd-tools/doctor.sh"
+  echo "    Installed doctor: $TARGET/.prd-tools/doctor.sh"
+fi
+
+# ── Version marker ────────────────────────────────────────────────
+TOOL_VERSION="unknown"
+[ -f "$ARCHIVE_ROOT/VERSION" ] && TOOL_VERSION="$(tr -d '[:space:]' < "$ARCHIVE_ROOT/VERSION")"
 cat > "$TARGET/.prd-tools-version" <<EOF
 version=$TOOL_VERSION
 installed_at=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 source=github.com/$REPO
 branch=$BRANCH
-runtime_uv=$(command -v uv 2>/dev/null || echo "not_found")
-runtime_gitnexus=$MCP_CMD
-runtime_graphify=$(command -v graphify 2>/dev/null || echo "not_found")
-runtime_graphify_package=graphifyy
-runtime_markitdown=$(command -v markitdown 2>/dev/null || echo "not_found")
-commands_dir=$CLAUDE_COMMANDS_DIR
 EOF
 
-# ── Step 6/7: Configure GitNexus MCP ───────────────────────────────
-
-echo "==> [6/7] Configuring GitNexus MCP..."
-
-# Configure MCP server
-if [ -n "$MCP_CMD" ]; then
-  MCP_CONFIG="$CLAUDE_CONFIG_DIR/.mcp.json"
-
-  if [ -f "$MCP_CONFIG" ]; then
-    python3 -c "
-import json, sys
-try:
-    with open('$MCP_CONFIG') as f:
-        config = json.load(f)
-except:
-    config = {}
-if 'mcpServers' not in config:
-    config['mcpServers'] = {}
-_gitnexus_env = {}
-if '$MCP_CMD'.endswith('npx'):
-    _gitnexus_env['npm_config_registry'] = 'https://registry.npmjs.org'
-config['mcpServers']['gitnexus'] = {
-    'command': '$MCP_CMD',
-    'args': $MCP_ARGS,
-    'env': _gitnexus_env
-}
-with open('$MCP_CONFIG', 'w') as f:
-    json.dump(config, f, indent=2)
-print('    Configured: gitnexus MCP server ($MCP_CMD)')
-" 2>/dev/null || echo "    WARNING: Could not update $MCP_CONFIG. Add gitnexus manually." >&2
-  else
-    mkdir -p "$CLAUDE_CONFIG_DIR"
-    if [[ "$MCP_CMD" == *npx ]]; then
-      cat > "$MCP_CONFIG" <<MCPJSON
-{
-  "mcpServers": {
-    "gitnexus": {
-      "command": "$MCP_CMD",
-      "args": $MCP_ARGS,
-      "env": {"npm_config_registry": "https://registry.npmjs.org"}
-    }
-  }
-}
-MCPJSON
-    else
-      cat > "$MCP_CONFIG" <<MCPJSON
-{
-  "mcpServers": {
-    "gitnexus": {
-      "command": "$MCP_CMD",
-      "args": $MCP_ARGS
-    }
-  }
-}
-MCPJSON
-    fi
-    echo "    Created: $MCP_CONFIG (gitnexus via $MCP_CMD)"
-  fi
-else
-  echo "    Skipped MCP config: No GitNexus runtime available"
-fi
-
-# Note: GitNexus indexing happens automatically when /build-reference runs.
-# Graphify code structure extraction happens automatically when /graphify runs.
-
-# ── Step 7/7: Health check + API key ───────────────────────────────
-
-echo "==> [7/7] Health check..."
-
+# ── Done ──────────────────────────────────────────────────────────
 echo ""
 echo "========================================="
-echo "  prd-tools v$TOOL_VERSION installed!"
+echo "  prd-tools v$TOOL_VERSION skills installed"
 echo "========================================="
 echo ""
-echo "Runtime:"
-echo "  uv:         $(command -v uv 2>/dev/null || echo 'NOT FOUND')"
-echo "  GitNexus:   ${MCP_CMD:-NOT CONFIGURED}"
-echo "  Graphify:   $(command -v graphify 2>/dev/null || echo 'NOT FOUND')"
-echo "  MarkItDown: $(command -v markitdown 2>/dev/null || echo 'NOT FOUND')"
+echo "Next:"
+echo "  1. Check external dependencies:"
+echo "       bash $TARGET/.prd-tools/doctor.sh"
+echo "     (verifies uv / MarkItDown / Graphify / GitNexus / API key)"
 echo ""
-echo "Skills:"
-echo "  /reference        —  Build domain knowledge (lightweight alias)"
-echo "  /prd-distill      —  Distill PRD document (with Vision)"
-echo "  /graphify         —  Knowledge graph from code/docs"
+echo "  2. Restart Claude Code so the new skills load."
 echo ""
-echo "Commands:"
-echo "  /reference        —  Lightweight alias for build-reference"
-echo ""
-# Report issues
-ISSUES=0
-
-# Check API keys for LLM Vision (PRD image OCR and Graphify deep semantic graph)
-VISION_KEY=""
-
-if [ -n "${ANTHROPIC_AUTH_TOKEN:-}" ]; then
-  VISION_KEY="ANTHROPIC_AUTH_TOKEN"
-elif [ -n "${OPENAI_API_KEY:-}" ]; then
-  VISION_KEY="OPENAI_API_KEY"
-fi
-
-if [ -z "$MCP_CMD" ]; then
-  ISSUES=$((ISSUES + 1))
-  echo "  ❌ GitNexus: FAILED — no runtime (npx/bun) available"
-  echo "     Fix: curl -fsSL https://bun.sh/install | bash && rerun install.sh"
-fi
-
-if [ "$GRAPHIFY_STATUS" != "ok" ]; then
-  ISSUES=$((ISSUES + 1))
-  echo "  ❌ Graphify: FAILED — business semantic graph unavailable"
-  echo "     Fix: uv tool install graphifyy"
-fi
-
-if [ "$MARKITDOWN_STATUS" != "ok" ]; then
-  ISSUES=$((ISSUES + 1))
-  echo "  ❌ MarkItDown: FAILED — PRD document reading (PDF/DOCX/PPTX) unavailable"
-  echo "     Fix: uv tool install markitdown"
-fi
-
-if [ "$ISSUES" -gt 0 ]; then
-  echo ""
-  echo "  ⚠️  $ISSUES tool(s) failed. prd-tools will work but with reduced capability."
-  echo "     Fix the issues above and rerun: bash install.sh $TARGET"
-  echo ""
-fi
-
-# API key check — interactive prompt for LLM Vision (PRD image OCR and Graphify deep semantic graph)
-if [ -z "${VISION_KEY:-}" ]; then
-  echo "  ⚠️  未检测到 API Key，以下功能受限："
-  echo "     - PRD 中的流程图/截图/设计稿无法解析"
-  echo "     - /graphify . --mode deep 无法提取业务语义"
-  echo ""
-  echo "  请输入 API Key（按 Enter 跳过，后续可手动配置）："
-  echo "     Anthropic:  ANTHROPIC_AUTH_TOKEN"
-  echo "     OpenAI 兼容: OPENAI_API_KEY + OPENAI_BASE_URL"
-  echo "     智谱:        ANTHROPIC_AUTH_TOKEN + ANTHROPIC_BASE_URL=https://open.bigmodel.cn/api/paas/v4/"
-  echo ""
-  USER_ANTHROPIC_TOKEN=""
-  # 从 /dev/tty 读取输入，确保在 Claude Code 等非交互环境中也能提示用户
-  if [ -e /dev/tty ]; then
-    read -p "  Enter ANTHROPIC_AUTH_TOKEN (or press Enter to skip): " USER_ANTHROPIC_TOKEN < /dev/tty
-  else
-    echo "  无法打开终端输入，跳过 API Key 配置。"
-    echo "  请手动配置: export ANTHROPIC_AUTH_TOKEN=sk-ant-xxx"
-    echo ""
-  fi
-  if [ -n "$USER_ANTHROPIC_TOKEN" ]; then
-    export ANTHROPIC_AUTH_TOKEN="$USER_ANTHROPIC_TOKEN"
-    # Persist to shell profile
-    PROFILE_FILE=""
-    if [ -f "$HOME/.zshrc" ]; then
-      PROFILE_FILE="$HOME/.zshrc"
-    elif [ -f "$HOME/.bashrc" ]; then
-      PROFILE_FILE="$HOME/.bashrc"
-    fi
-    if [ -n "$PROFILE_FILE" ]; then
-      sed -i.bak '/^export ANTHROPIC_AUTH_TOKEN=/d' "$PROFILE_FILE" 2>/dev/null
-      echo "export ANTHROPIC_AUTH_TOKEN=\"$USER_ANTHROPIC_TOKEN\"" >> "$PROFILE_FILE"
-      rm -f "$PROFILE_FILE.bak"
-      echo "  ✅ ANTHROPIC_AUTH_TOKEN saved to $PROFILE_FILE"
-    fi
-    echo "  ℹ️  LLM Vision / Graphify deep extraction 已就绪"
-    echo ""
-  else
-    echo "  ⚠️  已跳过。请手动配置: export ANTHROPIC_AUTH_TOKEN=sk-ant-xxx"
-    echo ""
-  fi
-else
-  echo "  ✅ 已检测到 ${VISION_KEY:-}，PRD 图片解析和 Graphify 深度语义已就绪"
-  echo ""
-fi
-
-# Final summary
-TOOLS_OK=true
-[ -z "$MCP_CMD" ] && TOOLS_OK=false
-[ "$GRAPHIFY_STATUS" != "ok" ] && TOOLS_OK=false
-[ "$MARKITDOWN_STATUS" != "ok" ] && TOOLS_OK=false
-
-if [ "$TOOLS_OK" = true ]; then
-  echo "  ✅ All tools installed. Ready to use /reference and /prd-distill."
-  echo ""
-fi
-
-# Write a human-readable runtime contract so users can see which enhanced
-# capabilities are active before they run the skills.
-GRAPHIFY_HTML="$TARGET/graphify-out/graph.html"
-GRAPHIFY_REPORT="$TARGET/graphify-out/GRAPH_REPORT.md"
-GITNEXUS_INDEX="$TARGET/.gitnexus"
-cat > "$TARGET/.prd-tools-runtime.yaml" <<EOF
-schema_version: "1.0"
-generated_at: "$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
-target: "$TARGET"
-tools:
-  markitdown:
-    status: "$MARKITDOWN_STATUS"
-    command: "$(command -v markitdown 2>/dev/null || echo "not_found")"
-    purpose: "PRD document conversion; image OCR requires a vision-capable API key"
-  gitnexus:
-    status: "${MCP_CMD:+ok}"
-    command: "${MCP_CMD:-not_configured}"
-    indexed: false
-    index_path: "$GITNEXUS_INDEX"
-    purpose: "code graph, call chains, impact analysis (indexed during /build-reference)"
-  graphify:
-    status: "$GRAPHIFY_STATUS"
-    package: "graphifyy"
-    command: "$(command -v graphify 2>/dev/null || echo "not_found")"
-    graph_path: "$TARGET/graphify-out/graph.json"
-    visual_page: "$GRAPHIFY_HTML"
-    report: "$GRAPHIFY_REPORT"
-    purpose: "business semantic graph from code, docs, screenshots, diagrams"
-  commands:
-    status: "ok"
-    path: "$CLAUDE_COMMANDS_DIR"
-    installed:
-      - "/reference"
-next_steps:
-  - "1. Close and reopen Claude Code to activate GitNexus MCP."
-  - "2. Set ANTHROPIC_AUTH_TOKEN (or OPENAI_API_KEY) for PRD image OCR and /graphify . --mode deep."
-  - "3. (Optional) Run gitnexus analyze to build code index for better /reference results."
-  - "4. (Optional) Run /graphify . --mode deep to build business semantic graph."
-  - "5. Run /reference to build knowledge base."
-EOF
-
-echo "  Runtime status written: $TARGET/.prd-tools-runtime.yaml"
-if [ -f "$GRAPHIFY_HTML" ]; then
-  echo "  Graphify visual page: $GRAPHIFY_HTML"
-elif [ "$GRAPHIFY_STATUS" = "ok" ]; then
-  echo "  Graphify visual page will appear after: /graphify . --mode deep"
-  echo "     Expected path: $GRAPHIFY_HTML"
-fi
-
-# Restart reminder
-echo "  ⚡ IMPORTANT: Close and reopen Claude Code to activate GitNexus MCP server."
-echo "     MCP config was written to ~/.claude/.mcp.json."
-echo ""
-echo "  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo "  📋 安装后必做（按顺序）"
-echo "  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo ""
-echo "  1. 关闭并重新打开 Claude Code"
-echo "     → GitNexus MCP 工具才会生效"
-echo ""
-echo "  2. 配置 Vision API Key（PRD 图片解析 + Graphify 深度语义）"
-if [ -n "$VISION_KEY" ] || [ -n "${ANTHROPIC_AUTH_TOKEN:-}" ]; then
-echo "     ✅ 已配置，无需额外操作"
-else
-echo "     ⚠️  未配置，请在 shell 中执行："
-echo "       export ANTHROPIC_AUTH_TOKEN=sk-ant-xxx"
-echo "     智谱用户额外设置："
-echo "       export ANTHROPIC_BASE_URL=https://open.bigmodel.cn/api/paas/v4/"
-fi
-echo ""
-echo "  3. 构建代码索引（提升 /reference 扫描质量，可选）"
-echo "     → npx -y gitnexus@latest analyze . --embeddings"
-echo "     → 无 Node 时: bunx --bun gitnexus@latest analyze . --embeddings"
-echo "     → 跳过不影响使用，/reference 会回退到 grep/glob 扫描"
-echo ""
-echo "  4. 运行 /graphify . --mode deep（构建业务语义图谱，可选）"
-echo "     → 把代码、PRD、技术文档提取为业务概念关系"
-if [ -z "${VISION_KEY:-}" ]; then
-echo "     ⚠️  需要先完成步骤 2 配置 API Key"
-fi
-echo ""
-echo "  5. 运行 /reference（构建项目知识库）"
-echo "     → 生成 _prd-tools/reference/ 和 _prd-tools/build/"
-echo ""
-echo "  常用入口：/reference → /prd-distill"
-echo ""
-echo "  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "  3. Run /reference to build the project knowledge base."
 echo ""
