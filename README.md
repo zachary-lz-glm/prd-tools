@@ -115,18 +115,54 @@ LLM Vision 图片分析（可选增强）：
 
 ## 外部工具
 
-PRD Tools 的部分能力依赖外部工具，安装脚本会自动处理：
+PRD Tools 的部分能力依赖外部工具。安装脚本自动处理安装和配置，**所有工具都是可选的**——缺失时核心功能仍可用，只是降级到源码扫描。
 
-| 工具 | 用途 | 安装方式 |
-|---|---|---|
-| **MarkItDown** (microsoft/markitdown) | 文档转换后端，支持 docx/pdf/pptx/xlsx/html/epub | `uv tool install "markitdown[all]"` |
-| **MarkItDown-OCR** | LLM Vision 图片分析（流程图、设计稿、截图） | `uv tool install markitdown-ocr` |
-| **GitNexus** | 代码知识图谱：代码结构、调用链、影响分析、执行流追踪 | npx 或 bunx，自动配置为 MCP Server |
-| **Graphify** | 通用知识图谱：从代码/文档/论文/图片生成聚类社区 | Claude Code Skill，自动安装 |
+| 工具 | 在 PRD Tools 中做什么 | 缺失影响 | 安装方式 |
+|---|---|---|---|
+| **[MarkItDown](https://github.com/microsoft/markitdown)** | PRD 文档转换：把 docx/pdf/pptx/xlsx/html/epub 转成可分析 markdown | 只能处理 `.md`/`.txt` 和粘贴文本 | `uv tool install "markitdown[all]"` |
+| **[markitdown-ocr](https://github.com/microsoft/markitdown/tree/main/packages/markitdown-ocr)** | PRD 图片 OCR：提取 PDF/DOCX 中嵌入图片的文字，扫描件全文 OCR | PRD 中图片文字无法提取 | `uv tool install markitdown-ocr` |
+| **[GitNexus](https://github.com/abhigyanpatwari/GitNexus)** | 代码知识图谱：AST 解析代码结构，提取模块、符号、调用链、API consumer、执行流；支持语义搜索（需 `--embeddings`） | 回退到 `rg`/glob + Read 手动扫描 | npx/bunx，自动配置为 MCP Server |
+| **[Graphify](https://github.com/safishamsi/graphify)** | 业务语义图谱：从代码和文档中提取业务概念聚类、设计原理、隐式关联和约束 | 手工阅读推断业务语义 | `uv tool install graphifyy`，自动注册为 Claude Code Skill |
 
-安装后 GitNexus MCP 会被注册到 `~/.claude/.mcp.json`，Claude Code 重启后自动加载。Graphify 通过 Claude Code Skill 提供 `/graphify` 系列命令。
+### GitNexus
+
+GitNexus 把代码仓库索引为知识图谱，通过 MCP Server 为 Claude Code 提供 16 个工具（query、context、impact、cypher 等）。安装脚本会：
+
+1. 自动检测 npx 或 bunx 运行时
+2. 注册 MCP Server 到 `~/.claude/.mcp.json`（Claude Code 重启后加载）
+3. 对目标项目执行 `gitnexus analyze --embeddings`（优先启用语义搜索；HuggingFace 不可达时自动回退到 AST-only 模式）
+
+日常更新索引：
+```bash
+# 完整更新（含语义搜索，需要下载 HuggingFace 模型）
+gitnexus analyze . --embeddings
+
+# 快速更新（仅 AST 结构，不需要网络）
+gitnexus analyze .
+```
+
+### Graphify
+
+Graphify 是 Claude Code Skill，提供 `/graphify` 命令。安装脚本会执行 `graphify update .` 提取代码结构（快速，无 LLM）。深度业务语义分析需要在 Claude Code 中运行：
+
+```
+/graphify . --mode deep
+```
+
+这会使用 LLM Vision 分析代码和文档中的业务概念、设计原理和隐式关联，生成 `graphify-out/` 目录下的图谱文件。
+
+### MarkItDown
+
+Microsoft 的文档转换工具，支持 50+ 格式。`prd-distill` 的 PRD Ingestion 阶段使用它把原始文档转成可审计的 markdown。支持：
+
+- **正文提取**：docx/pdf/pptx/xlsx/html/epub → markdown
+- **表格提取**：单独抽出表格，便于核验
+- **图片提取**：保存原文件，配合 LLM Vision 分析语义
+- **OCR 扩展**（`markitdown-ocr`）：PDF/DOCX 中嵌入图片的文字提取、扫描件全文 OCR
 
 ## 两个技能
+
+> 各技能的详细使用说明见插件目录下的 README：[`plugins/build-reference/README.md`](plugins/build-reference/README.md) 和 [`plugins/prd-distill/README.md`](plugins/prd-distill/README.md)。
 
 ### build-reference
 
