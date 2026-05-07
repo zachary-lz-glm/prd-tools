@@ -240,9 +240,13 @@ except:
     config = {}
 if 'mcpServers' not in config:
     config['mcpServers'] = {}
+_gitnexus_env = {}
+if '$MCP_CMD'.endswith('npx'):
+    _gitnexus_env['npm_config_registry'] = 'https://registry.npmjs.org'
 config['mcpServers']['gitnexus'] = {
     'command': '$MCP_CMD',
-    'args': $MCP_ARGS
+    'args': $MCP_ARGS,
+    'env': _gitnexus_env
 }
 with open('$MCP_CONFIG', 'w') as f:
     json.dump(config, f, indent=2)
@@ -250,7 +254,20 @@ print('    Configured: gitnexus MCP server ($MCP_CMD)')
 " 2>/dev/null || echo "    WARNING: Could not update $MCP_CONFIG. Add gitnexus manually." >&2
   else
     mkdir -p "$CLAUDE_CONFIG_DIR"
-    cat > "$MCP_CONFIG" <<MCPJSON
+    if [[ "$MCP_CMD" == *npx ]]; then
+      cat > "$MCP_CONFIG" <<MCPJSON
+{
+  "mcpServers": {
+    "gitnexus": {
+      "command": "$MCP_CMD",
+      "args": $MCP_ARGS,
+      "env": {"npm_config_registry": "https://registry.npmjs.org"}
+    }
+  }
+}
+MCPJSON
+    else
+      cat > "$MCP_CONFIG" <<MCPJSON
 {
   "mcpServers": {
     "gitnexus": {
@@ -260,6 +277,7 @@ print('    Configured: gitnexus MCP server ($MCP_CMD)')
   }
 }
 MCPJSON
+    fi
     echo "    Created: $MCP_CONFIG (gitnexus via $MCP_CMD)"
   fi
 else
@@ -270,7 +288,7 @@ fi
 if [ -n "$MCP_CMD" ] && [ -d "$TARGET/.git" ]; then
   echo "    Indexing with GitNexus (AST-based code structure)..."
   if [[ "$MCP_CMD" == *npx ]]; then
-    if "$MCP_CMD" -y gitnexus@latest analyze "$TARGET" 2>&1 | tail -5; then
+    if npm_config_registry=https://registry.npmjs.org "$MCP_CMD" -y gitnexus@latest analyze "$TARGET" 2>&1 | tail -5; then
       echo "    GitNexus: code structure indexed"
       GITNEXUS_INDEXED=true
       GITNEXUS_STATUS="ok"
