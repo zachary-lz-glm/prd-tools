@@ -40,7 +40,7 @@ warn()  { printf "  %s⚠️%s  %-12s %s\n" "$C_WARN" "$C_R" "$1" "$2"; [ -n "${
 
 echo ""
 echo "╔══════════════════════════════════════════╗"
-echo "║        prd-tools  doctor                 ║"
+echo "║          prd-tools 依赖诊断              ║"
 echo "╚══════════════════════════════════════════╝"
 echo ""
 
@@ -48,22 +48,22 @@ echo ""
 if command -v uv &>/dev/null; then
   ok "uv" "$(uv --version 2>/dev/null | head -1) ($(command -v uv))"
 else
-  bad "uv" "not installed" "curl -LsSf https://astral.sh/uv/install.sh | sh"
+  bad "uv" "未安装" "curl -LsSf https://astral.sh/uv/install.sh | sh"
 fi
 
 # ── 2. markitdown ─────────────────────────────────────────────────
 if command -v markitdown &>/dev/null; then
   ok "markitdown" "$(command -v markitdown)"
 else
-  bad "markitdown" "not installed (PRD docx/pdf reading unavailable)" \
+  bad "markitdown" "未安装（PRD 的 docx/pdf 无法解析）" \
       'uv tool install "markitdown[all]" && uv tool install markitdown-ocr'
 fi
 
 # ── 3. graphify ───────────────────────────────────────────────────
 if command -v graphify &>/dev/null; then
-  ok "graphify" "$(command -v graphify) (package: graphifyy)"
+  ok "graphify" "$(command -v graphify)（包名 graphifyy）"
 else
-  bad "graphify" "not installed (semantic graph unavailable)" \
+  bad "graphify" "未安装（业务语义图谱不可用）" \
       "uv tool install graphifyy && graphify install"
 fi
 
@@ -76,64 +76,64 @@ elif command -v bunx &>/dev/null; then
 fi
 
 if [ -n "$GN_RUNTIME" ]; then
-  ok "gitnexus-rt" "$GN_RUNTIME available ($(command -v $GN_RUNTIME))"
-  # Probe whether the gitnexus package can actually load. Do not block.
+  ok "gitnexus-rt" "$GN_RUNTIME 可用（$(command -v $GN_RUNTIME)）"
   if [ "$GN_RUNTIME" = "npx" ]; then
     if timeout 15 npx -y gitnexus@latest --version &>/dev/null; then
-      ok "gitnexus" "package reachable via npm"
+      ok "gitnexus" "npm 可拉到 gitnexus 包"
     else
-      warn "gitnexus" "package fetch failed (network/registry?)" \
-           "npx -y gitnexus@latest --version    # to see the error"
+      warn "gitnexus" "拉包探测失败（网络/registry 问题，但不阻断使用）" \
+           "npx -y gitnexus@latest --version    # 看具体报错"
     fi
   fi
 else
-  bad "gitnexus-rt" "neither npx nor bunx in PATH" \
-      "curl -fsSL https://bun.sh/install | bash    # or install Node.js"
+  bad "gitnexus-rt" "PATH 中既没有 npx 也没有 bunx" \
+      "curl -fsSL https://bun.sh/install | bash    # 或安装 Node.js"
 fi
 
 # ── 5. .mcp.json ──────────────────────────────────────────────────
 MCP_FILE="$HOME/.claude/.mcp.json"
 if [ -f "$MCP_FILE" ] && grep -q '"gitnexus"' "$MCP_FILE" 2>/dev/null; then
-  ok "mcp-config" "gitnexus declared in $MCP_FILE"
+  ok "mcp-config" "$MCP_FILE 已声明 gitnexus"
 else
-  warn "mcp-config" "gitnexus NOT declared in $MCP_FILE" \
-       "add the snippet printed at the bottom of this report"
+  warn "mcp-config" "$MCP_FILE 未声明 gitnexus" \
+       "把下方 JSON 片段合并进去"
 fi
 
 # ── 6. Vision API key ─────────────────────────────────────────────
 if [ -n "${ANTHROPIC_AUTH_TOKEN:-}" ]; then
-  ok "api-key" "ANTHROPIC_AUTH_TOKEN set"
+  ok "api-key" "ANTHROPIC_AUTH_TOKEN 已设置"
 elif [ -n "${OPENAI_API_KEY:-}" ]; then
-  ok "api-key" "OPENAI_API_KEY set"
+  ok "api-key" "OPENAI_API_KEY 已设置"
 else
-  bad "api-key" "no Vision key (PRD image OCR + graphify --mode deep disabled)" \
-      "export ANTHROPIC_AUTH_TOKEN=sk-ant-xxx    # add to ~/.zshrc to persist"
+  bad "api-key" "未配置 Vision Key（PRD 图片 OCR 和 graphify --mode deep 不可用）" \
+      "export ANTHROPIC_AUTH_TOKEN=sk-ant-xxx    # 加到 ~/.zshrc 持久化"
 fi
 
 # ── 7. proxy advisory ─────────────────────────────────────────────
 if [ -n "${http_proxy:-${HTTP_PROXY:-}}" ]; then
   P="${http_proxy:-${HTTP_PROXY:-}}"
   if [[ "$P" == socks* ]]; then
-    warn "proxy" "$P (curl-only; npm/uv don't honor SOCKS)" \
-         "set an HTTP proxy or a PyPI/npm mirror if uv/npm fetches fail"
+    warn "proxy" "$P（仅对 curl 生效，npm/uv 不走 SOCKS）" \
+         "如果 uv/npm 拉包失败，改用 HTTP 代理或配 PyPI/npm 镜像"
   else
     ok "proxy" "$P"
   fi
 fi
 
-# ── Summary ───────────────────────────────────────────────────────
+# ── 汇总 ──────────────────────────────────────────────────────────
 echo ""
 if [ "$ISSUES" -eq 0 ]; then
-  echo "  ${C_OK}All required tools available.${C_R}"
+  echo "  ${C_OK}所有必需工具已就绪。${C_R}"
 else
-  echo "  ${C_BAD}$ISSUES issue(s) found.${C_R}"
+  echo "  ${C_BAD}发现 $ISSUES 项需要修复。${C_R}"
+  echo "  可执行：bash $0 --fix    # 交互式逐条修"
 fi
 echo ""
 
-# MCP snippet (always printed when missing) ------------------------
+# MCP snippet（缺失时打印） ----------------------------------------
 if [ ! -f "$MCP_FILE" ] || ! grep -q '"gitnexus"' "$MCP_FILE" 2>/dev/null; then
   cat <<'SNIP'
-  Add this to ~/.claude/.mcp.json (merge into existing mcpServers):
+  把下面的内容合并到 ~/.claude/.mcp.json（注意 mcpServers 已存在则合并而非覆盖）：
 
   {
     "mcpServers": {
@@ -148,16 +148,16 @@ if [ ! -f "$MCP_FILE" ] || ! grep -q '"gitnexus"' "$MCP_FILE" 2>/dev/null; then
 SNIP
 fi
 
-# ── --fix interactive run ─────────────────────────────────────────
+# ── --fix 交互式修复 ──────────────────────────────────────────────
 if [ "$FIX" -eq 1 ] && [ "${#FIXES[@]}" -gt 0 ]; then
-  echo "  Fix mode: each command will be confirmed before running."
+  echo "  修复模式：每条命令会先确认。"
   echo ""
   for cmd in "${FIXES[@]}"; do
     echo "  $ $cmd"
-    read -r -p "  run? [y/N] " ans </dev/tty || ans=""
+    read -r -p "  执行？[y/N] " ans </dev/tty || ans=""
     case "${ans:-N}" in
-      y|Y) bash -c "$cmd" || echo "  ${C_BAD}command failed${C_R}" ;;
-      *)   echo "  skipped" ;;
+      y|Y) bash -c "$cmd" || echo "  ${C_BAD}命令执行失败${C_R}" ;;
+      *)   echo "  跳过" ;;
     esac
     echo ""
   done

@@ -23,7 +23,7 @@ trap cleanup EXIT
 
 echo ""
 echo "╔══════════════════════════════════════════╗"
-echo "║        prd-tools  install                ║"
+echo "║          prd-tools 安装                  ║"
 echo "╚══════════════════════════════════════════╝"
 echo ""
 
@@ -35,15 +35,15 @@ if [ -f "$SCRIPT_DIR/scripts/lib/detect_proxy.sh" ]; then
   detect_proxy_for_curl
 fi
 
-# ── Download archive ──────────────────────────────────────────────
-echo "==> Downloading prd-tools ($BRANCH)..."
+# ── 下载源码 ────────────────────────────────────────────────────
+echo "==> 下载 prd-tools ($BRANCH 分支)..."
 ARCHIVE_URL="https://github.com/$REPO/archive/refs/heads/$BRANCH.tar.gz"
 if ! curl -fsSL --connect-timeout 10 --max-time 60 "$ARCHIVE_URL" \
      | tar -xz -C "$TMP_DIR" 2>/dev/null; then
   echo "" >&2
-  echo "ERROR: GitHub archive download failed." >&2
+  echo "错误：从 GitHub 下载源码失败。" >&2
   echo "" >&2
-  echo "Fallback — clone via git, then copy manually:" >&2
+  echo "兜底方案 — 用 git 克隆后再本地安装：" >&2
   echo "  git clone --depth 1 -b $BRANCH https://github.com/$REPO.git /tmp/prd-tools" >&2
   echo "  bash /tmp/prd-tools/install.sh $TARGET" >&2
   exit 1
@@ -51,32 +51,32 @@ fi
 
 ARCHIVE_ROOT="$(find "$TMP_DIR" -mindepth 1 -maxdepth 1 -type d | head -1)"
 if [ -z "$ARCHIVE_ROOT" ] || [ ! -d "$ARCHIVE_ROOT/plugins" ]; then
-  echo "ERROR: Downloaded archive has unexpected structure." >&2
+  echo "错误：下载的源码包结构异常。" >&2
   exit 1
 fi
 
-# ── Copy skills ───────────────────────────────────────────────────
+# ── 复制 skills ─────────────────────────────────────────────────
 mkdir -p "$CLAUDE_SKILLS_DIR" "$CLAUDE_COMMANDS_DIR"
-echo "==> Installing skills to $CLAUDE_SKILLS_DIR"
+echo "==> 安装 skills 到 $CLAUDE_SKILLS_DIR"
 for skill in build-reference prd-distill; do
   src="$ARCHIVE_ROOT/plugins/$skill/skills/$skill"
   if [ -d "$src" ]; then
     rm -rf "$CLAUDE_SKILLS_DIR/$skill"
     cp -r "$src" "$CLAUDE_SKILLS_DIR/$skill"
-    echo "    Installed: $skill"
+    echo "    已安装 skill：$skill"
   else
-    echo "    WARNING: $skill not found in archive" >&2
+    echo "    警告：源码包内未找到 $skill" >&2
   fi
 done
 
-# ── Copy commands ─────────────────────────────────────────────────
+# ── 复制命令 ────────────────────────────────────────────────────
 COMMAND_SRC="$ARCHIVE_ROOT/.claude/commands/reference.md"
 if [ -f "$COMMAND_SRC" ]; then
   cp "$COMMAND_SRC" "$CLAUDE_COMMANDS_DIR/reference.md"
-  echo "    Installed command: /reference"
+  echo "    已安装命令：/reference"
 fi
 
-# ── Copy doctor script (so users have it locally) ─────────────────
+# ── 复制 doctor 脚本到本地 ────────────────────────────────────
 DOCTOR_SRC="$ARCHIVE_ROOT/scripts/doctor.sh"
 if [ -f "$DOCTOR_SRC" ]; then
   mkdir -p "$TARGET/.prd-tools"
@@ -86,7 +86,7 @@ if [ -f "$DOCTOR_SRC" ]; then
     cp -r "$ARCHIVE_ROOT/scripts/lib/." "$TARGET/.prd-tools/lib/"
   fi
   chmod +x "$TARGET/.prd-tools/doctor.sh"
-  echo "    Installed doctor: $TARGET/.prd-tools/doctor.sh"
+  echo "    已安装 doctor：$TARGET/.prd-tools/doctor.sh"
 fi
 
 # ── Version marker ────────────────────────────────────────────────
@@ -99,18 +99,19 @@ source=github.com/$REPO
 branch=$BRANCH
 EOF
 
-# ── Done ──────────────────────────────────────────────────────────
+# ── 完成 ────────────────────────────────────────────────────────
 echo ""
 echo "========================================="
-echo "  prd-tools v$TOOL_VERSION skills installed"
+echo "  prd-tools v$TOOL_VERSION skills 安装完成"
 echo "========================================="
 echo ""
-echo "Next:"
-echo "  1. Check external dependencies:"
+echo "下一步："
+echo "  1. 检查外部依赖（uv / MarkItDown / Graphify / GitNexus / API Key）："
 echo "       bash $TARGET/.prd-tools/doctor.sh"
-echo "     (verifies uv / MarkItDown / Graphify / GitNexus / API key)"
+echo "     按表里的 → 命令逐条修复，或直接交互式修："
+echo "       bash $TARGET/.prd-tools/doctor.sh --fix"
 echo ""
-echo "  2. Restart Claude Code so the new skills load."
+echo "  2. 关闭并重新打开 Claude Code，新 skills 才会加载。"
 echo ""
-echo "  3. Run /reference to build the project knowledge base."
+echo "  3. 运行 /reference 构建项目知识库。"
 echo ""
