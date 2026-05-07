@@ -25,23 +25,47 @@ echo ""
 # ── Proxy detection ────────────────────────────────────────────────
 
 # Auto-detect system proxy for curl (critical in corporate networks)
-if [ -z "${http_proxy:-}" ] && [ -z "${HTTP_PROXY:-}" ]; then
-  # Check common macOS/Linux proxy configs
-  _SYS_PROXY=""
-  if [ -f "$HOME/.config/proxy" ]; then
-    _SYS_PROXY="$(head -1 "$HOME/.config/proxy" 2>/dev/null)"
-  fi
-  # Try to detect proxy from networksetup (macOS)
-  if [ -z "$_SYS_PROXY" ] && command -v networksetup &>/dev/null; then
-    _SYS_PROXY="$(networksetup -getwebproxy Wi-Fi 2>/dev/null | awk '/Enabled: Yes/{getline; getline; print "http://"$2":"$1}' | head -1)"
-    if [ -z "$_SYS_PROXY" ]; then
-      _SYS_PROXY="$(networksetup -getwebproxy Ethernet 2>/dev/null | awk '/Enabled: Yes/{getline; getline; print "http://"$2":"$1}' | head -1)"
+# Priority: env vars > SOCKS proxy > HTTP proxy (SOCKS proxies like VPN/accelerators
+# often handle GitHub better than corporate HTTP proxies)
+_DETECT_PROXY=""
+if [ -n "${http_proxy:-}" ] || [ -n "${HTTP_PROXY:-}" ]; then
+  _DETECT_PROXY="env"
+elif [ -z "${_DETECT_PROXY}" ] && command -v networksetup &>/dev/null; then
+  # Try SOCKS proxy first (commonly used by VPN/accelerator tools)
+  _SOCKS_PROXY=""
+  for _iface in Wi-Fi Ethernet; do
+    _SOCKS_PROXY="$(networksetup -getsocksfirewallproxy "$_iface" 2>/dev/null | awk '/Enabled: Yes/{getline; server=$2; getline; port=$2; print "socks5://"server":"port}' | head -1)" || true
+    [ -n "$_SOCKS_PROXY" ] && break
+  done
+  # Then try HTTP proxy
+  _HTTP_PROXY=""
+  for _iface in Wi-Fi Ethernet; do
+    _HTTP_PROXY="$(networksetup -getwebproxy "$_iface" 2>/dev/null | awk '/Enabled: Yes/{getline; server=$2; getline; port=$2; print "http://"server":"port}' | head -1)" || true
+    [ -n "$_HTTP_PROXY" ] && break
+  done
+  # Verify which one actually works (prefer SOCKS for GitHub access)
+  if [ -n "$_SOCKS_PROXY" ]; then
+    if curl -fsSL --connect-timeout 3 --max-time 5 --proxy "$_SOCKS_PROXY" -o /dev/null https://github.com 2>/dev/null; then
+      export http_proxy="$_SOCKS_PROXY"
+      export https_proxy="$_SOCKS_PROXY"
+      _DETECT_PROXY="socks"
+      echo "  Auto-detected proxy (SOCKS): $_SOCKS_PROXY"
+      echo ""
     fi
   fi
-  if [ -n "$_SYS_PROXY" ]; then
-    export http_proxy="$_SYS_PROXY"
-    export https_proxy="$_SYS_PROXY"
-    echo "  Auto-detected proxy: $_SYS_PROXY"
+  if [ -z "$_DETECT_PROXY" ] && [ -n "$_HTTP_PROXY" ]; then
+    if curl -fsSL --connect-timeout 3 --max-time 5 --proxy "$_HTTP_PROXY" -o /dev/null https://github.com 2>/dev/null; then
+      export http_proxy="$_HTTP_PROXY"
+      export https_proxy="$_HTTP_PROXY"
+      _DETECT_PROXY="http"
+      echo "  Auto-detected proxy (HTTP): $_HTTP_PROXY"
+      echo ""
+    fi
+  fi
+  if [ -z "$_DETECT_PROXY" ]; then
+    echo "  WARNING: System proxy detected but cannot reach GitHub." >&2
+    echo "  SOCKS: ${_SOCKS_PROXY:-none}  HTTP: ${_HTTP_PROXY:-none}" >&2
+    echo "  Continuing without proxy..." >&2
     echo ""
   fi
 fi
@@ -56,10 +80,8 @@ fi
 
 MCP_CMD=""
 MCP_ARGS=""
-GITNEXUS_STATUS="missing"
 GRAPHIFY_STATUS="missing"
 MARKITDOWN_STATUS="missing"
-GITNEXUS_INDEXED=false
 
 # ── Step 1/7: Install uv (Python dependency manager) ───────────────
 
@@ -231,9 +253,9 @@ runtime_markitdown=$(command -v markitdown 2>/dev/null || echo "not_found")
 commands_dir=$CLAUDE_COMMANDS_DIR
 EOF
 
-# ── Step 6/7: Configure GitNexus MCP + Index project ───────────────
+# ── Step 6/7: Configure GitNexus MCP ───────────────────────────────
 
-echo "==> [6/7] Configuring GitNexus and indexing project..."
+echo "==> [6/7] Configuring GitNexus MCP..."
 
 # Configure MCP server
 if [ -n "$MCP_CMD" ]; then
@@ -293,53 +315,8 @@ else
   echo "    Skipped MCP config: No GitNexus runtime available"
 fi
 
-# GitNexus: full code structure graph (AST-based)
-# Strategy: try --embeddings first (enables semantic search via local HuggingFace model),
-# fall back to bare analyze if model download fails (e.g. HuggingFace unreachable in China).
-if [ -n "$MCP_CMD" ] && [ -d "$TARGET/.git" ]; then
-  echo "    Indexing with GitNexus (AST-based code structure)..."
-
-  _GN_REGISTRY_ARGS=()
-  if [[ "$MCP_CMD" == *npx ]]; then
-    _GN_REGISTRY_ARGS=(env npm_config_registry=https://registry.npmjs.org)
-  fi
-  _GN_RUN=("$MCP_CMD")
-  if [[ "$MCP_CMD" == *bunx ]]; then
-    _GN_RUN=("$MCP_CMD" "--bun")
-  fi
-  _GN_RUN+=("gitnexus@latest" "analyze" "$TARGET")
-
-  # Attempt 1: with embeddings (full semantic search)
-  if "${_GN_REGISTRY_ARGS[@]}" "${_GN_RUN[@]}" --embeddings 2>&1 | tail -5; then
-    echo "    GitNexus: indexed with embeddings (semantic search enabled)"
-    GITNEXUS_INDEXED=true
-    GITNEXUS_STATUS="ok"
-  else
-    echo "    GitNexus --embeddings failed (HuggingFace unreachable?), retrying without embeddings..."
-    # Attempt 2: without embeddings (AST-only, BM25 keyword search)
-    if "${_GN_REGISTRY_ARGS[@]}" "${_GN_RUN[@]}" 2>&1 | tail -5; then
-      echo "    GitNexus: indexed without embeddings (semantic search unavailable — retry later with: gitnexus analyze --embeddings)"
-      GITNEXUS_INDEXED=true
-      GITNEXUS_STATUS="ok"
-    else
-      echo "    WARNING: GitNexus indexing failed" >&2
-    fi
-  fi
-elif [ -z "$MCP_CMD" ]; then
-  echo "    GitNexus skipped: no runtime available"
-else
-  echo "    GitNexus skipped: not a git repo"
-fi
-
-# Graphify: code structure extraction (no LLM; full business graph via /graphify in Claude Code)
-if [ "$GRAPHIFY_INSTALLED" = true ] && [ -d "$TARGET/.git" ]; then
-  echo "    Extracting code structure with Graphify..."
-  if graphify update "$TARGET" 2>/dev/null; then
-    echo "    Graphify: code structure extracted (run /graphify in Claude Code for LLM-enhanced business graph)"
-  else
-    echo "    Graphify: structure extraction failed (run /graphify in Claude Code for full graph)"
-  fi
-fi
+# Note: GitNexus indexing happens automatically when /build-reference runs.
+# Graphify code structure extraction happens automatically when /graphify runs.
 
 # ── Step 7/7: Health check + API key ───────────────────────────────
 
@@ -352,9 +329,7 @@ echo "========================================="
 echo ""
 echo "Runtime:"
 echo "  uv:         $(command -v uv 2>/dev/null || echo 'NOT FOUND')"
-GITNEXUS_LABEL="${MCP_CMD:-NOT CONFIGURED}"
-[ "$GITNEXUS_INDEXED" = true ] && GITNEXUS_LABEL="${GITNEXUS_LABEL} (indexed)"
-echo "  GitNexus:   $GITNEXUS_LABEL"
+echo "  GitNexus:   ${MCP_CMD:-NOT CONFIGURED}"
 echo "  Graphify:   $(command -v graphify 2>/dev/null || echo 'NOT FOUND')"
 echo "  MarkItDown: $(command -v markitdown 2>/dev/null || echo 'NOT FOUND')"
 echo ""
@@ -378,14 +353,10 @@ elif [ -n "${OPENAI_API_KEY:-}" ]; then
   VISION_KEY="OPENAI_API_KEY"
 fi
 
-if [ "$GITNEXUS_STATUS" != "ok" ]; then
+if [ -z "$MCP_CMD" ]; then
   ISSUES=$((ISSUES + 1))
-  echo "  ❌ GitNexus: FAILED — code structure graph unavailable"
-  if [ -z "$MCP_CMD" ]; then
-    echo "     Fix: curl -fsSL https://bun.sh/install | bash && rerun install.sh"
-  else
-    echo "     Fix: rerun install.sh to retry indexing"
-  fi
+  echo "  ❌ GitNexus: FAILED — no runtime (npx/bun) available"
+  echo "     Fix: curl -fsSL https://bun.sh/install | bash && rerun install.sh"
 fi
 
 if [ "$GRAPHIFY_STATUS" != "ok" ]; then
@@ -455,7 +426,7 @@ fi
 
 # Final summary
 TOOLS_OK=true
-[ "$GITNEXUS_STATUS" != "ok" ] && TOOLS_OK=false
+[ -z "$MCP_CMD" ] && TOOLS_OK=false
 [ "$GRAPHIFY_STATUS" != "ok" ] && TOOLS_OK=false
 [ "$MARKITDOWN_STATUS" != "ok" ] && TOOLS_OK=false
 
@@ -479,11 +450,11 @@ tools:
     command: "$(command -v markitdown 2>/dev/null || echo "not_found")"
     purpose: "PRD document conversion; image OCR requires a vision-capable API key"
   gitnexus:
-    status: "$GITNEXUS_STATUS"
+    status: "${MCP_CMD:+ok}"
     command: "${MCP_CMD:-not_configured}"
-    indexed: $GITNEXUS_INDEXED
+    indexed: false
     index_path: "$GITNEXUS_INDEX"
-    purpose: "code graph, call chains, impact analysis"
+    purpose: "code graph, call chains, impact analysis (indexed during /build-reference)"
   graphify:
     status: "$GRAPHIFY_STATUS"
     package: "graphifyy"
@@ -500,8 +471,9 @@ tools:
 next_steps:
   - "1. Close and reopen Claude Code to activate GitNexus MCP."
   - "2. Set ANTHROPIC_AUTH_TOKEN (or OPENAI_API_KEY) for PRD image OCR and /graphify . --mode deep."
-  - "3. Run /graphify . --mode deep to build business semantic graph."
-  - "4. Run /reference to generate _prd-tools/reference/ and _prd-tools/build/graph/STATUS.md."
+  - "3. (Optional) Run gitnexus analyze to build code index for better /reference results."
+  - "4. (Optional) Run /graphify . --mode deep to build business semantic graph."
+  - "5. Run /reference to build knowledge base."
 EOF
 
 echo "  Runtime status written: $TARGET/.prd-tools-runtime.yaml"
@@ -533,14 +505,19 @@ echo "     智谱用户额外设置："
 echo "       export ANTHROPIC_BASE_URL=https://open.bigmodel.cn/api/paas/v4/"
 fi
 echo ""
-echo "  3. 运行 /graphify . --mode deep（构建业务语义图谱）"
+echo "  3. 构建代码索引（提升 /reference 扫描质量，可选）"
+echo "     → npx -y gitnexus@latest analyze . --embeddings"
+echo "     → 无 Node 时: bunx --bun gitnexus@latest analyze . --embeddings"
+echo "     → 跳过不影响使用，/reference 会回退到 grep/glob 扫描"
+echo ""
+echo "  4. 运行 /graphify . --mode deep（构建业务语义图谱，可选）"
 echo "     → 把代码、PRD、技术文档提取为业务概念关系"
 if [ -z "${VISION_KEY:-}" ]; then
 echo "     ⚠️  需要先完成步骤 2 配置 API Key"
 fi
 echo ""
-echo "  4. 运行 /reference（构建项目知识库）"
-echo "     → 生成 _prd-tools/reference/ 和 _prd-tools/build/graph/STATUS.md"
+echo "  5. 运行 /reference（构建项目知识库）"
+echo "     → 生成 _prd-tools/reference/ 和 _prd-tools/build/"
 echo ""
 echo "  常用入口：/reference → /prd-distill"
 echo ""
