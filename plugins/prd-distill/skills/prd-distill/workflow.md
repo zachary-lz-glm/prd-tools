@@ -6,14 +6,14 @@
 
 ```text
 PRD raw file/text
-  -> prd-ingest/*
+  -> _ingest/*
   -> tech docs + reference + code + graph-context
   -> report.md（精准影响报告 + 阻塞问题）
   -> plan.md（函数级技术方案）
-  -> artifacts/*
+  -> spec/ + context/*
 ```
 
-主流程对前端、BFF、后端通用；层差异通过 `references/layer-adapters.md` 的能力面适配器生效。默认给人看轻量输出，机器可读细节放入 `artifacts/`。
+主流程对前端、BFF、后端通用；层差异通过 `references/layer-adapters.md` 的能力面适配器生效。默认给人看轻量输出，机器可读细节放入 `spec/` 和 `context/`。
 
 短入口：
 
@@ -25,29 +25,31 @@ PRD raw file/text
 
 - PRD：`.docx | .md | .txt | .pdf | .pptx | .xlsx | .html | pasted text`。
 - 技术方案 / API 文档：可选，但多层或后端相关需求强烈建议读取。
-- `_reference/`：优先 v4（6 文件结构）；若只有 v3.1（10 文件结构），兼容读取；若只有旧版 `05-mapping.yaml`，兼容读取并在回流建议里提示迁移。
+- `_prd-tools/reference/`：优先 v4（6 文件结构）；若只有 v3.1（10 文件结构），兼容读取；若只有旧版 `05-mapping.yaml`，兼容读取并在回流建议里提示迁移。
 - 目标代码库：用于代码锚定。
 
 创建输出目录：
 
 ```text
-_output/prd-distill/<slug>/
-├── prd-ingest/
+_prd-tools/distill/<slug>/
+├── _ingest/
 ├── report.md
 ├── plan.md
-└── artifacts/
+├── spec/
+├── context/
+└── tasks/
 ```
 
 文件型 PRD 必须优先执行：
 
 ```bash
-uv run <skill-dir>/scripts/ingest_prd.py <prd-file> --out _output/prd-distill/<slug>/prd-ingest
+uv run <skill-dir>/scripts/ingest_prd.py <prd-file> --out _prd-tools/distill/<slug>/_ingest
 ```
 
-`prd-ingest/` 产出：
+`_ingest/` 产出：
 
 ```text
-prd-ingest/
+_ingest/
 ├── source-manifest.yaml
 ├── document.md
 ├── document-structure.json
@@ -75,7 +77,7 @@ prd-ingest/
 
 ## 步骤 1：证据台账
 
-先建立 `artifacts/evidence.yaml`，后续所有判断只引用 evidence id。
+先建立 `spec/evidence.yaml`，后续所有判断只引用 evidence id。
 
 证据类型：
 
@@ -92,14 +94,14 @@ prd-ingest/
 
 规则：
 
-- PRD 原文证据优先从 `prd-ingest/evidence-map.yaml` 映射，定位到 block、line、table 或 image id。
+- PRD 原文证据优先从 `_ingest/evidence-map.yaml` 映射，定位到 block、line、table 或 image id。
 - 源码证据要能定位文件和符号；尽量带行号。
 - 搜不到也是证据，用 `negative_code_search`，记录 query 和搜索范围。
 - 没有 vision/OCR/人工确认的图片不能生成高置信度需求。
 
 ## 步骤 2：Requirement IR
 
-将 `prd-ingest/document.md` 转成 `artifacts/requirement-ir.yaml`。
+将 `_ingest/document.md` 转成 `spec/requirement-ir.yaml`。
 
 每个 requirement 必须包含：
 
@@ -126,7 +128,7 @@ prd-ingest/
 
 ### 3.1 Graph Context（图谱驱动技术上下文）
 
-生成 `artifacts/graph-context.md`。这个文件是 `plan.md` 和 `report.md` 的直接输入，目标是把 PRD 语言变成可执行的代码坐标。
+生成 `context/graph-context.md`。这个文件是 `plan.md` 和 `report.md` 的直接输入，目标是把 PRD 语言变成可执行的代码坐标。
 
 当 GitNexus 可用时，对每个 REQ 执行：
 
@@ -143,12 +145,12 @@ prd-ingest/
 3. 用 `/graphify explain "<变更概念>"` 获取设计原理、隐式约束和历史坑点。
 4. 将结果写入 `business_constraints`，并标明 `confidence: high|medium|low`。Graphify `INFERRED` 默认不能写 high。
 
-图谱不可用时也必须生成 `artifacts/graph-context.md`，写明 unavailable reason，并列出 fallback `rg`/Read 查询。
+图谱不可用时也必须生成 `context/graph-context.md`，写明 unavailable reason，并列出 fallback `rg`/Read 查询。
 
 读取目标层适配器：
 
 - frontend / BFF / backend 单层：生成对应 impacts。
-- multi-layer：每层各生成 impacts，并合并进一个 `artifacts/layer-impact.yaml`。
+- multi-layer：每层各生成 impacts，并合并进一个 `context/layer-impact.yaml`。
 
 每个 impact 必须说明：
 
@@ -166,14 +168,14 @@ ADD/MODIFY/DELETE/NO_CHANGE 必须由源码或负向搜索支撑。
 
 图谱增强（可选，当图谱可用时）：
 
-- 优先消费 `artifacts/graph-context.md`，不要在 plan/report 阶段重新凭空猜函数。
+- 优先消费 `context/graph-context.md`，不要在 plan/report 阶段重新凭空猜函数。
 - 如 GitNexus available：将 `mcp__gitnexus__query/context/impact/api_impact` 结果写入 impact 条目的 `affected_symbols` 和 `graph_evidence_refs`。
 - 如 Graphify available：将 `/graphify query/path/explain` 结果写入 impact 条目的 `business_constraints`。
 - 图谱不可用时这些字段留空，不影响核心流程。
 
 ## 步骤 4：Contract Delta
 
-多层、接口、schema、事件、外部权益/券/支付/审计等需求必须生成 `artifacts/contract-delta.yaml`。单层且无契约变化时也创建最小文件，写明 `alignment_summary.status: not_applicable`。
+多层、接口、schema、事件、外部权益/券/支付/审计等需求必须生成 `context/contract-delta.yaml`。单层且无契约变化时也创建最小文件，写明 `alignment_summary.status: not_applicable`。
 
 每个 contract 记录：
 
@@ -199,7 +201,7 @@ ADD/MODIFY/DELETE/NO_CHANGE 必须由源码或负向搜索支撑。
 生成 `plan.md`（函数级技术方案文档 + 开发计划）：
 
 - 精确到文件路径和行号。
-- 包含 12 个章节：范围与假设、图谱命中与代码坐标、整体架构、实现计划、API 设计、数据存储、配置与开关、校验规则汇总、QA 矩阵、契约对齐、风险与回滚、工作量估算。
+- 包含 12 个章节：范围与假设、图谱命中与代码坐标、整体架构、实现计划、API 设计、数据存储、配置与开关、校验规则汇总、QA 矩阵、契约对齐、风险与回滚、工作量估算、AI 执行说明。
 - 用 `- [ ]` checklist 格式，可直接勾选。
 - 每个任务包含：目标文件、操作描述、参考实现、关联 REQ/IMP/CONTRACT、验证命令。
 - 每个 MODIFY/DELETE 任务必须引用 `graph-context.md` 中的函数级线索；ADD 任务必须引用相邻参考实现或负向搜索证据。
@@ -209,9 +211,17 @@ ADD/MODIFY/DELETE/NO_CHANGE 必须由源码或负向搜索支撑。
 - 不直接写代码，除非用户明确要求进入实现。
 - 格式详见 `references/output-contracts.md` 中 plan.md 模板。
 
+### 5.1 AI 可执行任务编译
+
+在 plan.md 生成完成后，编译 `tasks/` 目录。
+
+将 plan.md §3 的每个 Step 拆分为独立的 task 文件（`T-{NNN}-{slug}.md`），每个文件内联完整的业务上下文、代码上下文、字段映射、契约约束和验证命令。
+
+格式和规则详见 `references/output-contracts.md` 中 tasks/ 契约。
+
 ## 步骤 6：Reference 回流
 
-生成 `artifacts/reference-update-suggestions.yaml`：
+生成 `context/reference-update-suggestions.yaml`：
 
 ```yaml
 schema_version: “4.0”
@@ -219,7 +229,7 @@ tool_version: “<tool-version>”
 suggestions:
   - id: “REF-UPD-001”
     type: “new_term | new_route | new_contract | new_playbook | contradiction | golden_sample_candidate”
-    target_file: “_reference/04-routing-playbooks.yaml”
+    target_file: “_prd-tools/reference/04-routing-playbooks.yaml”
     summary: “”
     current_repo_scope:
       authority: “single_repo”
@@ -246,7 +256,7 @@ suggestions:
 
 边界规则：
 
-- `/prd-distill` 只产出回流建议，不直接编辑 `_reference/`。
+- `/prd-distill` 只产出回流建议，不直接编辑 `_prd-tools/reference/`。
 - 当前仓可验证的事实标记为 `apply_to_current_repo`。
 - 其他仓实现细节、跨仓 owner、团队级 taxonomy 标记为 `needs_owner_confirmation` 或 `record_as_signal`。
 - `team_reference_candidate: true` 是未来团队知识库聚合候选，不代表已确认。

@@ -2,7 +2,7 @@
 
 ## 目标
 
-验证 `_reference/` 对 `/prd-distill` 是否有用、够新、可安全使用。
+验证 `_prd-tools/reference/` 对 `/prd-distill` 是否有用、够新、可安全使用。
 
 ## 检查项
 
@@ -27,12 +27,12 @@
 
 ## 图谱证据检查
 
-1. 如果 `_output/graph/graph-sync-report.yaml` 存在且任一 provider `available: true`：
+1. 如果 `_prd-tools/build/graph/sync-report.yaml` 存在且任一 provider `available: true`：
    a. 至少一个 reference 文件的条目有非空 `graph_sources` 和非空 `graph_evidence_refs`。
-   b. 所有 `graph_evidence_refs` 中引用的 GEV / GEV-B ID 都能在 `_output/graph/` 对应文件中找到。
+   b. 所有 `graph_evidence_refs` 中引用的 GEV / GEV-B ID 都能在 `_prd-tools/build/graph/` 对应文件中找到。
    c. `project-profile.yaml` 的 `graph_providers` 与 `graph-sync-report` 的 `available` 状态一致。
    d. 每个有图谱支撑的 reference 文件（01-05）的 `graph_providers` 字段已正确填写。
-2. 如果 `_output/graph/graph-sync-report.yaml` 不存在：
+2. 如果 `_prd-tools/build/graph/sync-report.yaml` 不存在：
    a. 所有 reference 条目的 `graph_sources` 应为 `[]`。
    b. 不报为错误，但记为警告："图谱证据未生成，reference 完全基于源码扫描"。
 3. 图谱置信度校验：

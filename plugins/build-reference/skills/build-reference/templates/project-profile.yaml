@@ -8,7 +8,7 @@ verify_cadence: "14d"
 owner: "<team>"
 
 reference_scope:
-  authority: "single_repo"     # 当前 _reference/ 只对本仓事实负责
+  authority: "single_repo"     # 当前 _prd-tools/reference/ 只对本仓事实负责
   repo_role: "<frontend|bff|backend|multi-layer>"
   owns:
     - "facts verified in this repository"

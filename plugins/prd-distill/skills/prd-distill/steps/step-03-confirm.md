@@ -4,17 +4,17 @@
 
 生成：
 
-- `_output/prd-distill/<slug>/report.md`（决策报告 + 阻塞问题）
-- `_output/prd-distill/<slug>/plan.md`（技术方案 + 开发计划）
-- `_output/prd-distill/<slug>/artifacts/reference-update-suggestions.yaml`
+- `_prd-tools/distill/<slug>/report.md`（决策报告 + 阻塞问题）
+- `_prd-tools/distill/<slug>/plan.md`（技术方案 + 开发计划）
+- `_prd-tools/distill/<slug>/context/reference-update-suggestions.yaml`
 
 ## 输入
 
-- `artifacts/evidence.yaml`
-- `artifacts/requirement-ir.yaml`
-- `artifacts/graph-context.md`
-- `artifacts/layer-impact.yaml`
-- `artifacts/contract-delta.yaml`
+- `spec/evidence.yaml`
+- `spec/requirement-ir.yaml`
+- `context/graph-context.md`
+- `context/layer-impact.yaml`
+- `context/contract-delta.yaml`
 - `references/output-contracts.md` 中 report.md 和 plan.md 的格式定义
 
 ## report.md（渐进式披露 + 阻塞问题）
@@ -85,7 +85,7 @@
 写作规则：
 - 自然语言为主，用 Markdown 表格提高可扫描性
 - 每个变更项都带目标文件路径
-- 关联 ID（REQ-*/IMP-*/CONTRACT-*）方便跳到 artifacts 查证
+- 关联 ID（REQ-*/IMP-*/CONTRACT-*）方便跳到 spec/ 和 context/ 查证
 - 低置信度项用 ⚠ 标注，进入 §11.2
 - **线索式证据不能省略**：代码注释、已有结构体名、文件路径等线索必须保留，这些对开发定位问题有极高价值
 
@@ -97,7 +97,7 @@
 
 ## plan.md（技术方案 + 开发计划）
 
-`plan.md` 是**可 review 的函数级技术方案文档**，也是**拿去就能干活的操作手册**。必须优先消费 `artifacts/graph-context.md`。
+`plan.md` 是**可 review 的函数级技术方案文档**，也是**拿去就能干活的操作手册**。必须优先消费 `context/graph-context.md`。
 
 必须包含以下 12 个章节：
 
@@ -159,6 +159,19 @@
 ### 11. 工作量估算
 - `| 模块 | 估算 | 说明 |`
 
+### 12. AI 执行说明
+- **目标**：从 `spec/requirement-ir.yaml` 提取本次执行的核心目标（1-3 句话）
+- **允许修改的文件**：从 `context/layer-impact.yaml` 的 affected_files 汇总，和 plan.md §3 实现计划的文件清单对齐
+- **禁止修改的文件**：明确排除不在本次需求范围内的文件（共享模块、其他团队接口、公共配置等）
+- **阻塞项**：从 `context/contract-delta.yaml` 的 blocked 项和 report.md §11 的阻塞问题提取，标注哪些需要人工确认。无阻塞项时写"无阻塞项，可直接执行"
+- **推荐执行顺序**：按 plan.md §3 的 Phase 拓扑排序，标注依赖关系和对应 tasks/ 文件名
+- **验证检查点**：每个 Phase 的编译/测试/lint 命令
+- **失败排查优先级**：常见失败原因的排查顺序
+
+写作规则：
+- Section 12 的所有数据必须来自已有 spec/ 和 context/，不允许凭空创造
+- 如无阻塞项，显式写"无阻塞项，可直接执行"
+
 写作规则：
 - **代码线索不可省略**：每个任务必须保留文件路径、行号、参考结构体名等线索
 - 不编造行号或命令：不确定时写"约在 XX 附近"
@@ -172,7 +185,7 @@
 
 ## Reference 回流
 
-生成 `artifacts/reference-update-suggestions.yaml`：
+生成 `context/reference-update-suggestions.yaml`：
 
 - 新术语、新路由、新契约、新 playbook
 - golden sample 候选
@@ -181,4 +194,24 @@
 
 每条建议必须按 `references/output-contracts.md` 标注 `current_repo_scope`。当前仓可验证的事实才能标记为 `apply_to_current_repo`；其他仓实现细节、跨仓 owner、团队级 taxonomy 必须标记为 `record_as_signal` 或 `needs_owner_confirmation`，并填写 `owner_to_confirm`。`team_reference_candidate: true` 只表示未来团队知识库候选。
 
-`/prd-distill` 不直接编辑 `_reference/`；实际修改交给 `/build-reference` 的反馈回流。
+`/prd-distill` 不直接编辑 `_prd-tools/reference/`；实际修改交给 `/build-reference` 的反馈回流。
+
+## tasks/（AI 可执行任务文件）
+
+在 plan.md 生成完成后，将 plan.md §3 的每个 Step 编译为 `tasks/T-{NNN}-{slug}.md`。
+
+生成流程：
+1. 从 plan.md §3 提取所有 Step，按 Phase 顺序编号 T-001, T-002, ...
+2. 对每个 Step，从 spec/ 和 context/ 内联相关上下文：
+   - `spec/requirement-ir.yaml` → Business Context
+   - 源码 Read → Code Context（当前代码 + 参考实现）
+   - `context/graph-context.md` → 调用链
+   - `context/layer-impact.yaml` → 字段映射
+   - `context/contract-delta.yaml` → 契约约束
+3. 写入 `tasks/T-{NNN}-{slug}.md`
+
+规则：
+- 每个 task 自包含，AI 不需要读其他文件
+- 内联代码不超过 80 行，超过时截取关键部分
+- 显式声明前置/后续依赖
+- 格式详见 `references/output-contracts.md` 中 tasks/ 契约

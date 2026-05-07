@@ -1,6 +1,6 @@
 ---
 name: prd-distill
-description: 将 PRD、需求文本、技术方案或变更说明先做稳定读取与质量检查，再蒸馏为有证据支撑的 report、plan 和 artifacts，包括 Requirement IR、Layer Impact、Contract Delta、技术方案、开发/测试/契约计划和 reference 回流建议。适用于用户调用 /prd-distill，要求分析 PRD、拆需求、评估影响范围、生成开发计划、识别接口契约风险或生成 QA 矩阵时。
+description: 将 PRD、需求文本、技术方案或变更说明先做稳定读取与质量检查，再蒸馏为有证据支撑的 report、plan、spec 和 context，包括 Requirement IR、Layer Impact、Contract Delta、技术方案、开发/测试/契约计划和 reference 回流建议。适用于用户调用 /prd-distill，要求分析 PRD、拆需求、评估影响范围、生成开发计划、识别接口契约风险或生成 QA 矩阵时。
 ---
 
 # prd-distill
@@ -25,18 +25,18 @@ Claude Code 中通过 `/prd-distill <PRD 文件或需求文本>` 触发。
 2. 这些需求分别影响前端、BFF、后端的哪些能力面。
 3. 哪些字段、枚举、schema、endpoint、event 需要跨团队对齐。
 4. 开发顺序和 QA 覆盖场景。
-5. 本次需求暴露了哪些新知识，需回流到 `_reference/`。
+5. 本次需求暴露了哪些新知识，需回流到 `_prd-tools/reference/`。
 
 ## 输入
 
 - PRD：`.docx`/`.md`/`.txt`/`.pdf`/`.pptx`/`.xlsx`/`.html` 或粘贴文本。
 - 可选技术方案、API 文档、接口定义。
 - 当前项目源码路径。
-- 当前项目 `_reference/`。
+- 当前项目 `_prd-tools/reference/`。
 - 可选历史分支、diff、已有实现。
 
 PRD 读取规则：
-- 文件输入优先运行 `uv run <skill>/scripts/ingest_prd.py <prd> --out _output/prd-distill/<slug>/prd-ingest`。
+- 文件输入优先运行 `uv run <skill>/scripts/ingest_prd.py <prd> --out _prd-tools/distill/<slug>/_ingest`。
 - 粘贴文本 → 手工创建 ingestion 证据（来源、段落定位、质量说明）。
 - 用 MarkItDown (microsoft/markitdown) 转换文件格式。
 - 配置 `ANTHROPIC_AUTH_TOKEN` 或 `OPENAI_API_KEY` 后自动启用 LLM Vision 分析图片。
@@ -46,8 +46,8 @@ PRD 读取规则：
 ## 输出结构
 
 ```text
-_output/prd-distill/<slug>/
-├── prd-ingest/                    # PRD 原始读取
+_prd-tools/distill/<slug>/
+├── _ingest/                       # PRD 原始读取
 │   ├── source-manifest.yaml       #   文件路径、格式、hash、读取方式
 │   ├── document.md                #   转换后可读 markdown
 │   ├── document-structure.json    #   段落、表格、图片结构块
@@ -58,29 +58,32 @@ _output/prd-distill/<slug>/
 │   ├── extraction-quality.yaml    #   pass/warn/block 质量门禁
 │   └── conversion-warnings.md     #   转换风险
 ├── report.md                      # 渐进式披露报告
-├── plan.md                        # 技术方案 + 开发/测试计划
-└── artifacts/
-    ├── evidence.yaml              # 证据台账
-    ├── graph-context.md           # 图谱驱动的函数级上下文
-    ├── requirement-ir.yaml        # 结构化需求
-    ├── layer-impact.yaml          # 分层影响
-    ├── contract-delta.yaml        # 契约差异
-    └── reference-update-suggestions.yaml  # 回流建议
+├── plan.md                        # 技术方案 + 开发/测试计划 + QA 矩阵 + §12 任务拆分
+├── spec/
+│   ├── requirement-ir.yaml        # 结构化需求：业务意图、规则、验收条件
+│   └── evidence.yaml              # 证据台账：PRD、技术方案、源码、图谱查询
+├── tasks/                         # AI 可执行任务文件（每个 task 自包含上下文）
+├── context/
+│   ├── graph-context.md           # 图谱驱动的函数级上下文
+│   ├── layer-impact.yaml          # 分层影响
+│   ├── contract-delta.yaml        # 契约差异
+│   └── reference-update-suggestions.yaml  # 回流建议
 ```
 
 ## 输出文件边界
 
 | 文件 | 用途 | 不放 |
 |---|---|---|
-| `prd-ingest/*` | PRD 原始读取结果 | 不写业务结论 |
+| `_ingest/*` | PRD 原始读取结果 | 不写业务结论 |
 | `report.md` | 渐进式披露：摘要→变更→字段→规则→Checklist→契约风险→§11 阻塞项 | 不展开 YAML 证据链 |
-| `plan.md` | 技术方案 + 实现计划 + QA 矩阵 + 回滚方案 | 不复制 PRD 原文 |
-| `artifacts/evidence.yaml` | 证据台账：PRD、技术方案、源码、负向搜索、图谱查询 | 不下结论 |
-| `artifacts/graph-context.md` | 函数级技术上下文：GitNexus 符号/调用链、Graphify 业务约束 | 不替代源码确认 |
-| `artifacts/requirement-ir.yaml` | 结构化需求：业务意图、规则、验收条件、变更类型 | 不写实现细节 |
-| `artifacts/layer-impact.yaml` | 分层影响：目标层、能力面、计划变化、风险 | 不写字段级契约详情 |
-| `artifacts/contract-delta.yaml` | 契约差异：字段、producer、consumer、alignment_status | 不写开发顺序 |
-| `artifacts/reference-update-suggestions.yaml` | 回流建议 | 不直接改 `_reference/` |
+| `plan.md` | 技术方案 + 实现计划 + QA 矩阵 + §12 任务拆分 + 回滚方案 | 不复制 PRD 原文 |
+| `spec/evidence.yaml` | 证据台账：PRD、技术方案、源码、负向搜索、图谱查询 | 不下结论 |
+| `spec/requirement-ir.yaml` | 结构化需求：业务意图、规则、验收条件、变更类型 | 不写实现细节 |
+| `context/graph-context.md` | 函数级技术上下文：GitNexus 符号/调用链、Graphify 业务约束 | 不替代源码确认 |
+| `context/layer-impact.yaml` | 分层影响：目标层、能力面、计划变化、风险 | 不写字段级契约详情 |
+| `context/contract-delta.yaml` | 契约差异：字段、producer、consumer、alignment_status | 不写开发顺序 |
+| `context/reference-update-suggestions.yaml` | 回流建议 | 不直接改 `_prd-tools/reference/` |
+| `tasks/*` | AI 可执行任务文件，每个 task 自包含上下文 | 不放非任务性的分析内容 |
 
 ## 能力面适配器
 
@@ -103,17 +106,17 @@ _output/prd-distill/<slug>/
 ## 质量规则
 
 - 先证据，后结论。
-- 每个 requirement 至少有 PRD 或技术文档证据（优先来自 `prd-ingest/evidence-map.yaml`）。
+- 每个 requirement 至少有 PRD 或技术文档证据（优先来自 `_ingest/evidence-map.yaml`）。
 - 每个 layer impact 至少有源码或负向搜索证据。
 - `extraction-quality.yaml` 为 `warn` 时必须在 `report.md` §11 暴露。
 - 业务关键规则不能只靠前端守。
 - 中低置信度项必须进入 `report.md` §11。
 - 不确定标 `confidence: low`，不补脑。
-- 不直接修改 `_reference/`，只生成回流建议。
+- 不直接修改 `_prd-tools/reference/`，只生成回流建议。
 
 ## 图谱增强（可选）
 
-当 GitNexus 或 Graphify 可用时，必须构建一次需求级图谱上下文 → `artifacts/graph-context.md`。
+当 GitNexus 或 Graphify 可用时，必须构建一次需求级图谱上下文 → `context/graph-context.md`。
 
 | 场景 | 工具 | 查询 |
 |---|---|---|
@@ -125,7 +128,7 @@ _output/prd-distill/<slug>/
 
 图谱不可用时回退到 Read + rg/glob。
 
-如果 `_output/graph/graph-sync-report.yaml` 存在且 provider available，优先读取图谱证据。GitNexus AST 提取可作 high-confidence 代码线索；Graphify INFERRED 只能作 medium/low 业务线索。
+如果 `_prd-tools/graph/graph-sync-report.yaml` 存在且 provider available，优先读取图谱证据。GitNexus AST 提取可作 high-confidence 代码线索；Graphify INFERRED 只能作 medium/low 业务线索。
 
 ## 暂停条件
 
@@ -140,15 +143,17 @@ _output/prd-distill/<slug>/
 
 1. 确认 PRD 来源和目标项目路径。
 2. PRD ingestion：运行 `ingest_prd.py`，检查 `extraction-quality.yaml`。
-3. 读取 `_reference/`（优先 v4，兼容 v3.1）。
-4. 建立 `artifacts/evidence.yaml`，映射 ingestion 证据后补充源码/图谱证据。
-5. 拆 `artifacts/requirement-ir.yaml`。
-6. 构建 `artifacts/graph-context.md`。
-7. 生成 `artifacts/layer-impact.yaml`。
-8. 生成 `artifacts/contract-delta.yaml`。
-9. 生成 `plan.md`（消费 `graph-context.md` 函数级上下文）。
+3. 读取 `_prd-tools/reference/`（优先 v4，兼容 v3.1）。
+4. 建立 `spec/evidence.yaml`，映射 ingestion 证据后补充源码/图谱证据。
+5. 拆 `spec/requirement-ir.yaml`。
+6. 构建 `context/graph-context.md`。
+- [ ] ⚠ graph-context.md 存在性检查：`context/graph-context.md` 必须存在。如不存在，必须先生成再继续 plan.md。
+7. 生成 `plan.md`（消费 `graph-context.md` 函数级上下文）。
+- [ ] 编译 `tasks/`（AI 可执行任务文件，每个 task 自包含上下文）
+8. 生成 `context/layer-impact.yaml`。
+9. 生成 `context/contract-delta.yaml`。
 10. 生成 `report.md`（渐进式披露 + 图谱命中摘要 + §11）。
-11. 生成 `artifacts/reference-update-suggestions.yaml`。
+11. 生成 `context/reference-update-suggestions.yaml`。
 
 ## 参考文件
 

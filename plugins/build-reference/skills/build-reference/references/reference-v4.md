@@ -2,14 +2,14 @@
 
 Reference v4 是 PRD-to-code 工作流的项目长期记忆。前端、BFF、后端共用同一套结构，内容由各层适配器决定。
 
-`_reference/` 的默认治理范围是**单仓权威**：它对当前仓库中可验证的事实负责，不直接充当全平台团队 wiki。跨仓信息可以记录为协作线索，但在对应 owner 仓库或 owner 团队确认前，必须标记为 `needs_confirmation` 或 `unknown`。
+`_prd-tools/reference/` 的默认治理范围是**单仓权威**：它对当前仓库中可验证的事实负责，不直接充当全平台团队 wiki。跨仓信息可以记录为协作线索，但在对应 owner 仓库或 owner 团队确认前，必须标记为 `needs_confirmation` 或 `unknown`。
 
 v4 相比 v3 的核心变化：**从 10 文件精简到 6 文件**，统一分类维度为"知识在开发生命周期中的角色"，每个事实只存在于一个文件（SSOT），通过 ID 跨文件引用。
 
 ## 默认视图
 
 ```text
-_reference/
+_prd-tools/reference/
 ├── 00-portal.md                # 人类导航和场景阅读指南
 ├── project-profile.yaml        # 项目画像：层级、技术栈、能力面、入口
 ├── 01-codebase.yaml            # 代码库静态清单
@@ -29,7 +29,7 @@ _reference/
 
 包含：项目层级、技术栈、运行/测试命令、能力面、图谱 provider、`reference_scope`、`related_repositories`。
 
-`reference_scope.authority` 固定表达当前 `_reference/` 的权威范围，默认是 `single_repo`。`related_repositories` 只记录与当前仓库有关的上下游/消费者/生产者线索，不能替代对方仓库的 reference。
+`reference_scope.authority` 固定表达当前 `_prd-tools/reference/` 的权威范围，默认是 `single_repo`。`related_repositories` 只记录与当前仓库有关的上下游/消费者/生产者线索，不能替代对方仓库的 reference。
 
 ### 01-codebase.yaml
 **静态清单：代码库中已存在的事实。**
@@ -98,7 +98,7 @@ _reference/
 
 ## 单仓与团队知识库边界
 
-当前 prd-tools 面向单仓使用：后端仓、前端仓、BFF 仓都可以各自拥有一份 `_reference/`。每份 reference 只对本仓事实提供权威结论。
+当前 prd-tools 面向单仓使用：后端仓、前端仓、BFF 仓都可以各自拥有一份 `_prd-tools/reference/`。每份 reference 只对本仓事实提供权威结论。
 
 跨仓协作按三种状态维护：
 
@@ -108,11 +108,11 @@ _reference/
 | `needs_confirmation` | 有 PRD、图谱、调用线索或历史样例，但缺 owner 确认 | 可作为阻塞问题、handoff、回流候选 |
 | `unknown` | 仅知道可能相关，缺少足够证据 | 只能作为开放问题 |
 
-未来如果建设 B 端团队级知识库，应从各仓 `_reference/` 和 `reference-update-suggestions.yaml` 聚合：
+未来如果建设 B 端团队级知识库，应从各仓 `_prd-tools/reference/` 和 `reference-update-suggestions.yaml` 聚合：
 
 1. 只自动聚合 `confirmed` 且证据可追溯的事实。
 2. `team_reference_candidate: true` 只是候选标记，不代表已经同步到团队知识库。
-3. 团队级知识库负责跨仓 taxonomy、公共契约目录、领域术语和 owner 索引；单仓 `_reference/` 仍保留本仓事实权威。
+3. 团队级知识库负责跨仓 taxonomy、公共契约目录、领域术语和 owner 索引；单仓 `_prd-tools/reference/` 仍保留本仓事实权威。
 4. 跨仓冲突以 producer owner 或平台治理确认结果为准，并回写到相关仓的 reference。
 
 ## 元信息
@@ -180,10 +180,10 @@ confidence: "high | medium | low"
 不绑定具体图谱工具，用 `graph_evidence` 统一记录：
 
 ```yaml
-_output/graph/
-├── business-graph-evidence.yaml    # Graphify 业务图谱证据
-├── code-graph-evidence.yaml        # GitNexus 代码图谱证据
-└── graph-sync-report.yaml          # 图谱同步状态报告
+_prd-tools/build/graph/
+├── business-evidence.yaml          # Graphify 业务图谱证据
+├── code-evidence.yaml              # GitNexus 代码图谱证据
+└── sync-report.yaml                # 图谱同步状态报告
 ```
 
 每条图谱证据：

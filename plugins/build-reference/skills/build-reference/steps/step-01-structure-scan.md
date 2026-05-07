@@ -2,7 +2,7 @@
 
 ## 目标
 
-创建 `_output/modules-index.yaml`，记录项目层级、能力面、关键文件、入口点、潜在契约面和证据。同时构建图谱证据（如图谱工具可用）。
+创建 `_prd-tools/build/modules-index.yaml`，记录项目层级、能力面、关键文件、入口点、潜在契约面和证据。同时构建图谱证据（如图谱工具可用）。
 
 ## 输入
 
@@ -19,7 +19,7 @@
    a. `mcp__gitnexus__query` — 获取所有模块和符号。
    b. `mcp__gitnexus__context` — 获取每个模块的调用者和被调用者。
    c. 将图谱结果映射到 capability_surfaces 结构（key_files、entrypoints、symbols）。
-   d. 记录图谱证据到 `_output/graph/code-graph-evidence.yaml`。
+   d. 记录图谱证据到 `_prd-tools/build/graph/code-evidence.yaml`。
 3. 如果没有索引：
    a. 回退到原有 `rg`/glob 扫描流程。
    b. 建议用户运行 `npx -y gitnexus@latest analyze`（无 Node 时用 `bunx --bun gitnexus@latest analyze`）以获得更好的扫描质量。
@@ -31,7 +31,7 @@
    a. `/graphify query "项目核心模块和它们的业务职责"` — 提取业务语义。
    b. 将 God Nodes 映射为核心模块，Surprising Connections 映射为跨域依赖。
    c. 将 rationale_for 节点映射为设计原理和编码规则候选。
-   d. 记录图谱证据到 `_output/graph/business-graph-evidence.yaml`。
+   d. 记录图谱证据到 `_prd-tools/build/graph/business-evidence.yaml`。
 6. 如果没有图谱：
    a. 回退到逐文件 Read 提取业务语义。
    b. 建议用户运行 `/graphify . --mode deep` 以获得业务语义提取。
@@ -40,7 +40,7 @@
 
 7. 根据代码形态判断层级；不确定时让用户确认。
 8. 加载对应能力面适配器，路径只作为候选。
-9. 排除依赖、构建产物、测试、mock、fixture、生成物、`_reference`、`_output` 和 `.git`。
+9. 排除依赖、构建产物、测试、mock、fixture、生成物、`_prd-tools`、`.git`。
 10. 合并图谱发现和 rg/glob 扫描的结果，去重。
 11. 识别能力面、关键文件、入口点、注册点、数据流线索和潜在契约面。
 
@@ -57,12 +57,12 @@
 
 无论图谱工具是否可用，本步骤**必须**执行以下操作：
 
-1. 创建 `_output/graph/` 目录（如不存在）。
+1. 创建 `_prd-tools/build/graph/` 目录（如不存在）。
 2. 根据实际查询结果写入图谱证据文件：
-   - 如有 GitNexus 查询结果 → 写入 `_output/graph/code-graph-evidence.yaml`。
-   - 如有 Graphify 查询结果 → 写入 `_output/graph/business-graph-evidence.yaml`。
-3. **始终**写入 `_output/graph/graph-sync-report.yaml`，即使两个图谱都不可用。
-4. **始终**写入 `_output/graph/GRAPH_STATUS.md`，给用户展示本次图谱阶段状态和可视化入口。
+   - 如有 GitNexus 查询结果 → 写入 `_prd-tools/build/graph/code-evidence.yaml`。
+   - 如有 Graphify 查询结果 → 写入 `_prd-tools/build/graph/business-evidence.yaml`。
+3. **始终**写入 `_prd-tools/build/graph/sync-report.yaml`，即使两个图谱都不可用。
+4. **始终**写入 `_prd-tools/build/graph/STATUS.md`，给用户展示本次图谱阶段状态和可视化入口。
 
 `graph-sync-report.yaml` 格式：
 
@@ -166,7 +166,7 @@ unclassified_files: []
 图谱证据输出到：
 
 ```yaml
-# _output/graph/code-graph-evidence.yaml
+# _prd-tools/build/graph/code-evidence.yaml
 graph_evidence:
   - id: "GEV-001"
     provider: "gitnexus"
@@ -180,7 +180,7 @@ graph_evidence:
 ```
 
 ```yaml
-# _output/graph/business-graph-evidence.yaml
+# _prd-tools/build/graph/business-evidence.yaml
 graph_evidence:
   - id: "GEV-B001"
     provider: "graphify"
@@ -199,4 +199,4 @@ graph_evidence:
 - 当前层适配器的核心能力面已检查。
 - 无法归类的文件要列入 `unclassified_files`，不要猜测归属。
 - 如果图谱工具可用，至少一个 capability_surface 有非空 `graph_sources` 和 `graph_evidence_refs`。
-- `_output/graph/graph-sync-report.yaml` 必须存在，且 `providers` 的 `reason` 字段已填写。
+- `_prd-tools/build/graph/sync-report.yaml` 必须存在，且 `providers` 的 `reason` 字段已填写。

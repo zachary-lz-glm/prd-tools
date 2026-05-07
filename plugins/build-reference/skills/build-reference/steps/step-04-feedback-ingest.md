@@ -2,14 +2,14 @@
 
 ## 目标
 
-在人工确认后，使用 `/prd-distill` 的输出改进 `_reference/`。
+在人工确认后，使用 `/prd-distill` 的输出改进 `_prd-tools/reference/`。
 
 ## 输入
 
-- `_output/prd-distill/**/artifacts/reference-update-suggestions.yaml`
-- `_output/prd-distill/**/report.md`
-- 兼容旧版：`_output/prd-distill/**/reference-update-suggestions.yaml`、`_output/prd-distill/**/distilled-report.md`
-- 当前 `_reference/`
+- `_prd-tools/distill/**/spec/reference-update-suggestions.yaml`
+- `_prd-tools/distill/**/report.md`
+- 兼容旧版：`_prd-tools/distill/**/reference-update-suggestions.yaml`、`_prd-tools/distill/**/distilled-report.md`
+- 当前 `_prd-tools/reference/`
 - 当前源码
 
 ## 建议类型
@@ -30,7 +30,7 @@
 5. 让用户逐条批准、编辑或跳过。
 6. 只应用用户确认过的变更。
 7. 更新 `last_verified`。
-8. 写入 `_output/feedback-ingest-report.yaml`。
+8. 写入 `_prd-tools/build/feedback-report.yaml`。
 
 ## 规则
 

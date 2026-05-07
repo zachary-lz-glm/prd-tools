@@ -13,7 +13,7 @@ reference 是"可验证指南针"，不是项目百科。6 个文件，每个事
 - `/reference`：日常使用入口，执行本 workflow 的各个模式。
 - `/build-reference`：保留给显式的技能调用。
 
-默认治理范围是单仓：当前仓 `_reference/` 只沉淀本仓确认事实。跨仓契约、上下游 owner、团队级 taxonomy 可以作为候选或 handoff 记录，但在 owner 确认前不能升级为确定事实。
+默认治理范围是单仓：当前仓 `_prd-tools/reference/` 只沉淀本仓确认事实。跨仓契约、上下游 owner、团队级 taxonomy 可以作为候选或 handoff 记录，但在 owner 确认前不能升级为确定事实。
 
 ## 三层架构
 
@@ -24,7 +24,7 @@ PRD/技术方案/截图/历史文档     代码仓库                     编排
         │                          │                           │
         └──────────────────────────┼───────────────────────────┘
                                    ▼
-                         _reference/ 单仓可治理知识库
+                         _prd-tools/reference/ 单仓可治理知识库
                                    │
                                    ▼
                     未来团队知识库聚合 confirmed/candidate 事实
@@ -36,11 +36,11 @@ PRD/技术方案/截图/历史文档     代码仓库                     编排
 
 | 阶段 | 名称 | 输入 | 输出 |
 |---|---|---|---|
-| 0 | 上下文收集 | 历史 PRD、技术方案、分支 diff、发布/返工记录 | `_output/context-enrichment.yaml` |
-| 1 | 结构扫描 | 项目目录、核心源码、git 历史 + **双图谱查询** | `_output/modules-index.yaml` + `_output/graph/*.yaml` |
-| 2 | 深度分析 | modules-index、图谱证据、源码、能力面适配器 | `_reference/` v4.0 |
-| 3 | 质量门控 | reference、源码、样例需求 + **图谱证据校验** | `_output/reference-quality-report.yaml` |
-| 4 | 反馈回流 | `/prd-distill` 输出、源码、reference + **图谱增量更新** | `_output/feedback-ingest-report.yaml` |
+| 0 | 上下文收集 | 历史 PRD、技术方案、分支 diff、发布/返工记录 | `_prd-tools/build/context-enrichment.yaml` |
+| 1 | 结构扫描 | 项目目录、核心源码、git 历史 + **双图谱查询** | `_prd-tools/build/modules-index.yaml` + `_prd-tools/build/graph/*.yaml` |
+| 2 | 深度分析 | modules-index、图谱证据、源码、能力面适配器 | `_prd-tools/reference/` v4.0 |
+| 3 | 质量门控 | reference、源码、样例需求 + **图谱证据校验** | `_prd-tools/build/quality-report.yaml` |
+| 4 | 反馈回流 | `/prd-distill` 输出、源码、reference + **图谱增量更新** | `_prd-tools/build/feedback-report.yaml` |
 
 ## 阶段 0：上下文收集
 
@@ -98,7 +98,7 @@ samples:
 
 图谱不可用时自动回退到原有 rg/glob 流程。
 
-输出 `_output/modules-index.yaml` + `_output/graph/*.yaml`，同时沉淀 `_reference/project-profile.yaml`：
+输出 `_prd-tools/build/modules-index.yaml` + `_prd-tools/build/graph/*.yaml`，同时沉淀 `_prd-tools/reference/project-profile.yaml`：
 
 ```yaml
 schema_version: "4.0"
@@ -138,7 +138,7 @@ capability_surfaces:
 - `references/layer-adapters.md` 中当前层章节
 - `references/output-contracts.md` 中 evidence 和 contract 部分
 
-生成 `_reference/` v4.0：
+生成 `_prd-tools/reference/` v4.0：
 
 ```text
 00-portal.md                # 人类导航 + 场景阅读指南
@@ -192,7 +192,7 @@ confidence: "high | medium | low"
 - 幻觉检查：文件、函数、变量、机制不能没有证据。
 - 样例回归：至少用一个 golden sample 反推 PRD -> IR -> Layer Impact -> Contract Delta 是否走通。
 
-输出 `_output/reference-quality-report.yaml`：
+输出 `_prd-tools/build/quality-report.yaml`：
 
 ```yaml
 schema_version: "4.0"
@@ -213,7 +213,7 @@ next_actions: []
 
 ## 阶段 4：反馈回流
 
-读取 `_output/prd-distill/**/artifacts/reference-update-suggestions.yaml` 和 `report.md`。兼容读取旧版文件名。
+读取 `_prd-tools/distill/**/spec/reference-update-suggestions.yaml` 和 `report.md`。兼容读取旧版文件名。
 
 回流仍以单仓为边界：只自动处理当前仓可验证事实。跨仓建议必须保留 `team_reference_candidate`、`team_scope` 和 `owner_to_confirm`，除非用户或 owner 明确确认，否则不要把其他仓事实写成本仓确定结论。
 

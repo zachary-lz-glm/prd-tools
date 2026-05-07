@@ -26,13 +26,13 @@ flowchart TD
   A["/prd-distill <PRD 文件或需求文本>"] --> B{"输入类型"}
   B -- "docx/pdf/pptx/xlsx/html/md/txt" --> C["PRD Ingestion\nMarkItDown 转换"]
   B -- "粘贴文本" --> D["手工建立来源和定位"]
-  C --> E["prd-ingest/\nsource-manifest / document / tables / media / quality"]
+  C --> E["_ingest/\nsource-manifest / document / tables / media / quality"]
   D --> E
   E --> F{"extraction-quality"}
   F -- "block" --> G["暂停：要求补充可读 PRD"]
   F -- "pass/warn" --> H["Step 2：拆 Requirement IR\n业务意图 + 规则 + 验收条件"]
   H --> I["Step 3.1：图谱上下文构建\n（图谱主战场）"]
-  I --> J["graph-context.md\n函数级技术线索 + 业务约束"]
+  I --> J["context/graph-context.md\n函数级技术线索 + 业务约束"]
   J --> K["Step 3：Layer Impact\n按能力面分层"]
   J --> L["Step 4：Contract Delta\n字段级契约差异"]
   K --> M["Step 5：plan.md\n函数级技术方案 + QA 矩阵"]
@@ -73,7 +73,7 @@ flowchart LR
   REQ --> GitNexus
   REQ --> Graphify
 
-  GitNexus --> GC["graph-context.md\n├ 代码线索：symbol, file:line,\n│  callers, callees, risk\n└ recommended_plan_usage"]
+  GitNexus --> GC["context/graph-context.md\n├ 代码线索：symbol, file:line,\n│  callers, callees, risk\n└ recommended_plan_usage"]
   Graphify --> GC
 
   GC --> LI["Layer Impact\naffected_symbols ← GitNexus\nbusiness_constraints ← Graphify"]
@@ -124,8 +124,8 @@ graph-context.md 仍然会生成，但标注 "graph unavailable"，并列出 fal
 ## 产出文件
 
 ```
-_output/prd-distill/<slug>/
-├── prd-ingest/                    # PRD 原始读取结果
+_prd-tools/distill/<slug>/
+├── _ingest/                       # PRD 原始读取结果
 │   ├── source-manifest.yaml       #   原始文件信息
 │   ├── document.md                #   转换后的可读 markdown
 │   ├── evidence-map.yaml          #   PRD 块级证据映射
@@ -133,10 +133,13 @@ _output/prd-distill/<slug>/
 │   ├── tables/                    #   抽出的表格
 │   └── extraction-quality.yaml    #   读取质量门禁
 ├── report.md                      # 影响报告 + 风险 + 待确认项
-├── plan.md                        # 技术方案 + 开发计划 + QA 矩阵
-└── artifacts/
-    ├── evidence.yaml              # 证据台账
-    ├── requirement-ir.yaml        # 结构化需求
+├── plan.md                        # 技术方案 + 开发计划 + QA 矩阵 + §12 任务拆分
+├── spec/
+│   ├── requirement-ir.yaml        # 结构化需求
+│   └── evidence.yaml              # 证据台账
+├── tasks/                         # AI 可执行任务文件（每个 task 自包含上下文）
+└── context/
+    ├── graph-context.md           # 图谱驱动的函数级上下文
     ├── layer-impact.yaml          # 分层影响
     ├── contract-delta.yaml        # 契约差异
     └── reference-update-suggestions.yaml  # 知识回流建议
@@ -144,7 +147,7 @@ _output/prd-distill/<slug>/
 
 **人类阅读：** `report.md`（决策报告）+ `plan.md`（开发计划）
 
-**机器/审计：** `artifacts/` 和 `prd-ingest/` 用于审计复盘和知识回流
+**机器/审计：** `spec/`、`context/` 和 `_ingest/` 用于审计复盘和知识回流
 
 ## 外部工具如何参与
 
@@ -159,7 +162,7 @@ MarkItDown 是 PRD 读取的核心依赖；GitNexus 和 Graphify 是可选增强
 ## 典型使用流程
 
 **首次蒸馏：**
-1. 确保项目已运行过 `/reference`（有 `_reference/`）
+1. 确保项目已运行过 `/reference`（有 `_prd-tools/reference/`）
 2. 运行 `/prd-distill <PRD 文件>`
 3. 先看 `report.md` 的结论和阻塞项
 4. 再看 `plan.md` 的开发计划
@@ -175,10 +178,10 @@ MarkItDown 是 PRD 读取的核心依赖；GitNexus 和 Graphify 是可选增强
 A: 目前不支持直接读取在线文档。请导出为 docx/pdf 或复制粘贴文本。
 
 **Q: 报告质量不好怎么办？**
-A: 优先确保 `_reference/` 质量过关（先跑 `/reference` 的 B2 健康检查）。reference 越准确，蒸馏质量越高。
+A: 优先确保 `_prd-tools/reference/` 质量过关（先跑 `/reference` 的 B2 健康检查）。reference 越准确，蒸馏质量越高。
 
 **Q: 需要哪些环境变量？**
 A: 基础功能不需要。配置 `ANTHROPIC_AUTH_TOKEN` 或 `OPENAI_API_KEY` 后可以分析 PRD 中的图片/流程图。
 
-**Q: `_reference/` 不存在能跑吗？**
+**Q: `_prd-tools/reference/` 不存在能跑吗？**
 A: 能跑，但会缺少项目上下文，影响分析深度。建议先跑 `/reference`。

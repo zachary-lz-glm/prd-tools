@@ -4,7 +4,7 @@
 
 在构建 reference v4.0 之前，从历史 PRD、技术方案、分支和 diff 中提取可复用项目知识。
 
-本步骤只收集事实，不修改 `_reference/`。
+本步骤只收集事实，不修改 `_prd-tools/reference/`。
 
 ## 输入
 
@@ -29,7 +29,7 @@
 
 ## 输出
 
-写入 `_output/context-enrichment.yaml`：
+写入 `_prd-tools/build/context-enrichment.yaml`：
 
 ```yaml
 schema_version: "4.0"

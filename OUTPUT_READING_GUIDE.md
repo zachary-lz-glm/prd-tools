@@ -1,20 +1,20 @@
 # PRD Tools 产出阅读指南
 
-这是一份给第一次使用 PRD Tools 的读者看的速查文档。目标很简单：看到 `_output/` 和 `_reference/` 后，知道先读什么、每个文件有什么用、哪些风险必须处理。
+这是一份给第一次使用 PRD Tools 的读者看的速查文档。目标很简单：看到 `_prd-tools/` 后，知道先读什么、每个文件有什么用、哪些风险必须处理。
 
 ## 先看这张图
 
 ```text
 PRD 原文
   ↓
-prd-ingest/            证明 AI 读到了什么
+_ingest/               证明 AI 读到了什么
   ↓
-artifacts/             保存结构化证据和中间判断
+spec/                  保存结构化证据和中间判断
   ↓
 report.md              给人看的结论
 plan.md                给研发/QA 的执行计划
   ↓
-reference-update       把新知识回流到 _reference/
+reference-update       把新知识回流到 _prd-tools/reference/
 ```
 
 ## 三分钟读法
@@ -25,11 +25,11 @@ reference-update       把新知识回流到 _reference/
 |---:|---|---|---|
 | 1 | `report.md` | 需求摘要、影响层、关键风险、§10 阻塞问题 | 这次需求大不大、影响哪里、哪些事要先确认 |
 | 2 | `plan.md` | 实现顺序、QA 矩阵、契约任务 | 怎么拆开发和测试 |
-| 3 | `artifacts/contract-delta.yaml` | `needs_confirmation/blocked` | 跨团队契约是否对齐 |
-| 4 | `prd-ingest/extraction-quality.yaml` | `pass/warn/block` | PRD 是否读可靠 |
-| 5 | `artifacts/evidence.yaml` | 关键结论证据来源 | 是否需要继续查证 |
+| 3 | `spec/contract-delta.yaml` | `needs_confirmation/blocked` | 跨团队契约是否对齐 |
+| 4 | `_ingest/extraction-quality.yaml` | `pass/warn/block` | PRD 是否读可靠 |
+| 5 | `spec/evidence.yaml` | 关键结论证据来源 | 是否需要继续查证 |
 
-大多数日常评审只需要前 3 个文件。出现争议时，再看 `artifacts/`。
+大多数日常评审只需要前 3 个文件。出现争议时，再看 `spec/`。
 
 ## 产物总览
 
@@ -39,12 +39,12 @@ reference-update       把新知识回流到 _reference/
 |---|---|---|---|
 | 人读结论 | `report.md` | TL、研发、QA、PM | 一屏说明需求、影响、风险，并收口阻塞问题 |
 | 执行计划 | `plan.md` | 研发、QA | 开发顺序、QA 矩阵、契约任务 |
-| PRD 读取 | `prd-ingest/` | 工具维护者、审计者 | 证明 PRD 被读成了什么 |
-| 证据链 | `artifacts/evidence.yaml` | 研发、审计者 | 每个结论的来源 |
-| 需求 IR | `artifacts/requirement-ir.yaml` | 研发、QA、AI | PRD 拆出来的结构化需求 |
-| 影响分析 | `artifacts/layer-impact.yaml` | 研发、TL | 前端/BFF/后端能力面影响 |
-| 契约差异 | `artifacts/contract-delta.yaml` | 跨团队 owner | 字段、接口、事件、外部系统对齐 |
-| 知识回流 | `artifacts/reference-update-suggestions.yaml` | TL、工具维护者 | 哪些新知识要沉淀到 `_reference/` |
+| PRD 读取 | `_ingest/` | 工具维护者、审计者 | 证明 PRD 被读成了什么 |
+| 证据链 | `spec/evidence.yaml` | 研发、审计者 | 每个结论的来源 |
+| 需求 IR | `spec/requirement-ir.yaml` | 研发、QA、AI | PRD 拆出来的结构化需求 |
+| 影响分析 | `spec/layer-impact.yaml` | 研发、TL | 前端/BFF/后端能力面影响 |
+| 契约差异 | `spec/contract-delta.yaml` | 跨团队 owner | 字段、接口、事件、外部系统对齐 |
+| 知识回流 | `spec/reference-update-suggestions.yaml` | TL、工具维护者 | 哪些新知识要沉淀到 `_prd-tools/reference/` |
 
 ## 按角色阅读
 
@@ -57,7 +57,7 @@ reference-update       把新知识回流到 _reference/
 | QA | `plan.md`、`requirement-ir.yaml` | `report.md` §10 | 验收条件、边界值、回归范围是否完整 |
 | TL | `report.md`、`contract-delta.yaml` | `reference-update-suggestions.yaml` | 有没有阻塞、漏层、外部依赖和沉淀价值 |
 | PM/业务 owner | `report.md` | `plan.md` 的 QA 部分 | PRD 是否被理解正确，哪些规则要确认 |
-| 工具维护者 | `prd-ingest/`、`evidence.yaml`、`reference-update-suggestions.yaml` | `_output/reference-quality-report.yaml` | 读取质量、证据质量、知识库是否要更新 |
+| 工具维护者 | `_ingest/`、`evidence.yaml`、`reference-update-suggestions.yaml` | `_prd-tools/build/quality-report.yaml` | 读取质量、证据质量、知识库是否要更新 |
 
 ## 人读文件
 
@@ -81,9 +81,9 @@ reference-update       把新知识回流到 _reference/
 | 怎么判断好坏 | 任务能追到 `REQ-*`、`IMP-*` 或 `CONTRACT-*` |
 | 读完动作 | 拆任务、排期、补 QA case、确认跨团队契约 |
 
-## PRD 读取区：prd-ingest/
+## PRD 读取区：_ingest/
 
-`prd-ingest/` 的作用不是分析需求，而是回答：**AI 读到的 PRD 是否可靠？**
+`_ingest/` 的作用不是分析需求，而是回答：**AI 读到的 PRD 是否可靠？**
 
 | 文件/目录 | 作用 | 什么时候看 | 风险信号 |
 |---|---|---|---|
@@ -114,9 +114,9 @@ reference-update       把新知识回流到 _reference/
 | PDF 阅读顺序风险 | 段落顺序可能错乱 | 核对 `document.md` |
 | 没有可读文本 | 可能是扫描件 | 使用 OCR 或让用户提供文本版 |
 
-## 机器和审计区：artifacts/
+## 机器和审计区：spec/
 
-`artifacts/` 是给 AI、审计、复盘和知识回流用的。普通读者不用每次全读，但下面这些文件决定了产出的可信度。
+`spec/` 是给 AI、审计、复盘和知识回流用的。普通读者不用每次全读，但下面这些文件决定了产出的可信度。
 
 | 文件 | 它回答的问题 | 好产出的特征 | 风险信号 |
 |---|---|---|---|
@@ -124,7 +124,7 @@ reference-update       把新知识回流到 _reference/
 | `requirement-ir.yaml` | PRD 被拆成哪些需求 | 每个 REQ 有规则、验收条件、证据 | 只写背景，没有可验收规则 |
 | `layer-impact.yaml` | 影响哪些层和能力面 | 每个 IMP 有 current_state、planned_delta、evidence | 只写“需要修改后端”，没有能力面和证据 |
 | `contract-delta.yaml` | 字段/接口/事件/外部系统怎么变 | producer、consumer、字段、状态清楚 | 多层需求没有 contract |
-| `reference-update-suggestions.yaml` | 哪些知识要回流 | 建议能落到具体 `_reference/` 文件 | 只有泛泛总结，没有 target_file |
+| `reference-update-suggestions.yaml` | 哪些知识要回流 | 建议能落到具体 `_prd-tools/reference/` 文件 | 只有泛泛总结，没有 target_file |
 
 ### evidence.yaml 速查
 
@@ -133,7 +133,7 @@ reference-update       把新知识回流到 _reference/
 | `prd` | 来自 PRD | 需求来源必备 |
 | `tech_doc` | 来自技术方案/API 文档 | 对接口和实现判断很重要 |
 | `code` | 来自源码 | 工程判断最关键 |
-| `reference` | 来自 `_reference/` | 加速理解，但不是最终权威 |
+| `reference` | 来自 `_prd-tools/reference/` | 加速理解，但不是最终权威 |
 | `negative_code_search` | 搜过没找到 | 证明当前代码没有该能力 |
 | `human` | 人工确认 | 需要记录确认人或来源 |
 
@@ -178,9 +178,9 @@ reference-update       把新知识回流到 _reference/
 | 涉及 MQ/event/payload | 时序和幂等风险高 |
 | 涉及 DB 字段或存储格式 | 兼容和迁移风险高 |
 
-## 项目知识库：_reference/
+## 项目知识库：_prd-tools/reference/
 
-`_reference/` 是项目长期记忆，不是某一次 PRD 的临时输出。v4.0 采用 6 文件结构，每个事实只存在于一个文件（SSOT），其他文件通过 ID 引用。
+`_prd-tools/reference/` 是项目长期记忆，不是某一次 PRD 的临时输出。v4.0 采用 6 文件结构，每个事实只存在于一个文件（SSOT），其他文件通过 ID 引用。
 
 | 文件 | 一句话作用 | 不应该放什么 |
 |---|---|---|
@@ -205,15 +205,15 @@ reference-update       把新知识回流到 _reference/
 
 ## 构建过程文件
 
-这些通常在 `_output/` 根目录，用来审计知识库构建过程。
+这些通常在 `_prd-tools/build/` 目录，用来审计知识库构建过程。
 
 | 文件 | 什么时候看 | 作用 |
 |---|---|---|
 | `context-enrichment.yaml` | 首次接入或补历史样例时 | 记录历史 PRD、技术方案、分支 diff、golden sample |
 | `modules-index.yaml` | 检查项目扫描结果时 | 记录模块、能力面、关键文件、候选契约 |
-| `reference-health.yaml` | 怀疑知识库过期时 | 检查完整性、过期、缺证据、边界混乱 |
-| `reference-quality-report.yaml` | 上线或推广前 | 检查证据、契约闭环、源码一致性、幻觉风险 |
-| `feedback-ingest-report.yaml` | 执行回流后 | 记录哪些建议被采纳或跳过 |
+| `health-check.yaml` | 怀疑知识库过期时 | 检查完整性、过期、缺证据、边界混乱 |
+| `quality-report.yaml` | 上线或推广前 | 检查证据、契约闭环、源码一致性、幻觉风险 |
+| `feedback-report.yaml` | 执行回流后 | 记录哪些建议被采纳或跳过 |
 
 ## 如何判断一次产出是否可靠
 
@@ -235,7 +235,7 @@ reference-update       把新知识回流到 _reference/
 |---|---|
 | YAML 很多，所以很复杂 | 普通用户只读 `report.md` 和 `plan.md`；YAML 给审计和回流用 |
 | `warn` 表示失败 | `warn` 表示可以继续，但风险必须显式处理 |
-| `_reference/` 是最终事实 | `_reference/` 是加速器，最终仍要以源码、PRD、技术方案、owner 确认为准 |
+| `_prd-tools/reference/` 是最终事实 | `_prd-tools/reference/` 是加速器，最终仍要以源码、PRD、技术方案、owner 确认为准 |
 | 前端/BFF 为空就是漏了 | 当前仓库没有对应实现时，工具会把它放到契约确认，而不是硬写任务 |
 | evidence 只要有就够 | 关键结论最好同时有 PRD 证据和源码/技术方案证据 |
 
@@ -267,7 +267,7 @@ reference-update       把新知识回流到 _reference/
 | 1 | 安装 PRD Tools | `.claude/skills` |
 | 2 | 收集历史 PRD、技术方案、分支 diff | golden sample 候选 |
 | 3 | 运行 `build-reference` 的 `F 上下文收集` | `context-enrichment.yaml` |
-| 4 | 运行 `A 全量构建` | `_reference/` |
+| 4 | 运行 `A 全量构建` | `_prd-tools/reference/` |
 | 5 | 运行 `B2 健康检查` | `reference-health.yaml` |
 | 6 | 运行 `C 质量门控` | `reference-quality-report.yaml` |
 | 7 | 用真实 PRD 跑 `prd-distill` | 单次需求产物 |
@@ -283,7 +283,7 @@ reference-update       把新知识回流到 _reference/
 | 5 | 多层需求读 `contract-delta.yaml` | 对齐字段和接口 |
 | 6 | 有争议读 `evidence.yaml` | 查证据 |
 | 7 | 需求结束读 `reference-update-suggestions.yaml` | 准备知识回流 |
-| 8 | 运行 `build-reference` 的 `E 反馈回流` | 更新 `_reference/` |
+| 8 | 运行 `build-reference` 的 `E 反馈回流` | 更新 `_prd-tools/reference/` |
 
 ## 这份文档的阅读原则
 

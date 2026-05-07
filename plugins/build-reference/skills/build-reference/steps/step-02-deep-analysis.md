@@ -5,21 +5,21 @@
 生成 reference v4.0：
 
 ```text
-_reference/00-portal.md
-_reference/project-profile.yaml
-_reference/01-codebase.yaml
-_reference/02-coding-rules.yaml
-_reference/03-contracts.yaml
-_reference/04-routing-playbooks.yaml
-_reference/05-domain.yaml
+_prd-tools/reference/00-portal.md
+_prd-tools/reference/project-profile.yaml
+_prd-tools/reference/01-codebase.yaml
+_prd-tools/reference/02-coding-rules.yaml
+_prd-tools/reference/03-contracts.yaml
+_prd-tools/reference/04-routing-playbooks.yaml
+_prd-tools/reference/05-domain.yaml
 ```
 
 ## 输入
 
-- `_output/modules-index.yaml`
-- `_output/context-enrichment.yaml`，如存在
-- `_output/graph/code-graph-evidence.yaml`，如存在（GitNexus 代码图谱证据）
-- `_output/graph/business-graph-evidence.yaml`，如存在（Graphify 业务图谱证据）
+- `_prd-tools/build/modules-index.yaml`
+- `_prd-tools/build/context-enrichment.yaml`，如存在
+- `_prd-tools/build/graph/code-evidence.yaml`，如存在（GitNexus 代码图谱证据）
+- `_prd-tools/build/graph/business-evidence.yaml`，如存在（Graphify 业务图谱证据）
 - `references/reference-v4.md`
 - `references/layer-adapters.md`
 - `references/output-contracts.md`
@@ -29,10 +29,10 @@ _reference/05-domain.yaml
 
 ### 前置：图谱证据加载
 
-1. 检查 `_output/graph/graph-sync-report.yaml` 是否存在。
+1. 检查 `_prd-tools/build/graph/sync-report.yaml` 是否存在。
 2. 如存在且任一 provider 的 `available: true`：
-   a. 读取 `_output/graph/code-graph-evidence.yaml`（如存在），建立 GEV ID 查找表。
-   b. 读取 `_output/graph/business-graph-evidence.yaml`（如存在），建立 GEV-B ID 查找表。
+   a. 读取 `_prd-tools/build/graph/code-evidence.yaml`（如存在），建立 GEV ID 查找表。
+   b. 读取 `_prd-tools/build/graph/business-evidence.yaml`（如存在），建立 GEV-B ID 查找表。
 3. 如不存在或全部 `available: false`：全部使用 rg/glob/Read 流程，不查询图谱。所有条目的 `graph_sources` 设为 `[]`。
 
 按以下顺序生成文件，后生成的文件必须检查先生成的文件，避免内容重叠：
@@ -40,7 +40,7 @@ _reference/05-domain.yaml
 ### 阶段 1：代码库静态清单（GitNexus 主导）
 
 1. 为分析过程中发现的事实建立 evidence 台账。
-2. 如果有 `_output/graph/code-graph-evidence.yaml`：
+2. 如果有 `_prd-tools/build/graph/code-evidence.yaml`：
    a. 从图谱证据中提取模块、符号、入口、数据流作为初始数据。
    b. 用 `mcp__gitnexus__query` 补充调用链和依赖关系。
    c. 图谱结果标注 `evidence.kind: knowledge_graph`、`confidence: high`。
@@ -53,7 +53,7 @@ _reference/05-domain.yaml
 
 ### 阶段 2：编码规则（Graphify 主导）
 
-5. 如果有 `_output/graph/business-graph-evidence.yaml`：
+5. 如果有 `_prd-tools/build/graph/business-evidence.yaml`：
    a. 从 Graphify 的 `rationale_for` 节点提取设计原理。
    b. 从 God Nodes 和 Surprising Connections 提取危险区和反模式。
    c. Graphify `EXTRACTED` → `high`，`INFERRED` → `medium`/`low`（按 confidence 映射）。

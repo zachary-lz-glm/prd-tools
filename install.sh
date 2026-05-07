@@ -501,7 +501,7 @@ next_steps:
   - "1. Close and reopen Claude Code to activate GitNexus MCP."
   - "2. Set ANTHROPIC_AUTH_TOKEN (or OPENAI_API_KEY) for PRD image OCR and /graphify . --mode deep."
   - "3. Run /graphify . --mode deep to build business semantic graph."
-  - "4. Run /reference to generate _reference/ and _output/graph/GRAPH_STATUS.md."
+  - "4. Run /reference to generate _prd-tools/reference/ and _prd-tools/build/graph/STATUS.md."
 EOF
 
 echo "  Runtime status written: $TARGET/.prd-tools-runtime.yaml"
@@ -540,7 +540,7 @@ echo "     ⚠️  需要先完成步骤 2 配置 API Key"
 fi
 echo ""
 echo "  4. 运行 /reference（构建项目知识库）"
-echo "     → 生成 _reference/ 和 _output/graph/GRAPH_STATUS.md"
+echo "     → 生成 _prd-tools/reference/ 和 _prd-tools/build/graph/STATUS.md"
 echo ""
 echo "  常用入口：/reference → /prd-distill"
 echo ""

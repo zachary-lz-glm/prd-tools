@@ -4,29 +4,29 @@
 
 将 Requirement IR 转成：
 
-- `_output/prd-distill/<slug>/artifacts/layer-impact.yaml`
-- `_output/prd-distill/<slug>/artifacts/contract-delta.yaml`
-- `_output/prd-distill/<slug>/artifacts/graph-context.md`
+- `_prd-tools/distill/<slug>/context/layer-impact.yaml`
+- `_prd-tools/distill/<slug>/context/contract-delta.yaml`
+- `_prd-tools/distill/<slug>/context/graph-context.md`
 
 ## 输入
 
-- `artifacts/evidence.yaml`
-- `artifacts/requirement-ir.yaml`
-- `_reference/project-profile.yaml`，如存在
-- `_reference/01-codebase.yaml`
-- `_reference/02-coding-rules.yaml`
-- `_reference/03-contracts.yaml`
-- `_reference/04-routing-playbooks.yaml`
-- `_output/graph/code-graph-evidence.yaml`，如存在（GitNexus）
-- `_output/graph/business-graph-evidence.yaml`，如存在（Graphify）
-- v3.1 兼容：`_reference/01-entities.yaml`、`_reference/02-architecture.yaml`、`_reference/03-conventions.yaml`、`_reference/04-constraints.yaml`、`_reference/08-contracts.yaml`、`_reference/09-playbooks.yaml`
+- `spec/evidence.yaml`
+- `spec/requirement-ir.yaml`
+- `_prd-tools/reference/project-profile.yaml`，如存在
+- `_prd-tools/reference/01-codebase.yaml`
+- `_prd-tools/reference/02-coding-rules.yaml`
+- `_prd-tools/reference/03-contracts.yaml`
+- `_prd-tools/reference/04-routing-playbooks.yaml`
+- `_prd-tools/graph/code-graph-evidence.yaml`，如存在（GitNexus）
+- `_prd-tools/graph/business-graph-evidence.yaml`，如存在（Graphify）
+- v3.1 兼容：`_prd-tools/reference/01-entities.yaml`、`_prd-tools/reference/02-architecture.yaml`、`_prd-tools/reference/03-conventions.yaml`、`_prd-tools/reference/04-constraints.yaml`、`_prd-tools/reference/08-contracts.yaml`、`_prd-tools/reference/09-playbooks.yaml`
 - `references/layer-adapters.md`
 
 ## 执行
 
 ### 图谱上下文构建（始终执行，工具不可用时写 fallback）
 
-1. 先生成 `artifacts/graph-context.md`：
+1. 先生成 `context/graph-context.md`：
    a. 从 requirement-ir 提取业务实体、字段、枚举、接口、动作词和目标层。
    b. 如 GitNexus 可用，使用 `mcp__gitnexus__query` 找 execution flows 和候选符号。
    c. 对候选符号使用 `mcp__gitnexus__context` 获取 callers/callees/processes/file path。
@@ -51,7 +51,7 @@
    a. `mcp__gitnexus__impact <symbol>` 获取爆炸半径。
    b. 将影响的模块和调用链写入 layer-impact.yaml 的 `affected_symbols` 字段。
    c. 如果影响范围超过 5 个模块，提升 `risk_level`。
-   d. 记录图谱证据到 artifacts/evidence.yaml。
+   d. 记录图谱证据到 spec/evidence.yaml。
 
 ### 业务影响分析（Graphify 可用时增强）
 

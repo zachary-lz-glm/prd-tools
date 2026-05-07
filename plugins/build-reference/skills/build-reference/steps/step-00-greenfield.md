@@ -14,7 +14,7 @@
 
 ## 输出
 
-使用 v3 templates 生成 `_reference/00~09`：
+使用 v3 templates 生成 `_prd-tools/reference/00~09`：
 
 - 来自 PRD 的事实：`kind: prd`，`confidence: medium | low`
 - 来自兄弟项目的模式：`kind: reference`，`confidence: medium`

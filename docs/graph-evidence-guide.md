@@ -12,9 +12,9 @@ v2.5.0 引入的图谱证据层没有改变 prd-tools 的任何现有用法。
 
 `/build-reference` 还是那个命令，`/prd-distill` 也还是那个命令。产出还是 6 个 reference 文件 + report/plan；阻塞问题和待确认项收口在 `report.md` §11。
 
-核心变化是：**如果你装了 GitNexus 或 Graphify，build-reference 和 prd-distill 会自动从图谱拿数据，产出质量更高。** prd-distill 会先生成 `artifacts/graph-context.md`，再把函数级代码坐标、调用链、API consumer 和业务约束写进 `report.md` 与 `plan.md`。没装图谱工具时仍可用，只是回退到 rg/Read 和 `_reference`。
+核心变化是：**如果你装了 GitNexus 或 Graphify，build-reference 和 prd-distill 会自动从图谱拿数据，产出质量更高。** prd-distill 会先生成 `spec/graph-context.md`，再把函数级代码坐标、调用链、API consumer 和业务约束写进 `report.md` 与 `plan.md`。没装图谱工具时仍可用，只是回退到 rg/Read 和 `_prd-tools/reference`。
 
-还有一个边界要记住：`_reference/` 默认是单仓知识库。图谱可以发现跨仓线索，但没有 owner 确认时只能写成 `needs_confirmation`、handoff 或团队知识库候选，不能当成其他仓的确定事实。
+还有一个边界要记住：`_prd-tools/reference/` 默认是单仓知识库。图谱可以发现跨仓线索，但没有 owner 确认时只能写成 `needs_confirmation`、handoff 或团队知识库候选，不能当成其他仓的确定事实。
 
 ---
 
@@ -160,19 +160,19 @@ dive-bff/
                         04-routing-playbooks.yaml ← Graphify 的业务模式
                         05-domain.yaml ← Graphify 的领域术语
 
-4. 写出 _reference/     → 6 个文件，格式跟以前一样
+4. 写出 _prd-tools/reference/ → 6 个文件，格式跟以前一样
 ```
 
 ### 3.3 看产出
 
 ```bash
-ls _reference/
+ls _prd-tools/reference/
 # 00-portal.md  project-profile.yaml  01-codebase.yaml
 # 02-coding-rules.yaml  03-contracts.yaml  04-routing-playbooks.yaml  05-domain.yaml
 
-ls _output/graph/
-# code-graph-evidence.yaml        ← GitNexus 提供了什么证据
-# business-graph-evidence.yaml    ← Graphify 提供了什么证据
+ls _prd-tools/build/graph/
+# code-evidence.yaml              ← GitNexus 提供了什么证据
+# business-evidence.yaml          ← Graphify 提供了什么证据
 ```
 
 打开任意一个 reference 文件。如果某条事实来自图谱，你会看到两套独立的证据追踪：
@@ -254,7 +254,7 @@ Graphify 追踪业务关联：
 - **契约影响**："新增 rewardType 字段会影响 /api/reward consumer 的字段读取和导出链路"
 - **业务影响**："冲单奖与班次签到奖存在互斥规则，新增时需确认互斥逻辑是否需要调整"
 
-打开 `plan.md`。实现计划会优先消费 `artifacts/graph-context.md`：
+打开 `plan.md`。实现计划会优先消费 `spec/graph-context.md`：
 
 ```text
 REQ -> GitNexus query/context/impact/api_impact -> GCTX 函数级线索
