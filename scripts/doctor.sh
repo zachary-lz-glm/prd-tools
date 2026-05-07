@@ -56,7 +56,7 @@ if command -v markitdown &>/dev/null; then
   ok "markitdown" "$(command -v markitdown)"
 else
   bad "markitdown" "未安装（PRD 的 docx/pdf 无法解析）" \
-      'uv tool install "markitdown[all]" && uv tool install markitdown-ocr'
+      'uv tool install --upgrade "markitdown[all]" --with markitdown-ocr    # ocr 是插件，要用 --with'
 fi
 
 # ── 3. graphify ───────────────────────────────────────────────────
@@ -113,7 +113,7 @@ fi
 if [ -n "${http_proxy:-${HTTP_PROXY:-}}" ]; then
   P="${http_proxy:-${HTTP_PROXY:-}}"
   if [[ "$P" == socks* ]]; then
-    warn "proxy" "$P（仅对 curl 生效，npm/uv 不走 SOCKS）" \
+    warn "proxy" "${P}（仅对 curl 生效，npm/uv 不走 SOCKS）" \
          "如果 uv/npm 拉包失败，改用 HTTP 代理或配 PyPI/npm 镜像"
   else
     ok "proxy" "$P"
