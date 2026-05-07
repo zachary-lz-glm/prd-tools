@@ -15,6 +15,10 @@ PRD raw file/text
 
 主流程对前端、BFF、后端通用；层差异通过 `references/layer-adapters.md` 的能力面适配器生效。默认给人看轻量输出，机器可读细节放入 `artifacts/`。
 
+短入口：
+
+- `/prd-distill`：日常使用入口，执行本 workflow 的完整流程。
+
 ## 步骤 0：PRD Ingestion
 
 读取或收集：

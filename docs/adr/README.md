@@ -18,6 +18,8 @@
 | [0002-渐进式披露输出优化](0002-渐进式披露输出优化.md) | report/plan 可读性增强，Progressive Disclosure |
 | [0003-演进路线图](0003-演进路线图.md) | 4 个演进方向的可行性分析和路线图 |
 | [0004-口径一致性修复](0004-口径一致性修复.md) | P0 版本口径清理 + 输出边界约束 |
+| [0005-Agent-Skills融合落地方案](0005-Agent-Skills融合落地方案.md) | Agent Skills 架构、Slash 命令、Persona、Hook 规划 |
+| [0006-图谱融合与知识库架构](0006-图谱融合与知识库架构.md) | GitNexus + Graphify 双图谱融合和跨项目知识库规划 |
 
 ## ADR 格式
 

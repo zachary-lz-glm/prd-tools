@@ -2,6 +2,13 @@
 
 PRD Tools 是一套面向业务研发团队的 AI 工程工作流，把 PRD 从“自然语言需求”转成“有证据、可执行、可测试、可回流”的开发计划。
 
+使用方只需要记住两个入口：
+
+| 步骤 | 入口 | 结果 |
+|---|---|---|
+| 1 | `/reference` | 建好项目上下文 `_reference/` |
+| 2 | `/prd-distill` | 把 PRD 变成技术文档 `report.md` + `plan.md` |
+
 第一次看产出文件时，建议先读 [PRD Tools 产出阅读指南](OUTPUT_READING_GUIDE.md)。这份指南按角色说明了每个目录和文件的意义、阅读顺序、风险状态以及如何把结果用于研发评审。
 
 它不是单纯让 AI 帮忙“理解一下 PRD”，而是让 AI 在真实代码库里完成四件事：
@@ -349,6 +356,7 @@ curl -fsSL https://raw.githubusercontent.com/zachary-lz-glm/prd-tools/v2.0/insta
 
 ```text
 .claude/skills/          # Claude Code Skills
+.claude/commands/        # /reference 轻量入口
 .prd-tools-version       # 版本标记
 ```
 
@@ -368,13 +376,20 @@ export ANTHROPIC_BASE_URL=https://your-provider.example/v1
 构建项目知识库：
 
 ```text
-/build-reference
+/reference
 ```
 
 蒸馏新 PRD：
 
 ```text
-/prd-distill
+/prd-distill <PRD 文件路径或需求文本>
+```
+
+日常工作流就是：
+
+```text
+/reference
+/prd-distill <PRD 文件路径或需求文本>
 ```
 
 ## 推荐落地路径

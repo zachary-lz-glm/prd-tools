@@ -54,8 +54,6 @@ check_absent() {
 current_contract_files=(
   "README.md"
   "OUTPUT_READING_GUIDE.md"
-  "docs/productization-roadmap.md"
-  "docs/testing-guide.md"
   "docs/graph-evidence-guide.md"
   "plugins/prd-distill/skills/prd-distill/SKILL.md"
   "plugins/prd-distill/skills/prd-distill/workflow.md"
@@ -63,13 +61,7 @@ current_contract_files=(
   "plugins/prd-distill/skills/prd-distill/agents/openai.yaml"
   "plugins/build-reference/skills/build-reference/references/output-contracts.md"
   "plugins/prd-distill/skills/prd-distill/references/output-contracts.md"
-  ".claude/commands/spec.md"
   ".claude/commands/reference.md"
-  ".claude/commands/plan.md"
-  ".claude/commands/review.md"
-  ".claude/commands/ship.md"
-  ".claude/commands/feedback.md"
-  ".claude/commands/simplify.md"
 )
 
 check_absent 'questions\.md.*(默认|生成|读|输出|不替代|清单|阻塞|owner|证据链|artifacts)' \
@@ -91,18 +83,8 @@ if ! cmp -s \
   fail "The shared output-contracts.md copies must stay identical across both plugins."
 fi
 
-required_commands=(spec reference plan review ship feedback simplify)
-for cmd in "${required_commands[@]}"; do
-  if [ ! -f ".claude/commands/${cmd}.md" ]; then
-    fail "Missing Slash Command file: .claude/commands/${cmd}.md"
-  fi
-  if ! _rg_q "${cmd}" "install.sh"; then
-    fail "install.sh must install or advertise /${cmd}."
-  fi
-done
-
-if ! _rg_q 'commands:' "install.sh"; then
-  fail "install.sh must write commands status into .prd-tools-runtime.yaml."
+if [ ! -f ".claude/commands/reference.md" ]; then
+  fail "Missing lightweight command alias: .claude/commands/reference.md"
 fi
 
 if [ "$errors" -gt 0 ]; then

@@ -1,11 +1,13 @@
 ---
 name: build-reference
-description: 为前端、BFF、后端通用的 PRD-to-code 工作流构建、更新、健康检查或回流项目 reference 知识库。适用于用户调用 /build-reference，构建项目知识库、项目画像、能力面适配器、契约、打法、golden sample、反馈回流机制时。
+description: 为前端、BFF、后端通用的 PRD-to-code 工作流构建、更新、健康检查或回流项目 reference 知识库。适用于用户调用 /build-reference 或 /reference，要求建立项目知识库、检查 _reference 是否过期、沉淀接口契约/业务术语/开发打法、把 PRD 交付经验反馈回流、准备后续 /prd-distill 时。
 ---
 
 # build-reference
 
 Claude Code 中可通过 `/build-reference` 使用。
+
+项目安装了 Slash Commands 时，也可通过 `/reference` 使用。`/reference` 是面向日常使用的短入口，底层仍执行本 skill 的 Mode F/A/B/B2/C/E。
 
 ## 这个 skill 是做什么的
 

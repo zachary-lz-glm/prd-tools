@@ -1,6 +1,6 @@
 ---
 name: prd-distill
-description: 将 PRD 和可选技术文档先做稳定读取与质量检查，再蒸馏为有证据支撑的 report、plan 和 artifacts，包括 Requirement IR、Layer Impact、Contract Delta、技术方案、开发/测试/契约计划和 reference 回流建议，适用于前端、BFF、后端项目。
+description: 将 PRD、需求文本、技术方案或变更说明先做稳定读取与质量检查，再蒸馏为有证据支撑的 report、plan 和 artifacts，包括 Requirement IR、Layer Impact、Contract Delta、技术方案、开发/测试/契约计划和 reference 回流建议。适用于用户调用 /prd-distill，要求分析 PRD、拆需求、评估影响范围、生成开发计划、识别接口契约风险或生成 QA 矩阵时。
 ---
 
 # prd-distill

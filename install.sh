@@ -167,7 +167,7 @@ if [ "$GRAPHIFY_INSTALLED" = true ]; then
   GRAPHIFY_STATUS="ok"
 fi
 
-# ── Step 5/7: Download and install prd-tools skills and commands ───
+# ── Step 5/7: Download and install prd-tools skills ────────────────
 
 echo "==> [5/7] Downloading prd-tools..."
 
@@ -211,18 +211,10 @@ for skill in build-reference prd-distill; do
   fi
 done
 
-COMMAND_SRC="$ARCHIVE_ROOT/.claude/commands"
-if [ -d "$COMMAND_SRC" ]; then
-  for command_file in spec reference plan review ship feedback simplify; do
-    if [ -f "$COMMAND_SRC/$command_file.md" ]; then
-      cp "$COMMAND_SRC/$command_file.md" "$CLAUDE_COMMANDS_DIR/$command_file.md"
-      echo "    Installed command: /$command_file"
-    else
-      echo "    WARNING: command /$command_file not found in archive" >&2
-    fi
-  done
-else
-  echo "    WARNING: .claude/commands not found in archive" >&2
+COMMAND_SRC="$ARCHIVE_ROOT/.claude/commands/reference.md"
+if [ -f "$COMMAND_SRC" ]; then
+  cp "$COMMAND_SRC" "$CLAUDE_COMMANDS_DIR/reference.md"
+  echo "    Installed command alias: /reference"
 fi
 
 # Write version marker
@@ -367,20 +359,13 @@ echo "  Graphify:   $(command -v graphify 2>/dev/null || echo 'NOT FOUND')"
 echo "  MarkItDown: $(command -v markitdown 2>/dev/null || echo 'NOT FOUND')"
 echo ""
 echo "Skills:"
-echo "  /build-reference  —  Build domain knowledge (with graph)"
+echo "  /reference        —  Build domain knowledge (lightweight alias)"
 echo "  /prd-distill      —  Distill PRD document (with Vision)"
 echo "  /graphify         —  Knowledge graph from code/docs"
 echo ""
-echo "Workflow commands:"
-echo "  /spec             —  PRD → report/plan/artifacts"
-echo "  /reference        —  Build/check/update _reference/"
-echo "  /plan             —  Implementation sequence + QA matrix"
-echo "  /review           —  Business/contract/tech/QA evidence review"
-echo "  /ship             —  GO / GO_WITH_RISKS / NO_GO readiness"
-echo "  /feedback         —  Ingest delivered learnings into _reference/"
-echo "  /simplify         —  Reader-specific concise summary"
+echo "Commands:"
+echo "  /reference        —  Lightweight alias for build-reference"
 echo ""
-
 # Report issues
 ISSUES=0
 
@@ -475,7 +460,7 @@ TOOLS_OK=true
 [ "$MARKITDOWN_STATUS" != "ok" ] && TOOLS_OK=false
 
 if [ "$TOOLS_OK" = true ]; then
-  echo "  ✅ All tools installed. Ready to use /build-reference and /prd-distill."
+  echo "  ✅ All tools installed. Ready to use /reference and /prd-distill."
   echo ""
 fi
 
@@ -507,22 +492,16 @@ tools:
     visual_page: "$GRAPHIFY_HTML"
     report: "$GRAPHIFY_REPORT"
     purpose: "business semantic graph from code, docs, screenshots, diagrams"
-commands:
-  status: "ok"
-  path: "$CLAUDE_COMMANDS_DIR"
-  installed:
-    - "/spec"
-    - "/reference"
-    - "/plan"
-    - "/review"
-    - "/ship"
-    - "/feedback"
-    - "/simplify"
+  commands:
+    status: "ok"
+    path: "$CLAUDE_COMMANDS_DIR"
+    installed:
+      - "/reference"
 next_steps:
   - "1. Close and reopen Claude Code to activate GitNexus MCP."
   - "2. Set ANTHROPIC_AUTH_TOKEN (or OPENAI_API_KEY) for PRD image OCR and /graphify . --mode deep."
   - "3. Run /graphify . --mode deep to build business semantic graph."
-  - "4. Run /build-reference to generate _reference/ and _output/graph/GRAPH_STATUS.md."
+  - "4. Run /reference to generate _reference/ and _output/graph/GRAPH_STATUS.md."
 EOF
 
 echo "  Runtime status written: $TARGET/.prd-tools-runtime.yaml"
@@ -560,10 +539,10 @@ if [ -z "${VISION_KEY:-}" ]; then
 echo "     ⚠️  需要先完成步骤 2 配置 API Key"
 fi
 echo ""
-echo "  4. 运行 /build-reference（构建项目知识库）"
+echo "  4. 运行 /reference（构建项目知识库）"
 echo "     → 生成 _reference/ 和 _output/graph/GRAPH_STATUS.md"
 echo ""
-echo "  常用快捷入口：/spec → /review → /ship → /feedback"
+echo "  常用入口：/reference → /prd-distill"
 echo ""
 echo "  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""

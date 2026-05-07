@@ -8,6 +8,11 @@
 
 reference 是"可验证指南针"，不是项目百科。6 个文件，每个事实只存在一处（SSOT），按场景阅读。
 
+短入口：
+
+- `/reference`：日常使用入口，执行本 workflow 的各个模式。
+- `/build-reference`：保留给显式的技能调用。
+
 默认治理范围是单仓：当前仓 `_reference/` 只沉淀本仓确认事实。跨仓契约、上下游 owner、团队级 taxonomy 可以作为候选或 handoff 记录，但在 owner 确认前不能升级为确定事实。
 
 ## 三层架构
