@@ -9,6 +9,7 @@ TARGET="${1:-.}"
 TARGET="$(cd "$TARGET" && pwd)"
 
 CLAUDE_SKILLS_DIR="$TARGET/.claude/skills"
+CLAUDE_COMMANDS_DIR="$TARGET/.claude/commands"
 CLAUDE_CONFIG_DIR="$HOME/.claude"
 TMP_DIR="$(mktemp -d)"
 
@@ -166,7 +167,7 @@ if [ "$GRAPHIFY_INSTALLED" = true ]; then
   GRAPHIFY_STATUS="ok"
 fi
 
-# ── Step 5/7: Download and install prd-tools skills ────────────────
+# ── Step 5/7: Download and install prd-tools skills and commands ───
 
 echo "==> [5/7] Downloading prd-tools..."
 
@@ -183,6 +184,7 @@ if ! curl -fsSL --connect-timeout 10 --max-time 60 "$ARCHIVE_URL" | tar -xz -C "
 fi
 
 mkdir -p "$CLAUDE_SKILLS_DIR"
+mkdir -p "$CLAUDE_COMMANDS_DIR"
 
 ARCHIVE_ROOT="$(find "$TMP_DIR" -mindepth 1 -maxdepth 1 -type d | head -1)"
 if [ -z "$ARCHIVE_ROOT" ] || [ ! -d "$ARCHIVE_ROOT/plugins" ]; then
@@ -209,6 +211,20 @@ for skill in build-reference prd-distill; do
   fi
 done
 
+COMMAND_SRC="$ARCHIVE_ROOT/.claude/commands"
+if [ -d "$COMMAND_SRC" ]; then
+  for command_file in spec reference plan review ship feedback simplify; do
+    if [ -f "$COMMAND_SRC/$command_file.md" ]; then
+      cp "$COMMAND_SRC/$command_file.md" "$CLAUDE_COMMANDS_DIR/$command_file.md"
+      echo "    Installed command: /$command_file"
+    else
+      echo "    WARNING: command /$command_file not found in archive" >&2
+    fi
+  done
+else
+  echo "    WARNING: .claude/commands not found in archive" >&2
+fi
+
 # Write version marker
 cat > "$TARGET/.prd-tools-version" <<EOF
 version=$TOOL_VERSION
@@ -220,6 +236,7 @@ runtime_gitnexus=$MCP_CMD
 runtime_graphify=$(command -v graphify 2>/dev/null || echo "not_found")
 runtime_graphify_package=graphifyy
 runtime_markitdown=$(command -v markitdown 2>/dev/null || echo "not_found")
+commands_dir=$CLAUDE_COMMANDS_DIR
 EOF
 
 # ── Step 6/7: Configure GitNexus MCP + Index project ───────────────
@@ -285,19 +302,31 @@ else
 fi
 
 # GitNexus: full code structure graph (AST-based)
+# Strategy: try --embeddings first (enables semantic search via local HuggingFace model),
+# fall back to bare analyze if model download fails (e.g. HuggingFace unreachable in China).
 if [ -n "$MCP_CMD" ] && [ -d "$TARGET/.git" ]; then
   echo "    Indexing with GitNexus (AST-based code structure)..."
+
+  _GN_REGISTRY_ARGS=()
   if [[ "$MCP_CMD" == *npx ]]; then
-    if npm_config_registry=https://registry.npmjs.org "$MCP_CMD" -y gitnexus@latest analyze "$TARGET" 2>&1 | tail -5; then
-      echo "    GitNexus: code structure indexed"
-      GITNEXUS_INDEXED=true
-      GITNEXUS_STATUS="ok"
-    else
-      echo "    WARNING: GitNexus indexing failed" >&2
-    fi
-  elif [[ "$MCP_CMD" == *bunx ]]; then
-    if "$MCP_CMD" --bun gitnexus@latest analyze "$TARGET" 2>&1 | tail -5; then
-      echo "    GitNexus: code structure indexed"
+    _GN_REGISTRY_ARGS=(env npm_config_registry=https://registry.npmjs.org)
+  fi
+  _GN_RUN=("$MCP_CMD")
+  if [[ "$MCP_CMD" == *bunx ]]; then
+    _GN_RUN=("$MCP_CMD" "--bun")
+  fi
+  _GN_RUN+=("gitnexus@latest" "analyze" "$TARGET")
+
+  # Attempt 1: with embeddings (full semantic search)
+  if "${_GN_REGISTRY_ARGS[@]}" "${_GN_RUN[@]}" --embeddings 2>&1 | tail -5; then
+    echo "    GitNexus: indexed with embeddings (semantic search enabled)"
+    GITNEXUS_INDEXED=true
+    GITNEXUS_STATUS="ok"
+  else
+    echo "    GitNexus --embeddings failed (HuggingFace unreachable?), retrying without embeddings..."
+    # Attempt 2: without embeddings (AST-only, BM25 keyword search)
+    if "${_GN_REGISTRY_ARGS[@]}" "${_GN_RUN[@]}" 2>&1 | tail -5; then
+      echo "    GitNexus: indexed without embeddings (semantic search unavailable — retry later with: gitnexus analyze --embeddings)"
       GITNEXUS_INDEXED=true
       GITNEXUS_STATUS="ok"
     else
@@ -341,6 +370,15 @@ echo "Skills:"
 echo "  /build-reference  —  Build domain knowledge (with graph)"
 echo "  /prd-distill      —  Distill PRD document (with Vision)"
 echo "  /graphify         —  Knowledge graph from code/docs"
+echo ""
+echo "Workflow commands:"
+echo "  /spec             —  PRD → report/plan/artifacts"
+echo "  /reference        —  Build/check/update _reference/"
+echo "  /plan             —  Implementation sequence + QA matrix"
+echo "  /review           —  Business/contract/tech/QA evidence review"
+echo "  /ship             —  GO / GO_WITH_RISKS / NO_GO readiness"
+echo "  /feedback         —  Ingest delivered learnings into _reference/"
+echo "  /simplify         —  Reader-specific concise summary"
 echo ""
 
 # Report issues
@@ -469,6 +507,17 @@ tools:
     visual_page: "$GRAPHIFY_HTML"
     report: "$GRAPHIFY_REPORT"
     purpose: "business semantic graph from code, docs, screenshots, diagrams"
+commands:
+  status: "ok"
+  path: "$CLAUDE_COMMANDS_DIR"
+  installed:
+    - "/spec"
+    - "/reference"
+    - "/plan"
+    - "/review"
+    - "/ship"
+    - "/feedback"
+    - "/simplify"
 next_steps:
   - "1. Close and reopen Claude Code to activate GitNexus MCP."
   - "2. Set ANTHROPIC_AUTH_TOKEN (or OPENAI_API_KEY) for PRD image OCR and /graphify . --mode deep."
@@ -513,6 +562,8 @@ fi
 echo ""
 echo "  4. 运行 /build-reference（构建项目知识库）"
 echo "     → 生成 _reference/ 和 _output/graph/GRAPH_STATUS.md"
+echo ""
+echo "  常用快捷入口：/spec → /review → /ship → /feedback"
 echo ""
 echo "  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
