@@ -1,12 +1,14 @@
 # Graph Evidence 使用指南
 
-> prd-tools v2.5.0 引入了图谱证据层。这篇文档只回答一个问题：**我现在要做什么，怎么做。**
+> prd-tools 的图谱证据层让 build-reference 和 prd-distill 自动从 GitNexus 和 Graphify 获取数据，产出质量更高。
+>
+> **最新详细说明见插件 README：** [`plugins/build-reference/README.md`](../plugins/build-reference/README.md) 和 [`plugins/prd-distill/README.md`](../plugins/prd-distill/README.md)。本文件是补充性的详细 walkthrough。
 
 ---
 
 ## 0. 先理解一件事
 
-v2.5.0 没有改变 prd-tools 的任何现有用法。
+v2.5.0 引入的图谱证据层没有改变 prd-tools 的任何现有用法。
 
 `/build-reference` 还是那个命令，`/prd-distill` 也还是那个命令。产出还是 6 个 reference 文件 + report/plan；阻塞问题和待确认项收口在 `report.md` §11。
 
@@ -42,9 +44,20 @@ v2.5.0 没有改变 prd-tools 的任何现有用法。
 
 ---
 
-## 2. 安装（一次性）
+## 2. 安装（推荐用一键脚本）
 
-### GitNexus
+推荐使用一键安装脚本，自动安装所有工具并配置索引：
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/zachary-lz-glm/prd-tools/v2.0/install.sh | bash
+```
+
+脚本会自动完成：uv + MarkItDown + GitNexus（含 embeddings）+ Graphify + MCP 配置 + 项目索引。
+
+### 手动安装（备选）
+
+<details>
+<summary>手动安装 GitNexus</summary>
 
 如果机器有 Node/npx，在 `~/.claude/.mcp.json` 的 `mcpServers` 里加一段：
 
@@ -52,7 +65,7 @@ v2.5.0 没有改变 prd-tools 的任何现有用法。
 "gitnexus": {
   "command": "npx",
   "args": ["-y", "gitnexus@latest", "mcp"],
-  "env": {}
+  "env": {"npm_config_registry": "https://registry.npmjs.org"}
 }
 ```
 
@@ -61,21 +74,25 @@ v2.5.0 没有改变 prd-tools 的任何现有用法。
 ```json
 "gitnexus": {
   "command": "bunx",
-  "args": ["--bun", "gitnexus@latest", "mcp"],
-  "env": {}
+  "args": ["--bun", "gitnexus@latest", "mcp"]
 }
 ```
 
-安装完成。重启 Claude Code 后，你会多出 7 个 MCP 工具（impact、context、query 等）。
+重启 Claude Code 后生效。
 
-### Graphify
+</details>
+
+<details>
+<summary>手动安装 Graphify</summary>
 
 ```bash
 uv tool install graphifyy
 graphify install
 ```
 
-安装完成。在 Claude Code 里你会多出 `/graphify`、`/graphify query`、`/graphify path`、`/graphify explain` 四个命令。
+安装完成。在 Claude Code 里你会多出 `/graphify`、`/graphify query`、`/graphify path`、`/graphify explain` 等命令。
+
+</details>
 
 ### 不想装？
 
@@ -94,9 +111,10 @@ graphify install
 ```bash
 cd /Users/didi/work/dive-bff
 
-# 建代码结构图（1-3 分钟）
-npx -y gitnexus@latest analyze
-# 没有 Node 时可用：bunx --bun gitnexus@latest analyze
+# 建代码结构图（1-3 分钟，含语义搜索）
+npx -y gitnexus@latest analyze --embeddings
+# 没有 Node 时可用：bunx --bun gitnexus@latest analyze --embeddings
+# HuggingFace 不可达时自动回退到 AST-only 模式
 
 # 建业务语义图（把 PRD 和技术方案也吃进去）
 /graphify . --mode deep
@@ -107,7 +125,8 @@ npx -y gitnexus@latest analyze
 ```
 dive-bff/
 ├── .gitnexus/                    ← 代码结构图
-│   └── graph.db
+│   ├── lbug                      ← LadybugDB 索引文件
+│   └── meta.json                 ← 索引元数据
 ├── graphify-out/                 ← 业务语义图
 │   ├── graph.json                ← 可查询的图谱数据
 │   ├── graph.html                ← 可视化（浏览器打开就能看）
@@ -122,7 +141,7 @@ dive-bff/
 /build-reference
 ```
 
-就这个命令，跟以前一样。但 v2.5.0 的 build-reference 内部做了这些事：
+就这个命令，跟以前一样。build-reference 内部做了这些事：
 
 ```
                     你看到的                        背后发生的
@@ -156,18 +175,25 @@ ls _output/graph/
 # business-graph-evidence.yaml    ← Graphify 提供了什么证据
 ```
 
-打开任意一个 reference 文件。如果某条事实来自图谱，你会看到：
+打开任意一个 reference 文件。如果某条事实来自图谱，你会看到两套独立的证据追踪：
 
 ```yaml
+# 可审计证据（源码、文档、人工确认）
 evidence:
   - id: "EV-001"
-    kind: "knowledge_graph"        # ← 图谱提供的，不是人工读的
-    source: "gitnexus"
-    locator: "src/config/field-registry.ts:handleLogin"
-    summary: "GitNexus 确认 handleLogin 被 3 个模块调用"
+    kind: "code"
+    source: "src/config/field-registry.ts"
+    locator: "handleLogin"
+    summary: "源码确认 handleLogin 被 3 个模块调用"
+
+# 图谱溯源（不可替代审计证据）
+graph_evidence_refs:
+  - "GEV-001"                     # ← GitNexus 结构发现
+graph_sources:
+  - "gitnexus"
 ```
 
-**关键**：reference 文件格式完全没变。图谱只是让数据更准确、更快。你以前的阅读方式、使用方式不需要任何调整。
+**关键**：`evidence`（EV-xxx）和 `graph_evidence_refs`（GEV-xxx）是两套独立追踪，不能互相替代。GitNexus AST 提取的 high-confidence 结构发现不需要额外源码确认；Graphify INFERRED 的结论需要源码确认后才能写入 reference。
 
 ---
 
@@ -179,8 +205,8 @@ evidence:
 
 ```bash
 # 代码改了？增量更新代码图谱
-npx -y gitnexus@latest analyze --incremental
-# 没有 Node 时可用：bunx --bun gitnexus@latest analyze --incremental
+npx -y gitnexus@latest analyze --embeddings
+# 没有 Node 时可用：bunx --bun gitnexus@latest analyze --embeddings
 
 # 加了新 PRD 文档？增量更新业务图谱
 /graphify . --update
@@ -274,8 +300,8 @@ Graphify 会画出两个概念之间的关联路径。
 
 ```bash
 # 代码改了
-npx -y gitnexus@latest analyze --incremental          # 30 秒左右
-# 没有 Node 时可用：bunx --bun gitnexus@latest analyze --incremental
+npx -y gitnexus@latest analyze --embeddings
+# 没有 Node 时可用：bunx --bun gitnexus@latest analyze --embeddings
 
 # 文档改了
 /graphify . --update                        # 1-2 分钟
@@ -294,7 +320,7 @@ npx -y gitnexus@latest analyze --incremental          # 30 秒左右
         "hooks": [
           {
             "type": "command",
-            "command": "cd $PROJECT_DIR && (npx -y gitnexus@latest analyze --incremental || bunx --bun gitnexus@latest analyze --incremental) 2>/dev/null || true"
+            "command": "cd $PROJECT_DIR && (npx -y gitnexus@latest analyze --embeddings || bunx --bun gitnexus@latest analyze --embeddings) 2>/dev/null || true"
           },
           {
             "type": "command",
@@ -317,7 +343,7 @@ npx -y gitnexus@latest analyze --incremental          # 30 秒左右
 ┌─────────────────────────────────────────────────────────┐
 │                                                         │
 │   第一次接入项目？                                        │
-│   ├── gitnexus analyze                                  │
+│   ├── gitnexus analyze --embeddings                     │
 │   ├── /graphify . --mode deep                           │
 │   └── /build-reference  A 全量构建                       │
 │                                                         │
@@ -326,7 +352,7 @@ npx -y gitnexus@latest analyze --incremental          # 30 秒左右
 │   └── /prd-distill                                      │
 │                                                         │
 │   代码改了要更新 reference？                               │
-│   ├── gitnexus analyze --incremental                    │
+│   ├── gitnexus analyze --embeddings                    │
 │   ├── /graphify . --update                              │
 │   └── /build-reference  B 增量更新                       │
 │                                                         │
