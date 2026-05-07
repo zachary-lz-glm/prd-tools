@@ -3,7 +3,12 @@
 All notable changes to the **prd-distill** plugin are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
-## [2.10.0] - 2026-05-06
+## [2.10.1] - 2026-05-07
+
+### Changed
+- (待补充)
+
+- (待补充)
 
 ### Added
 - feat: reference 单仓治理 + graph-context 图谱中间层 + install 改进

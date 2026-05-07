@@ -4,6 +4,12 @@
 
 ---
 
+## [2.10.1] - 2026-05-07
+
+### Fixed
+- fix: install.sh npx 调 gitnexus 时绕过公司内网 npm registry
+
+
 ## [2.10.0] - 2026-05-06
 
 ### Added
