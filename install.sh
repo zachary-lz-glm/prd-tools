@@ -385,7 +385,7 @@ if [ "$ISSUES" -gt 0 ]; then
 fi
 
 # API key check — interactive prompt for LLM Vision (PRD image OCR and Graphify deep semantic graph)
-if [ -z "$VISION_KEY" ]; then
+if [ -z "${VISION_KEY:-}" ]; then
   echo "  ⚠️  未检测到 API Key，以下功能受限："
   echo "     - PRD 中的流程图/截图/设计稿无法解析"
   echo "     - /graphify . --mode deep 无法提取业务语义"
@@ -426,7 +426,7 @@ if [ -z "$VISION_KEY" ]; then
     echo ""
   fi
 else
-  echo "  ✅ 已检测到 $VISION_KEY，PRD 图片解析和 Graphify 深度语义已就绪"
+  echo "  ✅ 已检测到 ${VISION_KEY:-}，PRD 图片解析和 Graphify 深度语义已就绪"
   echo ""
 fi
 
@@ -507,7 +507,7 @@ fi
 echo ""
 echo "  3. 运行 /graphify . --mode deep（构建业务语义图谱）"
 echo "     → 把代码、PRD、技术文档提取为业务概念关系"
-if [ -z "$VISION_KEY" ]; then
+if [ -z "${VISION_KEY:-}" ]; then
 echo "     ⚠️  需要先完成步骤 2 配置 API Key"
 fi
 echo ""
