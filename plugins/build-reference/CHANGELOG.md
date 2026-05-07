@@ -3,22 +3,14 @@
 All notable changes to the **build-reference** plugin are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
-## [2.10.3] - 2026-05-07
+## [2.11.0] - 2026-05-07
 
 ### Changed
-- (待补充)
-
-- (待补充)
-
-### Changed
-- (待补充)
-
-- (待补充)
-
-### Changed
-- (待补充)
-
-- (待补充)
+- refactor: _output/ + _reference/ 统一为 _prd-tools/，Spec Kit 对齐重组
+- docs: 全面更新图谱集成文档 + 修复过时引用
+- docs: 插件新增人类可读 README + SKILL.md 精简 + 外部工具描述更新
+- docs: SKILL.md 添加 mermaid 一眼看懂流程图
+- docs: simplify prd-tools entrypoints
 
 ### Added
 - feat: reference 单仓治理 + graph-context 图谱中间层 + install 改进

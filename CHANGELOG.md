@@ -4,6 +4,20 @@
 
 ---
 
+## [2.11.0] - 2026-05-07
+
+### Changed
+- refactor: _output/ + _reference/ 统一为 _prd-tools/，Spec Kit 对齐重组
+- docs: 全面更新图谱集成文档 + 修复过时引用
+- docs: 插件新增人类可读 README + SKILL.md 精简 + 外部工具描述更新
+- docs: SKILL.md 添加 mermaid 一眼看懂流程图
+- docs: simplify prd-tools entrypoints
+
+### Fixed
+- fix: install.sh GitNexus 索引启用 embeddings + HuggingFace 不可达容错
+- fix: install.sh VISION_KEY unbound variable 防护
+
+
 ## [2.10.3] - 2026-05-07
 
 ### Fixed
