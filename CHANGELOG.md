@@ -4,6 +4,12 @@
 
 ---
 
+## [2.10.3] - 2026-05-07
+
+### Fixed
+- fix: post-commit 改为询问发版 + install.sh API Key 交互优化
+
+
 ## [2.10.2] - 2026-05-07
 
 ### Fixed
