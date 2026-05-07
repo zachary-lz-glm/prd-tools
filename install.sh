@@ -386,21 +386,22 @@ fi
 
 # API key check — interactive prompt for LLM Vision (PRD image OCR and Graphify deep semantic graph)
 if [ -z "$VISION_KEY" ]; then
-  echo "  ⚠️  No API key found for LLM Vision."
-  echo "     PRD image OCR and Graphify deep semantic extraction may be disabled."
-  echo "     PRD images will be marked as 'needs_vision_or_human_review'."
+  echo "  ⚠️  未检测到 API Key，以下功能受限："
+  echo "     - PRD 中的流程图/截图/设计稿无法解析"
+  echo "     - /graphify . --mode deep 无法提取业务语义"
   echo ""
-  echo "  Step 7 can save an ANTHROPIC_AUTH_TOKEN now, or you can skip and set it later:"
-  echo "     export ANTHROPIC_AUTH_TOKEN=sk-ant-xxx"
-  echo "     # If PRD image OCR uses an OpenAI-compatible vision endpoint, also set:"
-  echo "     export ANTHROPIC_BASE_URL=https://your-provider.example/v1"
-  echo "     # Or use OPENAI_API_KEY / OPENAI_BASE_URL instead."
+  echo "  请输入 API Key（按 Enter 跳过，后续可手动配置）："
+  echo "     Anthropic:  ANTHROPIC_AUTH_TOKEN"
+  echo "     OpenAI 兼容: OPENAI_API_KEY + OPENAI_BASE_URL"
+  echo "     智谱:        ANTHROPIC_AUTH_TOKEN + ANTHROPIC_BASE_URL=https://open.bigmodel.cn/api/paas/v4/"
   echo ""
   USER_ANTHROPIC_TOKEN=""
-  if [ -t 0 ]; then
-    read -p "  Enter ANTHROPIC_AUTH_TOKEN (or press Enter to skip): " USER_ANTHROPIC_TOKEN
+  # 从 /dev/tty 读取输入，确保在 Claude Code 等非交互环境中也能提示用户
+  if [ -e /dev/tty ]; then
+    read -p "  Enter ANTHROPIC_AUTH_TOKEN (or press Enter to skip): " USER_ANTHROPIC_TOKEN < /dev/tty
   else
-    echo "  Non-interactive shell detected; skipping API key prompt."
+    echo "  无法打开终端输入，跳过 API Key 配置。"
+    echo "  请手动配置: export ANTHROPIC_AUTH_TOKEN=sk-ant-xxx"
     echo ""
   fi
   if [ -n "$USER_ANTHROPIC_TOKEN" ]; then
@@ -418,14 +419,14 @@ if [ -z "$VISION_KEY" ]; then
       rm -f "$PROFILE_FILE.bak"
       echo "  ✅ ANTHROPIC_AUTH_TOKEN saved to $PROFILE_FILE"
     fi
-    echo "  ℹ️  LLM Vision / Graphify deep extraction can use ANTHROPIC_AUTH_TOKEN"
+    echo "  ℹ️  LLM Vision / Graphify deep extraction 已就绪"
     echo ""
   else
-    echo "  Skipped. Set later with: export ANTHROPIC_AUTH_TOKEN=sk-ant-xxx"
+    echo "  ⚠️  已跳过。请手动配置: export ANTHROPIC_AUTH_TOKEN=sk-ant-xxx"
     echo ""
   fi
 else
-  echo "  ℹ️  LLM Vision / Graphify deep extraction can use $VISION_KEY"
+  echo "  ✅ 已检测到 $VISION_KEY，PRD 图片解析和 Graphify 深度语义已就绪"
   echo ""
 fi
 
@@ -495,17 +496,13 @@ echo "  1. 关闭并重新打开 Claude Code"
 echo "     → GitNexus MCP 工具才会生效"
 echo ""
 echo "  2. 配置 Vision API Key（PRD 图片解析 + Graphify 深度语义）"
-if [ -n "$VISION_KEY" ]; then
-echo "     ✅ 已检测到 $VISION_KEY，无需额外配置"
+if [ -n "$VISION_KEY" ] || [ -n "${ANTHROPIC_AUTH_TOKEN:-}" ]; then
+echo "     ✅ 已配置，无需额外操作"
 else
-echo "     ⚠️  未检测到 API Key，以下功能受限："
-echo "        - PRD 中的流程图/截图/设计稿无法解析（标记为 needs_vision_or_human_review）"
-echo "        - /graphify . --mode deep 无法提取业务语义"
-echo "     配置方式："
+echo "     ⚠️  未配置，请在 shell 中执行："
 echo "       export ANTHROPIC_AUTH_TOKEN=sk-ant-xxx"
-echo "     如果使用 OpenAI 兼容端点（如智谱）："
+echo "     智谱用户额外设置："
 echo "       export ANTHROPIC_BASE_URL=https://open.bigmodel.cn/api/paas/v4/"
-echo "     或使用 OPENAI_API_KEY / OPENAI_BASE_URL"
 fi
 echo ""
 echo "  3. 运行 /graphify . --mode deep（构建业务语义图谱）"
