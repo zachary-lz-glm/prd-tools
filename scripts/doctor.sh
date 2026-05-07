@@ -165,8 +165,8 @@ if [ "$ISSUES" -eq 0 ]; then
   echo ""
   echo "  ${C_DIM}下一步：${C_R}"
   echo "  ${C_DIM}1. 关闭并重新打开 Claude Code，新 skills 才会加载${C_R}"
-  echo "  ${C_DIM}2. gitnexus analyze . --embeddings   # 构建代码索引 + 语义向量${C_R}"
-  echo "  ${C_DIM}3. /graphify . --mode deep            # 构建业务语义图谱（深度模式）${C_R}"
+  echo "  ${C_DIM}2. gitnexus analyze .              # 构建代码索引${C_R}"
+  echo "  ${C_DIM}3. /graphify .                      # 构建业务语义图谱${C_R}"
   echo "  ${C_DIM}4. /build-reference           # 构建项目知识库${C_R}"
   echo "  ${C_DIM}5. /prd-distill               # 蒸馏 PRD -> plan + tasks${C_R}"
 else
