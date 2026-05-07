@@ -469,10 +469,10 @@ tools:
     report: "$GRAPHIFY_REPORT"
     purpose: "business semantic graph from code, docs, screenshots, diagrams"
 next_steps:
-  - "Close and reopen Claude Code to activate GitNexus MCP from ~/.claude/.mcp.json."
-  - "If you skipped Step 7 API key input, set ANTHROPIC_AUTH_TOKEN before running /prd-distill on image-heavy PRDs or /graphify . --mode deep."
-  - "Run /build-reference to generate _reference/ and _output/graph/GRAPH_STATUS.md."
-  - "Run /graphify . --mode deep when you want the full LLM-enhanced business graph."
+  - "1. Close and reopen Claude Code to activate GitNexus MCP."
+  - "2. Set ANTHROPIC_AUTH_TOKEN (or OPENAI_API_KEY) for PRD image OCR and /graphify . --mode deep."
+  - "3. Run /graphify . --mode deep to build business semantic graph."
+  - "4. Run /build-reference to generate _reference/ and _output/graph/GRAPH_STATUS.md."
 EOF
 
 echo "  Runtime status written: $TARGET/.prd-tools-runtime.yaml"
@@ -486,11 +486,36 @@ fi
 # Restart reminder
 echo "  ⚡ IMPORTANT: Close and reopen Claude Code to activate GitNexus MCP server."
 echo "     MCP config was written to ~/.claude/.mcp.json."
-echo "     After reopening, /build-reference and /prd-distill can use GitNexus MCP tools."
 echo ""
-echo "  🔑 API key note:"
-echo "     PRD image OCR and Graphify deep semantic extraction need a vision-capable key."
-echo "     Step 7 accepts ANTHROPIC_AUTH_TOKEN interactively; otherwise set it before use:"
+echo "  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "  📋 安装后必做（按顺序）"
+echo "  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo ""
+echo "  1. 关闭并重新打开 Claude Code"
+echo "     → GitNexus MCP 工具才会生效"
+echo ""
+echo "  2. 配置 Vision API Key（PRD 图片解析 + Graphify 深度语义）"
+if [ -n "$VISION_KEY" ]; then
+echo "     ✅ 已检测到 $VISION_KEY，无需额外配置"
+else
+echo "     ⚠️  未检测到 API Key，以下功能受限："
+echo "        - PRD 中的流程图/截图/设计稿无法解析（标记为 needs_vision_or_human_review）"
+echo "        - /graphify . --mode deep 无法提取业务语义"
+echo "     配置方式："
 echo "       export ANTHROPIC_AUTH_TOKEN=sk-ant-xxx"
-echo "     For OpenAI-compatible vision endpoints, also set ANTHROPIC_BASE_URL or use OPENAI_API_KEY."
+echo "     如果使用 OpenAI 兼容端点（如智谱）："
+echo "       export ANTHROPIC_BASE_URL=https://open.bigmodel.cn/api/paas/v4/"
+echo "     或使用 OPENAI_API_KEY / OPENAI_BASE_URL"
+fi
+echo ""
+echo "  3. 运行 /graphify . --mode deep（构建业务语义图谱）"
+echo "     → 把代码、PRD、技术文档提取为业务概念关系"
+if [ -z "$VISION_KEY" ]; then
+echo "     ⚠️  需要先完成步骤 2 配置 API Key"
+fi
+echo ""
+echo "  4. 运行 /build-reference（构建项目知识库）"
+echo "     → 生成 _reference/ 和 _output/graph/GRAPH_STATUS.md"
+echo ""
+echo "  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
