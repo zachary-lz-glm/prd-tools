@@ -3,7 +3,12 @@
 All notable changes to the **prd-distill** plugin are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
-## [2.11.0] - 2026-05-07
+## [2.11.1] - 2026-05-07
+
+### Changed
+- refactor: install.sh 三层职责拆分 (ADR-0008)
+
+- refactor: install.sh 三层职责拆分 (ADR-0008)
 
 ### Changed
 - refactor: _output/ + _reference/ 统一为 _prd-tools/，Spec Kit 对齐重组

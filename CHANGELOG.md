@@ -4,6 +4,18 @@
 
 ---
 
+## [2.11.1] - 2026-05-07
+
+### Changed
+- i18n: install.sh / doctor.sh 用户可见输出改中文
+- refactor: install.sh 三层职责拆分 (ADR-0008)
+
+### Fixed
+- fix: doctor.sh gitnexus 内网 registry 检测 + uv mirror 检测 + 下一步提示
+- fix: doctor.sh $P 邻接全角字符触发 set -u + 修正 markitdown-ocr 安装命令
+- fix: install.sh 代理检测改用 SOCKS 优先 + 移除安装时索引
+
+
 ## [2.11.0] - 2026-05-07
 
 ### Changed
