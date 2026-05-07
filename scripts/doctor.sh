@@ -67,7 +67,12 @@ else
       "uv tool install graphifyy && graphify install"
 fi
 
-# ── 4. gitnexus runtime ───────────────────────────────────────────
+# ── 4. gitnexus ────────────────────────────────────────────────────
+# GitNexus 是知识图谱质量校验的核心工具，缺少它会导致：
+#   - 代码图谱索引无法构建或质量无法评估
+#   - /graphify 产出缺少 graph-context 校验
+#   - prd-distill Section 12（graph-context）无法生效
+
 GN_RUNTIME=""
 if command -v npx &>/dev/null; then
   GN_RUNTIME="npx"
@@ -75,19 +80,35 @@ elif command -v bunx &>/dev/null; then
   GN_RUNTIME="bunx"
 fi
 
-if [ -n "$GN_RUNTIME" ]; then
+if [ -z "$GN_RUNTIME" ]; then
+  # ── 无 Node/Bun 环境（常见于纯后端项目）────────────────────────
+  bad "gitnexus" "无 Node.js/Bun 环境，GitNexus 无法运行" \
+      "安装 Node.js: brew install node    # 或 curl -fsSL https://bun.sh/install | bash"
+else
   ok "gitnexus-rt" "$GN_RUNTIME 可用（$(command -v $GN_RUNTIME)）"
-  if [ "$GN_RUNTIME" = "npx" ]; then
-    if timeout 15 npx -y gitnexus@latest --version &>/dev/null; then
-      ok "gitnexus" "npm 可拉到 gitnexus 包"
+
+  if command -v gitnexus &>/dev/null; then
+    ok "gitnexus" "$(command -v gitnexus)"
+  else
+    # ── 检测 npm registry 是否能拉到公共包 ──────────────────────────
+    GN_REG_OK=0
+    GN_REG="$(npm config get registry 2>/dev/null | sed 's#/*$##')"
+    case "$GN_REG" in
+      *intra.*|*internal.*|*corp.*|*private*) GN_REG_OK=1 ;;
+    esac
+
+    if [ "$GN_REG_OK" -eq 1 ]; then
+      bad "gitnexus" "npm registry is private (${GN_REG}), cannot reach public package gitnexus" \
+          "npm install -g gitnexus --registry https://registry.npmmirror.com"
     else
-      warn "gitnexus" "拉包探测失败（网络/registry 问题，但不阻断使用）" \
-           "npx -y gitnexus@latest --version    # 看具体报错"
+      if timeout 15 npx -y gitnexus@latest --version &>/dev/null; then
+        ok "gitnexus" "npm 可拉到 gitnexus 包"
+      else
+        bad "gitnexus" "拉包探测失败（网络问题），知识图谱质量校验不可用" \
+            "npm install -g gitnexus --registry https://registry.npmmirror.com"
+      fi
     fi
   fi
-else
-  bad "gitnexus-rt" "PATH 中既没有 npx 也没有 bunx" \
-      "curl -fsSL https://bun.sh/install | bash    # 或安装 Node.js"
 fi
 
 # ── 5. .mcp.json ──────────────────────────────────────────────────
@@ -109,12 +130,29 @@ else
       "export ANTHROPIC_AUTH_TOKEN=sk-ant-xxx    # 加到 ~/.zshrc 持久化"
 fi
 
-# ── 7. proxy advisory ─────────────────────────────────────────────
+# ── 7. uv mirror (SOCKS proxy env) ────────────────────────────────
+# SOCKS proxy only works for curl; npm/uv do not support SOCKS.
+# npm: gitnexus check (section 4) already handles public package install.
+# uv: needs a PyPI mirror to install markitdown/graphify without proxy.
+
 if [ -n "${http_proxy:-${HTTP_PROXY:-}}" ]; then
   P="${http_proxy:-${HTTP_PROXY:-}}"
   if [[ "$P" == socks* ]]; then
-    warn "proxy" "${P}（仅对 curl 生效，npm/uv 不走 SOCKS）" \
-         "如果 uv/npm 拉包失败，改用 HTTP 代理或配 PyPI/npm 镜像"
+    if [ -f "$HOME/.config/uv/uv.toml" ] && grep -q 'aliyun\.\|tuna\.\|pypi\.org/simple' "$HOME/.config/uv/uv.toml" 2>/dev/null; then
+      MIRROR_UV=1
+    elif [ -n "${UV_INDEX_URL:-}" ]; then
+      MIRROR_UV=1
+    else
+      MIRROR_UV=0
+    fi
+
+    if [ "$MIRROR_UV" -eq 1 ]; then
+      ok "uv-mirror" "PyPI mirror configured (SOCKS proxy bypassed)"
+    else
+      warn "uv-mirror" "SOCKS proxy (${P}) does not work with uv; PyPI mirror not configured"
+      FIXES+=("mkdir -p ~/.config/uv && cat > ~/.config/uv/uv.toml << 'UV_EOF'\n[[index]]\nurl = \"https://mirrors.aliyun.com/pypi/simple\"\ndefault = true\nUV_EOF")
+      printf "  %s   -> mkdir -p ~/.config/uv && cat > ~/.config/uv/uv.toml << 'EOF'\n      [[index]]\n      url = \"https://mirrors.aliyun.com/pypi/simple\"\n      default = true\n      EOF%s\n" "$C_DIM" "$C_R"
+    fi
   else
     ok "proxy" "$P"
   fi
@@ -124,6 +162,13 @@ fi
 echo ""
 if [ "$ISSUES" -eq 0 ]; then
   echo "  ${C_OK}所有必需工具已就绪。${C_R}"
+  echo ""
+  echo "  ${C_DIM}下一步：${C_R}"
+  echo "  ${C_DIM}1. 关闭并重新打开 Claude Code，新 skills 才会加载${C_R}"
+  echo "  ${C_DIM}2. gitnexus analyze . --embeddings   # 构建代码索引 + 语义向量${C_R}"
+  echo "  ${C_DIM}3. /graphify . --mode deep            # 构建业务语义图谱（深度模式）${C_R}"
+  echo "  ${C_DIM}4. /build-reference           # 构建项目知识库${C_R}"
+  echo "  ${C_DIM}5. /prd-distill               # 蒸馏 PRD -> plan + tasks${C_R}"
 else
   echo "  ${C_BAD}发现 $ISSUES 项需要修复。${C_R}"
   echo "  可执行：bash $0 --fix    # 交互式逐条修"
@@ -140,7 +185,7 @@ if [ ! -f "$MCP_FILE" ] || ! grep -q '"gitnexus"' "$MCP_FILE" 2>/dev/null; then
       "gitnexus": {
         "command": "npx",
         "args": ["-y", "gitnexus@latest", "mcp"],
-        "env": {"npm_config_registry": "https://registry.npmjs.org"}
+        "env": {"npm_config_registry": "https://registry.npmmirror.com"}
       }
     }
   }
