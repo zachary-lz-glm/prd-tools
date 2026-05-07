@@ -9,6 +9,28 @@ Claude Code 中可通过 `/build-reference` 使用。
 
 项目安装了 Slash Commands 时，也可通过 `/reference` 使用。`/reference` 是面向日常使用的短入口，底层仍执行本 skill 的 Mode F/A/B/B2/C/E。
 
+## 一眼看懂流程
+
+```mermaid
+flowchart TD
+  A["/reference"] --> B{"_reference/ 是否已存在？"}
+  B -- "否：首次接入" --> C["Mode F：收集历史 PRD、技术方案、diff"]
+  C --> D["Mode A：全量构建项目知识库"]
+  B -- "是：已有知识库" --> E{"这次要做什么？"}
+  E -- "检查是否过期" --> F["Mode B2：健康检查"]
+  E -- "源码/契约变化" --> G["Mode B：增量更新"]
+  E -- "交付后沉淀经验" --> H["Mode E：反馈回流"]
+  E -- "上线前确认质量" --> I["Mode C：质量门控"]
+  D --> J["_reference/：项目画像、代码清单、契约、打法、领域知识"]
+  F --> K["_output/reference-health.yaml"]
+  G --> J
+  H --> J
+  I --> L["_output/reference-quality-report.yaml"]
+  J --> M["后续 /prd-distill 直接复用"]
+  K --> M
+  L --> M
+```
+
 ## 这个 skill 是做什么的
 
 `build-reference` 负责把一个项目中会影响 PRD-to-code 的长期知识沉淀到 `_reference/`。

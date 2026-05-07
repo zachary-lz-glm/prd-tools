@@ -7,6 +7,31 @@ description: 将 PRD、需求文本、技术方案或变更说明先做稳定读
 
 Claude Code 中可通过 `/prd-distill` 使用。
 
+## 一眼看懂流程
+
+```mermaid
+flowchart TD
+  A["/prd-distill <PRD 文件或需求文本>"] --> B{"输入类型"}
+  B -- "docx/pdf/pptx/xlsx/html/md/txt" --> C["PRD Ingestion：MarkItDown 转换"]
+  B -- "粘贴文本" --> D["手工建立来源、段落和质量记录"]
+  C --> E["prd-ingest/：document.md、evidence-map、tables、media、quality"]
+  D --> E
+  E --> F{"读取质量"}
+  F -- "block" --> G["暂停：要求补充可读 PRD 或文本"]
+  F -- "pass/warn" --> H["Requirement IR：拆成 REQ、规则、验收条件"]
+  H --> I["读取 _reference/：术语、契约、路由打法"]
+  H --> J["构建 graph-context.md：GitNexus / Graphify / fallback 搜索"]
+  I --> K["Layer Impact：前端/BFF/后端影响面"]
+  J --> K
+  K --> L["Contract Delta：字段、schema、API、event 对齐状态"]
+  K --> M["plan.md：技术方案、实现计划、QA、回滚"]
+  L --> M
+  K --> N["report.md：影响报告、风险、待确认项"]
+  L --> N
+  M --> O["reference-update-suggestions.yaml：交付后可回流"]
+  N --> O
+```
+
 ## 这个 skill 是做什么的
 
 `prd-distill` 负责把单个 PRD 转成工程可执行的计划。它先做 PRD ingestion，使用 MarkItDown 把原始 `.docx/.md/.txt/.pdf/.pptx/.xlsx/.html` 转成可追溯的结构化输入，再结合 `_reference/` 和源码完成分析。
