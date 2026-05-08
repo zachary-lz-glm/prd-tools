@@ -36,6 +36,7 @@ _prd-tools/distill/<slug>/
 ├── _ingest/
 ├── report.md
 ├── plan.md
+├── portal.html
 └── context/
 ```
 
@@ -270,6 +271,20 @@ suggestions:
 
 报告里不要隐藏低置信度项；低置信度是价值，不是瑕疵。**线索式证据不能省略**：代码注释、已有结构体名、文件路径等线索必须保留。
 
+## 步骤 9：Portal HTML 生成
+
+生成 `_prd-tools/distill/<slug>/portal.html`，将所有蒸馏产物内联为一个自包含的可视化页面。
+
+详细生成规则见 `steps/step-04-portal.md`。
+
+核心要求：
+
+- 读取全部产出文件（report.md、plan.md、context/*），解析为结构化数据后内联到 HTML。
+- 页面包含 9 个可视化 Section：总览、源码命中、影响分析、契约差异、开发计划、QA 矩阵、阻塞问题、回流建议。
+- 开发计划的 checklist 支持交互式勾选，状态持久化到 localStorage。
+- 零外部依赖，file:// 协议可用，双击即可在浏览器中打开。
+- 生成后告知用户文件路径。
+
 ## 暂停条件
 
 遇到以下情况暂停并说明：
@@ -286,4 +301,4 @@ suggestions:
 3. 业务规则不能只靠前端守。
 4. 多层需求必须给契约计划。
 5. 每个输出都要能回溯 evidence。
-6. 完成后简要告知输出路径、最重要的阻塞/风险，并优先引导用户阅读 `report.md`。
+6. 完成后简要告知输出路径、最重要的阻塞/风险，并优先引导用户阅读 `report.md`。同时告知 `portal.html` 可在浏览器中打开查看完整可视化报告。

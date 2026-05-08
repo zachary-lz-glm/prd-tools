@@ -68,6 +68,7 @@ _prd-tools/distill/<slug>/
 ├── _ingest/           # PRD 读取证据（source-manifest、document、quality gate）
 ├── report.md          # 需求摘要 → 变更明细 → 字段清单 → 校验规则 → 契约风险 → 阻塞问题
 ├── plan.md            # 实现顺序（精确到文件路径）、QA 矩阵、回滚方案
+├── portal.html        # 可视化浏览器页面（零外部依赖，双击即可打开）
 └── context/           # 机器可读的中间产物
     ├── evidence.yaml
     ├── requirement-ir.yaml
@@ -77,7 +78,7 @@ _prd-tools/distill/<slug>/
     └── reference-update-suggestions.yaml
 ```
 
-**人类阅读顺序**：`report.md` → `plan.md` → `context/readiness-report.yaml`。YAML 文件供审计和工具消费，普通评审不需要看。
+**人类阅读顺序**：`report.md` → `plan.md` → `context/readiness-report.yaml`。也可以直接在浏览器中打开 `portal.html` 一站式浏览所有内容。YAML 文件供审计和工具消费，普通评审不需要看。
 
 ## How It Works
 

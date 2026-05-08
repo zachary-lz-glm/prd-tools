@@ -56,6 +56,7 @@ _prd-tools/distill/<slug>/
 │   └── conversion-warnings.md     #   转换风险
 ├── report.md                      # 渐进式披露报告
 ├── plan.md                        # 函数级技术方案 + 开发/测试计划 + QA 矩阵
+├── portal.html                    # 可视化浏览器页面（零外部依赖，双击即可打开）
 └── context/
     ├── requirement-ir.yaml        # 结构化需求：业务意图、规则、验收条件
     ├── evidence.yaml              # 证据台账：PRD、技术方案、源码、负向搜索
@@ -80,6 +81,7 @@ _prd-tools/distill/<slug>/
 | `context/layer-impact.yaml` | 分层影响：目标层、能力面、计划变化、风险 | 不写字段级契约详情 |
 | `context/contract-delta.yaml` | 契约差异：字段、producer、consumer、alignment_status | 不写开发顺序 |
 | `context/reference-update-suggestions.yaml` | 回流建议 | 不直接改 `_prd-tools/reference/` |
+| `portal.html` | 自包含可视化页面：总览、源码命中、影响、契约、计划、QA、阻塞问题、回流建议 | 不替代 report.md 和 plan.md 的人读文本 |
 
 ## 能力面适配器
 
@@ -134,12 +136,14 @@ _prd-tools/distill/<slug>/
 10. 生成 `report.md`（渐进式披露 + 源码扫描命中摘要 + §11）。
 11. 生成 `context/reference-update-suggestions.yaml`。
 12. 生成 `context/readiness-report.yaml`。
+13. 生成 `portal.html`（自包含可视化页面，详见 `steps/step-04-portal.md`）。
 
 ## 参考文件
 
 | 文件 | 何时读取 |
 |---|---|
 | `workflow.md` | 执行完整蒸馏时 |
+| `steps/step-04-portal.md` | 生成 portal.html 可视化页面时 |
 | `references/output-contracts.md` | 确认输出格式和字段边界时 |
 | `references/layer-adapters.md` | 判断能力面时 |
 | `references/selectable-reward-golden-sample.md` | 复杂需求校准时 |
@@ -154,3 +158,4 @@ _prd-tools/distill/<slug>/
 - 是否存在 `needs_confirmation` 或 `blocked` 契约。
 - 是否生成 reference 回流建议。
 - `readiness-report.yaml` 的 status、score、decision。
+- `portal.html` 已生成，可在浏览器中打开查看完整可视化报告。
