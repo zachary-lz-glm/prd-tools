@@ -53,7 +53,6 @@ check_absent() {
 
 current_contract_files=(
   "README.md"
-  "OUTPUT_READING_GUIDE.md"
   "docs/graph-evidence-guide.md"
   "plugins/prd-distill/skills/prd-distill/SKILL.md"
   "plugins/prd-distill/skills/prd-distill/workflow.md"

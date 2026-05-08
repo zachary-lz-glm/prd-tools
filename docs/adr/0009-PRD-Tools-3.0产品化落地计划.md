@@ -487,7 +487,7 @@ MCP Tool 只读取 `_prd-tools/` 和项目源码，不默认写业务代码。
 | 新增 status 脚本 | `scripts/status.sh` | 可在项目根目录运行 |
 | install 复制 status | `install.sh` | 安装后 `.prd-tools/status.sh` 存在 |
 | 生成 STATUS.md | `scripts/status.sh` | `_prd-tools/STATUS.md` 生成 |
-| README 增加三分钟检查 | `README.md`、`OUTPUT_READING_GUIDE.md` | 新用户知道先跑 doctor/status |
+| README 增加三分钟检查 | `README.md` | 新用户知道先跑 doctor/status |
 
 完成标准：
 
@@ -610,7 +610,7 @@ MCP Tool 只读取 `_prd-tools/` 和项目源码，不默认写业务代码。
 |------|------|
 | 契约复杂度上升 | 新增 readiness、metrics、status，需要校验防漂移 |
 | 维护脚本增加 | `status.sh`、eval runner、未来 MCP server 都需要测试 |
-| 文档更长 | 需要通过 README/OUTPUT_READING_GUIDE 做渐进式阅读 |
+| 文档更长 | 需要通过 README 的速读区和产出目录做渐进式阅读 |
 | 评分口径需要迭代 | 第一版 readiness 可能需要根据真实项目校准 |
 
 ### 决策边界
