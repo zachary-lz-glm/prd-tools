@@ -3,7 +3,19 @@
 All notable changes to the **prd-distill** plugin are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
-## [2.11.1] - 2026-05-07
+## [2.12.0] - 2026-05-08
+
+### Added
+- feat: add status dashboard MVP
+
+### Changed
+- docs: streamline prd tools guidance
+- refactor: rename reference plugin internals
+
+### Fixed
+- fix: unify reference install workflow
+
+- fix: unify reference install workflow
 
 ### Changed
 - refactor: install.sh 三层职责拆分 (ADR-0008)

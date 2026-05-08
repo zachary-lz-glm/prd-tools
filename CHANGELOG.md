@@ -4,6 +4,21 @@
 
 ---
 
+## [2.12.0] - 2026-05-08
+
+### Added
+- feat: add status dashboard MVP
+
+### Changed
+- docs: fold output guide into readme
+- docs: streamline prd tools guidance
+- refactor: remove reference command alias
+- refactor: rename reference plugin internals
+
+### Fixed
+- fix: unify reference install workflow
+
+
 ## [2.11.1] - 2026-05-07
 
 ### Changed
