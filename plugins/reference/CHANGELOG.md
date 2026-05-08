@@ -3,6 +3,11 @@
 All notable changes to the **reference** plugin are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [2.18.1] - 2026-05-08
+
+### Changed
+- refactor: output-contracts schema 移除项目特定示例，改为通用空模板
+
 ## [2.16.0] - 2026-05-08
 
 ### Added

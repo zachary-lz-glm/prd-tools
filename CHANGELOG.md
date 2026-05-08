@@ -4,6 +4,11 @@
 
 ---
 
+## [2.18.1] - 2026-05-08
+
+### Changed
+- refactor: 移除 output-contracts schema 中所有项目特定示例，仅保留空模板
+
 ## [2.18.0] - 2026-05-08
 
 ### Added
