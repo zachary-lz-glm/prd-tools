@@ -22,7 +22,7 @@ errors=0
 echo "==> [pre-commit] 检测到 VERSION 变更 (${version})，执行版本校验..."
 
 # --- 检查 1: 5 处版本一致性 ---
-for plugin in build-reference prd-distill; do
+for plugin in reference prd-distill; do
   pv=$(jq -r '.version' "${REPO_ROOT}/plugins/${plugin}/.claude-plugin/plugin.json" 2>/dev/null || echo "MISSING")
   if [ "$pv" != "$version" ]; then
     echo "ERROR: plugins/${plugin}/.claude-plugin/plugin.json 版本 '${pv}'，期望 '${version}'"
@@ -43,7 +43,7 @@ fi
 
 # --- 检查 2: 至少一个 CHANGELOG 被更新 ---
 changelog_changed=false
-for cl in CHANGELOG.md plugins/build-reference/CHANGELOG.md plugins/prd-distill/CHANGELOG.md; do
+for cl in CHANGELOG.md plugins/reference/CHANGELOG.md plugins/prd-distill/CHANGELOG.md; do
   if git diff --cached --name-only | grep -q "^${cl}$"; then
     changelog_changed=true
     break
@@ -54,7 +54,7 @@ if [ "$changelog_changed" = false ]; then
   echo "ERROR: VERSION 已修改但没有任何 CHANGELOG.md 被更新。"
   echo "请至少更新以下文件之一："
   echo "  - CHANGELOG.md"
-  echo "  - plugins/build-reference/CHANGELOG.md"
+  echo "  - plugins/reference/CHANGELOG.md"
   echo "  - plugins/prd-distill/CHANGELOG.md"
   errors=$((errors + 1))
 fi

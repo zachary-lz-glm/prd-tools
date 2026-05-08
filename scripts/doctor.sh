@@ -65,11 +65,16 @@ else
       "重新运行 prd-tools install.sh"
 fi
 
-if [ -d ".claude/skills/build-reference" ] && [ -d ".claude/skills/prd-distill" ]; then
-  ok "skills" "build-reference / prd-distill 已安装"
+if [ -d ".claude/skills/reference" ] && [ -d ".claude/skills/prd-distill" ]; then
+  ok "skills" "reference / prd-distill 已安装"
 else
-  bad "skills" "缺少 .claude/skills/build-reference 或 prd-distill" \
-      "重新运行 prd-tools install.sh"
+  if [ -d ".claude/skills/build-reference" ]; then
+    bad "skills" "检测到旧 skill 目录 build-reference，请重新安装迁移到 reference" \
+        "重新运行 prd-tools install.sh"
+  else
+    bad "skills" "缺少 .claude/skills/reference 或 prd-distill" \
+        "重新运行 prd-tools install.sh"
+  fi
 fi
 
 # ── 2. uv ─────────────────────────────────────────────────────────

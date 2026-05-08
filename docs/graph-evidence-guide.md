@@ -1,8 +1,8 @@
 # Graph Evidence 使用指南
 
-> prd-tools 的图谱证据层让 build-reference 和 prd-distill 自动从 GitNexus 和 Graphify 获取数据，产出质量更高。
+> prd-tools 的图谱证据层让 reference 和 prd-distill 自动从 GitNexus 和 Graphify 获取数据，产出质量更高。
 >
-> **最新详细说明见插件 README：** [`plugins/build-reference/README.md`](../plugins/build-reference/README.md) 和 [`plugins/prd-distill/README.md`](../plugins/prd-distill/README.md)。本文件是补充性的详细 walkthrough。
+> **最新详细说明见插件 README：** [`plugins/reference/README.md`](../plugins/reference/README.md) 和 [`plugins/prd-distill/README.md`](../plugins/prd-distill/README.md)。本文件是补充性的详细 walkthrough。
 
 ---
 
@@ -12,7 +12,7 @@ v2.5.0 引入的图谱证据层没有改变 prd-tools 的任何现有用法。
 
 `/reference` 还是那个命令，`/prd-distill` 也还是那个命令。产出还是 6 个 reference 文件 + report/plan；阻塞问题和待确认项收口在 `report.md` §11。
 
-核心变化是：**如果你装了 GitNexus 或 Graphify，build-reference 和 prd-distill 会自动从图谱拿数据，产出质量更高。** prd-distill 会先生成 `spec/graph-context.md`，再把函数级代码坐标、调用链、API consumer 和业务约束写进 `report.md` 与 `plan.md`。没装图谱工具时仍可用，只是回退到 rg/Read 和 `_prd-tools/reference`。
+核心变化是：**如果你装了 GitNexus 或 Graphify，reference 和 prd-distill 会自动从图谱拿数据，产出质量更高。** prd-distill 会先生成 `spec/graph-context.md`，再把函数级代码坐标、调用链、API consumer 和业务约束写进 `report.md` 与 `plan.md`。没装图谱工具时仍可用，只是回退到 rg/Read 和 `_prd-tools/reference`。
 
 还有一个边界要记住：`_prd-tools/reference/` 默认是单仓知识库。图谱可以发现跨仓线索，但没有 owner 确认时只能写成 `needs_confirmation`、handoff 或团队知识库候选，不能当成其他仓的确定事实。
 
@@ -135,13 +135,13 @@ dive-bff/
 
 你可以先打开 `graphify-out/graph.html` 看看——它会展示项目里的核心概念（God Nodes）、意外关联（Surprising Connections），以及设计原理（rationale_for）。
 
-### 3.2 跑 build-reference
+### 3.2 跑 reference
 
 ```
 /reference
 ```
 
-就这个命令，跟以前一样。build-reference 内部做了这些事：
+就这个命令，跟以前一样。reference 内部做了这些事：
 
 ```
                     你看到的                        背后发生的
@@ -268,7 +268,7 @@ GCTX/GCTX-B -> plan.md 的文件、行号、关键函数、调用链、回归范
 
 ## 5. 快速查询：不想跑完整流程
 
-有时候你只想快速查一个东西，不需要跑完整的 build-reference 或 prd-distill。
+有时候你只想快速查一个东西，不需要跑完整的 reference 或 prd-distill。
 
 ### 查代码影响
 
@@ -370,12 +370,12 @@ npx -y gitnexus@latest analyze --embeddings
 
 ## 8. 注意事项
 
-**图谱 ≠ reference。** 图谱是原始数据，reference 是精选后的知识库。build-reference 会自动过滤图谱噪声，只把确认后的本仓事实写进 reference。
+**图谱 ≠ reference。** 图谱是原始数据，reference 是精选后的知识库。reference 会自动过滤图谱噪声，只把确认后的本仓事实写进 reference。
 
-**Graphify 的推断不是高置信度。** Graphify 标记为 INFERRED 的关系，build-reference 会自动降级为 medium/low，不会直接当事实用。
+**Graphify 的推断不是高置信度。** Graphify 标记为 INFERRED 的关系，reference 会自动降级为 medium/low，不会直接当事实用。
 
 **没装图谱工具不影响使用。** 每一步都有回退机制——没有 GitNexus 就用 rg/glob，没有 Graphify 就逐文件 Read。prs-tools 照常工作，只是没有图谱增强。
 
-**不要把完整图谱塞进上下文。** build-reference 和 prd-distill 内部只用 query 拉小子图，不会把整个 graph.json 读进去。手动查询时也注意控制范围。
+**不要把完整图谱塞进上下文。** reference 和 prd-distill 内部只用 query 拉小子图，不会把整个 graph.json 读进去。手动查询时也注意控制范围。
 
 **图谱本地存储，不外传。** GitNexus 的 `.gitnexus/` 和 Graphify 的 `graphify-out/` 都在项目本地，建议加入 `.gitignore`。团队共享图谱可以只提交 `GRAPH_REPORT.md`，或由未来团队知识库聚合各仓 confirmed/candidate 事实。

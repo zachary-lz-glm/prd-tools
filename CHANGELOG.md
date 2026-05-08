@@ -104,7 +104,7 @@
 - step-01-structure-scan 增加图谱证据文件创建指令（必执行）、EV/GEV 证据 ID 桥接规则
 - step-02-deep-analysis 增加前置图谱证据加载、per-phase 模板字段填充指令
 - step-03-quality-gate 增加图谱证据检查（GEV 孤立引用、置信度校验、provider 一致性）
-- build-reference SKILL.md 升级图谱增强 section（双证据字段说明、置信度映射表）
+- reference SKILL.md 升级图谱增强 section（双证据字段说明、置信度映射表）
 - prd-distill output-contracts.md 补全 layer-impact 的 `affected_symbols`/`business_constraints`（放 impact 条目内）和 contract-delta 的 `graph_evidence_refs`
 - prd-distill SKILL.md 加图谱增强 section，workflow.md Step 3/4 加图谱引用
 - `graph-sync-report.yaml` 必须始终产出，记录 provider 可用状态和不可用原因
@@ -192,10 +192,10 @@
 ### Added
 - **完整 7 步蒸馏工作流**：PRD → Ingestion → Evidence → Requirement IR → Layer Impact → Contract Delta → Plan → Report
 - Reference v3.1：10 文件结构（entities / architecture / conventions / constraints / routing / glossary / business-context / contracts / playbooks）
-- build-reference 4 阶段工作流：上下文收集 → 结构扫描 → 深度分析 → 质量门控
+- reference 4 阶段工作流：上下文收集 → 结构扫描 → 深度分析 → 质量门控
 - prd-distill 3 步工作流：解析和路由 → 分类 → 确认
 - 契约差异分析（contract-delta）：producer / consumer / alignment_status
-- 反馈回流机制：prd-distill → reference-update-suggestions → build-reference 反馈回流
+- 反馈回流机制：prd-distill → reference-update-suggestions → reference
 - Golden sample 支持
 
 ## [1.1.0] - 2026-04-27
@@ -209,7 +209,7 @@
 
 ### Added
 - **初始版本发布**
-- build-reference：4 步工作流（结构扫描 → 深度分析 → 质量门控 → 反馈回流）
+- reference：4 步工作流（结构扫描 → 深度分析 → 质量门控 → 反馈回流）
 - prd-distill：3 步工作流（解析和路由 → 分类 → 确认）
 - 安装脚本（install.sh）
 - Plugin manifest（.claude-plugin/plugin.json）

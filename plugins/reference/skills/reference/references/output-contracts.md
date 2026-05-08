@@ -9,7 +9,7 @@
 ```text
 _prd-tools/
 ├── README.md                              # 产出索引
-├── reference/                             # 知识库 SSOT（build-reference 产出）
+├── reference/                             # 知识库 SSOT（reference 产出）
 │   ├── 00-portal.md
 │   ├── 01-codebase.yaml
 │   ├── 02-coding-rules.yaml
@@ -17,7 +17,7 @@ _prd-tools/
 │   ├── 04-routing-playbooks.yaml
 │   ├── 05-domain.yaml
 │   └── project-profile.yaml
-├── build/                                 # build-reference 运行报告
+├── build/                                 # reference 运行报告
 │   ├── modules-index.yaml
 │   ├── context-enrichment.yaml
 │   ├── quality-report.yaml

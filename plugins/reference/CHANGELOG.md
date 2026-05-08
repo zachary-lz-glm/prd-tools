@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to the **build-reference** plugin are documented here.
+All notable changes to the **reference** plugin are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ## [2.11.1] - 2026-05-07

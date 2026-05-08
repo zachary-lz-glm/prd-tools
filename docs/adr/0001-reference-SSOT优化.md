@@ -58,7 +58,7 @@
 ### 风险
 
 - 去重更多靠 prompt 约束，尚未有 deterministic duplicate checker
-- 兼容读取旧版 v3.1 文件，迁移由 build-reference 增量更新逐步完成
+- 兼容读取旧版 v3.1 文件，迁移由 reference 增量更新逐步完成
 
 ### 变更文件
 

@@ -113,7 +113,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 - 完整 7 步蒸馏工作流：PRD → Ingestion → Evidence → Requirement IR → Layer Impact → Contract Delta → Plan → Report
 - 3 步工作流：解析和路由 → 分类 → 确认
 - 契约差异分析（contract-delta）：producer / consumer / alignment_status
-- 反馈回流：reference-update-suggestions → build-reference
+- 反馈回流：reference-update-suggestions → reference
 
 ## [1.1.0] - 2026-04-27
 

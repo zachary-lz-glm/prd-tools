@@ -1,9 +1,9 @@
 ---
-name: build-reference
+name: reference
 description: 为前端、BFF、后端通用的 PRD-to-code 工作流构建、更新、健康检查或回流项目 reference 知识库。适用于用户调用 /reference，要求建立项目知识库、检查 _prd-tools/reference 是否过期、沉淀接口契约/业务术语/开发打法、把 PRD 交付经验反馈回流、准备后续 /prd-distill 时。
 ---
 
-# build-reference
+# reference
 
 Claude Code 中通过 `/reference` 触发。
 

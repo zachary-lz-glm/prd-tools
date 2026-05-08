@@ -95,7 +95,7 @@ fi
 
 # 5 处版本一致
 current=$(read_version)
-for plugin in build-reference prd-distill; do
+for plugin in reference prd-distill; do
   pv=$(jq -r '.version' "${REPO_ROOT}/plugins/${plugin}/.claude-plugin/plugin.json" 2>/dev/null || echo "MISSING")
   [ "$pv" = "$current" ] || die "版本不一致: ${plugin}/plugin.json='${pv}', VERSION='${current}'"
 done
@@ -224,7 +224,7 @@ parse_commits() {
 
 # 三个 changelog 的 entries
 root_entries=$(parse_commits "$range" "")
-br_entries=$(parse_commits "$range" "plugins/build-reference/")
+ref_entries=$(parse_commits "$range" "plugins/reference/")
 pd_entries=$(parse_commits "$range" "plugins/prd-distill/")
 
 # ==================== Step 4: 生成 CHANGELOG 草稿 ====================
@@ -264,14 +264,14 @@ generate_section() {
 }
 
 root_section=$(generate_section "$new" "$today" "$root_entries")
-br_section=$(generate_section "$new" "$today" "$br_entries")
+ref_section=$(generate_section "$new" "$today" "$ref_entries")
 pd_section=$(generate_section "$new" "$today" "$pd_entries")
 
 if [ "$DRY_RUN" = true ]; then
   dry_info "=== Root CHANGELOG ==="
   echo "$root_section"
-  dry_info "=== build-reference CHANGELOG ==="
-  echo "$br_section"
+  dry_info "=== reference CHANGELOG ==="
+  echo "$ref_section"
   dry_info "=== prd-distill CHANGELOG ==="
   echo "$pd_section"
 fi
@@ -286,10 +286,10 @@ if [ "$DRY_RUN" = false ]; then
   BACKUP_DIR=$(mktemp -d "${TMPDIR:-/tmp}/prd-tools-release.XXXXXX")
   cp "${REPO_ROOT}/VERSION" "$BACKUP_DIR/"
   cp "${REPO_ROOT}/.claude-plugin/marketplace.json" "$BACKUP_DIR/marketplace.json"
-  cp "${REPO_ROOT}/plugins/build-reference/.claude-plugin/plugin.json" "$BACKUP_DIR/build-reference-plugin.json"
+  cp "${REPO_ROOT}/plugins/reference/.claude-plugin/plugin.json" "$BACKUP_DIR/reference-plugin.json"
   cp "${REPO_ROOT}/plugins/prd-distill/.claude-plugin/plugin.json" "$BACKUP_DIR/prd-distill-plugin.json"
   cp "${REPO_ROOT}/CHANGELOG.md" "$BACKUP_DIR/root-CHANGELOG.md"
-  cp "${REPO_ROOT}/plugins/build-reference/CHANGELOG.md" "$BACKUP_DIR/build-reference-CHANGELOG.md"
+  cp "${REPO_ROOT}/plugins/reference/CHANGELOG.md" "$BACKUP_DIR/reference-CHANGELOG.md"
   cp "${REPO_ROOT}/plugins/prd-distill/CHANGELOG.md" "$BACKUP_DIR/prd-distill-CHANGELOG.md"
   info "备份已保存到 ${BACKUP_DIR}"
 fi
@@ -328,13 +328,13 @@ insert_changelog_entry() {
 }
 
 insert_changelog_entry "${REPO_ROOT}/CHANGELOG.md" "$root_section"
-insert_changelog_entry "${REPO_ROOT}/plugins/build-reference/CHANGELOG.md" "$br_section"
+insert_changelog_entry "${REPO_ROOT}/plugins/reference/CHANGELOG.md" "$ref_section"
 insert_changelog_entry "${REPO_ROOT}/plugins/prd-distill/CHANGELOG.md" "$pd_section"
 
 # 更新版本号
 if [ "$DRY_RUN" = true ]; then
   dry_info "VERSION: ${current} → ${new}"
-  dry_info "plugins/build-reference/.claude-plugin/plugin.json: ${current} → ${new}"
+  dry_info "plugins/reference/.claude-plugin/plugin.json: ${current} → ${new}"
   dry_info "plugins/prd-distill/.claude-plugin/plugin.json: ${current} → ${new}"
   dry_info ".claude-plugin/marketplace.json: 两个插件 ${current} → ${new}"
 else
@@ -342,7 +342,7 @@ else
   echo "$new" > "${REPO_ROOT}/VERSION"
 
   # plugin.json
-  for plugin in build-reference prd-distill; do
+  for plugin in reference prd-distill; do
     jq --arg v "$new" '.version = $v' \
       "${REPO_ROOT}/plugins/${plugin}/.claude-plugin/plugin.json" \
       > "${REPO_ROOT}/plugins/${plugin}/.claude-plugin/plugin.json.tmp" && \
@@ -374,7 +374,7 @@ if [ "$NO_EDIT" = false ]; then
   info "请检查分类和措辞，保存后关闭编辑器继续。"
   ${EDITOR:-vi} \
     "${REPO_ROOT}/CHANGELOG.md" \
-    "${REPO_ROOT}/plugins/build-reference/CHANGELOG.md" \
+    "${REPO_ROOT}/plugins/reference/CHANGELOG.md" \
     "${REPO_ROOT}/plugins/prd-distill/CHANGELOG.md"
   info "编辑器已关闭。"
 fi
@@ -386,7 +386,7 @@ info "Step 7: 提交后校验"
 final_version=$(read_version)
 [ "$final_version" = "$new" ] || die "VERSION 被修改为 '${final_version}'，期望 '${new}'"
 
-for plugin in build-reference prd-distill; do
+for plugin in reference prd-distill; do
   pv=$(jq -r '.version' "${REPO_ROOT}/plugins/${plugin}/.claude-plugin/plugin.json")
   [ "$pv" = "$new" ] || die "${plugin}/plugin.json 版本 '${pv}'，期望 '${new}'"
 done
@@ -405,10 +405,10 @@ info "Step 8: 提交"
 git add \
   "${REPO_ROOT}/VERSION" \
   "${REPO_ROOT}/.claude-plugin/marketplace.json" \
-  "${REPO_ROOT}/plugins/build-reference/.claude-plugin/plugin.json" \
+  "${REPO_ROOT}/plugins/reference/.claude-plugin/plugin.json" \
   "${REPO_ROOT}/plugins/prd-distill/.claude-plugin/plugin.json" \
   "${REPO_ROOT}/CHANGELOG.md" \
-  "${REPO_ROOT}/plugins/build-reference/CHANGELOG.md" \
+  "${REPO_ROOT}/plugins/reference/CHANGELOG.md" \
   "${REPO_ROOT}/plugins/prd-distill/CHANGELOG.md"
 
 git commit -m "release: v${new}"

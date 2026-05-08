@@ -1,4 +1,4 @@
-# build-reference
+# reference
 
 > 构建项目知识库 `_prd-tools/reference/`，把源码结构、业务术语、跨层契约、开发套路沉淀为 PRD-to-code 可复用的长期记忆。
 
@@ -14,7 +14,7 @@
 
 ## 三层图谱架构
 
-build-reference 不只是扫描源码，而是融合三个维度构建知识库：
+reference 不只是扫描源码，而是融合三个维度构建知识库：
 
 ```
 Graphify（业务维度）        GitNexus（代码维度）        prd-tools（治理维度）
@@ -186,7 +186,7 @@ _prd-tools/build/
 
 ## 外部工具如何参与
 
-build-reference 可以利用两个外部图谱工具加速构建。**两个都是可选的**——没有它们也能正常工作（回退到源码扫描）。
+reference 可以利用两个外部图谱工具加速构建。**两个都是可选的**——没有它们也能正常工作（回退到源码扫描）。
 
 | 工具 | 维度 | 它做什么 | 没有它会怎样 |
 |------|------|---------|-------------|
@@ -228,7 +228,7 @@ A: 建议 `.gitignore` 排除。`_prd-tools/reference/` 是本地生成的知识
 A: 前端、BFF、后端都支持。通过能力面适配器自动识别项目层级和结构，不绑定固定目录。
 
 **Q: 图谱工具都不可用怎么办？**
-A: 完全可以工作。build-reference 会回退到源码扫描（rg/glob + Read），只是构建速度慢一些，不会缺少核心能力。
+A: 完全可以工作。reference 会回退到源码扫描（rg/glob + Read），只是构建速度慢一些，不会缺少核心能力。
 
 **Q: 多仓项目怎么办？**
 A: 每个仓独立维护自己的 `_prd-tools/reference/`。跨仓契约标记为 `needs_confirmation`，等对方 owner 确认后再升级。

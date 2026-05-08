@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # install.sh — Install prd-tools skills and commands into a target project.
 #
-# Scope: only what this repo OWNS (build-reference / prd-distill skills,
+# Scope: only what this repo OWNS (reference / prd-distill skills,
 # /reference command, version marker). External tools (uv, MarkItDown,
 # Graphify, GitNexus, API keys) are NOT touched here — run `prd-tools-doctor`
 # afterwards to check and fix those.
@@ -64,7 +64,7 @@ fi
 # ── 复制 skills ─────────────────────────────────────────────────
 mkdir -p "$CLAUDE_SKILLS_DIR" "$CLAUDE_COMMANDS_DIR"
 echo "==> 安装 skills 到 $CLAUDE_SKILLS_DIR"
-for skill in build-reference prd-distill; do
+for skill in reference prd-distill; do
   src="$ARCHIVE_ROOT/plugins/$skill/skills/$skill"
   if [ -d "$src" ]; then
     rm -rf "$CLAUDE_SKILLS_DIR/$skill"
@@ -74,6 +74,10 @@ for skill in build-reference prd-distill; do
     echo "    警告：源码包内未找到 $skill" >&2
   fi
 done
+if [ -d "$CLAUDE_SKILLS_DIR/build-reference" ]; then
+  rm -rf "$CLAUDE_SKILLS_DIR/build-reference"
+  echo "    已清理旧 skill：build-reference"
+fi
 
 # ── 复制命令 ────────────────────────────────────────────────────
 COMMAND_SRC="$ARCHIVE_ROOT/.claude/commands/reference.md"

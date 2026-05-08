@@ -59,7 +59,7 @@ current_contract_files=(
   "plugins/prd-distill/skills/prd-distill/workflow.md"
   "plugins/prd-distill/skills/prd-distill/steps/step-03-confirm.md"
   "plugins/prd-distill/skills/prd-distill/agents/openai.yaml"
-  "plugins/build-reference/skills/build-reference/references/output-contracts.md"
+  "plugins/reference/skills/reference/references/output-contracts.md"
   "plugins/prd-distill/skills/prd-distill/references/output-contracts.md"
   ".claude/commands/reference.md"
 )
@@ -70,8 +70,8 @@ check_absent 'questions\.md.*(默认|生成|读|输出|不替代|清单|阻塞|o
 
 check_absent 'graph_source:' \
   "Use graph_sources: [] instead of graph_source:." \
-  "plugins/build-reference/skills/build-reference/workflow.md" \
-  "plugins/build-reference/skills/build-reference/references/reference-v4.md"
+  "plugins/reference/skills/reference/workflow.md" \
+  "plugins/reference/skills/reference/references/reference-v4.md"
 
 check_absent 'uv tool install graphify([^y]|$)' \
   "Graphify package install command should use official package graphifyy; CLI command remains graphify." \
@@ -79,7 +79,7 @@ check_absent 'uv tool install graphify([^y]|$)' \
 
 if ! cmp -s \
   "plugins/prd-distill/skills/prd-distill/references/output-contracts.md" \
-  "plugins/build-reference/skills/build-reference/references/output-contracts.md"; then
+  "plugins/reference/skills/reference/references/output-contracts.md"; then
   fail "The shared output-contracts.md copies must stay identical across both plugins."
 fi
 

@@ -7,7 +7,7 @@
 | # | 文件 | 字段 |
 |---|------|------|
 | 1 | `VERSION` | 整个文件内容 |
-| 2 | `plugins/build-reference/.claude-plugin/plugin.json` | `version` |
+| 2 | `plugins/reference/.claude-plugin/plugin.json` | `version` |
 | 3 | `plugins/prd-distill/.claude-plugin/plugin.json` | `version` |
 | 4 | `.claude-plugin/marketplace.json` | `plugins[0].version` |
 | 5 | `.claude-plugin/marketplace.json` | `plugins[1].version` |
@@ -51,7 +51,7 @@ scripts/install-hooks.sh
 
 | 路径 | 归属 |
 |------|------|
-| `plugins/build-reference/` | build-reference 插件 |
+| `plugins/reference/` | reference 插件 |
 | `plugins/prd-distill/` | prd-distill 插件 |
 | `docs/adr/` | 架构决策记录 |
 | `scripts/` | 项目工具脚本 |

@@ -266,7 +266,7 @@ reference-update       把新知识回流到 _prd-tools/reference/
 |---:|---|---|
 | 1 | 安装 PRD Tools | `.claude/skills` |
 | 2 | 收集历史 PRD、技术方案、分支 diff | golden sample 候选 |
-| 3 | 运行 `build-reference` 的 `F 上下文收集` | `context-enrichment.yaml` |
+| 3 | 运行 `reference` 的 `F 上下文收集` | `context-enrichment.yaml` |
 | 4 | 运行 `A 全量构建` | `_prd-tools/reference/` |
 | 5 | 运行 `B2 健康检查` | `reference-health.yaml` |
 | 6 | 运行 `C 质量门控` | `reference-quality-report.yaml` |
@@ -283,7 +283,7 @@ reference-update       把新知识回流到 _prd-tools/reference/
 | 5 | 多层需求读 `contract-delta.yaml` | 对齐字段和接口 |
 | 6 | 有争议读 `evidence.yaml` | 查证据 |
 | 7 | 需求结束读 `reference-update-suggestions.yaml` | 准备知识回流 |
-| 8 | 运行 `build-reference` 的 `E 反馈回流` | 更新 `_prd-tools/reference/` |
+| 8 | 运行 `reference` 的 `E 反馈回流` | 更新 `_prd-tools/reference/` |
 
 ## 这份文档的阅读原则
 
