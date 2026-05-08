@@ -212,7 +212,7 @@ next_actions: []
 
 ## 阶段 4：反馈回流
 
-读取 `_prd-tools/distill/**/spec/reference-update-suggestions.yaml` 和 `report.md`。兼容读取旧版文件名。
+读取 `_prd-tools/distill/**/context/reference-update-suggestions.yaml` 和 `report.md`。兼容读取旧版 `spec/reference-update-suggestions.yaml` 等文件名。
 
 回流仍以单仓为边界：只自动处理当前仓可验证事实。跨仓建议必须保留 `team_reference_candidate`、`team_scope` 和 `owner_to_confirm`，除非用户或 owner 明确确认，否则不要把其他仓事实写成本仓确定结论。
 

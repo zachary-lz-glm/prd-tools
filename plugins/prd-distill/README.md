@@ -134,6 +134,7 @@ _prd-tools/distill/<slug>/
 │   └── extraction-quality.yaml    #   读取质量门禁
 ├── report.md                      # 影响报告 + 风险 + 待确认项
 ├── plan.md                        # 技术方案 + 开发计划 + QA 矩阵 + §12 任务拆分
+├── readiness-report.yaml          # 就绪度评分 + 风险 + provider 增益
 ├── spec/
 │   ├── requirement-ir.yaml        # 结构化需求
 │   └── evidence.yaml              # 证据台账

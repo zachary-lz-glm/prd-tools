@@ -6,9 +6,9 @@
 
 ## 输入
 
-- `_prd-tools/distill/**/spec/reference-update-suggestions.yaml`
+- `_prd-tools/distill/**/context/reference-update-suggestions.yaml`
 - `_prd-tools/distill/**/report.md`
-- 兼容旧版：`_prd-tools/distill/**/reference-update-suggestions.yaml`、`_prd-tools/distill/**/distilled-report.md`
+- 兼容旧版：`_prd-tools/distill/**/spec/reference-update-suggestions.yaml`、`_prd-tools/distill/**/reference-update-suggestions.yaml`、`_prd-tools/distill/**/distilled-report.md`
 - 当前 `_prd-tools/reference/`
 - 当前源码
 

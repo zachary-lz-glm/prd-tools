@@ -323,9 +323,13 @@ _prd-tools/distill/<slug>/
 │   └── conversion-warnings.md
 ├── report.md
 ├── plan.md
-└── spec/
-    ├── evidence.yaml
-    ├── requirement-ir.yaml
+├── readiness-report.yaml
+├── tasks/
+├── spec/
+│   ├── evidence.yaml
+│   └── requirement-ir.yaml
+└── context/
+    ├── graph-context.md
     ├── layer-impact.yaml
     ├── contract-delta.yaml
     └── reference-update-suggestions.yaml
@@ -337,6 +341,7 @@ _prd-tools/distill/<slug>/
 |---|---|---|
 | `report.md` | 渐进式披露报告：需求摘要→变更明细表→字段清单→校验规则→开发Checklist→契约风险→阻塞问题与待确认项 | 负责人、PM、研发、QA |
 | `plan.md` | 可执行的开发操作手册：精确到文件路径+行号，checklist格式，QA矩阵，回滚方案 | 研发、QA、技术负责人 |
+| `readiness-report.yaml` | 本次 PRD 蒸馏的可用性评分、阻塞项、证据覆盖和 provider value | TL、工具维护者、CI |
 
 PRD 读取和质量门禁：
 
@@ -358,9 +363,15 @@ PRD 读取和质量门禁：
 |---|---|---|
 | `spec/evidence.yaml` | 证据台账，记录 PRD、技术方案、源码、负向搜索、人工确认 | 只放证据，不下结论 |
 | `spec/requirement-ir.yaml` | 结构化需求 IR，记录业务意图、规则、验收条件、变更类型 | 不写文件级实现 |
-| `spec/layer-impact.yaml` | 分层影响分析，按能力面记录当前状态、计划变化、风险和证据 | 不写字段级契约详情 |
-| `spec/contract-delta.yaml` | 契约差异，记录字段、producer、consumer、required、type、alignment_status | 不写开发顺序和 QA case |
-| `spec/reference-update-suggestions.yaml` | 知识回流建议，新术语、新契约、新 playbook、矛盾、golden sample 候选 | 只是建议，不自动改 reference |
+
+上下文和评审阅读：
+
+| 文件 | 用途 | 边界 |
+|---|---|---|
+| `context/graph-context.md` | GitNexus / Graphify / reference 的发现摘要和证据入口 | 不替代源码或 owner 确认 |
+| `context/layer-impact.yaml` | 分层影响分析，按能力面记录当前状态、计划变化、风险和证据 | 不写字段级契约详情 |
+| `context/contract-delta.yaml` | 契约差异，记录字段、producer、consumer、required、type、alignment_status | 不写开发顺序和 QA case |
+| `context/reference-update-suggestions.yaml` | 知识回流建议，新术语、新契约、新 playbook、矛盾、golden sample 候选 | 只是建议，不自动改 reference |
 
 ## 使用方式
 
@@ -370,7 +381,7 @@ PRD 读取和质量门禁：
 
 | 层 | 谁负责 | 装什么 | 失败行为 |
 |---|---|---|---|
-| 1. `install.sh` | prd-tools 仓库 | reference / prd-distill skills、本地 `doctor.sh` | 网络挂直接 exit 1，前面没装的东西不会被污染 |
+| 1. `install.sh` | prd-tools 仓库 | reference / prd-distill skills、本地 `doctor.sh` / `status.sh` | 网络挂直接 exit 1，前面没装的东西不会被污染 |
 | 2. `doctor.sh` | 用户按需运行 | 诊断 uv / MarkItDown / Graphify / GitNexus / API key，给可复制的 fix 命令 | 默认只报告；`--strict` 出错即退；`--fix` 交互式逐条修 |
 | 3. skill 运行时自检 | `/reference` `/prd-distill` 自身 | 在使用某个工具的步骤前就近检查 | 缺什么就降级什么，并在 portal/report 里标明 |
 
@@ -444,9 +455,9 @@ export ANTHROPIC_BASE_URL=https://your-provider.example/v1
 # 也兼容 OPENAI_API_KEY / OPENAI_BASE_URL
 ```
 
-#### 第四步：重启 Claude Code
+#### 第五步：重启 Claude Code
 
-新增的 skills 和 MCP 配置需要重启才会加载。
+新增或更新的 skills 需要重启 Claude Code 才会加载。
 
 #### 三种典型路径
 
@@ -485,13 +496,13 @@ export ANTHROPIC_BASE_URL=https://your-provider.example/v1
 2. 准备 1-3 个历史 PRD、技术方案和对应分支 diff。
 3. 运行 `/reference` Mode F（上下文收集），然后 Mode A（全量构建），生成 `_prd-tools/reference/`。
 4. 运行 Mode B2（健康检查）和 Mode C（质量门控）。
-6. 用一个新 PRD 运行 `/prd-distill`，检查输出质量。
+5. 用一个新 PRD 运行 `/prd-distill`，检查输出质量。
 
 日常使用：
 
 1. 新需求进来后运行 `prd-distill`。
 2. 研发和 QA 先看 `report.md` 和 `plan.md`。
-3. 对需要对齐的字段和 owner 查看 `spec/contract-delta.yaml`。
+3. 对需要对齐的字段和 owner 查看 `context/contract-delta.yaml`。
 4. 需求完成后，将有效知识通过 `/reference` Mode E（反馈回流）写回 `_prd-tools/reference/`。
 
 ## 质量原则

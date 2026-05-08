@@ -21,7 +21,7 @@
 | [0005-Agent-Skills融合落地方案](0005-Agent-Skills融合落地方案.md) | Agent Skills 架构、Slash 命令、Persona、Hook 规划 |
 | [0006-图谱融合与知识库架构](0006-图谱融合与知识库架构.md) | GitNexus + Graphify 双图谱融合和跨项目知识库规划 |
 | [0008-安装脚本职责拆分](0008-安装脚本职责拆分.md) | install.sh 拆为 install / doctor / 运行时自检三层 |
-| [0009-PRD Tools 3.0 产品化落地计划](0009-PRD-Tools-3.0产品化落地计划.md) | 3.0 产品定位、readiness、status、eval、MCP 和分阶段落地路线 |
+| [0009-PRD Tools 产品化 MVP 落地计划](0009-PRD-Tools-3.0产品化落地计划.md) | 原 3.0 计划收敛到 v2.0：readiness、status dashboard、评测和后续 MCP 路线 |
 
 ## ADR 格式
 

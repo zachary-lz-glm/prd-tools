@@ -1,11 +1,13 @@
-# ADR-0009：PRD Tools 3.0 产品化落地计划
+# ADR-0009：PRD Tools 产品化 MVP 落地计划
 
 | 字段 | 值 |
 |------|---|
-| 状态 | 提案 |
-| 版本 | 3.0.0 |
+| 状态 | 已收敛到 v2.0 当前分支 |
+| 版本 | v2.0 增量产品化 |
 | 日期 | 2026-05-08 |
 | 触发 | 近期 GitHub 热榜显示 Agent Skills、Spec-Driven Development、MCP、上下文工程和 AI 变更审查工具快速升温；PRD Tools 需要从内部工作流升级为可度量、可安装、可复用、可对外表达价值的产品 |
+
+> 说明：本文最初按 3.0 major 计划撰写。后续决策是先把高收益、低平台化成本的能力落到当前 v2.0 分支：`readiness-report.yaml`、`.prd-tools/status.sh`、`_prd-tools/STATUS.md` 和静态 dashboard。Eval Harness、MCP / Agent API 继续作为后续路线，不作为当前版本门槛。
 
 ## Context（为什么做）
 
@@ -36,7 +38,7 @@ PRD Tools 当前已经具备两个关键能力：
 | AI 变更审查 | `hunk` 等项目关注 agent 变更可审查性 | PRD Tools 应输出 readiness、contract risk、blocking questions，成为 coding 前的审查门 |
 | 结构化文档索引 | PageIndex 等强调长文档结构索引和导航 | 历史 PRD、技术方案和团队经验应从简单文件扫描升级为可度量的 reference/context 索引 |
 
-因此，3.0 的核心不是"再加一个分析文件"，而是把 PRD Tools 从内部 workflow 升级成：
+因此，本轮产品化的核心不是"再加一个分析文件"，而是把 PRD Tools 从内部 workflow 升级成：
 
 > 面向存量工程的 PRD Context Compiler：把 PRD、历史需求、源码、代码图谱、业务图谱、契约和交付经验，编译成可被人、AI agent、CI 和 MCP 消费的工程上下文与执行包。
 
@@ -44,7 +46,7 @@ PRD Tools 当前已经具备两个关键能力：
 
 ### 1. 产品定位
 
-3.0 对外定位统一为：
+产品化对外定位统一为：
 
 > PRD Tools 是面向存量业务工程的 PRD-to-code 上下文编译器和风险评估器。
 
@@ -61,9 +63,9 @@ PRD Tools 当前已经具备两个关键能力：
 
 > 让 AI 在动代码前先知道改哪、影响谁、风险在哪、证据是什么。
 
-### 2. 3.0 产品能力版图
+### 2. 产品能力版图
 
-3.0 分为 6 个能力面：
+产品化路线分为 6 个能力面，其中前 4 个优先落在 v2.0 当前分支，后 2 个作为后续扩展：
 
 | 能力面 | 用户感知入口 | 核心产物 | 价值 |
 |--------|--------------|----------|------|
@@ -74,9 +76,9 @@ PRD Tools 当前已经具备两个关键能力：
 | Eval Harness | `eval/`、`prd-tools eval` | golden cases、对比报告 | 量化工具收益和准确性 |
 | MCP / Agent API | `prd-tools mcp`（规划） | reference/search/distill/readiness tools | 让 Codex、Claude、Copilot、CI 消费 PRD Tools |
 
-### 3. 统一输出目录 3.0
+### 3. 统一输出目录
 
-3.0 继续使用 `_prd-tools/` 作为唯一输出根目录，并新增 `metrics/`、`dashboard/`、`eval/` 相关约定。
+当前版本继续使用 `_prd-tools/` 作为唯一输出根目录，并新增 `dashboard/` 与 readiness 相关约定。`metrics/`、`eval/` 是后续评测路线的预留约定。
 
 ```text
 _prd-tools/
@@ -120,8 +122,8 @@ _prd-tools/
 `_prd-tools/distill/<slug>/readiness-report.yaml` 格式：
 
 ```yaml
-schema_version: "3.0"
-tool_version: "3.0.0"
+schema_version: "2.0"
+tool_version: "<current VERSION>"
 generated_at: "2026-05-08T00:00:00Z"
 distill_slug: "<slug>"
 status: "pass | warning | fail"
@@ -200,7 +202,7 @@ next_actions:
 
 #### 4.2 Graph Provider 增益量化
 
-3.0 需要显式回答"GitNexus / Graphify 值不值得跑"。
+产品化输出需要显式回答"GitNexus / Graphify 值不值得跑"。
 
 `readiness-report.yaml` 和 `metrics/latest.yaml` 中记录：
 
@@ -236,7 +238,7 @@ provider_value:
 
 ### 5. Status Dashboard
 
-3.0 新增 `.prd-tools/status.sh`，优先以 shell 脚本落地，后续可包装为 CLI。
+当前版本新增 `.prd-tools/status.sh`，优先以 shell 脚本落地，后续可包装为 CLI。
 
 #### 5.1 命令目标
 
@@ -252,7 +254,7 @@ bash .prd-tools/status.sh
 PRD Tools Status
 
 Install
-  version: 3.0.0
+  version: <current VERSION>
   command: /reference ok
   skills: reference / prd-distill ok
 
@@ -419,12 +421,12 @@ MCP Tool 只读取 `_prd-tools/` 和项目源码，不默认写业务代码。
 
 ### 8. 版本与迁移策略
 
-3.0 采用一次 major bump：
+原计划采用一次 major bump；当前决策是先同步到 `v2.0` 分支，用增量方式落地已验证的产品化能力：
 
 | 项 | 决策 |
 |----|------|
-| 版本号 | `3.0.0` |
-| 分支 | `codex/prd-tools-3.0` |
+| 版本号 | 沿用当前 `VERSION`，不单独开 3.0 |
+| 分支 | `v2.0` |
 | 旧入口 | `/build-reference` 不再作为正式入口，仅作为旧残留清理对象 |
 | 旧目录 | `_reference/`、`_output/` 只兼容读取，不作为新输出 |
 | 新目录 | `_prd-tools/` 是唯一正式输出根 |
@@ -445,26 +447,26 @@ MCP Tool 只读取 `_prd-tools/` 和项目源码，不默认写业务代码。
 
 #### Phase 0：产品定义和契约锁定
 
-目标：先把 3.0 做什么写清楚，防止边做边漂。
+目标：先把产品化 MVP 做什么写清楚，防止边做边漂。
 
 | 任务 | 文件 | 验收 |
 |------|------|------|
 | 新增本 ADR | `docs/adr/0009-PRD-Tools-3.0产品化落地计划.md` | ADR 覆盖定位、输出、评分、status、eval、MCP、路线 |
 | 更新 ADR 索引 | `docs/adr/README.md` | 0009 可点击 |
-| 更新 CHANGELOG 草案 | `CHANGELOG.md` | 3.0.0 条目列出规划能力 |
+| 更新 CHANGELOG 草案 | `CHANGELOG.md` | 当前版本条目列出已落地能力 |
 
 完成标准：
 
 - ADR 被合并。
 - 后续实施 PR 必须引用本 ADR。
 
-#### Phase 1：3.0 输出契约和安装体验
+#### Phase 1：输出契约和安装体验
 
-目标：让用户重新安装后不会跑旧流程，并能看到 3.0 输出目录和评分契约。
+目标：让用户重新安装后不会跑旧流程，并能看到 `_prd-tools/` 输出目录和评分契约。
 
 | 任务 | 文件 | 验收 |
 |------|------|------|
-| 版本号升到 3.0.0 | `VERSION`、两个 plugin.json、marketplace | 版本一致性校验通过 |
+| 版本号保持一致 | `VERSION`、两个 plugin.json、marketplace | 版本一致性校验通过 |
 | 清理旧入口残留 | `install.sh`、`doctor.sh` | 全局/项目 build-reference 都会被提示或清理 |
 | 输出契约新增 readiness/metrics/status | 两份 `output-contracts.md` | `validate-contracts.sh` 通过 |
 | SKILL 流程要求生成 readiness | `prd-distill/SKILL.md`、`workflow.md`、step 文件 | 完成标准包含 readiness |
@@ -510,7 +512,7 @@ MCP Tool 只读取 `_prd-tools/` 和项目源码，不默认写业务代码。
 - report.md 中有 "Readiness / Provider Value" 摘要。
 - status 能读取最近 readiness。
 
-#### Phase 4：Eval Harness
+#### Phase 4：Eval Harness（后续）
 
 目标：回答"工具到底提升多少准确性和收益"。
 
@@ -526,7 +528,7 @@ MCP Tool 只读取 `_prd-tools/` 和项目源码，不默认写业务代码。
 - 至少一个真实项目 case 能跑出 baseline vs full 对比。
 - 输出指标覆盖 requirement recall、contract recall、evidence coverage、false assumptions。
 
-#### Phase 5：MCP 和 CI 集成
+#### Phase 5：MCP 和 CI 集成（后续）
 
 目标：让 PRD Tools 从 Claude Code skill 升级为 agent/CI 可消费的上下文服务。
 
@@ -544,7 +546,7 @@ MCP Tool 只读取 `_prd-tools/` 和项目源码，不默认写业务代码。
 
 ### 10. 验收指标
 
-3.0 初版发布必须满足：
+产品化 MVP 必须满足：
 
 | 指标 | 目标 |
 |------|------|
@@ -557,7 +559,7 @@ MCP Tool 只读取 `_prd-tools/` 和项目源码，不默认写业务代码。
 | contract validation | `scripts/validate-contracts.sh` 通过 |
 | shell syntax | `bash -n install.sh scripts/doctor.sh scripts/status.sh` 通过 |
 
-3.0 完整产品化目标：
+后续完整产品化目标：
 
 | 指标 | 目标 |
 |------|------|
@@ -576,15 +578,15 @@ MCP Tool 只读取 `_prd-tools/` 和项目源码，不默认写业务代码。
 | readiness 评分被误解为绝对正确率 | 用户把分数当成质量保证 | 文档明确：score 是工程就绪度，不是 PRD 正确率 |
 | Graphify 慢导致用户不用 | 业务图谱价值无法体现 | provider_value 明确列出 Graphify 多发现的历史模式/隐式规则 |
 | 输出文件继续膨胀 | 用户阅读负担加重 | `STATUS.md` 和 `readiness-report.yaml` 做入口，report/plan 保持渐进式披露 |
-| MCP 过早实现导致维护成本上升 | 分散 3.0 初版重点 | 3.0 先锁 schema 和 status，MCP 放 Phase 5 |
+| MCP 过早实现导致维护成本上升 | 分散 MVP 重点 | 当前版本先锁 schema 和 status，MCP 放 Phase 5 |
 | eval case 难维护 | 指标失真 | 只维护少量高价值 golden case，优先真实历史 PRD |
 | 旧目录兼容导致新旧混淆 | 用户继续读 `_reference/` | status/doctor 明确标 legacy，新输出只写 `_prd-tools/` |
 
-### 12. 不在 3.0 初版范围
+### 12. 不在当前 MVP 范围
 
 | 不做 | 原因 |
 |------|------|
-| 自动修改业务代码 | PRD Tools 3.0 定位是 context compiler + readiness gate |
+| 自动修改业务代码 | PRD Tools 定位是 context compiler + readiness gate |
 | 团队级中央知识库 | 先把单仓 reference 和指标稳定 |
 | 完整 Web App | 先用 `STATUS.md` 和静态 dashboard |
 | 强依赖 Graphify/GitNexus | 它们是增强 provider，核心流程必须能降级 |
@@ -613,7 +615,7 @@ MCP Tool 只读取 `_prd-tools/` 和项目源码，不默认写业务代码。
 
 ### 决策边界
 
-3.0 的核心交付顺序必须是：
+产品化路线的核心交付顺序必须是：
 
 1. 先锁产品定位和输出契约。
 2. 再做 status/readiness 这类用户可感知能力。
