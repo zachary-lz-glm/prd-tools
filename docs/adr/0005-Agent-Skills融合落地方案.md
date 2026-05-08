@@ -600,13 +600,13 @@ Overview: prd-tools 是 B 端营销团队的开发全生命周期工具集。
 ## 验证方案
 
 ### Phase 0 验证（已完成）
-1. 在有 GitNexus 索引的项目跑 `/build-reference`，确认 `_prd-tools/build/graph/code-evidence.yaml` 生成
+1. 在有 GitNexus 索引的项目跑 `/reference`，确认 `_prd-tools/build/graph/code-evidence.yaml` 生成
 2. 确认 `01-codebase.yaml` modules 有 `graph_sources: ["gitnexus"]`
 3. 确认质量门控报告包含 `graph_evidence_check`
 4. 确认 prd-distill 的 layer-impact 包含 `affected_symbols`（GitNexus 可用时）
 
 ### Phase 1 验证
-1. 在一个已有 `_prd-tools/reference/` 的项目上运行 `/build-reference`，确认 SKILL.md 末尾新增的 section 被正确读取
+1. 在一个已有 `_prd-tools/reference/` 的项目上运行 `/reference`，确认 SKILL.md 末尾新增的 section 被正确读取
 2. 运行 `/prd-distill` 处理一个真实 PRD，确认 Anti-rationalization 表阻止了常见偷懒行为
 3. 检查 Verification Checklist 是否在输出末尾出现且全部打勾
 

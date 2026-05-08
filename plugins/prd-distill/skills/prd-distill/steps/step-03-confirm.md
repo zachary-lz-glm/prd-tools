@@ -194,7 +194,7 @@
 
 每条建议必须按 `references/output-contracts.md` 标注 `current_repo_scope`。当前仓可验证的事实才能标记为 `apply_to_current_repo`；其他仓实现细节、跨仓 owner、团队级 taxonomy 必须标记为 `record_as_signal` 或 `needs_owner_confirmation`，并填写 `owner_to_confirm`。`team_reference_candidate: true` 只表示未来团队知识库候选。
 
-`/prd-distill` 不直接编辑 `_prd-tools/reference/`；实际修改交给 `/build-reference` 的反馈回流。
+`/prd-distill` 不直接编辑 `_prd-tools/reference/`；实际修改交给 `/reference` 的反馈回流。
 
 ## tasks/（AI 可执行任务文件）
 

@@ -1,18 +1,18 @@
 ---
 name: build-reference
-description: 为前端、BFF、后端通用的 PRD-to-code 工作流构建、更新、健康检查或回流项目 reference 知识库。适用于用户调用 /build-reference 或 /reference，要求建立项目知识库、检查 _prd-tools/reference 是否过期、沉淀接口契约/业务术语/开发打法、把 PRD 交付经验反馈回流、准备后续 /prd-distill 时。
+description: 为前端、BFF、后端通用的 PRD-to-code 工作流构建、更新、健康检查或回流项目 reference 知识库。适用于用户调用 /reference，要求建立项目知识库、检查 _prd-tools/reference 是否过期、沉淀接口契约/业务术语/开发打法、把 PRD 交付经验反馈回流、准备后续 /prd-distill 时。
 ---
 
 # build-reference
 
-Claude Code 中通过 `/build-reference` 或 `/reference` 触发。`/reference` 是日常短入口。
+Claude Code 中通过 `/reference` 触发。
 
 人类可读文档见插件根目录 `README.md`。
 
 ## 触发条件
 
 - 用户说"构建/更新/检查 reference"、"项目知识库"、"初始化"。
-- `/reference` 或 `/build-reference` 命令。
+- `/reference` 命令。
 - prd-distill 完成后用户要求回流经验。
 
 不触发：只解释代码、直接改代码、无源码无上下文。

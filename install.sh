@@ -11,7 +11,8 @@
 set -euo pipefail
 
 REPO="zachary-lz-glm/prd-tools"
-BRANCH="v2.0"
+BRANCH="${PRD_TOOLS_BRANCH:-v2.0}"
+USE_REMOTE="${PRD_TOOLS_REMOTE:-0}"
 TARGET="${1:-.}"
 TARGET="$(cd "$TARGET" && pwd)"
 
@@ -35,24 +36,29 @@ if [ -f "$SCRIPT_DIR/scripts/lib/detect_proxy.sh" ]; then
   detect_proxy_for_curl
 fi
 
-# ── 下载源码 ────────────────────────────────────────────────────
-echo "==> 下载 prd-tools ($BRANCH 分支)..."
-ARCHIVE_URL="https://github.com/$REPO/archive/refs/heads/$BRANCH.tar.gz"
-if ! curl -fsSL --connect-timeout 10 --max-time 60 "$ARCHIVE_URL" \
-     | tar -xz -C "$TMP_DIR" 2>/dev/null; then
-  echo "" >&2
-  echo "错误：从 GitHub 下载源码失败。" >&2
-  echo "" >&2
-  echo "兜底方案 — 用 git 克隆后再本地安装：" >&2
-  echo "  git clone --depth 1 -b $BRANCH https://github.com/$REPO.git /tmp/prd-tools" >&2
-  echo "  bash /tmp/prd-tools/install.sh $TARGET" >&2
-  exit 1
-fi
+# ── 选择源码 ────────────────────────────────────────────────────
+if [ "$USE_REMOTE" != "1" ] && [ -d "$SCRIPT_DIR/plugins" ] && [ -f "$SCRIPT_DIR/VERSION" ]; then
+  ARCHIVE_ROOT="$SCRIPT_DIR"
+  echo "==> 使用本地 prd-tools checkout：$ARCHIVE_ROOT"
+else
+  echo "==> 下载 prd-tools ($BRANCH 分支)..."
+  ARCHIVE_URL="https://github.com/$REPO/archive/refs/heads/$BRANCH.tar.gz"
+  if ! curl -fsSL --connect-timeout 10 --max-time 60 "$ARCHIVE_URL" \
+       | tar -xz -C "$TMP_DIR" 2>/dev/null; then
+    echo "" >&2
+    echo "错误：从 GitHub 下载源码失败。" >&2
+    echo "" >&2
+    echo "兜底方案 — 用 git 克隆后再本地安装：" >&2
+    echo "  git clone --depth 1 -b $BRANCH https://github.com/$REPO.git /tmp/prd-tools" >&2
+    echo "  bash /tmp/prd-tools/install.sh $TARGET" >&2
+    exit 1
+  fi
 
-ARCHIVE_ROOT="$(find "$TMP_DIR" -mindepth 1 -maxdepth 1 -type d | head -1)"
-if [ -z "$ARCHIVE_ROOT" ] || [ ! -d "$ARCHIVE_ROOT/plugins" ]; then
-  echo "错误：下载的源码包结构异常。" >&2
-  exit 1
+  ARCHIVE_ROOT="$(find "$TMP_DIR" -mindepth 1 -maxdepth 1 -type d | head -1)"
+  if [ -z "$ARCHIVE_ROOT" ] || [ ! -d "$ARCHIVE_ROOT/plugins" ]; then
+    echo "错误：下载的源码包结构异常。" >&2
+    exit 1
+  fi
 fi
 
 # ── 复制 skills ─────────────────────────────────────────────────
@@ -97,6 +103,7 @@ version=$TOOL_VERSION
 installed_at=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 source=github.com/$REPO
 branch=$BRANCH
+install_source=$([ "$ARCHIVE_ROOT" = "$SCRIPT_DIR" ] && echo "local" || echo "remote")
 EOF
 
 # ── 完成 ────────────────────────────────────────────────────────

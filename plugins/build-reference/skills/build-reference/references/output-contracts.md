@@ -1,6 +1,6 @@
 # 输出契约 v3.0
 
-这些契约由 `/build-reference` 和 `/prd-distill` 共用。字段名保持英文，方便机器稳定解析；说明文字使用中文，方便团队阅读。
+这些契约由 `/reference` 和 `/prd-distill` 共用。字段名保持英文，方便机器稳定解析；说明文字使用中文，方便团队阅读。
 
 ## 统一产出目录
 
@@ -607,5 +607,5 @@ suggestions:
 
 - 当前仓可由源码、技术文档或 owner 确认的事实，`current_repo_scope.action` 才能是 `apply_to_current_repo`。
 - 跨仓契约、上下游 owner、团队级术语只作为 `record_as_signal` 或 `needs_owner_confirmation`，并填写 `owner_to_confirm`。
-- `team_reference_candidate: true` 只表示未来团队知识库候选，不代表 `/prd-distill` 或 `/build-reference` 会自动同步到团队级知识库。
+- `team_reference_candidate: true` 只表示未来团队知识库候选，不代表 `/prd-distill` 或 `/reference` 会自动同步到团队级知识库。
 - 能被 `context/graph-context.md` 佐证的建议必须填写 `graph_context_refs`，但图谱推断不能替代 owner 确认。

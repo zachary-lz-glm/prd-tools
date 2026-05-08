@@ -10,7 +10,7 @@
 
 v2.5.0 引入的图谱证据层没有改变 prd-tools 的任何现有用法。
 
-`/build-reference` 还是那个命令，`/prd-distill` 也还是那个命令。产出还是 6 个 reference 文件 + report/plan；阻塞问题和待确认项收口在 `report.md` §11。
+`/reference` 还是那个命令，`/prd-distill` 也还是那个命令。产出还是 6 个 reference 文件 + report/plan；阻塞问题和待确认项收口在 `report.md` §11。
 
 核心变化是：**如果你装了 GitNexus 或 Graphify，build-reference 和 prd-distill 会自动从图谱拿数据，产出质量更高。** prd-distill 会先生成 `spec/graph-context.md`，再把函数级代码坐标、调用链、API consumer 和业务约束写进 `report.md` 与 `plan.md`。没装图谱工具时仍可用，只是回退到 rg/Read 和 `_prd-tools/reference`。
 
@@ -138,7 +138,7 @@ dive-bff/
 ### 3.2 跑 build-reference
 
 ```
-/build-reference
+/reference
 ```
 
 就这个命令，跟以前一样。build-reference 内部做了这些事：
@@ -345,7 +345,7 @@ npx -y gitnexus@latest analyze --embeddings
 │   第一次接入项目？                                        │
 │   ├── gitnexus analyze --embeddings                     │
 │   ├── /graphify . --mode deep                           │
-│   └── /build-reference  A 全量构建                       │
+│   └── /reference  A 全量构建                       │
 │                                                         │
 │   拿到新 PRD？                                           │
 │   ├── (可选) 更新图谱                                     │
@@ -354,14 +354,14 @@ npx -y gitnexus@latest analyze --embeddings
 │   代码改了要更新 reference？                               │
 │   ├── gitnexus analyze --embeddings                    │
 │   ├── /graphify . --update                              │
-│   └── /build-reference  B 增量更新                       │
+│   └── /reference  B 增量更新                       │
 │                                                         │
 │   只想查一下影响？                                        │
 │   ├── 代码影响 → 直接问 Claude Code                       │
 │   └── 业务概念 → /graphify query / path / explain        │
 │                                                         │
 │   PRD 做完了要回流知识？                                   │
-│   └── /build-reference  E 反馈回流                       │
+│   └── /reference  E 反馈回流                       │
 │                                                         │
 └─────────────────────────────────────────────────────────┘
 ```

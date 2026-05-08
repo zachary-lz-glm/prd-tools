@@ -3,21 +3,24 @@
 #
 # Modes:
 #   (default)         report status, exit 0 regardless
-#   --strict          exit 1 if any check fails
+#   --strict          exit 1 if any required check fails
+#   --strict-all      exit 1 if required or enhanced checks fail
 #   --fix             interactively run fix commands (each confirmed)
 #
-# Checks: uv, markitdown, graphify, gitnexus runtime, Vision API key,
-#         proxy hint, .mcp.json status.
+# Checks: installed skills/commands, uv, markitdown, graphify, gitnexus
+#         runtime, Vision API key, proxy hint, .mcp.json status, project graph.
 #
 # See docs/adr/0008-安装脚本职责拆分.md.
 
 set -uo pipefail
 
 STRICT=0
+STRICT_ALL=0
 FIX=0
 for arg in "$@"; do
   case "$arg" in
     --strict) STRICT=1 ;;
+    --strict-all) STRICT=1; STRICT_ALL=1 ;;
     --fix)    FIX=1 ;;
     -h|--help)
       sed -n '1,15p' "$0"; exit 0 ;;
@@ -32,11 +35,13 @@ else
 fi
 
 ISSUES=0
+ENHANCEMENTS=0
 declare -a FIXES=()
 
 ok()    { printf "  %s✅%s %-12s %s\n"  "$C_OK"  "$C_R" "$1" "$2"; }
 bad()   { printf "  %s❌%s %-12s %s\n"  "$C_BAD" "$C_R" "$1" "$2"; ISSUES=$((ISSUES+1)); [ -n "${3:-}" ] && FIXES+=("$3") && printf "  %s   → %s%s\n" "$C_DIM" "$3" "$C_R"; }
 warn()  { printf "  %s⚠️%s  %-12s %s\n" "$C_WARN" "$C_R" "$1" "$2"; [ -n "${3:-}" ] && printf "  %s   → %s%s\n" "$C_DIM" "$3" "$C_R"; }
+enhance(){ printf "  %s⚠️%s  %-12s %s\n" "$C_WARN" "$C_R" "$1" "$2"; ENHANCEMENTS=$((ENHANCEMENTS+1)); [ -n "${3:-}" ] && FIXES+=("$3") && printf "  %s   → %s%s\n" "$C_DIM" "$3" "$C_R"; }
 
 echo ""
 echo "╔══════════════════════════════════════════╗"
@@ -44,30 +49,56 @@ echo "║          prd-tools 依赖诊断              ║"
 echo "╚══════════════════════════════════════════╝"
 echo ""
 
-# ── 1. uv ─────────────────────────────────────────────────────────
+echo "必需项："
+
+# ── 1. local install ──────────────────────────────────────────────
+if [ -f ".prd-tools-version" ]; then
+  ok "version" "$(head -1 .prd-tools-version 2>/dev/null)"
+else
+  warn "version" "未发现 .prd-tools-version（可能未通过 install.sh 安装）"
+fi
+
+if [ -f ".claude/commands/reference.md" ]; then
+  ok "command" "/reference 已安装"
+else
+  bad "command" "缺少 .claude/commands/reference.md" \
+      "重新运行 prd-tools install.sh"
+fi
+
+if [ -d ".claude/skills/build-reference" ] && [ -d ".claude/skills/prd-distill" ]; then
+  ok "skills" "build-reference / prd-distill 已安装"
+else
+  bad "skills" "缺少 .claude/skills/build-reference 或 prd-distill" \
+      "重新运行 prd-tools install.sh"
+fi
+
+# ── 2. uv ─────────────────────────────────────────────────────────
 if command -v uv &>/dev/null; then
   ok "uv" "$(uv --version 2>/dev/null | head -1) ($(command -v uv))"
 else
   bad "uv" "未安装" "curl -LsSf https://astral.sh/uv/install.sh | sh"
 fi
 
-# ── 2. markitdown ─────────────────────────────────────────────────
+echo ""
+echo "增强项："
+
+# ── 3. markitdown ─────────────────────────────────────────────────
 if command -v markitdown &>/dev/null; then
   ok "markitdown" "$(command -v markitdown)"
 else
-  bad "markitdown" "未安装（PRD 的 docx/pdf 无法解析）" \
-      'uv tool install --upgrade "markitdown[all]" --with markitdown-ocr    # ocr 是插件，要用 --with'
+  enhance "markitdown" "未安装（只能稳定处理 md/txt 或粘贴文本）" \
+          'uv tool install --upgrade "markitdown[all]" --with markitdown-ocr    # ocr 是插件，要用 --with'
 fi
 
-# ── 3. graphify ───────────────────────────────────────────────────
+# ── 4. graphify ───────────────────────────────────────────────────
 if command -v graphify &>/dev/null; then
   ok "graphify" "$(command -v graphify)（包名 graphifyy）"
 else
-  bad "graphify" "未安装（业务语义图谱不可用）" \
-      "uv tool install graphifyy && graphify install"
+  enhance "graphify" "未安装（业务语义图谱不可用，仍可回退源码扫描）" \
+          "uv tool install graphifyy && graphify install"
 fi
 
-# ── 4. gitnexus ────────────────────────────────────────────────────
+# ── 5. gitnexus ────────────────────────────────────────────────────
 # GitNexus 是知识图谱质量校验的核心工具，缺少它会导致：
 #   - 代码图谱索引无法构建或质量无法评估
 #   - /graphify 产出缺少 graph-context 校验
@@ -82,8 +113,8 @@ fi
 
 if [ -z "$GN_RUNTIME" ]; then
   # ── 无 Node/Bun 环境（常见于纯后端项目）────────────────────────
-  bad "gitnexus" "无 Node.js/Bun 环境，GitNexus 无法运行" \
-      "安装 Node.js: brew install node    # 或 curl -fsSL https://bun.sh/install | bash"
+  enhance "gitnexus" "无 Node.js/Bun 环境，GitNexus 无法运行；会回退 rg/glob 扫描" \
+          "安装 Node.js: brew install node    # 或 curl -fsSL https://bun.sh/install | bash"
 else
   ok "gitnexus-rt" "$GN_RUNTIME 可用（$(command -v $GN_RUNTIME)）"
 
@@ -98,20 +129,20 @@ else
     esac
 
     if [ "$GN_REG_OK" -eq 1 ]; then
-      bad "gitnexus" "npm registry is private (${GN_REG}), cannot reach public package gitnexus" \
-          "npm install -g gitnexus --registry https://registry.npmmirror.com"
+      enhance "gitnexus" "npm registry is private (${GN_REG}), cannot reach public package gitnexus" \
+              "npm install -g gitnexus --registry https://registry.npmmirror.com"
     else
       if timeout 15 npx -y gitnexus@latest --version &>/dev/null; then
         ok "gitnexus" "npm 可拉到 gitnexus 包"
       else
-        bad "gitnexus" "拉包探测失败（网络问题），知识图谱质量校验不可用" \
-            "npm install -g gitnexus --registry https://registry.npmmirror.com"
+        enhance "gitnexus" "拉包探测失败（网络问题），代码图谱不可用" \
+                "npm install -g gitnexus --registry https://registry.npmmirror.com"
       fi
     fi
   fi
 fi
 
-# ── 5. .mcp.json ──────────────────────────────────────────────────
+# ── 6. .mcp.json ──────────────────────────────────────────────────
 MCP_FILE="$HOME/.claude/.mcp.json"
 if [ -f "$MCP_FILE" ] && grep -q '"gitnexus"' "$MCP_FILE" 2>/dev/null; then
   ok "mcp-config" "$MCP_FILE 已声明 gitnexus"
@@ -120,17 +151,42 @@ else
        "把下方 JSON 片段合并进去"
 fi
 
-# ── 6. Vision API key ─────────────────────────────────────────────
+# ── 7. Vision API key ─────────────────────────────────────────────
 if [ -n "${ANTHROPIC_AUTH_TOKEN:-}" ]; then
   ok "api-key" "ANTHROPIC_AUTH_TOKEN 已设置"
 elif [ -n "${OPENAI_API_KEY:-}" ]; then
   ok "api-key" "OPENAI_API_KEY 已设置"
 else
-  bad "api-key" "未配置 Vision Key（PRD 图片 OCR 和 graphify --mode deep 不可用）" \
-      "export ANTHROPIC_AUTH_TOKEN=sk-ant-xxx    # 加到 ~/.zshrc 持久化"
+  enhance "api-key" "未配置 Vision Key（图片 OCR 和 graphify deep 不可用）" \
+          "export ANTHROPIC_AUTH_TOKEN=sk-ant-xxx    # 加到 ~/.zshrc 持久化"
 fi
 
-# ── 7. uv mirror (SOCKS proxy env) ────────────────────────────────
+# ── 8. project graph readiness ────────────────────────────────────
+echo ""
+echo "项目就绪度："
+
+if [ -d ".gitnexus" ]; then
+  ok "gitnexus-db" ".gitnexus 已存在"
+else
+  warn "gitnexus-db" "当前项目未发现 .gitnexus 索引" \
+       "gitnexus analyze ."
+fi
+
+if [ -f "graphify-out/graph.json" ]; then
+  ok "graphify-db" "graphify-out/graph.json 已存在"
+else
+  warn "graphify-db" "当前项目未发现 graphify-out/graph.json（可选）" \
+       "graphify update .    # 快速结构图；深度语义用 /graphify . --mode deep"
+fi
+
+if [ -d "_prd-tools/reference" ]; then
+  ok "reference" "_prd-tools/reference 已存在"
+else
+  warn "reference" "还没有项目知识库" \
+       "/reference"
+fi
+
+# ── 9. uv mirror (SOCKS proxy env) ────────────────────────────────
 # SOCKS proxy only works for curl; npm/uv do not support SOCKS.
 # npm: gitnexus check (section 4) already handles public package install.
 # uv: needs a PyPI mirror to install markitdown/graphify without proxy.
@@ -161,13 +217,16 @@ fi
 # ── 汇总 ──────────────────────────────────────────────────────────
 echo ""
 if [ "$ISSUES" -eq 0 ]; then
-  echo "  ${C_OK}所有必需工具已就绪。${C_R}"
+  echo "  ${C_OK}必需项已就绪。${C_R}"
+  if [ "$ENHANCEMENTS" -gt 0 ]; then
+    echo "  ${C_WARN}${ENHANCEMENTS} 项增强能力未就绪；基础流程仍可运行，会按能力降级。${C_R}"
+  fi
   echo ""
   echo "  ${C_DIM}下一步：${C_R}"
   echo "  ${C_DIM}1. 关闭并重新打开 Claude Code，新 skills 才会加载${C_R}"
   echo "  ${C_DIM}2. gitnexus analyze .              # 构建代码索引${C_R}"
   echo "  ${C_DIM}3. /graphify .（可选）              # 构建业务语义图谱（较慢，提升领域知识）${C_R}"
-  echo "  ${C_DIM}4. /build-reference           # 构建项目知识库${C_R}"
+  echo "  ${C_DIM}4. /reference                 # 构建项目知识库${C_R}"
   echo "  ${C_DIM}5. /prd-distill               # 蒸馏 PRD -> plan + tasks${C_R}"
 else
   echo "  ${C_BAD}发现 $ISSUES 项需要修复。${C_R}"
@@ -210,6 +269,9 @@ fi
 
 # ── exit code ─────────────────────────────────────────────────────
 if [ "$STRICT" -eq 1 ] && [ "$ISSUES" -gt 0 ]; then
+  exit 1
+fi
+if [ "$STRICT_ALL" -eq 1 ] && [ "$ENHANCEMENTS" -gt 0 ]; then
   exit 1
 fi
 exit 0

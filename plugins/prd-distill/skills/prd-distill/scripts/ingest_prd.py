@@ -745,12 +745,12 @@ def main(argv: list[str]) -> int:
     parser.add_argument("source", help="Path to PRD file (docx/md/txt/pdf/pptx/xlsx/html)")
     parser.add_argument(
         "--out",
-        help="Output directory. Default: _output/prd-distill/<slug>/prd-ingest",
+        help="Output directory. Default: _prd-tools/distill/<slug>/_ingest",
     )
     args = parser.parse_args(argv)
 
     source = Path(args.source)
-    out_dir = Path(args.out) if args.out else Path("_output") / "prd-distill" / slugify(source.name) / "prd-ingest"
+    out_dir = Path(args.out) if args.out else Path("_prd-tools") / "distill" / slugify(source.name) / "_ingest"
     out_dir = out_dir.expanduser().resolve()
     out_dir.mkdir(parents=True, exist_ok=True)
     try:
