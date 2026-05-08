@@ -41,7 +41,7 @@ curl -fsSL https://raw.githubusercontent.com/zachary-lz-glm/prd-tools/v2.0/insta
 
 ## 支持的输入
 
-`.md` / `.txt` 文件，或直接粘贴需求文本。其他格式请先转为 markdown。
+`.md` / `.txt` / `.docx` 文件，或直接粘贴需求文本。`.docx` 用原生 `unzip` 提取文本和图片，Claude 直接看图理解 UI 截图和流程图，零外部依赖。
 
 ## 产出文件
 

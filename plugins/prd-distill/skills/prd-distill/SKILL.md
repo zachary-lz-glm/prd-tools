@@ -29,14 +29,16 @@ Claude Code 中通过 `/prd-distill <PRD 文件或需求文本>` 触发。
 
 ## 输入
 
-- PRD：`.md`/`.txt` 或粘贴文本。其他格式请先转为 markdown。
+- PRD：`.md`/`.txt`/`.docx` 或粘贴文本。
 - 可选技术方案、API 文档、接口定义。
 - 当前项目源码路径。
 - 当前项目 `_prd-tools/reference/`。
 - 可选历史分支、diff、已有实现。
 
 PRD 读取规则：
-- 文件输入支持 `.md/.txt`，保留原文行号和 markdown 图片引用。用户也可以直接粘贴 PRD 文本。
+- 文件输入支持 `.md/.txt`（直接读取）和 `.docx`（用 unzip 提取文本+图片，零第三方依赖）。
+- `.docx` 读取：解压提取 `word/document.xml`，去除 XML 标签得到纯文本；同时提取 `media/` 下的所有图片到 `_ingest/media/`。在文本中图片位置插入 `![image-N](media/imageN.png)` 占位。Claude 用 Read 工具直接查看图片（原生多模态），理解 UI 截图、流程图、数据图表。
+- 用户也可以直接粘贴 PRD 文本。
 - 粘贴文本 → 手工创建 ingestion 证据（来源、段落定位、质量说明）。
 - 无人工确认的截图、流程图不能作为高置信度结论。
 
@@ -124,7 +126,11 @@ _prd-tools/distill/<slug>/
 ## 执行步骤
 
 1. 确认 PRD 来源和目标项目路径。
-2. PRD ingestion：读取文件或接受粘贴文本，创建 `_ingest/` 证据结构。
+2. PRD ingestion：
+   - `.md`/`.txt`：直接读取。
+   - `.docx`：用 `unzip` 提取 `word/document.xml`（文本）和 `media/`（图片）。文本去 XML 标签后写入 `_ingest/document.md`，图片拷贝到 `_ingest/media/`。在文本中图片位置插入 `![image-N](media/imageN.png)` 占位。用 Read 工具逐个查看图片，理解内容后写入 `_ingest/media-analysis.yaml`。
+   - 粘贴文本：手工建立来源和定位。
+   创建 `_ingest/` 证据结构。
 3. 读取 `_prd-tools/reference/`（优先 v4，兼容 v3.1）。
 4. 建立 `context/evidence.yaml`，映射 ingestion 证据后补充源码证据。
 5. 拆 `context/requirement-ir.yaml`。

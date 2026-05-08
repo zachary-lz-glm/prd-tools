@@ -10,7 +10,7 @@
 /prd-distill <PRD 文件路径或需求文本>
 ```
 
-**输入格式：** `.md` / `.txt` 文件，或直接粘贴需求文本。
+**输入格式：** `.md` / `.txt` / `.docx` 文件，或直接粘贴需求文本。`.docx` 用原生 `unzip` 提取文本和图片，Claude 直接看图理解 UI 截图和流程图，零外部依赖。
 
 ```
 /prd-distill docs/新司机完单奖励PRD.md

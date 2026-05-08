@@ -61,7 +61,7 @@ _prd-tools/
 
 ## _ingest/
 
-`_ingest/` 解决"PRD 到底被 AI 读成了什么"的问题。它不是需求结论层，只负责保真读取、定位、图片/表格风险暴露。
+`_ingest/` 解决"PRD 到底被 AI 读成了什么"的问题。它不是需求结论层，只负责保真读取、定位、图片/表格风险暴露。`.md`/`.txt` 直接读取，`.docx` 用 `unzip -p <file> word/document.xml | sed 's/<[^>]*>//g'` 提取纯文本后写入 `document.md`。
 
 | 文件 | 用途 | 边界 |
 |---|---|---|
@@ -69,8 +69,8 @@ _prd-tools/
 | `document.md` | 转换后的可读 markdown，作为 Requirement IR 的主输入 | 不补充 PRD 没写的信息 |
 | `document-structure.json` | 段落、标题、表格、图片等结构块，含 block id 和 locator | 不写业务语义结论 |
 | `evidence-map.yaml` | PRD 块级证据，供 `context/evidence.yaml` 映射 | 不放源码、diff、reference 证据 |
-| `media/` | 抽出的图片、截图、流程图原文件 | 不修改图片内容 |
-| `media-analysis.yaml` | 图片分析状态；人工确认为 `human_reviewed`，否则 `needs_human_review`（low） | 没有人工确认时不推断图片含义 |
+| `media/` | 抽出的图片、截图、流程图原文件（docx 提取时自动抽取） | 不修改图片内容 |
+| `media-analysis.yaml` | 图片分析状态和摘要；Claude 用 Read 工具（原生多模态）直接查看图片后填写。类型：`ui_screenshot | flowchart | data_chart | table_image | decoration`。每条包含：文件名、类型、关键信息摘要、置信度 | 不确认的图片内容只能产生低置信度问题 |
 | `tables/` | 单独抽出的表格 markdown | 不修复原表格，只保留转换结果 |
 | `extraction-quality.yaml` | 读取质量门禁：`pass | warn | block`、统计、风险 | 不写开发计划 |
 | `conversion-warnings.md` | 给人看的转换风险 | 不替代 report.md §11 |
@@ -87,14 +87,33 @@ stats:
 quality_gates: []
 warnings: []
 rules:
-  - "Do not infer requirements from images unless media-analysis has human confirmation."
+  - "Images are analyzed by Claude Read (native multimodal). AI-interpreted content is medium confidence by default."
+```
+
+`media-analysis.yaml` 示例：
+
+```yaml
+schema_version: "1.0"
+images:
+  - file: "media/image2.png"
+    type: "ui_screenshot"
+    summary: "DIVE 2.0 MIS 创建活动页面-目标人群步骤，包含是否限制司机、人群选择方式、CSV上传等表单"
+    confidence: "medium"
+  - file: "media/image5.png"
+    type: "ui_screenshot"
+    summary: "活动规则配置页面，包含完单数、奖励类型（折扣卡/优惠券）、优惠券配置模块"
+    confidence: "medium"
+  - file: "media/image1.png"
+    type: "data_chart"
+    summary: "司机早期加油次数与30日留存增长率关系图"
+    confidence: "medium"
 ```
 
 质量规则：
 
 - `block`：暂停蒸馏，要求用户提供 markdown/text。
 - `warn`：允许继续，但必须在 `report.md` §11 中暴露风险。
-- 图片、截图、流程图里的信息，没有人工确认时，只能作为待确认问题，不能作为高置信度结论。
+- Claude 看图提取的信息置信度为 `medium`（AI 视觉理解），关键结论仍需文本证据或人工确认才能升为 `high`。
 
 ## portal.html
 

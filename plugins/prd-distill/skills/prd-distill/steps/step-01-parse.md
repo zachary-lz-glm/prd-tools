@@ -2,7 +2,27 @@
 
 ## Pre-flight
 
-支持 `.md/.txt` 文件或粘贴文本。其他格式请先转为 markdown。
+支持 `.md`/`.txt`/`.docx` 文件或粘贴文本。
+
+**docx 读取流程（零第三方依赖，Claude 原生多模态看图）：**
+
+```bash
+# 1. 提取 docx 中的文本内容
+unzip -p <file>.docx word/document.xml | sed 's/<[^>]*>//g' | sed '/^$/d'
+
+# 2. 提取 docx 中的图片
+mkdir -p _ingest/media
+unzip -o <file>.docx "media/*" -d _ingest/
+```
+
+- docx 本质是 zip 包，`word/document.xml` 包含正文，`media/` 包含嵌入图片。
+- 文本提取：`sed` 去标签得到纯文本，写入 `_ingest/document.md`。
+- 图片提取：`unzip` 将 `media/*.png|jpg|jpeg|gif` 抽出到 `_ingest/media/`。
+- 图片定位：解析 `word/document.xml` 中的 `<w:drawing>` 或 `<w:pict>` 标签，在纯文本对应位置插入 `![image-N](media/imageN.png)` 占位标记，Claude 后续可用 Read 工具直接查看图片内容。
+- Claude 原生支持图片理解（多模态），提取后直接用 Read 工具读取 `_ingest/media/imageN.png`，无需第三方 Vision API。
+- 表格基本结构会保留（行会用换行分隔），但复杂格式可能丢失。
+- 格式丢失时 `extraction-quality.yaml` 标记 `warn`，在 `report.md` §11 暴露。
+- 图片分析结果写入 `_ingest/media-analysis.yaml`：每张图片的文件名、类型（UI截图/流程图/数据图表/装饰图）、关键信息摘要、置信度。
 
 ## 目标
 
@@ -22,7 +42,16 @@
 
 ## 执行
 
-1. 读取 `.md/.txt` 文件或接受粘贴文本，Claude 直接解析为 `_ingest/` 证据结构。
+1. 读取文件或接受粘贴文本：
+   - `.md`/`.txt`：直接读取，保留原文格式。
+   - `.docx`：
+     a. `unzip -p <file> word/document.xml | sed 's/<[^>]*>//g' | sed '/^$/d'` 提取纯文本。
+     b. `mkdir -p _ingest/media && unzip -o <file> "media/*" -d _ingest/` 提取所有图片。
+     c. 解析 XML 中的 `<w:drawing>` / `<w:pict>` 标签定位图片插入位置，在文本中插入 `![image-N](media/imageN.png)` 占位标记。
+     d. 写入 `_ingest/document.md`。
+     e. 用 Read 工具逐个查看 `_ingest/media/` 下的图片，理解内容（UI 截图、流程图、数据图表），将分析结果写入 `_ingest/media-analysis.yaml`。
+   - 粘贴文本：直接作为 document 内容。
+   创建 `_ingest/` 证据结构。
 2. 读取 `_ingest/extraction-quality.yaml`；`status: block` 时暂停，`status: warn` 时继续但必须暴露风险。
 3. 以 `_ingest/document.md` 为主输入，结合 `evidence-map.yaml` 建立 context/ evidence 台账。
 4. 将 PRD 拆成独立业务 requirement。
@@ -38,7 +67,8 @@
 
 - 每个 requirement 至少需要一个 PRD 或技术文档 evidence id。
 - PRD evidence 优先映射 `_ingest/evidence-map.yaml` 的 block/table/image 定位。
-- 图片、截图、流程图没有人工确认时，只能产生低置信度问题，不能当成已确认需求。
+- 图片、截图、流程图通过 Claude Read 工具（原生多模态）直接查看分析。分析结果写入 `media-analysis.yaml`。
+- 图片中提取的信息置信度为 `medium`（AI 视觉理解），关键结论仍需文本证据或人工确认才能升为 `high`。
 - IR 不写文件级实现细节。
 - 使用 `ADD | MODIFY | DELETE | NO_CHANGE`。
 - 业务规则、限制、互斥、权益、奖励发放、审计、rollout 假设都必须显式写出。

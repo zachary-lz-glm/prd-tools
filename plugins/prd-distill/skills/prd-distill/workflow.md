@@ -24,7 +24,10 @@ PRD raw file/text
 
 读取或收集：
 
-- PRD：`.md | .txt | pasted text`。其他格式请先转为 markdown。
+- PRD：`.md | .txt | .docx | pasted text`。
+  - `.md`/`.txt`：直接读取。
+  - `.docx`：用 `unzip` 提取 `word/document.xml`（文本）和 `media/`（图片）。文本去 XML 标签后写入 `_ingest/document.md`，图片拷贝到 `_ingest/media/`。在文本中图片位置插入 `![image-N](media/imageN.png)` 占位。Claude 用 Read 工具逐个查看图片（原生多模态），理解 UI 截图、流程图、数据图表，结果写入 `_ingest/media-analysis.yaml`。复杂格式（嵌套表格）可能丢失，此时 `extraction-quality.yaml` 标记 `warn`。
+  - 粘贴文本：手工建立来源和定位。
 - 技术方案 / API 文档：可选，但多层或后端相关需求强烈建议读取。
 - `_prd-tools/reference/`：优先 v4（6 文件结构）；若只有 v3.1（10 文件结构），兼容读取；若只有旧版 `05-mapping.yaml`，兼容读取并在回流建议里提示迁移。
 - 目标代码库：用于代码锚定。
@@ -40,7 +43,7 @@ _prd-tools/distill/<slug>/
 └── context/
 ```
 
-Claude 直接读取 `.md/.txt` 文件或接受粘贴文本，手动创建 `_ingest/` 证据结构：
+Claude 直接读取 `.md/.txt` 文件，用 `unzip` 提取 `.docx` 文件，或接受粘贴文本，手动创建 `_ingest/` 证据结构：
 
 ```text
 _ingest/
