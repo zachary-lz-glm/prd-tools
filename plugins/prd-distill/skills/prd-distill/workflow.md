@@ -81,7 +81,7 @@ _ingest/
 - `api_doc`
 - `reference`
 
-格式见 `references/output-contracts.md`。
+格式见 `references/schemas/03-context.md`。
 
 规则：
 
@@ -207,7 +207,7 @@ ADD/MODIFY/DELETE/NO_CHANGE 必须由源码或负向搜索支撑。
 - **代码线索不可省略**：文件路径、行号、参考结构体名必须保留。
 - 按 Phase 分组，Phase 间标注依赖。
 - 不直接写代码，除非用户明确要求进入实现。
-- 格式详见 `references/output-contracts.md` 中 plan.md 模板。
+- 格式详见 `references/schemas/04-report-plan.md` 中 plan.md 模板。
 
 ## 步骤 6：Readiness 评分
 
@@ -285,7 +285,7 @@ suggestions:
 10. **Top Open Questions**：最多5个
 11. **阻塞问题与待确认项**：阻塞问题（6 要素）+ 低置信度假设 + Owner 确认项
 
-格式详见 `references/output-contracts.md` 中 report.md 模板。
+格式详见 `references/schemas/04-report-plan.md` 中 report.md 模板。
 
 报告里不要隐藏低置信度项；低置信度是价值，不是瑕疵。**线索式证据不能省略**：代码注释、已有结构体名、文件路径等线索必须保留。
 

@@ -41,3 +41,10 @@
 - `current_repo_scope.action: apply_to_current_repo` 且 evidence 可验证时，才允许写入当前仓 confirmed 事实。
 - `record_as_signal` 或 `needs_owner_confirmation` 只能写入 handoff、unknowns、owner_to_confirm 或候选字段，不能升级为确定契约。
 - `team_reference_candidate: true` 必须保留为候选标记；除非用户明确确认团队治理结果，否则不代表已经同步到团队知识库。
+
+## Self-Check（回流后必须逐项验证）
+- [ ] 每条 suggestion 的 target_file 是存在的 reference 文件
+- [ ] apply_to_current_repo 的建议有当前仓源码证据支撑
+- [ ] needs_owner_confirmation 的建议填写了 owner_to_confirm
+- [ ] golden_sample_candidate 的建议有完整的 lessons 和 evidence
+- [ ] 用户确认后才修改 reference，未自动修改

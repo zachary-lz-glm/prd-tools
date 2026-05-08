@@ -86,6 +86,15 @@ unzip -o <file>.docx "media/*" -d _ingest/
 - 业务规则、限制、互斥、权益、奖励发放、审计、rollout 假设都必须显式写出。
 - 未知项进入 `open_questions`，不要隐藏不确定性。
 
+## Self-Check（生成后必须逐项验证）
+- [ ] document-structure.json 的每个 block 都有 block_id 和 block_type
+- [ ] evidence-map.yaml 覆盖了 document-structure.json 中的所有 block_id
+- [ ] coverage_ratio = mapped_blocks / total_blocks，计算正确
+- [ ] coverage_ratio < 0.8 时 extraction-quality.yaml 的 status 为 warn
+- [ ] 每个 REQ 至少有一个 PRD evidence（EV-ID）
+- [ ] capability_inventory 中的已有能力在 REQ 的 rules 中标注了"复用已有"
+- [ ] open_questions 中没有隐藏的不确定性
+
 ## 最小输出
 
 ```yaml

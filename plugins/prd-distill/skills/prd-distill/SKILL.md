@@ -152,8 +152,9 @@ _prd-tools/distill/<slug>/
 | 文件 | 何时读取 |
 |---|---|
 | `workflow.md` | 执行完整蒸馏时 |
+| `references/portal-design-system.md` | 生成 portal.html 时读取设计系统 |
 | `steps/step-04-portal.md` | 生成 portal.html 可视化页面时 |
-| `references/output-contracts.md` | 确认输出格式和字段边界时 |
+| `references/output-contracts.md` | 输出契约索引（按需加载 `schemas/` 下具体文件） |
 | `references/layer-adapters.md` | 判断能力面时 |
 | `references/selectable-reward-golden-sample.md` | 复杂需求校准时 |
 | `references/external-practices.md` | 解释设计依据时 |

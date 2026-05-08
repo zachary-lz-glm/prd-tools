@@ -79,4 +79,12 @@
 
 ## 输出
 
-`graph-context.md` 输出格式见 `references/output-contracts.md`。plan.md 中每个 MODIFY/DELETE 任务必须引用至少一个 GCTX ID；无法引用时，必须在 graph-context 的 fallback/未命中表中说明。
+`graph-context.md` 输出格式见 `references/schemas/03-context.md`。plan.md 中每个 MODIFY/DELETE 任务必须引用至少一个 GCTX ID；无法引用时，必须在 graph-context 的 fallback/未命中表中说明。
+
+## Self-Check（生成后必须逐项验证）
+- [ ] 每个 IMP-* 项的 surface 使用 layer-adapters.md 中定义的能力面名称
+- [ ] MODIFY/DELETE 类型的 IMP 有源码证据（不只是 reference 标记）
+- [ ] ADD 类型有 negative_code_search 证据或参考实现路径
+- [ ] graph-context.md 中每个 GCTX 条目都被 plan.md 或 report.md 引用
+- [ ] Contract Delta 只在跨层/API/外部系统场景生成
+- [ ] alignment_status 为 needs_confirmation 的契约列出了需要确认的内容

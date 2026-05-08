@@ -4,17 +4,31 @@
 
 ## 目标
 
-基于 PRD、兄弟项目模式和上游 API 文档创建 reference v3。
+基于 PRD、兄弟项目模式和上游 API 文档创建 reference v4.0。
 
 ## 输入
 
 - PRD 路径或粘贴文本。
 - 可选兄弟项目路径。
 - 可选上游 API/技术方案路径。
+- `references/layer-adapters.md` 中当前层章节。
+- `templates/` 下的 v4 模板。
 
 ## 输出
 
-使用 v3 templates 生成 `_prd-tools/reference/00~09`：
+使用 v4 模板生成 `_prd-tools/reference/`：
+
+```text
+00-portal.md                # 导航（最后生成）
+project-profile.yaml        # 项目画像（layer 标注 greenfield）
+01-codebase.yaml            # 预期目录结构、枚举、模块
+02-coding-rules.yaml        # 来自兄弟项目的编码规则
+03-contracts.yaml           # 预期 API/schema 契约面
+04-routing-playbooks.yaml   # PRD 路由信号 + 开发假设 + QA 矩阵
+05-domain.yaml              # PRD 领域概念和术语
+```
+
+证据规则：
 
 - 来自 PRD 的事实：`kind: prd`，`confidence: medium | low`
 - 来自兄弟项目的模式：`kind: reference`，`confidence: medium`
@@ -24,6 +38,16 @@
 ## 规则
 
 - 没有代码时，不要声称有代码证据。
-- 预期 API/schema 契约面写入 `08-contracts.yaml`。
-- 开发假设和 QA 矩阵写入 `09-playbooks.yaml`。
+- 预期 API/schema 契约面写入 `03-contracts.yaml`。
+- 开发假设和 QA 矩阵写入 `04-routing-playbooks.yaml`。
+- 术语和领域概念写入 `05-domain.yaml`。
 - 每个生成的假设都必须成为开放问题或低置信度条目。
+- `project-profile.yaml` 的 `reference_scope` 标注 `greenfield: true`。
+
+## Self-Check（生成后必须逐项验证）
+
+- [ ] project-profile.yaml 的 layer 字段与项目预期架构一致
+- [ ] 01-codebase.yaml 标注了 `implemented: false`（因为没有源码）
+- [ ] 03-contracts.yaml 的预期契约面有 PRD 或上游 API 文档证据
+- [ ] 04-routing-playbooks.yaml 的 playbook 步骤标注了 `confidence: low`
+- [ ] 每个 confidence: low 的条目在 open_questions 中有对应问题

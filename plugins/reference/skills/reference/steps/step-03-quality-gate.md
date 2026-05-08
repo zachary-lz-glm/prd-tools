@@ -52,3 +52,10 @@ next_actions: []
 ```
 
 存在致命发现时，不要宣称 reference 已可用于生产。
+
+## Self-Check（质量检查后必须逐项验证）
+- [ ] quality-report.yaml 的 score 是根据实际检查结果计算，不是估算
+- [ ] 每个 fatal_finding 都有具体的 reference 文件和证据引用
+- [ ] boundary_violations 列出了具体的重叠内容和建议修复方式
+- [ ] sample_replay 已执行（如有 golden sample）
+- [ ] 幻觉检查覆盖了所有文件路径、函数名、变量名
