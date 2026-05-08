@@ -7,7 +7,7 @@
 #   --strict-all      exit 1 if required or enhanced checks fail
 #   --fix             interactively run fix commands (each confirmed)
 #
-# Checks: installed skills/commands, uv, markitdown, graphify, gitnexus
+# Checks: installed skills, legacy command aliases, uv, markitdown, graphify, gitnexus
 #         runtime, Vision API key, proxy hint, .mcp.json status, project graph.
 #
 # See docs/adr/0008-安装脚本职责拆分.md.
@@ -77,6 +77,13 @@ if [ -f ".claude/commands/reference.md" ]; then
        "rm -f .claude/commands/reference.md && rmdir .claude/commands 2>/dev/null || true"
 else
   ok "command" "未发现旧 .claude/commands/reference.md alias"
+fi
+
+if [ -f ".prd-tools/status.sh" ]; then
+  ok "status" ".prd-tools/status.sh 已安装"
+else
+  warn "status" "未发现 .prd-tools/status.sh（可选 dashboard 生成器）" \
+       "重新运行 prd-tools install.sh"
 fi
 
 if [ -d "$GLOBAL_LEGACY_SKILL" ]; then
@@ -242,6 +249,7 @@ if [ "$ISSUES" -eq 0 ]; then
   echo "  ${C_DIM}3. /graphify .（可选）              # 构建业务语义图谱（较慢，提升领域知识）${C_R}"
   echo "  ${C_DIM}4. /reference                 # 构建项目知识库${C_R}"
   echo "  ${C_DIM}5. /prd-distill               # 蒸馏 PRD -> plan + tasks${C_R}"
+  echo "  ${C_DIM}6. bash .prd-tools/status.sh  # 生成 _prd-tools/STATUS.md + dashboard${C_R}"
 else
   echo "  ${C_BAD}发现 $ISSUES 项需要修复。${C_R}"
   echo "  可执行：bash $0 --fix    # 交互式逐条修"

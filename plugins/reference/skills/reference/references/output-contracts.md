@@ -35,6 +35,7 @@ _prd-tools/
         │   └── evidence.yaml
         ├── plan.md
         ├── report.md
+        ├── readiness-report.yaml
         ├── tasks/
         │   └── T-NNN-*.md
         ├── context/
@@ -54,8 +55,10 @@ _prd-tools/
 ```
 
 用户默认只需要读：
+- `_prd-tools/STATUS.md` 或 `_prd-tools/dashboard/index.html`（项目/最近一次 distill 状态入口）
 - `_prd-tools/distill/<slug>/report.md`（决策+阻塞问题）
 - `_prd-tools/distill/<slug>/plan.md`（技术方案+开发计划）
+- `_prd-tools/distill/<slug>/readiness-report.yaml`（机器可读就绪度和 provider 增益）
 - `_prd-tools/distill/<slug>/tasks/`（AI 可执行任务）
 
 `spec/` 是结构化需求，`context/` 是图谱+契约分析上下文，`_ingest/` 是原始文档读取层。
@@ -609,3 +612,79 @@ suggestions:
 - 跨仓契约、上下游 owner、团队级术语只作为 `record_as_signal` 或 `needs_owner_confirmation`，并填写 `owner_to_confirm`。
 - `team_reference_candidate: true` 只表示未来团队知识库候选，不代表 `/prd-distill` 或 `/reference` 会自动同步到团队级知识库。
 - 能被 `context/graph-context.md` 佐证的建议必须填写 `graph_context_refs`，但图谱推断不能替代 owner 确认。
+
+## readiness-report.yaml
+
+`readiness-report.yaml` 是单次 PRD 蒸馏的机器可读红绿灯。它回答"这次分析能不能进入开发/评审，为什么"，同时给 `_prd-tools/STATUS.md` 和 dashboard 提供数据。
+
+```yaml
+schema_version: "3.0"
+tool_version: "<tool-version>"
+generated_at: "2026-05-08T00:00:00Z"
+distill_slug: "<slug>"
+status: "pass | warning | fail"
+score: 0
+decision: "ready_for_dev | needs_owner_confirmation | blocked"
+summary:
+  title: ""
+  top_reason: ""
+scores:
+  prd_ingestion: 0
+  evidence_coverage: 0
+  graph_context: 0
+  contract_alignment: 0
+  task_executability: 0
+risks:
+  blocked:
+    - id: ""
+      title: ""
+      owner: ""
+      source: "contract | evidence | ingestion | task"
+  needs_confirmation:
+    - id: ""
+      title: ""
+      owner: ""
+      source: "contract | evidence | ingestion | task"
+  low_confidence_assumptions: []
+provider_value:
+  gitnexus:
+    available: false
+    added_findings: 0
+    used_by_plan: 0
+    examples: []
+  graphify:
+    available: false
+    added_findings: 0
+    used_by_plan: 0
+    examples: []
+  reference:
+    reused_playbooks: 0
+    reused_contracts: 0
+    examples: []
+next_actions: []
+```
+
+评分建议：
+
+| 维度 | 权重 | 数据来源 |
+|---|---:|---|
+| `prd_ingestion` | 20 | `_ingest/extraction-quality.yaml`、media/table warnings |
+| `evidence_coverage` | 25 | `spec/evidence.yaml`、`spec/requirement-ir.yaml` |
+| `graph_context` | 15 | `context/graph-context.md`、provider hit count |
+| `contract_alignment` | 25 | `context/contract-delta.yaml` |
+| `task_executability` | 15 | `plan.md`、`tasks/` |
+
+状态阈值：
+
+| 分数 | status | decision |
+|---:|---|---|
+| 85-100 | `pass` | `ready_for_dev`，除非有硬阻塞 |
+| 60-84 | `warning` | `needs_owner_confirmation` |
+| 0-59 | `fail` | `blocked` |
+
+硬性降级：
+
+- `_ingest/extraction-quality.yaml` 为 `block` → `fail`。
+- 任一 P0 契约为 `blocked` → `fail`。
+- 多层需求缺少 `context/contract-delta.yaml` → `fail`。
+- `tasks/` 缺少目标文件或验证命令 → 至少 `warning`。

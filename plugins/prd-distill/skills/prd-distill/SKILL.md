@@ -59,6 +59,7 @@ _prd-tools/distill/<slug>/
 │   └── conversion-warnings.md     #   转换风险
 ├── report.md                      # 渐进式披露报告
 ├── plan.md                        # 技术方案 + 开发/测试计划 + QA 矩阵 + §12 任务拆分
+├── readiness-report.yaml          # 就绪度评分 + 风险 + provider 增益
 ├── spec/
 │   ├── requirement-ir.yaml        # 结构化需求：业务意图、规则、验收条件
 │   └── evidence.yaml              # 证据台账：PRD、技术方案、源码、图谱查询
@@ -77,6 +78,7 @@ _prd-tools/distill/<slug>/
 | `_ingest/*` | PRD 原始读取结果 | 不写业务结论 |
 | `report.md` | 渐进式披露：摘要→变更→字段→规则→Checklist→契约风险→§11 阻塞项 | 不展开 YAML 证据链 |
 | `plan.md` | 技术方案 + 实现计划 + QA 矩阵 + §12 任务拆分 + 回滚方案 | 不复制 PRD 原文 |
+| `readiness-report.yaml` | 机器可读就绪度评分、风险、provider 增益，供 STATUS/dashboard 读取 | 不替代 report.md 的人读解释 |
 | `spec/evidence.yaml` | 证据台账：PRD、技术方案、源码、负向搜索、图谱查询 | 不下结论 |
 | `spec/requirement-ir.yaml` | 结构化需求：业务意图、规则、验收条件、变更类型 | 不写实现细节 |
 | `context/graph-context.md` | 函数级技术上下文：GitNexus 符号/调用链、Graphify 业务约束 | 不替代源码确认 |
@@ -154,6 +156,7 @@ _prd-tools/distill/<slug>/
 9. 生成 `context/contract-delta.yaml`。
 10. 生成 `report.md`（渐进式披露 + 图谱命中摘要 + §11）。
 11. 生成 `context/reference-update-suggestions.yaml`。
+12. 生成 `readiness-report.yaml`，并建议用户运行 `bash .prd-tools/status.sh` 更新 `_prd-tools/STATUS.md` 和 dashboard。
 
 ## 参考文件
 
@@ -173,3 +176,4 @@ _prd-tools/distill/<slug>/
 - `report.md` §11 最重要阻塞项。
 - 是否存在 `needs_confirmation` 或 `blocked` 契约。
 - 是否生成 reference 回流建议。
+- `readiness-report.yaml` 的 status、score、decision。

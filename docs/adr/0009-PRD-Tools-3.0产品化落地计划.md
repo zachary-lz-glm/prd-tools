@@ -70,7 +70,7 @@ PRD Tools 当前已经具备两个关键能力：
 | Reference Compiler | `/reference` | `_prd-tools/reference/`、`_prd-tools/build/` | 把项目长期知识编译成可复用上下文 |
 | PRD Distiller | `/prd-distill` | `_prd-tools/distill/<slug>/` | 把单个 PRD 编译成 report/plan/spec/context/tasks |
 | Readiness Scoring | `readiness-report.yaml`、`metrics/latest.yaml` | 分数、风险、证据覆盖、图谱增益 | 量化本次输出是否可用于研发 |
-| Status Dashboard | `prd-tools status`、`_prd-tools/STATUS.md` | 项目状态、最近一次 distill、阻塞项 | 30 秒判断当前项目是否就绪 |
+| Status Dashboard | `.prd-tools/status.sh`、`_prd-tools/STATUS.md`、`_prd-tools/dashboard/index.html` | 项目状态、最近一次 distill、阻塞项 | 30 秒判断当前项目是否就绪 |
 | Eval Harness | `eval/`、`prd-tools eval` | golden cases、对比报告 | 量化工具收益和准确性 |
 | MCP / Agent API | `prd-tools mcp`（规划） | reference/search/distill/readiness tools | 让 Codex、Claude、Copilot、CI 消费 PRD Tools |
 
@@ -105,11 +105,11 @@ _prd-tools/
 
 | 文件 | 职责 | 生成方 |
 |------|------|--------|
-| `_prd-tools/STATUS.md` | 当前项目一屏状态：reference、graph provider、最近 distill、阻塞项、下一步 | `prd-tools status` 或 skill 收尾 |
+| `_prd-tools/STATUS.md` | 当前项目一屏状态：reference、graph provider、最近 distill、阻塞项、下一步；适合终端、PR 和留档 | `.prd-tools/status.sh` 或 skill 收尾 |
 | `_prd-tools/metrics/latest.yaml` | 最近一次运行指标，供 CLI/CI/MCP 读取 | `/reference`、`/prd-distill`、`prd-tools status` |
 | `_prd-tools/metrics/history.jsonl` | 指标历史流水，支持趋势分析 | 每次工具运行 append |
 | `_prd-tools/distill/<slug>/readiness-report.yaml` | 单次 PRD 的可执行性评分和风险解释 | `/prd-distill` |
-| `_prd-tools/dashboard/index.html` | 可选静态页面，读取 metrics 和 STATUS | `prd-tools dashboard` |
+| `_prd-tools/dashboard/index.html` | 本地静态可视化页面；与 STATUS.md 同源，适合浏览器快速扫状态 | `.prd-tools/status.sh` |
 
 ### 4. Readiness Scoring
 
@@ -236,7 +236,7 @@ provider_value:
 
 ### 5. Status Dashboard
 
-3.0 新增 `prd-tools status`，优先以 shell 脚本落地，后续可包装为 CLI。
+3.0 新增 `.prd-tools/status.sh`，优先以 shell 脚本落地，后续可包装为 CLI。
 
 #### 5.1 命令目标
 
@@ -277,7 +277,9 @@ Next Actions
   2. Run /reference Mode E after delivery
 ```
 
-同时生成 `_prd-tools/STATUS.md`：
+同时生成 `_prd-tools/STATUS.md` 和 `_prd-tools/dashboard/index.html`。两者共用同一个脚本推导的数据：Markdown 是稳定文本入口，HTML 是可视化入口，不作为另一份事实来源。
+
+`_prd-tools/STATUS.md` 示例：
 
 ```markdown
 # PRD Tools Status

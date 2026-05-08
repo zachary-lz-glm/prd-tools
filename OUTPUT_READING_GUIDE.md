@@ -23,13 +23,14 @@ reference-update       把新知识回流到 _prd-tools/reference/
 
 | 顺序 | 文件 | 用 30 秒看什么 | 读完应该得到什么 |
 |---:|---|---|---|
-| 1 | `report.md` | 需求摘要、影响层、关键风险、§10 阻塞问题 | 这次需求大不大、影响哪里、哪些事要先确认 |
-| 2 | `plan.md` | 实现顺序、QA 矩阵、契约任务 | 怎么拆开发和测试 |
-| 3 | `spec/contract-delta.yaml` | `needs_confirmation/blocked` | 跨团队契约是否对齐 |
-| 4 | `_ingest/extraction-quality.yaml` | `pass/warn/block` | PRD 是否读可靠 |
-| 5 | `spec/evidence.yaml` | 关键结论证据来源 | 是否需要继续查证 |
+| 1 | `_prd-tools/STATUS.md` 或 `dashboard/index.html` | reference、图谱、最近一次 distill、下一步 | 当前项目能不能进入 PRD 分析/开发评审 |
+| 2 | `report.md` | 需求摘要、影响层、关键风险、§10 阻塞问题 | 这次需求大不大、影响哪里、哪些事要先确认 |
+| 3 | `plan.md` | 实现顺序、QA 矩阵、契约任务 | 怎么拆开发和测试 |
+| 4 | `spec/contract-delta.yaml` | `needs_confirmation/blocked` | 跨团队契约是否对齐 |
+| 5 | `_ingest/extraction-quality.yaml` | `pass/warn/block` | PRD 是否读可靠 |
+| 6 | `spec/evidence.yaml` | 关键结论证据来源 | 是否需要继续查证 |
 
-大多数日常评审只需要前 3 个文件。出现争议时，再看 `spec/`。
+大多数日常评审只需要前 4 个文件。出现争议时，再看 `spec/`。
 
 ## 产物总览
 

@@ -392,6 +392,7 @@ curl -fsSL https://raw.githubusercontent.com/zachary-lz-glm/prd-tools/v2.0/insta
 .claude/skills/          # reference / prd-distill skills
 .prd-tools-version       # 版本标记
 .prd-tools/doctor.sh     # 本地副本，可随时跑
+.prd-tools/status.sh     # 生成 _prd-tools/STATUS.md 和 dashboard
 ```
 
 `/reference` 由 `.claude/skills/reference/SKILL.md` 的 skill name 提供，不再额外安装 `.claude/commands/reference.md` alias，避免同一入口出现两套定义。
@@ -419,7 +420,22 @@ doctor 会逐项检查：
 
 每一项都附带可复制的 fix 命令；`.mcp.json` 缺失时会打出可粘贴的 JSON 片段。
 
-#### 第三步：配置 Vision API key（可选但推荐）
+#### 第三步：查看项目状态
+
+```bash
+bash .prd-tools/status.sh
+```
+
+它会同时生成：
+
+| 文件 | 用途 |
+|---|---|
+| `_prd-tools/STATUS.md` | 纯文本状态页，适合终端、PR、代码评审和长期留档 |
+| `_prd-tools/dashboard/index.html` | 本地可视化页面，适合浏览器里快速扫 reference、图谱 provider 和最近一次 distill 状态 |
+
+两者来自同一个脚本推导的数据：Markdown 是稳定文本入口，HTML 是可视化入口，不作为另一份事实来源。
+
+#### 第四步：配置 Vision API key（可选但推荐）
 
 ```bash
 export ANTHROPIC_AUTH_TOKEN=sk-ant-xxx

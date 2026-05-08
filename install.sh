@@ -2,9 +2,9 @@
 # install.sh — Install prd-tools skills into a target project.
 #
 # Scope: only what this repo OWNS (reference / prd-distill skills,
-# version marker, doctor helper). External tools (uv, MarkItDown, Graphify,
-# GitNexus, API keys) are NOT touched here — run `prd-tools-doctor` afterwards
-# to check and fix those.
+# version marker, doctor/status helpers). External tools (uv, MarkItDown,
+# Graphify, GitNexus, API keys) are NOT touched here — run `prd-tools-doctor`
+# afterwards to check and fix those.
 #
 # See docs/adr/0008-安装脚本职责拆分.md for rationale.
 
@@ -93,7 +93,7 @@ if [ -f "$LEGACY_COMMAND" ]; then
   echo "    已清理旧命令 alias：.claude/commands/reference.md"
 fi
 
-# ── 复制 doctor 脚本到本地 ────────────────────────────────────
+# ── 复制本地工具脚本 ──────────────────────────────────────────
 DOCTOR_SRC="$ARCHIVE_ROOT/scripts/doctor.sh"
 if [ -f "$DOCTOR_SRC" ]; then
   mkdir -p "$TARGET/.prd-tools"
@@ -104,6 +104,13 @@ if [ -f "$DOCTOR_SRC" ]; then
   fi
   chmod +x "$TARGET/.prd-tools/doctor.sh"
   echo "    已安装 doctor：$TARGET/.prd-tools/doctor.sh"
+fi
+STATUS_SRC="$ARCHIVE_ROOT/scripts/status.sh"
+if [ -f "$STATUS_SRC" ]; then
+  mkdir -p "$TARGET/.prd-tools"
+  cp "$STATUS_SRC" "$TARGET/.prd-tools/status.sh"
+  chmod +x "$TARGET/.prd-tools/status.sh"
+  echo "    已安装 status：$TARGET/.prd-tools/status.sh"
 fi
 
 # ── Version marker ────────────────────────────────────────────────
@@ -132,4 +139,7 @@ echo ""
 echo "  2. 关闭并重新打开 Claude Code，新 skills 才会加载。"
 echo ""
 echo "  3. 运行 /reference 构建项目知识库。"
+echo ""
+echo "  4. 查看项目状态和 dashboard："
+echo "       bash $TARGET/.prd-tools/status.sh"
 echo ""

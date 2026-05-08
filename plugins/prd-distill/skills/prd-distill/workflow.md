@@ -10,6 +10,7 @@ PRD raw file/text
   -> tech docs + reference + code + graph-context
   -> report.md（精准影响报告 + 阻塞问题）
   -> plan.md（函数级技术方案）
+  -> readiness-report.yaml（能不能开工的红绿灯）
   -> spec/ + context/*
 ```
 
@@ -35,6 +36,7 @@ _prd-tools/distill/<slug>/
 ├── _ingest/
 ├── report.md
 ├── plan.md
+├── readiness-report.yaml
 ├── spec/
 ├── context/
 └── tasks/
@@ -219,7 +221,33 @@ ADD/MODIFY/DELETE/NO_CHANGE 必须由源码或负向搜索支撑。
 
 格式和规则详见 `references/output-contracts.md` 中 tasks/ 契约。
 
-## 步骤 6：Reference 回流
+## 步骤 6：Readiness 评分
+
+生成 `readiness-report.yaml`，用于回答"这次 PRD 蒸馏能不能进入开发/评审"。
+
+数据来源：
+- `_ingest/extraction-quality.yaml` → PRD 读取质量。
+- `spec/evidence.yaml` + `spec/requirement-ir.yaml` → 证据覆盖。
+- `context/graph-context.md` → GitNexus / Graphify provider 增益。
+- `context/contract-delta.yaml` → 契约对齐和 owner 确认。
+- `plan.md` + `tasks/` → 任务是否可执行。
+
+输出要求：
+- `status`: `pass | warning | fail`。
+- `score`: 0-100。
+- `decision`: `ready_for_dev | needs_owner_confirmation | blocked`。
+- `provider_value`: 分别列出 GitNexus、Graphify、reference 对 plan/report 实际贡献了什么。
+- `next_actions`: 最多 5 条，优先处理 blocked 和 needs_confirmation。
+
+生成后提示用户运行：
+
+```bash
+bash .prd-tools/status.sh
+```
+
+这会刷新 `_prd-tools/STATUS.md` 和 `_prd-tools/dashboard/index.html`。
+
+## 步骤 7：Reference 回流
 
 生成 `context/reference-update-suggestions.yaml`：
 
@@ -261,7 +289,7 @@ suggestions:
 - 其他仓实现细节、跨仓 owner、团队级 taxonomy 标记为 `needs_owner_confirmation` 或 `record_as_signal`。
 - `team_reference_candidate: true` 是未来团队知识库聚合候选，不代表已确认。
 
-## 步骤 7：人类报告
+## 步骤 8：人类报告
 
 `report.md` 采用渐进式披露（Progressive Disclosure）结构，同一文件内从结论到细节逐层展开，最后以阻塞问题收尾：
 
