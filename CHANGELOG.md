@@ -4,6 +4,13 @@
 
 ---
 
+## [2.17.0] - 2026-05-08
+
+### Changed
+- refactor: 全面重设计 portal.html 视觉系统（Linear/Vercel 风格）
+- fix: 目录树用结构化 HTML 列表替代纯文本，解决 CJK 字符宽度错位
+
+
 ## [2.16.0] - 2026-05-08
 
 ### Added
