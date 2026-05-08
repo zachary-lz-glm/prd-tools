@@ -10,8 +10,8 @@
 
 ## 输入
 
-- `spec/evidence.yaml`
-- `spec/requirement-ir.yaml`
+- `context/evidence.yaml`
+- `context/requirement-ir.yaml`
 - `_prd-tools/reference/project-profile.yaml`，如存在
 - `_prd-tools/reference/01-codebase.yaml`
 - `_prd-tools/reference/02-coding-rules.yaml`
@@ -48,7 +48,7 @@
    a. 用 `rg` 追踪引用链获取影响范围。
    b. 将影响的模块和调用链写入 layer-impact.yaml 的 `affected_symbols` 字段。
    c. 如果影响范围超过 5 个模块，提升 `risk_level`。
-   d. 记录证据到 spec/evidence.yaml。
+   d. 记录证据到 context/evidence.yaml。
 
 ### 业务影响分析
 

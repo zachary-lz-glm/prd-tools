@@ -169,12 +169,7 @@ _prd-tools/build/
 
 ## 外部工具如何参与
 
-reference 通过源码扫描（rg/glob + Read）构建知识库。
-
-安装脚本会自动安装工具脚本。后续可手动运行 doctor 检查：
-```bash
-bash .prd-tools/doctor.sh
-```
+reference 通过源码扫描（rg/glob + Read）构建知识库。不依赖任何外部工具。
 
 ## 典型落地路径
 

@@ -59,75 +59,19 @@ PRD Tools 用 `_prd-tools/reference/` 做长期记忆，用 `_prd-tools/` 做单
 
 ## PRD 读取链路
 
-PRD Tools 不把 `.docx` 或 PDF 直接交给 LLM 猜。`prd-distill` 会先做一层 PRD Ingestion，把原始文档转成可审计的中间产物，再进入 Requirement IR 和分层影响分析。
+`prd-distill` 支持 `.md/.txt` 文件和粘贴文本。Claude 直接读取文件内容，创建可审计的 `_ingest/` 证据结构，再进入 Requirement IR 和分层影响分析。
 
 ```text
-原始 PRD 文件
+PRD 文件(.md/.txt) 或粘贴文本
         ↓
-prd-ingest：文本 / 表格 / 图片 / 结构 / 质量门禁
+Claude 读取 → _ingest/ 证据结构
         ↓
 Requirement IR：业务规则、验收条件、变更类型
         ↓
 Layer Impact / Contract Delta / Plan
 ```
 
-当前内置能力：
-
-| 输入 | 处理方式 | 风险处理 |
-|---|---|---|
-| `.docx` | MarkItDown 抽取正文、表格、图片 | 图片语义、复杂合并表格默认进入质量警告 |
-| `.pdf` | MarkItDown 内置 PDF 解析 | 表格、图片、阅读顺序默认进入质量警告 |
-| `.pptx` / `.xlsx` | MarkItDown 转换 | 复杂动画/公式可能丢失细节 |
-| `.html` / `.epub` | MarkItDown 转换 | 样式依赖的内容可能丢失 |
-| `.md` / `.txt` | 保留原文和行号，识别 markdown 图片引用 | 图片引用需要 vision 或人工确认 |
-| 粘贴文本 | 手工建立来源、段落定位和质量说明 | 缺少原文件 hash，置信度按输入质量标注 |
-| PRD 中的图片/流程图 | LLM Vision（markitdown-ocr）自动分析 | 未配置 API Key 时标记为待确认 |
-
-内置 ingestion 会生成：
-
-```text
-_prd-tools/distill/<slug>/_ingest/
-├── source-manifest.yaml        # 原始文件路径、格式、大小、hash、读取方式
-├── document.md                 # 转换后的可读 markdown，后续 IR 的主输入
-├── document-structure.json     # 段落、表格、图片等结构块和定位
-├── evidence-map.yaml           # PRD 块级证据 id
-├── media/                      # 从 PRD 抽出的图片原文件
-├── media-analysis.yaml         # 图片语义分析状态，默认需要 vision/人工确认
-├── tables/                     # 单独抽出的表格 markdown
-├── extraction-quality.yaml     # pass / warn / block 质量门禁
-└── conversion-warnings.md      # 给人看的转换风险
-```
-
-准确性原则：
-
-- 不承诺”100% 自动正确”，承诺”不静默丢信息”：图片、复杂表格、读取失败会变成显式 warning、question 或 block。
-- 每个 requirement 必须能追到 PRD block/table/image、技术方案、源码或人工确认。
-- 没有 OCR/vision/人工确认的截图、流程图、图片文字，只能作为待确认问题，不能作为高置信度结论。
-
-LLM Vision 图片分析（可选增强）：
-
-- 检测到 `ANTHROPIC_AUTH_TOKEN` 或 `OPENAI_API_KEY` 时自动启用。
-- 一键安装脚本第 7 步会提示输入 `ANTHROPIC_AUTH_TOKEN`；也可以安装前或运行前手动设置：`export ANTHROPIC_AUTH_TOKEN=sk-ant-xxx`。
-- 支持 OpenAI 兼容端点（含智谱 bigmodel.cn 自动适配）。
-- 对 PRD 中的流程图、设计稿、截图进行语义分析，产出结构化描述。
-
-## 外部工具
-
-PRD Tools 的部分能力依赖外部工具。安装脚本自动处理安装和配置，**所有工具都是可选的**——缺失时核心功能仍可用，只是降级到源码扫描。
-
-| 工具 | 在 PRD Tools 中做什么 | 缺失影响 | 安装方式 |
-|---|---|---|---|
-| **[MarkItDown](https://github.com/microsoft/markitdown)** | PRD 文档转换：把 docx/pdf/pptx/xlsx/html/epub 转成可分析 markdown | 只能处理 `.md`/`.txt` 和粘贴文本 | `uv tool install "markitdown[all]"` |
-| **[markitdown-ocr](https://github.com/microsoft/markitdown/tree/main/packages/markitdown-ocr)** | PRD 图片 OCR：提取 PDF/DOCX 中嵌入图片的文字，扫描件全文 OCR | PRD 中图片文字无法提取 | `uv tool install markitdown-ocr` |
-
-### MarkItDown
-
-Microsoft 的文档转换工具，支持 50+ 格式。`prd-distill` 的 PRD Ingestion 阶段使用它把原始文档转成可审计的 markdown。支持：
-
-- **正文提取**：docx/pdf/pptx/xlsx/html/epub → markdown
-- **表格提取**：单独抽出表格，便于核验
-- **图片提取**：保存原文件，配合 LLM Vision 分析语义
-- **OCR 扩展**（`markitdown-ocr`）：PDF/DOCX 中嵌入图片的文字提取、扫描件全文 OCR
+其他格式请先转为 markdown。
 
 ## 两个技能
 
@@ -292,12 +236,10 @@ _prd-tools/distill/<slug>/
 │   └── conversion-warnings.md
 ├── report.md
 ├── plan.md
-├── readiness-report.yaml
-├── tasks/
-├── spec/
-│   ├── evidence.yaml
-│   └── requirement-ir.yaml
 └── context/
+    ├── evidence.yaml
+    ├── requirement-ir.yaml
+    ├── readiness-report.yaml
     ├── graph-context.md
     ├── layer-impact.yaml
     ├── contract-delta.yaml
@@ -308,12 +250,11 @@ _prd-tools/distill/<slug>/
 
 | 顺序 | 文件 | 30 秒看什么 |
 |---:|---|---|
-| 1 | `_prd-tools/STATUS.md` 或 `_prd-tools/dashboard/index.html` | reference、最近一次 distill、下一步 |
-| 2 | `report.md` | 需求摘要、影响范围、契约风险、阻塞项 |
-| 3 | `plan.md` | 实现顺序、文件坐标、QA 矩阵、回滚 |
-| 4 | `readiness-report.yaml` | status、score、decision、provider value |
-| 5 | `context/contract-delta.yaml` | `blocked` / `needs_confirmation` |
-| 6 | `_ingest/extraction-quality.yaml` | PRD 读取是 pass、warn 还是 block |
+| 1 | `report.md` | 需求摘要、影响范围、契约风险、阻塞项 |
+| 2 | `plan.md` | 实现顺序、文件坐标、QA 矩阵、回滚 |
+| 3 | `context/readiness-report.yaml` | status、score、decision、provider value |
+| 4 | `context/contract-delta.yaml` | `blocked` / `needs_confirmation` |
+| 5 | `_ingest/extraction-quality.yaml` | PRD 读取是 pass、warn 还是 block |
 
 人类默认阅读：
 
@@ -321,7 +262,7 @@ _prd-tools/distill/<slug>/
 |---|---|---|
 | `report.md` | 渐进式披露报告：需求摘要→变更明细表→字段清单→校验规则→开发Checklist→契约风险→阻塞问题与待确认项 | 负责人、PM、研发、QA |
 | `plan.md` | 可执行的开发操作手册：精确到文件路径+行号，checklist格式，QA矩阵，回滚方案 | 研发、QA、技术负责人 |
-| `readiness-report.yaml` | 本次 PRD 蒸馏的可用性评分、阻塞项、证据覆盖和 provider value | TL、工具维护者、CI |
+| `context/readiness-report.yaml` | 本次 PRD 蒸馏的可用性评分、阻塞项、证据覆盖和 provider value | TL、工具维护者、CI |
 
 PRD 读取和质量门禁：
 
@@ -332,7 +273,7 @@ PRD 读取和质量门禁：
 | `_ingest/document-structure.json` | 记录段落、表格、图片结构块和 locator，方便审计定位 | 不做业务判断 |
 | `_ingest/evidence-map.yaml` | 给 PRD block/table/image 建证据 id，供 downstream evidence 引用 | 不放源码证据 |
 | `_ingest/media/` | 保存从 PRD 抽出的图片、截图、流程图原文件 | 不改图、不推断图片含义 |
-| `_ingest/media-analysis.yaml` | 记录图片是否已被 vision/OCR/人工确认 | 默认不产生高置信度结论 |
+| `_ingest/media-analysis.yaml` | 记录图片是否已被人工确认 | 默认不产生高置信度结论 |
 | `_ingest/tables/` | 保存抽出的表格 markdown，便于单独核验 | 不修复原表格 |
 | `_ingest/extraction-quality.yaml` | 读取质量门禁，决定 pass、warn 或 block | 不写开发计划 |
 | `_ingest/conversion-warnings.md` | 给人看的转换风险清单 | 不替代 `report.md` §11 |
@@ -341,8 +282,8 @@ PRD 读取和质量门禁：
 
 | 文件 | 用途 | 边界 |
 |---|---|---|
-| `spec/evidence.yaml` | 证据台账，记录 PRD、技术方案、源码、负向搜索、人工确认 | 只放证据，不下结论 |
-| `spec/requirement-ir.yaml` | 结构化需求 IR，记录业务意图、规则、验收条件、变更类型 | 不写文件级实现 |
+| `context/evidence.yaml` | 证据台账，记录 PRD、技术方案、源码、负向搜索、人工确认 | 只放证据，不下结论 |
+| `context/requirement-ir.yaml` | 结构化需求 IR，记录业务意图、规则、验收条件、变更类型 | 不写文件级实现 |
 
 上下文和评审阅读：
 
@@ -357,24 +298,13 @@ PRD 读取和质量门禁：
 
 | 误解 | 正确认知 |
 |---|---|
-| dashboard 和 STATUS.md 重复 | 它们同源，一个给浏览器，一个给文本环境 |
-| YAML 很多，所以所有人都要读 | 普通评审只读 STATUS、report、plan |
+| YAML 很多，所以所有人都要读 | 普通评审只读 report、plan |
 | `warning` 表示失败 | `warning` 表示能继续，但风险必须显式处理 |
 | reference 是最终事实 | reference 是加速器，最终以源码、PRD、技术方案、owner 确认为准 |
 
 ## 使用方式
 
 ### 安装
-
-安装分三层，每层职责单一（详见 [ADR-0008](docs/adr/0008-安装脚本职责拆分.md)）：
-
-| 层 | 谁负责 | 装什么 | 失败行为 |
-|---|---|---|---|
-| 1. `install.sh` | prd-tools 仓库 | reference / prd-distill skills、本地 `doctor.sh` / `status.sh` | 网络挂直接 exit 1，前面没装的东西不会被污染 |
-| 2. `doctor.sh` | 用户按需运行 | 诊断 uv / MarkItDown / API key，给可复制的 fix 命令 | 默认只报告；`--strict` 出错即退；`--fix` 交互式逐条修 |
-| 3. skill 运行时自检 | `/reference` `/prd-distill` 自身 | 在使用某个工具的步骤前就近检查 | 缺什么就降级什么，并在 portal/report 里标明 |
-
-#### 第一步：安装 skills
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/zachary-lz-glm/prd-tools/v2.0/install.sh | bash
@@ -391,67 +321,9 @@ curl -fsSL https://raw.githubusercontent.com/zachary-lz-glm/prd-tools/v2.0/insta
 ```text
 .claude/skills/          # reference / prd-distill skills
 .prd-tools-version       # 版本标记
-.prd-tools/doctor.sh     # 本地副本，可随时跑
-.prd-tools/status.sh     # 生成 _prd-tools/STATUS.md 和 dashboard
 ```
 
-`/reference` 由 `.claude/skills/reference/SKILL.md` 的 skill name 提供，不再额外安装 `.claude/commands/reference.md` alias，避免同一入口出现两套定义。
-
-`install.sh` 不装 PyPI/npm 包、不写 shell profile。
-
-#### 第二步：诊断外部依赖
-
-```bash
-bash .prd-tools/doctor.sh           # 仅报告
-bash .prd-tools/doctor.sh --fix     # 交互式逐条修复
-bash .prd-tools/doctor.sh --strict  # 任一项缺失即退出 1（CI 用）
-```
-
-doctor 会逐项检查：
-
-| 项 | 用途 | 缺失影响 |
-|---|---|---|
-| uv | Python 工具运行时 | MarkItDown 装不上 |
-| markitdown | PRD 文档转换 | 无法读 .docx/.pdf/.pptx |
-| ANTHROPIC_AUTH_TOKEN / OPENAI_API_KEY | Vision OCR | PRD 图片标 pending |
-
-每一项都附带可复制的 fix 命令。
-
-#### 第三步：查看项目状态
-
-```bash
-bash .prd-tools/status.sh
-```
-
-它会同时生成：
-
-| 文件 | 用途 |
-|---|---|
-| `_prd-tools/STATUS.md` | 纯文本状态页，适合终端、PR、代码评审和长期留档 |
-| `_prd-tools/dashboard/index.html` | 本地可视化页面，适合浏览器里快速扫 reference 和最近一次 distill 状态 |
-
-两者来自同一个脚本推导的数据：Markdown 是稳定文本入口，HTML 是可视化入口，不作为另一份事实来源。
-
-#### 第四步：配置 Vision API key（可选但推荐）
-
-```bash
-export ANTHROPIC_AUTH_TOKEN=sk-ant-xxx
-# OpenAI-compatible provider 可额外设置：
-export ANTHROPIC_BASE_URL=https://your-provider.example/v1
-# 也兼容 OPENAI_API_KEY / OPENAI_BASE_URL
-```
-
-#### 第五步：重启 Claude Code
-
-新增或更新的 skills 需要重启 Claude Code 才会加载。
-
-#### 三种典型路径
-
-| 场景 | 推荐 |
-|---|---|
-| 标准网络 + macOS | install.sh → `bash .prd-tools/doctor.sh --fix` 一遍过 |
-| 内网/SOCKS 代理 | install.sh 走 curl 拉 tarball；外部依赖手动按 doctor 输出装 |
-| CI / 自动化 | install.sh + `bash .prd-tools/doctor.sh --strict`，缺啥就在 CI 里加哪一行 |
+安装完成后重启 Claude Code，新 skills 才会加载。
 
 ### Claude Code
 

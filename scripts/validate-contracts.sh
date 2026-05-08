@@ -56,7 +56,6 @@ current_contract_files=(
   "plugins/prd-distill/skills/prd-distill/SKILL.md"
   "plugins/prd-distill/skills/prd-distill/workflow.md"
   "plugins/prd-distill/skills/prd-distill/steps/step-03-confirm.md"
-  "plugins/prd-distill/skills/prd-distill/agents/openai.yaml"
   "plugins/reference/skills/reference/references/output-contracts.md"
   "plugins/prd-distill/skills/prd-distill/references/output-contracts.md"
 )

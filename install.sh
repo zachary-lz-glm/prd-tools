@@ -2,9 +2,7 @@
 # install.sh — Install prd-tools skills into a target project.
 #
 # Scope: only what this repo OWNS (reference / prd-distill skills,
-# version marker, doctor/status helpers). External tools (uv, MarkItDown,
-# API keys) are NOT touched here — run `prd-tools-doctor`
-# afterwards to check and fix those.
+# version marker).
 #
 # See docs/adr/0008-安装脚本职责拆分.md for rationale.
 
@@ -28,13 +26,7 @@ echo "║          prd-tools 安装                  ║"
 echo "╚══════════════════════════════════════════╝"
 echo ""
 
-# ── Proxy (curl only) ─────────────────────────────────────────────
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-if [ -f "$SCRIPT_DIR/scripts/lib/detect_proxy.sh" ]; then
-  # shellcheck disable=SC1091
-  source "$SCRIPT_DIR/scripts/lib/detect_proxy.sh"
-  detect_proxy_for_curl
-fi
 
 # ── 选择源码 ────────────────────────────────────────────────────
 if [ "$USE_REMOTE" != "1" ] && [ -d "$SCRIPT_DIR/plugins" ] && [ -f "$SCRIPT_DIR/VERSION" ]; then
@@ -93,26 +85,6 @@ if [ -f "$LEGACY_COMMAND" ]; then
   echo "    已清理旧命令 alias：.claude/commands/reference.md"
 fi
 
-# ── 复制本地工具脚本 ──────────────────────────────────────────
-DOCTOR_SRC="$ARCHIVE_ROOT/scripts/doctor.sh"
-if [ -f "$DOCTOR_SRC" ]; then
-  mkdir -p "$TARGET/.prd-tools"
-  cp "$DOCTOR_SRC" "$TARGET/.prd-tools/doctor.sh"
-  if [ -d "$ARCHIVE_ROOT/scripts/lib" ]; then
-    mkdir -p "$TARGET/.prd-tools/lib"
-    cp -r "$ARCHIVE_ROOT/scripts/lib/." "$TARGET/.prd-tools/lib/"
-  fi
-  chmod +x "$TARGET/.prd-tools/doctor.sh"
-  echo "    已安装 doctor：$TARGET/.prd-tools/doctor.sh"
-fi
-STATUS_SRC="$ARCHIVE_ROOT/scripts/status.sh"
-if [ -f "$STATUS_SRC" ]; then
-  mkdir -p "$TARGET/.prd-tools"
-  cp "$STATUS_SRC" "$TARGET/.prd-tools/status.sh"
-  chmod +x "$TARGET/.prd-tools/status.sh"
-  echo "    已安装 status：$TARGET/.prd-tools/status.sh"
-fi
-
 # ── Version marker ────────────────────────────────────────────────
 TOOL_VERSION="unknown"
 [ -f "$ARCHIVE_ROOT/VERSION" ] && TOOL_VERSION="$(tr -d '[:space:]' < "$ARCHIVE_ROOT/VERSION")"
@@ -131,15 +103,8 @@ echo "  prd-tools v$TOOL_VERSION skills 安装完成"
 echo "========================================="
 echo ""
 echo "下一步："
-echo "  1. 检查外部依赖（uv / MarkItDown / API Key）："
-echo "       bash $TARGET/.prd-tools/doctor.sh"
-echo "     按表里的 → 命令逐条修复，或直接交互式修："
-echo "       bash $TARGET/.prd-tools/doctor.sh --fix"
+echo "  1. 关闭并重新打开 Claude Code，新 skills 才会加载。"
 echo ""
-echo "  2. 关闭并重新打开 Claude Code，新 skills 才会加载。"
 echo ""
-echo "  3. 运行 /reference 构建项目知识库。"
-echo ""
-echo "  4. 查看项目状态和 dashboard："
-echo "       bash $TARGET/.prd-tools/status.sh"
+echo "  2. 运行 /reference 构建项目知识库。"
 echo ""

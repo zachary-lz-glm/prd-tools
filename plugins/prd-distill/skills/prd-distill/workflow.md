@@ -11,10 +11,10 @@ PRD raw file/text
   -> report.md（精准影响报告 + 阻塞问题）
   -> plan.md（函数级技术方案）
   -> readiness-report.yaml（能不能开工的红绿灯）
-  -> spec/ + context/*
+  -> context/*
 ```
 
-主流程对前端、BFF、后端通用；层差异通过 `references/layer-adapters.md` 的能力面适配器生效。默认给人看轻量输出，机器可读细节放入 `spec/` 和 `context/`。
+主流程对前端、BFF、后端通用；层差异通过 `references/layer-adapters.md` 的能力面适配器生效。默认给人看轻量输出，机器可读细节放入 `context/`。
 
 短入口：
 
@@ -24,7 +24,7 @@ PRD raw file/text
 
 读取或收集：
 
-- PRD：`.docx | .md | .txt | .pdf | .pptx | .xlsx | .html | pasted text`。
+- PRD：`.md | .txt | pasted text`。其他格式请先转为 markdown。
 - 技术方案 / API 文档：可选，但多层或后端相关需求强烈建议读取。
 - `_prd-tools/reference/`：优先 v4（6 文件结构）；若只有 v3.1（10 文件结构），兼容读取；若只有旧版 `05-mapping.yaml`，兼容读取并在回流建议里提示迁移。
 - 目标代码库：用于代码锚定。
@@ -36,19 +36,10 @@ _prd-tools/distill/<slug>/
 ├── _ingest/
 ├── report.md
 ├── plan.md
-├── readiness-report.yaml
-├── spec/
-├── context/
-└── tasks/
+└── context/
 ```
 
-文件型 PRD 必须优先执行：
-
-```bash
-uv run <skill-dir>/scripts/ingest_prd.py <prd-file> --out _prd-tools/distill/<slug>/_ingest
-```
-
-`_ingest/` 产出：
+Claude 直接读取 `.md/.txt` 文件或接受粘贴文本，手动创建 `_ingest/` 证据结构：
 
 ```text
 _ingest/
@@ -67,19 +58,13 @@ _ingest/
 
 - `pass`：可进入后续蒸馏。
 - `warn`：可继续，但必须把图片未分析、复杂表格风险写入 `report.md` §11。
-- `block`：暂停，要求用户提供 markdown/text，或检查 MarkItDown 安装。
-
-图片分析说明：
-
-- `source-manifest.yaml` 中 `ingestion.ocr` 字段记录图片分析模式：`llm_vision`（已分析）或 `not_available`（未分析）。
-- `media-analysis.yaml` 中每个图片的 `analysis_status` 为 `llm_vision_analyzed`（LLM 已分析）或 `needs_vision_or_human_review`（需人工确认）。
-- 设置 `ANTHROPIC_AUTH_TOKEN` 或 `OPENAI_API_KEY` 环境变量后，ingestion 自动启用 LLM Vision 图片分析。
+- `block`：暂停，要求用户提供 markdown/text。
 
 如果用户只粘贴文本，手工创建等价的 source、document、evidence-map 和 quality 记录，保证后续 evidence 仍可追溯。
 
 ## 步骤 1：证据台账
 
-先建立 `spec/evidence.yaml`，后续所有判断只引用 evidence id。
+先建立 `context/evidence.yaml`，后续所有判断只引用 evidence id。
 
 证据类型：
 
@@ -99,11 +84,11 @@ _ingest/
 - PRD 原文证据优先从 `_ingest/evidence-map.yaml` 映射，定位到 block、line、table 或 image id。
 - 源码证据要能定位文件和符号；尽量带行号。
 - 搜不到也是证据，用 `negative_code_search`，记录 query 和搜索范围。
-- 没有 vision/OCR/人工确认的图片不能生成高置信度需求。
+- 没有人工确认的图片不能生成高置信度需求。
 
 ## 步骤 2：Requirement IR
 
-将 `_ingest/document.md` 转成 `spec/requirement-ir.yaml`。
+将 `_ingest/document.md` 转成 `context/requirement-ir.yaml`。
 
 每个 requirement 必须包含：
 
@@ -195,7 +180,7 @@ ADD/MODIFY/DELETE/NO_CHANGE 必须由源码或负向搜索支撑。
 生成 `plan.md`（函数级技术方案文档 + 开发计划）：
 
 - 精确到文件路径和行号。
-- 包含 12 个章节：范围与假设、源码扫描命中与代码坐标、整体架构、实现计划、API 设计、数据存储、配置与开关、校验规则汇总、QA 矩阵、契约对齐、风险与回滚、工作量估算、AI 执行说明。
+- 包含 10 个章节：范围与假设、源码扫描命中与代码坐标、整体架构、实现计划、API 设计、数据存储、校验规则汇总、QA 矩阵、契约对齐、风险与回滚。
 - 用 `- [ ]` checklist 格式，可直接勾选。
 - 每个任务包含：目标文件、操作描述、参考实现、关联 REQ/IMP/CONTRACT、验证命令。
 - 每个 MODIFY/DELETE 任务必须引用 `graph-context.md` 中的函数级线索；ADD 任务必须引用相邻参考实现或负向搜索证据。
@@ -205,24 +190,16 @@ ADD/MODIFY/DELETE/NO_CHANGE 必须由源码或负向搜索支撑。
 - 不直接写代码，除非用户明确要求进入实现。
 - 格式详见 `references/output-contracts.md` 中 plan.md 模板。
 
-### 5.1 AI 可执行任务编译
-
-在 plan.md 生成完成后，编译 `tasks/` 目录。
-
-将 plan.md §3 的每个 Step 拆分为独立的 task 文件（`T-{NNN}-{slug}.md`），每个文件内联完整的业务上下文、代码上下文、字段映射、契约约束和验证命令。
-
-格式和规则详见 `references/output-contracts.md` 中 tasks/ 契约。
-
 ## 步骤 6：Readiness 评分
 
 生成 `readiness-report.yaml`，用于回答"这次 PRD 蒸馏能不能进入开发/评审"。
 
 数据来源：
 - `_ingest/extraction-quality.yaml` → PRD 读取质量。
-- `spec/evidence.yaml` + `spec/requirement-ir.yaml` → 证据覆盖。
+- `context/evidence.yaml` + `context/requirement-ir.yaml` → 证据覆盖。
 - `context/graph-context.md` → source code scanning coverage。
 - `context/contract-delta.yaml` → 契约对齐和 owner 确认。
-- `plan.md` + `tasks/` → 任务是否可执行。
+- `plan.md` → 计划是否可执行。
 
 输出要求：
 - `status`: `pass | warning | fail`。
@@ -230,14 +207,6 @@ ADD/MODIFY/DELETE/NO_CHANGE 必须由源码或负向搜索支撑。
 - `decision`: `ready_for_dev | needs_owner_confirmation | blocked`。
 - `provider_value`: 列出 source code scanning 和 reference 对 plan/report 实际贡献了什么。
 - `next_actions`: 最多 5 条，优先处理 blocked 和 needs_confirmation。
-
-生成后提示用户运行：
-
-```bash
-bash .prd-tools/status.sh
-```
-
-这会刷新 `_prd-tools/STATUS.md` 和 `_prd-tools/dashboard/index.html`。
 
 ## 步骤 7：Reference 回流
 

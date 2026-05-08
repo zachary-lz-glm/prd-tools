@@ -29,19 +29,16 @@ Claude Code 中通过 `/prd-distill <PRD 文件或需求文本>` 触发。
 
 ## 输入
 
-- PRD：`.docx`/`.md`/`.txt`/`.pdf`/`.pptx`/`.xlsx`/`.html` 或粘贴文本。
+- PRD：`.md`/`.txt` 或粘贴文本。其他格式请先转为 markdown。
 - 可选技术方案、API 文档、接口定义。
 - 当前项目源码路径。
 - 当前项目 `_prd-tools/reference/`。
 - 可选历史分支、diff、已有实现。
 
 PRD 读取规则：
-- 文件输入优先运行 `uv run <skill>/scripts/ingest_prd.py <prd> --out _prd-tools/distill/<slug>/_ingest`。
+- 文件输入支持 `.md/.txt`，保留原文行号和 markdown 图片引用。用户也可以直接粘贴 PRD 文本。
 - 粘贴文本 → 手工创建 ingestion 证据（来源、段落定位、质量说明）。
-- 用 MarkItDown (microsoft/markitdown) 转换文件格式。
-- 配置 `ANTHROPIC_AUTH_TOKEN` 或 `OPENAI_API_KEY` 后自动启用 LLM Vision 分析图片。
-- `.md/.txt` 保留原文行号和 markdown 图片引用。
-- 无 vision/人工确认的截图、流程图不能作为高置信度结论。
+- 无人工确认的截图、流程图不能作为高置信度结论。
 
 ## 输出结构
 
@@ -58,17 +55,15 @@ _prd-tools/distill/<slug>/
 │   ├── extraction-quality.yaml    #   pass/warn/block 质量门禁
 │   └── conversion-warnings.md     #   转换风险
 ├── report.md                      # 渐进式披露报告
-├── plan.md                        # 技术方案 + 开发/测试计划 + QA 矩阵 + §12 任务拆分
-├── readiness-report.yaml          # 就绪度评分 + 风险 + provider 增益
-├── spec/
-│   ├── requirement-ir.yaml        # 结构化需求：业务意图、规则、验收条件
-│   └── evidence.yaml              # 证据台账：PRD、技术方案、源码、负向搜索
-├── tasks/                         # AI 可执行任务文件（每个 task 自包含上下文）
-├── context/
-│   ├── graph-context.md           # 源码扫描的函数级上下文
-│   ├── layer-impact.yaml          # 分层影响
-│   ├── contract-delta.yaml        # 契约差异
-│   └── reference-update-suggestions.yaml  # 回流建议
+├── plan.md                        # 函数级技术方案 + 开发/测试计划 + QA 矩阵
+└── context/
+    ├── requirement-ir.yaml        # 结构化需求：业务意图、规则、验收条件
+    ├── evidence.yaml              # 证据台账：PRD、技术方案、源码、负向搜索
+    ├── readiness-report.yaml      # 就绪度评分 + 风险 + provider 增益
+    ├── graph-context.md           # 源码扫描的函数级上下文
+    ├── layer-impact.yaml          # 分层影响
+    ├── contract-delta.yaml        # 契约差异
+    └── reference-update-suggestions.yaml  # 回流建议
 ```
 
 ## 输出文件边界
@@ -77,15 +72,14 @@ _prd-tools/distill/<slug>/
 |---|---|---|
 | `_ingest/*` | PRD 原始读取结果 | 不写业务结论 |
 | `report.md` | 渐进式披露：摘要→变更→字段→规则→Checklist→契约风险→§11 阻塞项 | 不展开 YAML 证据链 |
-| `plan.md` | 技术方案 + 实现计划 + QA 矩阵 + §12 任务拆分 + 回滚方案 | 不复制 PRD 原文 |
-| `readiness-report.yaml` | 机器可读就绪度评分、风险、provider 增益，供 STATUS/dashboard 读取 | 不替代 report.md 的人读解释 |
-| `spec/evidence.yaml` | 证据台账：PRD、技术方案、源码、负向搜索 | 不下结论 |
-| `spec/requirement-ir.yaml` | 结构化需求：业务意图、规则、验收条件、变更类型 | 不写实现细节 |
+| `plan.md` | 技术方案 + 实现计划 + QA 矩阵 + 回滚方案 | 不复制 PRD 原文 |
+| `context/evidence.yaml` | 证据台账：PRD、技术方案、源码、负向搜索 | 不下结论 |
+| `context/requirement-ir.yaml` | 结构化需求：业务意图、规则、验收条件、变更类型 | 不写实现细节 |
+| `context/readiness-report.yaml` | 机器可读就绪度评分、风险、provider 增益 | 不替代 report.md 的人读解释 |
 | `context/graph-context.md` | 函数级技术上下文：源码扫描发现的符号、调用链和业务约束 | 不替代源码确认 |
 | `context/layer-impact.yaml` | 分层影响：目标层、能力面、计划变化、风险 | 不写字段级契约详情 |
 | `context/contract-delta.yaml` | 契约差异：字段、producer、consumer、alignment_status | 不写开发顺序 |
 | `context/reference-update-suggestions.yaml` | 回流建议 | 不直接改 `_prd-tools/reference/` |
-| `tasks/*` | AI 可执行任务文件，每个 task 自包含上下文 | 不放非任务性的分析内容 |
 
 ## 能力面适配器
 
@@ -120,7 +114,7 @@ _prd-tools/distill/<slug>/
 
 - PRD 无法读取且无文本输入。
 - `extraction-quality.yaml` 为 `status: block`。
-- 关键要求只存在于图片中，无 vision/人工确认。
+- 关键要求只存在于图片中，无人工确认。
 - 目标仓库路径不存在。
 - 多层契约冲突导致计划不可执行。
 - 缺少关键证据且无法补齐。
@@ -128,19 +122,18 @@ _prd-tools/distill/<slug>/
 ## 执行步骤
 
 1. 确认 PRD 来源和目标项目路径。
-2. PRD ingestion：运行 `ingest_prd.py`，检查 `extraction-quality.yaml`。
+2. PRD ingestion：读取文件或接受粘贴文本，创建 `_ingest/` 证据结构。
 3. 读取 `_prd-tools/reference/`（优先 v4，兼容 v3.1）。
-4. 建立 `spec/evidence.yaml`，映射 ingestion 证据后补充源码证据。
-5. 拆 `spec/requirement-ir.yaml`。
+4. 建立 `context/evidence.yaml`，映射 ingestion 证据后补充源码证据。
+5. 拆 `context/requirement-ir.yaml`。
 6. 构建 `context/graph-context.md`（源码扫描发现符号、调用链和业务约束）。
 - [ ] ⚠ graph-context.md 存在性检查：`context/graph-context.md` 必须存在。如不存在，必须先生成再继续 plan.md。
 7. 生成 `plan.md`（消费 `graph-context.md` 函数级上下文）。
-- [ ] 编译 `tasks/`（AI 可执行任务文件，每个 task 自包含上下文）
 8. 生成 `context/layer-impact.yaml`。
 9. 生成 `context/contract-delta.yaml`。
 10. 生成 `report.md`（渐进式披露 + 源码扫描命中摘要 + §11）。
 11. 生成 `context/reference-update-suggestions.yaml`。
-12. 生成 `readiness-report.yaml`，并建议用户运行 `bash .prd-tools/status.sh` 更新 `_prd-tools/STATUS.md` 和 dashboard。
+12. 生成 `context/readiness-report.yaml`。
 
 ## 参考文件
 
