@@ -3,6 +3,13 @@
 All notable changes to the **prd-distill** plugin are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [2.19.0] - 2026-05-08
+
+### Changed
+- refactor: portal CSS 设计系统提取为 portal-design-system.md
+- refactor: output-contracts 拆为 6 个按需 schema 文件
+- refactor: 全部步骤新增 Self-Check 验证清单
+
 ## [2.18.1] - 2026-05-08
 
 ### Changed

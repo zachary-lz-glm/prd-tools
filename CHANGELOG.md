@@ -4,6 +4,15 @@
 
 ---
 
+## [2.19.0] - 2026-05-08
+
+### Changed
+- refactor: step-02 深度分析拆为 5 个专注子步骤，降低 AI 单步上下文压力
+- refactor: portal CSS 设计系统提取为独立共享文件（-320 行冗余）
+- refactor: output-contracts 683 行拆为 6 个按需 schema 文件
+- refactor: 全部 11 个步骤文件新增 Self-Check 生成后验证清单
+- fix: step-00-greenfield 从 v3 更新到 v4 文件结构
+
 ## [2.18.1] - 2026-05-08
 
 ### Changed

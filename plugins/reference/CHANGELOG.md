@@ -3,6 +3,15 @@
 All notable changes to the **reference** plugin are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [2.19.0] - 2026-05-08
+
+### Changed
+- refactor: step-02 拆为 5 个子步骤（codebase/coding-rules/contracts/routing/domain）
+- refactor: portal CSS 设计系统提取为 portal-design-system.md
+- refactor: output-contracts 拆为 6 个按需 schema 文件
+- refactor: 全部步骤新增 Self-Check 验证清单
+- fix: step-00-greenfield 更新到 v4
+
 ## [2.18.1] - 2026-05-08
 
 ### Changed
