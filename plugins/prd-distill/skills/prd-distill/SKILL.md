@@ -131,18 +131,21 @@ _prd-tools/distill/<slug>/
    - `.docx`：用 `unzip` 提取 `word/document.xml`（文本）和 `media/`（图片）。文本去 XML 标签后写入 `_ingest/document.md`，图片拷贝到 `_ingest/media/`。在文本中图片位置插入 `![image-N](media/imageN.png)` 占位。用 Read 工具逐个查看图片，理解内容后写入 `_ingest/media-analysis.yaml`。
    - 粘贴文本：手工建立来源和定位。
    创建 `_ingest/` 证据结构。
-3. 读取 `_prd-tools/reference/`（优先 v4，兼容 v3.1）。
-4. 建立 `context/evidence.yaml`，映射 ingestion 证据后补充源码证据。
-5. 拆 `context/requirement-ir.yaml`。
-6. 构建 `context/graph-context.md`（源码扫描发现符号、调用链和业务约束）。
+3. 生成 `_ingest/document-structure.json`（逐段扫描，每个段落/标题/表格/图片生成 block 条目）。
+4. 读取 `_prd-tools/reference/`（优先 v4，兼容 v3.1）。**重点读取 `04-routing-playbooks.yaml` 的 `capability_inventory`**（如存在）。
+5. 建立 `context/evidence.yaml`，映射 ingestion 证据后补充源码证据。
+6. **覆盖验证（前置）**：确认 `document-structure.json` 每个 block 已评估，更新 `evidence-map.yaml`。
+7. 拆 `context/requirement-ir.yaml`。**消费 `capability_inventory` 区分已有能力与需新增能力**。
+8. **覆盖验证（后置）**：计算 coverage_ratio，更新 `extraction-quality.yaml` 的 coverage 字段。coverage_ratio < 0.8 时标记 warn。
+9. 构建 `context/graph-context.md`（源码扫描发现符号、调用链和业务约束）。
 - [ ] ⚠ graph-context.md 存在性检查：`context/graph-context.md` 必须存在。如不存在，必须先生成再继续 plan.md。
-7. 生成 `plan.md`（消费 `graph-context.md` 函数级上下文）。
-8. 生成 `context/layer-impact.yaml`。
-9. 生成 `context/contract-delta.yaml`。
-10. 生成 `report.md`（渐进式披露 + 源码扫描命中摘要 + §11）。
-11. 生成 `context/reference-update-suggestions.yaml`。
-12. 生成 `context/readiness-report.yaml`。
-13. 生成 `portal.html`（自包含可视化页面，详见 `steps/step-04-portal.md`）。
+10. 生成 `plan.md`（消费 `graph-context.md` 函数级上下文）。
+11. 生成 `context/layer-impact.yaml`。
+12. 生成 `context/contract-delta.yaml`。
+13. 生成 `report.md`（渐进式披露 + 源码扫描命中摘要 + §11）。
+14. 生成 `context/reference-update-suggestions.yaml`。
+15. 生成 `context/readiness-report.yaml`。
+16. 生成 `portal.html`（自包含可视化页面，详见 `steps/step-04-portal.md`）。
 
 ## 参考文件
 

@@ -12,6 +12,39 @@ capability_boundary:
   can_do: []
   cannot_do: []
 
+# 能力清单（帮助 prd-distill 区分已有能力与需新增能力）
+capability_inventory:
+  description: "项目已有能力清单，区分 generic(通用) 和 dimensioned(按维度区分) 能力"
+
+  generic_capabilities:
+    - id: "CAP-001"
+      name: ""
+      description: ""
+      scope: "generic"
+      surfaces: []
+      evidence: []
+      status: "verified"
+
+  dimensioned_capabilities:
+    - id: "CAP-DIM-001"
+      name: ""
+      dimension: ""           # 区分维度：如 campaign_type, route, service, component
+      dimension_source: ""    # 维度枚举定义位置
+      pattern: "per_dimension"
+      description: ""
+      registration_point: ""
+      existing_entries: []
+      evidence: []
+      status: "verified"
+
+  coverage_matrix:
+    description: "接口/字段/配置的覆盖方式矩阵"
+    entries: []
+
+  missing_capabilities:
+    description: "已知缺失或未完整实现的能力"
+    items: []
+
 # PRD 路由（只到能力面级别，不含具体实现步骤）
 prd_routing:
   - id: "ROUTE-001"

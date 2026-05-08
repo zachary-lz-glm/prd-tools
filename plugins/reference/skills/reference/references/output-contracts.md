@@ -67,8 +67,8 @@ _prd-tools/
 |---|---|---|
 | `source-manifest.yaml` | 原始文件路径、格式、大小、hash、生成时间、读取方式 | 不写需求摘要或实现判断 |
 | `document.md` | 转换后的可读 markdown，作为 Requirement IR 的主输入 | 不补充 PRD 没写的信息 |
-| `document-structure.json` | 段落、标题、表格、图片等结构块，含 block id 和 locator | 不写业务语义结论 |
-| `evidence-map.yaml` | PRD 块级证据，供 `context/evidence.yaml` 映射 | 不放源码、diff、reference 证据 |
+| `document-structure.json` | PRD 结构块清单（段落、标题、表格、图片），含 block_id 和定位。用于后续覆盖验证，确保没有 block 被遗漏 | 不写业务语义结论 |
+| `evidence-map.yaml` | PRD block → evidence_id 映射，记录每个 block 是否被需求提取覆盖 | 不放源码、diff、reference 证据 |
 | `media/` | 抽出的图片、截图、流程图原文件（docx 提取时自动抽取） | 不修改图片内容 |
 | `media-analysis.yaml` | 图片分析状态和摘要；Claude 用 Read 工具（原生多模态）直接查看图片后填写。类型：`ui_screenshot | flowchart | data_chart | table_image | decoration`。每条包含：文件名、类型、关键信息摘要、置信度 | 不确认的图片内容只能产生低置信度问题 |
 | `tables/` | 单独抽出的表格 markdown | 不修复原表格，只保留转换结果 |
@@ -84,11 +84,84 @@ stats:
   paragraphs: 0
   tables: 0
   media: 0
+coverage:
+  total_blocks: 0
+  mapped_blocks: 0
+  excluded_blocks: 0
+  unmapped_blocks: []
+  coverage_ratio: 0.0
 quality_gates: []
 warnings: []
 rules:
   - "Images are analyzed by Claude Read (native multimodal). AI-interpreted content is medium confidence by default."
 ```
+
+`document-structure.json` 示例：
+
+```json
+{
+  "schema_version": "1.0",
+  "blocks": [
+    {
+      "block_id": "BLK-001",
+      "block_type": "heading",
+      "level": 1,
+      "text_excerpt": "1 需求背景",
+      "locator": { "line_start": 8, "line_end": 8 }
+    },
+    {
+      "block_id": "BLK-002",
+      "block_type": "paragraph",
+      "text_excerpt": "完成前4单的司机留存概率高...",
+      "locator": { "line_start": 9, "line_end": 14 }
+    },
+    {
+      "block_id": "BLK-003",
+      "block_type": "table",
+      "heading": "司机dive-创建-基础信息",
+      "row_count": 1,
+      "columns": ["模块", "示意图", "功能描述"],
+      "locator": { "line_start": 34, "line_end": 34 }
+    },
+    {
+      "block_id": "BLK-004",
+      "block_type": "media",
+      "media_ref": "media/image3.png",
+      "context": "司机dive-创建-基础信息示意图",
+      "locator": { "line_start": 34, "line_end": 34 }
+    }
+  ],
+  "exclusion_types": ["toc", "header_footer", "decoration", "revision_history"]
+}
+```
+
+`evidence-map.yaml` 示例：
+
+```yaml
+schema_version: "1.0"
+blocks:
+  - block_id: "BLK-001"
+    evidence_id: null
+    excluded: true
+    exclude_reason: "heading_only"
+  - block_id: "BLK-002"
+    evidence_id: "EV-001"
+    requirement_ids: []  # 背景信息，不直接产生 requirement，但作为上下文证据
+  - block_id: "BLK-003"
+    evidence_id: "EV-005"
+    requirement_ids: ["REQ-004"]  # 基础信息表格 → REQ-004
+  - block_id: "BLK-004"
+    evidence_id: "EV-IMG-003"
+    requirement_ids: ["REQ-004"]
+    confidence: "medium"  # 图片证据
+```
+
+覆盖验证规则：
+
+- `document-structure.json` 的每个 `block` 必须在 `evidence-map.yaml` 中有对应条目（`evidence_id` 或 `excluded: true`）。
+- `excluded: true` 的 block 必须填写 `exclude_reason`，有效值为 `exclusion_types` 中的类型或 `"merged_into"` + 被合并的 block_id。
+- `unmapped_blocks` 列出所有没有 evidence 也没有 excluded 标记的 block_id。
+- `coverage_ratio` = `mapped_blocks / total_blocks`。低于 0.8 时 `extraction-quality.yaml` 的 `status` 必须为 `warn` 或更低。
 
 `media-analysis.yaml` 示例：
 
@@ -114,6 +187,69 @@ images:
 - `block`：暂停蒸馏，要求用户提供 markdown/text。
 - `warn`：允许继续，但必须在 `report.md` §11 中暴露风险。
 - Claude 看图提取的信息置信度为 `medium`（AI 视觉理解），关键结论仍需文本证据或人工确认才能升为 `high`。
+
+## 04-routing-playbooks.yaml 的 capability_inventory
+
+`04-routing-playbooks.yaml` 中新增 `capability_inventory` 部分，记录项目已有能力。prd-distill 在提取需求时消费此清单，区分"PRD 要求的是已有能力"还是"需要新增"。
+
+适用于前端、BFF、后端所有层。维度名称（type/route/component/service）根据项目实际架构选择。
+
+```yaml
+capability_inventory:
+  description: "项目已有能力清单，帮助 prd-distill 区分已有能力与需要新增的能力"
+
+  generic_capabilities:
+    - id: "CAP-001"
+      name: ""
+      description: ""
+      scope: "generic"
+      surfaces: []
+      evidence: []
+      status: "verified | partial | needs_verification"
+
+  dimensioned_capabilities:
+    - id: "CAP-DIM-001"
+      name: ""
+      dimension: ""             # 区分维度名称，根据项目架构命名
+      dimension_source: ""      # 维度枚举/定义的源码位置
+      pattern: "per_dimension"  # per_dimension | shared
+      description: ""
+      registration_point: ""
+      existing_entries:
+        - dimension_value: ""
+          implementation: ""
+          variant: ""
+      evidence: []
+      status: "verified | partial | needs_verification"
+
+  coverage_matrix:
+    description: "接口/字段/配置的覆盖方式矩阵"
+    entries:
+      - item: ""
+        scope: "generic | per_dimension | hybrid"
+        note: ""
+
+  missing_capabilities:
+    description: "已知缺失或未完整实现的能力"
+    items:
+      - name: ""
+        status: "unknown | partial"
+        note: ""
+```
+
+生成规则：
+
+- `generic_capabilities`：从 `01-codebase.yaml` 的 `data_flow`、`03-contracts.yaml` 的通用接口推断。如果源码确认某个能力不按维度区分，标记 `scope: generic`。
+- `dimensioned_capabilities`：从 `01-codebase.yaml` 的 `registration_points`、`enums`、switch/registry 分支推断。`dimension` 字段根据项目实际架构填写（BFF 通常用 type，前端用 route/component，后端用 service/model）。必须列出所有 `existing_entries`。
+- `coverage_matrix`：从 `03-contracts.yaml` 的接口 + 源码中的 if/switch 分支推断每个功能是 generic 还是 per-dimension。
+- `missing_capabilities`：从源码中的 TODO、未实现的接口、或 reference 构建过程中发现的盲点记录。
+- 每个条目必须有 `evidence` 和 `status`。
+
+prd-distill 消费规则：
+
+- 当 PRD 提到的功能在 `generic_capabilities` 中 `status: verified` 时，不需要新增 REQ，但应在相关 REQ 的 `rules` 中注明"复用已有 XXX 能力"。
+- 当 PRD 提到的功能在 `dimensioned_capabilities` 中，但 `existing_entries` 不包含目标维度值时，需要 ADD 类型的 REQ。
+- 当 PRD 提到的功能在 `missing_capabilities` 中时，需要标记 `confidence: low` 并加入 `open_questions`。
 
 ## portal.html
 
@@ -556,13 +692,13 @@ next_actions: []
 
 评分建议：
 
-| 维度 | 权重 | 数据来源 |
-|---|---:|---|
-| `prd_ingestion` | 20 | `_ingest/extraction-quality.yaml`、media/table warnings |
-| `evidence_coverage` | 25 | `context/evidence.yaml`、`context/requirement-ir.yaml` |
-| `code_search` | 15 | 代码搜索覆盖率 |
-| `contract_alignment` | 25 | `context/contract-delta.yaml` |
-| `plan_quality` | 15 | `plan.md`（文件路径精确度、验证命令覆盖） |
+| 维度 | 权重 | 数据来源 | 计算方式 |
+|---|---:|---|---|
+| `prd_ingestion` | 20 | `_ingest/extraction-quality.yaml`、media/table warnings | extraction-quality.status: pass=100, warn=70, block=0 |
+| `evidence_coverage` | 25 | `_ingest/extraction-quality.yaml` coverage + `context/evidence.yaml` | `coverage_ratio * 100`（来自 extraction-quality.yaml 的 coverage.coverage_ratio） |
+| `code_search` | 15 | `context/graph-context.md` | 命中符号数 / REQ 需要搜索的符号数 |
+| `contract_alignment` | 25 | `context/contract-delta.yaml` | aligned 契约数 / 总契约数 |
+| `plan_quality` | 15 | `plan.md`（文件路径精确度、验证命令覆盖） | 有 file:line 的任务数 / 总任务数 |
 
 状态阈值：
 

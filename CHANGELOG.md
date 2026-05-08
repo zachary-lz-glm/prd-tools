@@ -4,7 +4,16 @@
 
 ---
 
-## [2.17.0] - 2026-05-08
+## [2.18.0] - 2026-05-08
+
+### Added
+- feat: reference 新增 capability_inventory（能力清单），记录项目已有能力，区分 generic/dimensioned
+- feat: prd-distill 新增覆盖验证（coverage check），确保 PRD 每个 block 都被需求提取覆盖
+- feat: 新增 document-structure.json 和 evidence-map.yaml 完整 schema 定义
+
+### Changed
+- refactor: prd-distill 消费 capability_inventory 区分已有能力与需新增能力
+- refactor: readiness-report evidence_coverage 评分增加明确计算公式
 
 ### Changed
 - refactor: 全面重设计 portal.html 视觉系统（Linear/Vercel 风格）

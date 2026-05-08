@@ -51,9 +51,15 @@ _prd-tools/reference/05-domain.yaml
 
 12. 通过 `rg` / glob 在 PRD、技术方案中提取关键词，映射到代码模块。
 13. 生成 `04-routing-playbooks.yaml`：PRD 路由信号（只到能力面级别）、字段映射（prd_field → code_field → contract_ref）、场景打法（步骤只在这里）。
-14. 检查 02-coding-rules 中是否有场景驱动的开发步骤，如有，移到 04 的 playbook 中。
-15. routing 条目必须有 `playbook_ref` 指向对应的 playbook。
-16. field_mappings 中不放字段 type/required，只用 `contract_ref` 引用 03。
+14. **生成 capability_inventory**（能力清单）：
+    a. 从阶段 1 的源码扫描结果中提取通用能力：不按维度区分的功能模块、共享的 Schema/组件/服务、通用接口。标记 `scope: generic`。
+    b. 从 switch-case/if-else 注册点、per-dimension 模板/组件/实现提取 dimensioned 能力。`dimension` 根据项目实际架构命名（BFF 常见 campaign_type、前端常见 route/component、后端常见 service/model）。必须列出 `existing_entries`（已实现的维度值列表）。
+    c. 从 `03-contracts.yaml` 的接口 + 源码中的 if/switch 分支推断 `coverage_matrix`：每个功能是 generic/per-dimension/hybrid。
+    d. 从源码中的 TODO、未实现的接口、构建过程中的盲点记录到 `missing_capabilities`。
+    e. 每个条目必须有 `evidence`（源码证据）和 `status`（verified/partial/needs_verification）。
+15. 检查 02-coding-rules 中是否有场景驱动的开发步骤，如有，移到 04 的 playbook 中。
+16. routing 条目必须有 `playbook_ref` 指向对应的 playbook。
+17. field_mappings 中不放字段 type/required，只用 `contract_ref` 引用 03。
 
 ### 阶段 5：业务领域
 

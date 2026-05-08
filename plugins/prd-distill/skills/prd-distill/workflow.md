@@ -66,7 +66,7 @@ _ingest/
 
 如果用户只粘贴文本，手工创建等价的 source、document、evidence-map 和 quality 记录，保证后续 evidence 仍可追溯。
 
-## 步骤 1：证据台账
+## 步骤 1：证据台账 + 覆盖验证
 
 先建立 `context/evidence.yaml`，后续所有判断只引用 evidence id。
 
@@ -90,9 +90,23 @@ _ingest/
 - 搜不到也是证据，用 `negative_code_search`，记录 query 和搜索范围。
 - 没有人工确认的图片不能生成高置信度需求。
 
+**覆盖验证（Completeness Check）**：
+
+在生成 requirement-ir 之前和之后各执行一次覆盖检查：
+
+1. **前置检查**：确认 `_ingest/document-structure.json` 中每个 block 都已评估。每个 block 必须有 evidence_id 或被标记为 excluded（含 exclude_reason）。
+2. **后置检查**：确认 `evidence-map.yaml` 的 coverage_ratio >= 0.8。低于 0.8 时 `extraction-quality.yaml` 必须标 `warn`，并在 `unmapped_blocks` 列出未覆盖 block。
+3. `coverage_ratio` 写入 `_ingest/extraction-quality.yaml` 的 `coverage` 字段，并作为 `readiness-report.yaml` 的 `evidence_coverage` 评分输入。
+
 ## 步骤 2：Requirement IR
 
 将 `_ingest/document.md` 转成 `context/requirement-ir.yaml`。
+
+**消费 capability_inventory**：读取 `_prd-tools/reference/04-routing-playbooks.yaml` 的 `capability_inventory`（如存在），用于区分已有能力与需新增能力：
+
+- `generic_capabilities` 中 `status: verified` 的功能 → 不新增 REQ，但在相关 REQ 的 rules 中注明"复用已有 XXX 能力"。
+- `dimensioned_capabilities` 中 `existing_entries` 不包含目标维度值 → 需要 ADD 类型 REQ。
+- `missing_capabilities` 中的功能 → 标记 `confidence: low`，加入 `open_questions`。
 
 每个 requirement 必须包含：
 
@@ -112,6 +126,7 @@ _ingest/
 - 业务规则、字段、枚举、限制、互斥、数量上限、流程差异都要拆成可追踪 requirement。
 - 不要把实现方案直接混进 IR；实现影响放到 layer impact。
 - 不确定项进入 `open_questions`。
+- **逐 block 提取**：遍历 `document-structure.json` 的每个 block，确保没有段落/表格/图片被跳过。
 
 ## 步骤 3：Layer Impact
 
