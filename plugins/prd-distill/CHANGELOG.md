@@ -3,7 +3,15 @@
 All notable changes to the **prd-distill** plugin are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
-## [2.14.0] - 2026-05-08
+## [2.15.0] - 2026-05-08
+
+### Added
+- feat: prd-distill 新增 portal.html 可视化页面生成步骤
+
+### Changed
+- docs: 重写三个 README，强化对外可读性
+
+- docs: 重写三个 README，强化对外可读性
 
 ### Changed
 - refactor: 移除全部第三方依赖和辅助脚本，精简 distill 产出结构

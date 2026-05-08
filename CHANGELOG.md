@@ -4,6 +4,16 @@
 
 ---
 
+## [2.15.0] - 2026-05-08
+
+### Added
+- feat: prd-distill 新增 portal.html 可视化页面生成步骤
+- feat: reference 新增 portal.html 可视化页面生成步骤
+
+### Changed
+- docs: 重写三个 README，强化对外可读性
+
+
 ## [2.14.0] - 2026-05-08
 
 ### Changed
