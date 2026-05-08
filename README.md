@@ -370,7 +370,7 @@ PRD 读取和质量门禁：
 
 | 层 | 谁负责 | 装什么 | 失败行为 |
 |---|---|---|---|
-| 1. `install.sh` | prd-tools 仓库 | reference / prd-distill skills、`/reference` 命令、本地 `doctor.sh` | 网络挂直接 exit 1，前面没装的东西不会被污染 |
+| 1. `install.sh` | prd-tools 仓库 | reference / prd-distill skills、本地 `doctor.sh` | 网络挂直接 exit 1，前面没装的东西不会被污染 |
 | 2. `doctor.sh` | 用户按需运行 | 诊断 uv / MarkItDown / Graphify / GitNexus / API key，给可复制的 fix 命令 | 默认只报告；`--strict` 出错即退；`--fix` 交互式逐条修 |
 | 3. skill 运行时自检 | `/reference` `/prd-distill` 自身 | 在使用某个工具的步骤前就近检查 | 缺什么就降级什么，并在 portal/report 里标明 |
 
@@ -390,10 +390,11 @@ curl -fsSL https://raw.githubusercontent.com/zachary-lz-glm/prd-tools/v2.0/insta
 
 ```text
 .claude/skills/          # reference / prd-distill skills
-.claude/commands/        # /reference 轻量入口
 .prd-tools-version       # 版本标记
 .prd-tools/doctor.sh     # 本地副本，可随时跑
 ```
+
+`/reference` 由 `.claude/skills/reference/SKILL.md` 的 skill name 提供，不再额外安装 `.claude/commands/reference.md` alias，避免同一入口出现两套定义。
 
 `install.sh` 不再修改 `~/.claude/.mcp.json`、不装 PyPI/npm 包、不写 shell profile。
 

@@ -52,21 +52,16 @@ echo ""
 echo "必需项："
 
 # ── 1. local install ──────────────────────────────────────────────
+GLOBAL_LEGACY_SKILL="$HOME/.claude/skills/build-reference"
+
 if [ -f ".prd-tools-version" ]; then
   ok "version" "$(head -1 .prd-tools-version 2>/dev/null)"
 else
   warn "version" "未发现 .prd-tools-version（可能未通过 install.sh 安装）"
 fi
 
-if [ -f ".claude/commands/reference.md" ]; then
-  ok "command" "/reference 已安装"
-else
-  bad "command" "缺少 .claude/commands/reference.md" \
-      "重新运行 prd-tools install.sh"
-fi
-
 if [ -d ".claude/skills/reference" ] && [ -d ".claude/skills/prd-distill" ]; then
-  ok "skills" "reference / prd-distill 已安装"
+  ok "skills" "reference / prd-distill 已安装（/reference 由 skill name 提供）"
 else
   if [ -d ".claude/skills/build-reference" ]; then
     bad "skills" "检测到旧 skill 目录 build-reference，请重新安装迁移到 reference" \
@@ -75,6 +70,20 @@ else
     bad "skills" "缺少 .claude/skills/reference 或 prd-distill" \
         "重新运行 prd-tools install.sh"
   fi
+fi
+
+if [ -f ".claude/commands/reference.md" ]; then
+  warn "command" "检测到旧命令 alias：.claude/commands/reference.md，可删除；/reference 由 skill name 提供" \
+       "rm -f .claude/commands/reference.md && rmdir .claude/commands 2>/dev/null || true"
+else
+  ok "command" "未发现旧 .claude/commands/reference.md alias"
+fi
+
+if [ -d "$GLOBAL_LEGACY_SKILL" ]; then
+  bad "legacy" "检测到全局旧 skill：$GLOBAL_LEGACY_SKILL，会让 /build-reference 继续可用" \
+      "rm -rf '$GLOBAL_LEGACY_SKILL'"
+else
+  ok "legacy" "未发现全局 build-reference 旧 skill"
 fi
 
 # ── 2. uv ─────────────────────────────────────────────────────────

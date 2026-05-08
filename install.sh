@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# install.sh — Install prd-tools skills and commands into a target project.
+# install.sh — Install prd-tools skills into a target project.
 #
 # Scope: only what this repo OWNS (reference / prd-distill skills,
-# /reference command, version marker). External tools (uv, MarkItDown,
-# Graphify, GitNexus, API keys) are NOT touched here — run `prd-tools-doctor`
-# afterwards to check and fix those.
+# version marker, doctor helper). External tools (uv, MarkItDown, Graphify,
+# GitNexus, API keys) are NOT touched here — run `prd-tools-doctor` afterwards
+# to check and fix those.
 #
 # See docs/adr/0008-安装脚本职责拆分.md for rationale.
 
@@ -17,7 +17,7 @@ TARGET="${1:-.}"
 TARGET="$(cd "$TARGET" && pwd)"
 
 CLAUDE_SKILLS_DIR="$TARGET/.claude/skills"
-CLAUDE_COMMANDS_DIR="$TARGET/.claude/commands"
+GLOBAL_CLAUDE_SKILLS_DIR="$HOME/.claude/skills"
 TMP_DIR="$(mktemp -d)"
 cleanup() { rm -rf "$TMP_DIR"; }
 trap cleanup EXIT
@@ -62,7 +62,7 @@ else
 fi
 
 # ── 复制 skills ─────────────────────────────────────────────────
-mkdir -p "$CLAUDE_SKILLS_DIR" "$CLAUDE_COMMANDS_DIR"
+mkdir -p "$CLAUDE_SKILLS_DIR"
 echo "==> 安装 skills 到 $CLAUDE_SKILLS_DIR"
 for skill in reference prd-distill; do
   src="$ARCHIVE_ROOT/plugins/$skill/skills/$skill"
@@ -78,12 +78,19 @@ if [ -d "$CLAUDE_SKILLS_DIR/build-reference" ]; then
   rm -rf "$CLAUDE_SKILLS_DIR/build-reference"
   echo "    已清理旧 skill：build-reference"
 fi
+if [ -d "$GLOBAL_CLAUDE_SKILLS_DIR/build-reference" ]; then
+  rm -rf "$GLOBAL_CLAUDE_SKILLS_DIR/build-reference"
+  echo "    已清理全局旧 skill：build-reference"
+fi
 
-# ── 复制命令 ────────────────────────────────────────────────────
-COMMAND_SRC="$ARCHIVE_ROOT/.claude/commands/reference.md"
-if [ -f "$COMMAND_SRC" ]; then
-  cp "$COMMAND_SRC" "$CLAUDE_COMMANDS_DIR/reference.md"
-  echo "    已安装命令：/reference"
+# ── 清理旧命令 alias ────────────────────────────────────────────
+# /reference 由 skills/reference/SKILL.md 的 skill name 提供，不再复制
+# .claude/commands/reference.md，避免出现两套入口定义。
+LEGACY_COMMAND="$TARGET/.claude/commands/reference.md"
+if [ -f "$LEGACY_COMMAND" ]; then
+  rm -f "$LEGACY_COMMAND"
+  rmdir "$TARGET/.claude/commands" 2>/dev/null || true
+  echo "    已清理旧命令 alias：.claude/commands/reference.md"
 fi
 
 # ── 复制 doctor 脚本到本地 ────────────────────────────────────

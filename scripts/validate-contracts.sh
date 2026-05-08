@@ -61,7 +61,6 @@ current_contract_files=(
   "plugins/prd-distill/skills/prd-distill/agents/openai.yaml"
   "plugins/reference/skills/reference/references/output-contracts.md"
   "plugins/prd-distill/skills/prd-distill/references/output-contracts.md"
-  ".claude/commands/reference.md"
 )
 
 check_absent 'questions\.md.*(默认|生成|读|输出|不替代|清单|阻塞|owner|证据链|artifacts)' \
@@ -81,10 +80,6 @@ if ! cmp -s \
   "plugins/prd-distill/skills/prd-distill/references/output-contracts.md" \
   "plugins/reference/skills/reference/references/output-contracts.md"; then
   fail "The shared output-contracts.md copies must stay identical across both plugins."
-fi
-
-if [ ! -f ".claude/commands/reference.md" ]; then
-  fail "Missing lightweight command alias: .claude/commands/reference.md"
 fi
 
 if [ "$errors" -gt 0 ]; then
