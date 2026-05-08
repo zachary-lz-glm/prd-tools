@@ -55,7 +55,8 @@ _prd-tools/reference/
 ├── 02-coding-rules.yaml        # 编码规则和踩坑经验
 ├── 03-contracts.yaml           # 跨层和外部契约（字段级）
 ├── 04-routing-playbooks.yaml   # PRD 路由信号 + 场景打法 + QA 矩阵
-└── 05-domain.yaml              # 业务领域知识（术语、隐式规则、决策日志）
+├── 05-domain.yaml              # 业务领域知识（术语、隐式规则、决策日志）
+└── portal.html                 # 可视化浏览器页面（零外部依赖，双击即可打开）
 ```
 
 核心原则：**每个事实只存在于一个文件（SSOT）**，其他文件通过 ID 引用。

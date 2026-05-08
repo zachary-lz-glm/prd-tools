@@ -133,6 +133,7 @@ project-profile.yaml        # 项目画像
 4. `04-routing-playbooks`：PRD 路由信号、字段映射、场景打法、跨仓 handoff、golden samples。
 5. `05-domain`：业务域概览、术语、隐式规则、历史决策。
 6. `00-portal` + `project-profile`：导航和画像汇总。
+7. `portal.html`：读取步骤 5（`step-05-portal.md`）生成可视化 HTML 页面。全量构建完成后自动生成。
 
 每条事实必须具备：
 
@@ -185,6 +186,8 @@ next_actions: []
 ```
 
 致命项不通过时，不要宣称 reference 可用于生产；列出最小修复项。
+
+如果 quality-report 的 status 不是 fail 且 reference 文件有更新，重新生成 `portal.html`（按 `step-05-portal.md` 执行），确保可视化页面与最新 reference 数据一致。
 
 ## 阶段 4：反馈回流
 

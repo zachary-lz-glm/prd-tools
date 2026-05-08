@@ -51,7 +51,8 @@ _prd-tools/reference/           # 长期知识库（v4.0，6 文件）
 ├── 02-coding-rules.yaml       # 编码规则
 ├── 03-contracts.yaml          # 跨层和外部契约
 ├── 04-routing-playbooks.yaml  # PRD 路由信号 + 场景打法
-└── 05-domain.yaml             # 业务领域知识
+├── 05-domain.yaml             # 业务领域知识
+└── portal.html                # 可视化浏览器页面（零外部依赖）
 
 _prd-tools/build/              # 过程和质量报告
 ├── context-enrichment.yaml
@@ -98,8 +99,9 @@ _prd-tools/build/              # 过程和质量报告
 4. 标注 `reference_scope.authority: single_repo`，跨仓线索写确认状态字段。
 5. 用 `rg`/glob 找候选，再 Read 源码确认事实。
 6. 生成或更新 `_prd-tools/reference/`。
-7. 执行健康检查或质量门控。
-8. 给用户摘要：新增/更新文件、质量状态、风险、下一步。
+7. 生成 `portal.html`（详见 `steps/step-05-portal.md`）。
+8. 执行健康检查或质量门控。
+9. 给用户摘要：新增/更新文件、质量状态、风险、下一步。
 
 ## 参考文件
 
@@ -111,6 +113,7 @@ _prd-tools/build/              # 过程和质量报告
 | `references/output-contracts.md` | 和 prd-distill 输出契约对齐时 |
 | `templates/*.yaml` | 创建 reference 骨架时 |
 | `references/selectable-reward-golden-sample.md` | 需要示例或校准复杂需求时 |
+| `steps/step-05-portal.md` | 生成 portal.html 可视化页面时 |
 
 ## 完成标准
 
