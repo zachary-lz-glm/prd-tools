@@ -14,32 +14,19 @@ reference 是"可验证指南针"，不是项目百科。6 个文件，每个事
 
 默认治理范围是单仓：当前仓 `_prd-tools/reference/` 只沉淀本仓确认事实。跨仓契约、上下游 owner、团队级 taxonomy 可以作为候选或 handoff 记录，但在 owner 确认前不能升级为确定事实。
 
-## 三层架构
+## 定位
 
-```
-Graphify (业务维度)          GitNexus (代码维度)          prd-tools (治理维度)
-"为什么这样设计"              "代码怎么连接"               "怎么从 PRD 到代码"
-PRD/技术方案/截图/历史文档     代码仓库                     编排 + 证据治理 + 质量门控
-        │                          │                           │
-        └──────────────────────────┼───────────────────────────┘
-                                   ▼
-                         _prd-tools/reference/ 单仓可治理知识库
-                                   │
-                                   ▼
-                    未来团队知识库聚合 confirmed/candidate 事实
-```
-
-关键原则：**图谱是原始发现层，reference 是精选后的企业知识库。**
+prd-tools 负责 PRD-to-code 全链路的发现、证据治理和质量门控，产出单仓可治理的 reference 知识库。
 
 ## 阶段
 
 | 阶段 | 名称 | 输入 | 输出 |
 |---|---|---|---|
 | 0 | 上下文收集 | 历史 PRD、技术方案、分支 diff、发布/返工记录 | `_prd-tools/build/context-enrichment.yaml` |
-| 1 | 结构扫描 | 项目目录、核心源码、git 历史 + **双图谱查询** | `_prd-tools/build/modules-index.yaml` + `_prd-tools/build/graph/*.yaml` |
-| 2 | 深度分析 | modules-index、图谱证据、源码、能力面适配器 | `_prd-tools/reference/` v4.0 |
-| 3 | 质量门控 | reference、源码、样例需求 + **图谱证据校验** | `_prd-tools/build/quality-report.yaml` |
-| 4 | 反馈回流 | `/prd-distill` 输出、源码、reference + **图谱增量更新** | `_prd-tools/build/feedback-report.yaml` |
+| 1 | 结构扫描 | 项目目录、核心源码、git 历史 | `_prd-tools/build/modules-index.yaml` |
+| 2 | 深度分析 | modules-index、源码、能力面适配器 | `_prd-tools/reference/` v4.0 |
+| 3 | 质量门控 | reference、源码、样例需求 | `_prd-tools/build/quality-report.yaml` |
+| 4 | 反馈回流 | `/prd-distill` 输出、源码、reference | `_prd-tools/build/feedback-report.yaml` |
 
 ## 阶段 0：上下文收集
 
@@ -89,15 +76,7 @@ samples:
 - 排除 `node_modules`、`dist`、`build`、`coverage`、测试、mock、fixture、生成物。
 - 读取文件前先确认路径存在。
 
-### 图谱增强（如可用）
-
-**代码结构层（GitNexus）**：`mcp__gitnexus__query` 获取模块和符号，`mcp__gitnexus__context` 获取调用关系。AST 精度替代 regex 扫描。
-
-**业务语义层（Graphify）**：`/graphify query` 提取业务概念，God Nodes 映射为核心模块，Surprising Connections 映射为跨域依赖。
-
-图谱不可用时自动回退到原有 rg/glob 流程。
-
-输出 `_prd-tools/build/modules-index.yaml` + `_prd-tools/build/graph/*.yaml`，同时沉淀 `_prd-tools/reference/project-profile.yaml`：
+输出 `_prd-tools/build/modules-index.yaml`，同时沉淀 `_prd-tools/reference/project-profile.yaml`：
 
 ```yaml
 schema_version: "4.0"
@@ -114,7 +93,6 @@ related_repositories:
     role: "frontend | bff | backend | external"
     relationship: "upstream | downstream | consumer | producer | peer"
     verification: "confirmed | needs_confirmation | unknown"
-graph_providers: []
 capability_surfaces:
   - id: ""
     layer: ""
@@ -125,8 +103,6 @@ capability_surfaces:
     symbols: []
     status: "candidate | verified | negative_search"
     evidence: []
-    graph_sources: []
-    graph_evidence_refs: []
 ```
 
 ## 阶段 2：深度分析

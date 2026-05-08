@@ -62,10 +62,10 @@ _prd-tools/distill/<slug>/
 ├── readiness-report.yaml          # 就绪度评分 + 风险 + provider 增益
 ├── spec/
 │   ├── requirement-ir.yaml        # 结构化需求：业务意图、规则、验收条件
-│   └── evidence.yaml              # 证据台账：PRD、技术方案、源码、图谱查询
+│   └── evidence.yaml              # 证据台账：PRD、技术方案、源码、负向搜索
 ├── tasks/                         # AI 可执行任务文件（每个 task 自包含上下文）
 ├── context/
-│   ├── graph-context.md           # 图谱驱动的函数级上下文
+│   ├── graph-context.md           # 源码扫描的函数级上下文
 │   ├── layer-impact.yaml          # 分层影响
 │   ├── contract-delta.yaml        # 契约差异
 │   └── reference-update-suggestions.yaml  # 回流建议
@@ -79,9 +79,9 @@ _prd-tools/distill/<slug>/
 | `report.md` | 渐进式披露：摘要→变更→字段→规则→Checklist→契约风险→§11 阻塞项 | 不展开 YAML 证据链 |
 | `plan.md` | 技术方案 + 实现计划 + QA 矩阵 + §12 任务拆分 + 回滚方案 | 不复制 PRD 原文 |
 | `readiness-report.yaml` | 机器可读就绪度评分、风险、provider 增益，供 STATUS/dashboard 读取 | 不替代 report.md 的人读解释 |
-| `spec/evidence.yaml` | 证据台账：PRD、技术方案、源码、负向搜索、图谱查询 | 不下结论 |
+| `spec/evidence.yaml` | 证据台账：PRD、技术方案、源码、负向搜索 | 不下结论 |
 | `spec/requirement-ir.yaml` | 结构化需求：业务意图、规则、验收条件、变更类型 | 不写实现细节 |
-| `context/graph-context.md` | 函数级技术上下文：GitNexus 符号/调用链、Graphify 业务约束 | 不替代源码确认 |
+| `context/graph-context.md` | 函数级技术上下文：源码扫描发现的符号、调用链和业务约束 | 不替代源码确认 |
 | `context/layer-impact.yaml` | 分层影响：目标层、能力面、计划变化、风险 | 不写字段级契约详情 |
 | `context/contract-delta.yaml` | 契约差异：字段、producer、consumer、alignment_status | 不写开发顺序 |
 | `context/reference-update-suggestions.yaml` | 回流建议 | 不直接改 `_prd-tools/reference/` |
@@ -116,22 +116,6 @@ _prd-tools/distill/<slug>/
 - 不确定标 `confidence: low`，不补脑。
 - 不直接修改 `_prd-tools/reference/`，只生成回流建议。
 
-## 图谱增强（可选）
-
-当 GitNexus 或 Graphify 可用时，必须构建一次需求级图谱上下文 → `context/graph-context.md`。
-
-| 场景 | 工具 | 查询 |
-|---|---|---|
-| PRD 概念→代码路由 | GitNexus | `query` 按业务实体/字段/接口查 execution flows |
-| 函数级上下文 | GitNexus | `context` 获取 callers/callees、文件位置 |
-| 影响范围评估 | GitNexus | `impact` 获取爆炸半径 |
-| 契约 consumer 发现 | GitNexus | `route_map`/`api_impact` 补充 consumer |
-| 业务规则约束 | Graphify | `/graphify path`/`/graphify explain` |
-
-图谱不可用时回退到 Read + rg/glob。
-
-如果 `_prd-tools/graph/graph-sync-report.yaml` 存在且 provider available，优先读取图谱证据。GitNexus AST 提取可作 high-confidence 代码线索；Graphify INFERRED 只能作 medium/low 业务线索。
-
 ## 暂停条件
 
 - PRD 无法读取且无文本输入。
@@ -146,15 +130,15 @@ _prd-tools/distill/<slug>/
 1. 确认 PRD 来源和目标项目路径。
 2. PRD ingestion：运行 `ingest_prd.py`，检查 `extraction-quality.yaml`。
 3. 读取 `_prd-tools/reference/`（优先 v4，兼容 v3.1）。
-4. 建立 `spec/evidence.yaml`，映射 ingestion 证据后补充源码/图谱证据。
+4. 建立 `spec/evidence.yaml`，映射 ingestion 证据后补充源码证据。
 5. 拆 `spec/requirement-ir.yaml`。
-6. 构建 `context/graph-context.md`。
+6. 构建 `context/graph-context.md`（源码扫描发现符号、调用链和业务约束）。
 - [ ] ⚠ graph-context.md 存在性检查：`context/graph-context.md` 必须存在。如不存在，必须先生成再继续 plan.md。
 7. 生成 `plan.md`（消费 `graph-context.md` 函数级上下文）。
 - [ ] 编译 `tasks/`（AI 可执行任务文件，每个 task 自包含上下文）
 8. 生成 `context/layer-impact.yaml`。
 9. 生成 `context/contract-delta.yaml`。
-10. 生成 `report.md`（渐进式披露 + 图谱命中摘要 + §11）。
+10. 生成 `report.md`（渐进式披露 + 源码扫描命中摘要 + §11）。
 11. 生成 `context/reference-update-suggestions.yaml`。
 12. 生成 `readiness-report.yaml`，并建议用户运行 `bash .prd-tools/status.sh` 更新 `_prd-tools/STATUS.md` 和 dashboard。
 

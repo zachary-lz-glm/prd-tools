@@ -53,7 +53,6 @@ check_absent() {
 
 current_contract_files=(
   "README.md"
-  "docs/graph-evidence-guide.md"
   "plugins/prd-distill/skills/prd-distill/SKILL.md"
   "plugins/prd-distill/skills/prd-distill/workflow.md"
   "plugins/prd-distill/skills/prd-distill/steps/step-03-confirm.md"
@@ -70,10 +69,6 @@ check_absent 'graph_source:' \
   "Use graph_sources: [] instead of graph_source:." \
   "plugins/reference/skills/reference/workflow.md" \
   "plugins/reference/skills/reference/references/reference-v4.md"
-
-check_absent 'uv tool install graphify([^y]|$)' \
-  "Graphify package install command should use official package graphifyy; CLI command remains graphify." \
-  "install.sh" "README.md" "docs/graph-evidence-guide.md" "plugins"
 
 if ! cmp -s \
   "plugins/prd-distill/skills/prd-distill/references/output-contracts.md" \

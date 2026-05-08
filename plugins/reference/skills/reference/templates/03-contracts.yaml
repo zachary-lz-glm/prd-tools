@@ -11,11 +11,6 @@ repo_scope:
   authority: "single_repo"
   local_repo_role: "<frontend|bff|backend|multi-layer>"
   rule: "本文件只对本仓已验证的生产方/消费方契约负责；跨仓契约在对方 owner 确认前必须标记为 needs_confirmation。"
-graph_providers:
-  - provider: "gitnexus"
-    graph: "code"
-    available: false
-
 contracts:
   - id: "CONTRACT-001"
     name: ""
@@ -48,8 +43,6 @@ contracts:
       related_repos: []
       aggregation_status: "candidate|confirmed|rejected|not_applicable"
     checked_by: []
-    graph_sources: ["gitnexus"]
-    graph_evidence_refs: []
     evidence:
       - "EV-001"
 

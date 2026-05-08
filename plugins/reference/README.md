@@ -12,21 +12,21 @@
 
 首次使用会自动引导：收集历史 PRD → 全量构建。之后每次跑增量更新、健康检查或反馈回流即可。
 
-## 三层图谱架构
+## 三层架构
 
-reference 不只是扫描源码，而是融合三个维度构建知识库：
+reference 不只是扫描源码，而是融合多个维度构建知识库：
 
 ```
-Graphify（业务维度）        GitNexus（代码维度）        prd-tools（治理维度）
-"为什么这样设计"             "代码怎么连接"              "怎么从 PRD 到代码"
-PRD/技术方案/截图/历史文档    代码仓库                   编排 + 证据治理 + 质量门控
-        │                         │                           │
-        └─────────────────────────┼───────────────────────────┘
-                                  ▼
-                        _prd-tools/reference/ 单仓可治理知识库
+源码扫描（代码维度）             prd-tools（治理维度）
+"代码怎么连接"                  "怎么从 PRD 到代码"
+代码仓库                        编排 + 证据治理 + 质量门控
+        │                             │
+        └─────────────────────────────┘
+                      ▼
+            _prd-tools/reference/ 单仓可治理知识库
 ```
 
-关键原则：**图谱是原始发现层，reference 是精选后的企业知识库。** 图谱发现仍需源码确认。
+关键原则：**reference 是精选后的企业知识库。** 所有发现仍需源码确认。
 
 ## 流程总览
 
@@ -44,9 +44,9 @@ flowchart TD
   E -- "上线前确认质量" --> I["Mode C：质量门控"]
 ```
 
-### Mode A 全量构建的内部过程（图谱如何参与）
+### Mode A 全量构建的内部过程
 
-这是最核心的模式，分 4 个阶段，每阶段都有图谱参与：
+这是最核心的模式，分 4 个阶段：
 
 ```mermaid
 flowchart LR
@@ -54,81 +54,69 @@ flowchart LR
     P0["历史 PRD、技术方案、分支 diff、返工记录"]
   end
 
-  subgraph Phase1["阶段 1：结构扫描（图谱主战场）"]
+  subgraph Phase1["阶段 1：结构扫描"]
     direction TB
-    GN["GitNexus\nquery → 模块/符号\ncontext → 调用链"]
-    GF["Graphify\nquery → 业务概念\nGod Nodes → 核心模块"]
-    SCAN["rg/glob 源码扫描\n（始终执行）"]
-    GN --> FUSE["结果融合 + 去重"]
-    GF --> FUSE
-    SCAN --> FUSE
-    FUSE --> MI["_prd-tools/build/modules-index.yaml"]
-    FUSE --> GE["_prd-tools/build/graph/\nsync-report.yaml\nSTATUS.md"]
+    SCAN["rg/glob 源码扫描"]
+    SCAN --> MI["_prd-tools/build/modules-index.yaml"]
   end
 
-  subgraph Phase2["阶段 2：深度分析（每个文件有指定图谱源）"]
+  subgraph Phase2["阶段 2：深度分析"]
     direction TB
-    R1["01-codebase.yaml\n← GitNexus 主导"]
-    R2["02-coding-rules.yaml\n← Graphify 主导"]
-    R3["03-contracts.yaml\n← GitNexus 主导\n   Graphify 辅助"]
-    R4["04-routing-playbooks.yaml\n← Graphify 主导\n   GitNexus 验证代码路径"]
-    R5["05-domain.yaml\n← Graphify 独占"]
+    R1["01-codebase.yaml"]
+    R2["02-coding-rules.yaml"]
+    R3["03-contracts.yaml"]
+    R4["04-routing-playbooks.yaml"]
+    R5["05-domain.yaml"]
   end
 
   subgraph Phase3["阶段 3：质量门控"]
     direction TB
-    Q1["证据完整性：EV-xxx + GEV-xxx 都要可追溯"]
-    Q2["图谱一致性：graph_providers 与 graph-sync-report 对得上"]
-    Q3["源码确认：Graphify INFERRED 需源码升级"]
-    Q4["golden sample 回归"]
+    Q1["证据完整性：EV-xxx 都要可追溯"]
+    Q2["源码确认"]
+    Q3["golden sample 回归"]
   end
 
   Phase0 --> Phase1 --> Phase2 --> Phase3
 ```
 
-### 图谱工具在各阶段的具体查询
+### 各阶段的具体工作
 
 **阶段 1 结构扫描：**
 
-| 工具 | 查询 | 获取什么 | 回退方案 |
-|------|------|---------|---------|
-| GitNexus | `query` | 所有模块和符号 | rg/glob 扫描 |
-| GitNexus | `context` | 每个模块的调用者和被调用者 | import 分析 |
-| Graphify | `/graphify query` | 业务概念、核心模块职责 | 逐文件 Read |
-| Graphify | God Nodes | 跨域依赖、Surprising Connections | 手动推断 |
+| 方法 | 获取什么 |
+|------|---------|
+| rg/glob 扫描 | 所有模块和符号 |
+| import 分析 | 每个模块的调用者和被调用者 |
+| 逐文件 Read | 业务概念、核心模块职责 |
 
 **阶段 2 深度分析 — 每个 reference 文件的数据来源：**
 
-| reference 文件 | 主图谱源 | 辅助图谱源 | 具体获取什么 |
-|---|---|---|---|
-| `01-codebase.yaml` | GitNexus | — | 模块列表、符号定义、数据流、入口点 |
-| `02-coding-rules.yaml` | Graphify | — | 设计原理（rationale_for）、高风险区域、踩坑经验 |
-| `03-contracts.yaml` | GitNexus | Graphify | API consumer/producer、调用链、字段级定义 |
-| `04-routing-playbooks.yaml` | Graphify | GitNexus | 业务聚类（Leiden）→ 路由信号；GitNexus 验证代码路径存在 |
-| `05-domain.yaml` | Graphify | — | 术语、隐式规则、历史决策、业务约束 |
+| reference 文件 | 具体获取什么 |
+|---|---|
+| `01-codebase.yaml` | 模块列表、符号定义、数据流、入口点 |
+| `02-coding-rules.yaml` | 设计原理、高风险区域、踩坑经验 |
+| `03-contracts.yaml` | API consumer/producer、调用链、字段级定义 |
+| `04-routing-playbooks.yaml` | 路由信号、场景打法 |
+| `05-domain.yaml` | 术语、隐式规则、历史决策、业务约束 |
 
-**阶段 3 质量门控 — 图谱证据校验：**
+**阶段 3 质量门控：**
 
 | 检查项 | 规则 |
 |--------|------|
-| 图谱证据可追溯 | 所有 `GEV-xxx` / `GEV-Bxxx` 必须在 `_prd-tools/build/graph/` 中有对应条目 |
-| 图谱-源码一致性 | `project-profile.yaml` 的 `graph_providers` 与 `graph-sync-report` 匹配 |
-| 置信度分级 | GitNexus AST high 不需确认；Graphify INFERRED medium/low 需源码升级 |
+| 证据可追溯 | 所有 `EV-xxx` 必须可追溯到源码或文档 |
+| 源码确认 | 推断性结论需源码确认后才能写入 reference |
 | 样例回归 | 至少 1 个 golden sample 反推 PRD → IR → Impact → Contract 走通 |
 
-### 证据双轨制
+### 证据体系
 
-每个 reference 条目使用两套独立证据，**不能互相替代**：
+每个 reference 条目使用可审计证据：
 
 ```
 evidence: ["EV-001"]                    ← 可审计证据（源码、文档、人工确认）
-graph_evidence_refs: ["GEV-001"]        ← 代码图谱溯源（GitNexus 结构发现）
-graph_evidence_refs: ["GEV-B001"]       ← 业务图谱溯源（Graphify 业务发现）
 ```
 
-- GitNexus AST 提取（high confidence）→ 不需要额外源码确认
-- Graphify EXTRACTED + source locator（high）→ 不需要额外确认
-- Graphify INFERRED（medium/low）→ 必须用源码确认后才能写入 reference
+- 源码直接确认的结论为 high confidence
+- 推断性结论（medium/low）→ 必须用源码确认后才能写入 reference
 
 ## 什么时候用
 
@@ -176,35 +164,16 @@ _prd-tools/build/
 ├── modules-index.yaml              # 项目扫描快照
 ├── health-check.yaml               # 健康检查结果
 ├── quality-report.yaml             # 质量门控结果
-├── feedback-report.yaml            # 反馈回流审计
-└── graph/
-    ├── sync-report.yaml            # 图谱可用状态（始终生成）
-    ├── STATUS.md                   # 给人看的图谱状态
-    ├── code-evidence.yaml          # GitNexus 证据
-    └── business-evidence.yaml      # Graphify 证据
+└── feedback-report.yaml            # 反馈回流审计
 ```
 
 ## 外部工具如何参与
 
-reference 可以利用两个外部图谱工具加速构建。**两个都是可选的**——没有它们也能正常工作（回退到源码扫描）。
+reference 通过源码扫描（rg/glob + Read）构建知识库。
 
-| 工具 | 维度 | 它做什么 | 没有它会怎样 |
-|------|------|---------|-------------|
-| **[GitNexus](https://github.com/abhigyanpatwari/GitNexus)** | 代码结构 | AST 解析 → 模块、符号、调用链、API consumer、执行流追踪 | 用 `rg`/glob + Read 手动扫描源码 |
-| **[Graphify](https://github.com/safishamsi/graphify)** | 业务语义 | 从代码/文档中提取业务概念聚类、设计原理、隐式关联 | 手工阅读代码和文档推断业务语义 |
-
-GitNexus 提供 `01-codebase` 和 `03-contracts` 的结构证据；Graphify 提供 `02-coding-rules`、`04-routing-playbooks` 和 `05-domain` 的业务语义证据。
-
-安装脚本会自动索引。后续可手动更新：
+安装脚本会自动安装工具脚本。后续可手动运行 doctor 检查：
 ```bash
-# GitNexus：更新代码结构索引（含语义搜索）
-gitnexus analyze . --embeddings
-
-# Graphify：更新代码结构（快速，无 LLM）
-graphify update .
-
-# Graphify：深度业务语义图谱（需要 LLM Vision API Key）
-# 在 Claude Code 中运行 /graphify . --mode deep
+bash .prd-tools/doctor.sh
 ```
 
 ## 典型落地路径
@@ -226,9 +195,6 @@ A: 建议 `.gitignore` 排除。`_prd-tools/reference/` 是本地生成的知识
 
 **Q: 支持哪些项目类型？**
 A: 前端、BFF、后端都支持。通过能力面适配器自动识别项目层级和结构，不绑定固定目录。
-
-**Q: 图谱工具都不可用怎么办？**
-A: 完全可以工作。reference 会回退到源码扫描（rg/glob + Read），只是构建速度慢一些，不会缺少核心能力。
 
 **Q: 多仓项目怎么办？**
 A: 每个仓独立维护自己的 `_prd-tools/reference/`。跨仓契约标记为 `needs_confirmation`，等对方 owner 确认后再升级。

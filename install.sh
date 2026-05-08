@@ -3,7 +3,7 @@
 #
 # Scope: only what this repo OWNS (reference / prd-distill skills,
 # version marker, doctor/status helpers). External tools (uv, MarkItDown,
-# Graphify, GitNexus, API keys) are NOT touched here — run `prd-tools-doctor`
+# API keys) are NOT touched here — run `prd-tools-doctor`
 # afterwards to check and fix those.
 #
 # See docs/adr/0008-安装脚本职责拆分.md for rationale.
@@ -131,7 +131,7 @@ echo "  prd-tools v$TOOL_VERSION skills 安装完成"
 echo "========================================="
 echo ""
 echo "下一步："
-echo "  1. 检查外部依赖（uv / MarkItDown / Graphify / GitNexus / API Key）："
+echo "  1. 检查外部依赖（uv / MarkItDown / API Key）："
 echo "       bash $TARGET/.prd-tools/doctor.sh"
 echo "     按表里的 → 命令逐条修复，或直接交互式修："
 echo "       bash $TARGET/.prd-tools/doctor.sh --fix"

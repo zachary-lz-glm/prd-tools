@@ -7,8 +7,8 @@
 #   --strict-all      exit 1 if required or enhanced checks fail
 #   --fix             interactively run fix commands (each confirmed)
 #
-# Checks: installed skills, legacy command aliases, uv, markitdown, graphify, gitnexus
-#         runtime, Vision API key, proxy hint, .mcp.json status, project graph.
+# Checks: installed skills, legacy command aliases, uv, markitdown,
+#         runtime, Vision API key, proxy hint, project graph.
 #
 # See docs/adr/0008-安装脚本职责拆分.md.
 
@@ -111,94 +111,19 @@ else
           'uv tool install --upgrade "markitdown[all]" --with markitdown-ocr    # ocr 是插件，要用 --with'
 fi
 
-# ── 4. graphify ───────────────────────────────────────────────────
-if command -v graphify &>/dev/null; then
-  ok "graphify" "$(command -v graphify)（包名 graphifyy）"
-else
-  enhance "graphify" "未安装（业务语义图谱不可用，仍可回退源码扫描）" \
-          "uv tool install graphifyy && graphify install"
-fi
-
-# ── 5. gitnexus ────────────────────────────────────────────────────
-# GitNexus 是知识图谱质量校验的核心工具，缺少它会导致：
-#   - 代码图谱索引无法构建或质量无法评估
-#   - /graphify 产出缺少 graph-context 校验
-#   - prd-distill Section 12（graph-context）无法生效
-
-GN_RUNTIME=""
-if command -v npx &>/dev/null; then
-  GN_RUNTIME="npx"
-elif command -v bunx &>/dev/null; then
-  GN_RUNTIME="bunx"
-fi
-
-if [ -z "$GN_RUNTIME" ]; then
-  # ── 无 Node/Bun 环境（常见于纯后端项目）────────────────────────
-  enhance "gitnexus" "无 Node.js/Bun 环境，GitNexus 无法运行；会回退 rg/glob 扫描" \
-          "安装 Node.js: brew install node    # 或 curl -fsSL https://bun.sh/install | bash"
-else
-  ok "gitnexus-rt" "$GN_RUNTIME 可用（$(command -v $GN_RUNTIME)）"
-
-  if command -v gitnexus &>/dev/null; then
-    ok "gitnexus" "$(command -v gitnexus)"
-  else
-    # ── 检测 npm registry 是否能拉到公共包 ──────────────────────────
-    GN_REG_OK=0
-    GN_REG="$(npm config get registry 2>/dev/null | sed 's#/*$##')"
-    case "$GN_REG" in
-      *intra.*|*internal.*|*corp.*|*private*) GN_REG_OK=1 ;;
-    esac
-
-    if [ "$GN_REG_OK" -eq 1 ]; then
-      enhance "gitnexus" "npm registry is private (${GN_REG}), cannot reach public package gitnexus" \
-              "npm install -g gitnexus --registry https://registry.npmmirror.com"
-    else
-      if timeout 15 npx -y gitnexus@latest --version &>/dev/null; then
-        ok "gitnexus" "npm 可拉到 gitnexus 包"
-      else
-        enhance "gitnexus" "拉包探测失败（网络问题），代码图谱不可用" \
-                "npm install -g gitnexus --registry https://registry.npmmirror.com"
-      fi
-    fi
-  fi
-fi
-
-# ── 6. .mcp.json ──────────────────────────────────────────────────
-MCP_FILE="$HOME/.claude/.mcp.json"
-if [ -f "$MCP_FILE" ] && grep -q '"gitnexus"' "$MCP_FILE" 2>/dev/null; then
-  ok "mcp-config" "$MCP_FILE 已声明 gitnexus"
-else
-  warn "mcp-config" "$MCP_FILE 未声明 gitnexus" \
-       "把下方 JSON 片段合并进去"
-fi
-
-# ── 7. Vision API key ─────────────────────────────────────────────
+# ── 4. Vision API key ─────────────────────────────────────────────
 if [ -n "${ANTHROPIC_AUTH_TOKEN:-}" ]; then
   ok "api-key" "ANTHROPIC_AUTH_TOKEN 已设置"
 elif [ -n "${OPENAI_API_KEY:-}" ]; then
   ok "api-key" "OPENAI_API_KEY 已设置"
 else
-  enhance "api-key" "未配置 Vision Key（图片 OCR 和 graphify deep 不可用）" \
+  enhance "api-key" "未配置 Vision Key（MarkItDown OCR 不可用）" \
           "export ANTHROPIC_AUTH_TOKEN=sk-ant-xxx    # 加到 ~/.zshrc 持久化"
 fi
 
-# ── 8. project graph readiness ────────────────────────────────────
+# ── 5. project graph readiness ────────────────────────────────────
 echo ""
 echo "项目就绪度："
-
-if [ -d ".gitnexus" ]; then
-  ok "gitnexus-db" ".gitnexus 已存在"
-else
-  warn "gitnexus-db" "当前项目未发现 .gitnexus 索引" \
-       "gitnexus analyze ."
-fi
-
-if [ -f "graphify-out/graph.json" ]; then
-  ok "graphify-db" "graphify-out/graph.json 已存在"
-else
-  warn "graphify-db" "当前项目未发现 graphify-out/graph.json（可选）" \
-       "graphify update .    # 快速结构图；深度语义用 /graphify . --mode deep"
-fi
 
 if [ -d "_prd-tools/reference" ]; then
   ok "reference" "_prd-tools/reference 已存在"
@@ -207,10 +132,9 @@ else
        "/reference"
 fi
 
-# ── 9. uv mirror (SOCKS proxy env) ────────────────────────────────
+# ── 6. uv mirror (SOCKS proxy env) ────────────────────────────────
 # SOCKS proxy only works for curl; npm/uv do not support SOCKS.
-# npm: gitnexus check (section 4) already handles public package install.
-# uv: needs a PyPI mirror to install markitdown/graphify without proxy.
+# uv: needs a PyPI mirror to install markitdown without proxy.
 
 if [ -n "${http_proxy:-${HTTP_PROXY:-}}" ]; then
   P="${http_proxy:-${HTTP_PROXY:-}}"
@@ -245,34 +169,14 @@ if [ "$ISSUES" -eq 0 ]; then
   echo ""
   echo "  ${C_DIM}下一步：${C_R}"
   echo "  ${C_DIM}1. 关闭并重新打开 Claude Code，新 skills 才会加载${C_R}"
-  echo "  ${C_DIM}2. gitnexus analyze .              # 构建代码索引${C_R}"
-  echo "  ${C_DIM}3. /graphify .（可选）              # 构建业务语义图谱（较慢，提升领域知识）${C_R}"
-  echo "  ${C_DIM}4. /reference                 # 构建项目知识库${C_R}"
-  echo "  ${C_DIM}5. /prd-distill               # 蒸馏 PRD -> plan + tasks${C_R}"
-  echo "  ${C_DIM}6. bash .prd-tools/status.sh  # 生成 _prd-tools/STATUS.md + dashboard${C_R}"
+  echo "  ${C_DIM}2. /reference                 # 构建项目知识库${C_R}"
+  echo "  ${C_DIM}3. /prd-distill               # 蒸馏 PRD -> plan + tasks${C_R}"
+  echo "  ${C_DIM}4. bash .prd-tools/status.sh  # 生成 _prd-tools/STATUS.md + dashboard${C_R}"
 else
   echo "  ${C_BAD}发现 $ISSUES 项需要修复。${C_R}"
   echo "  可执行：bash $0 --fix    # 交互式逐条修"
 fi
 echo ""
-
-# MCP snippet（缺失时打印） ----------------------------------------
-if [ ! -f "$MCP_FILE" ] || ! grep -q '"gitnexus"' "$MCP_FILE" 2>/dev/null; then
-  cat <<'SNIP'
-  把下面的内容合并到 ~/.claude/.mcp.json（注意 mcpServers 已存在则合并而非覆盖）：
-
-  {
-    "mcpServers": {
-      "gitnexus": {
-        "command": "npx",
-        "args": ["-y", "gitnexus@latest", "mcp"],
-        "env": {"npm_config_registry": "https://registry.npmmirror.com"}
-      }
-    }
-  }
-
-SNIP
-fi
 
 # ── --fix 交互式修复 ──────────────────────────────────────────────
 if [ "$FIX" -eq 1 ] && [ "${#FIXES[@]}" -gt 0 ]; then

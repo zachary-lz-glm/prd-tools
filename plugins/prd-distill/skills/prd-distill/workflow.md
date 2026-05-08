@@ -126,28 +126,21 @@ _ingest/
 
 ## 步骤 3：Layer Impact
 
-在生成 Layer Impact 前，先构建需求级图谱上下文。
+在生成 Layer Impact 前，先构建需求级代码上下文。
 
-### 3.1 Graph Context（图谱驱动技术上下文）
+### 3.1 Graph Context（源码驱动技术上下文）
 
 生成 `context/graph-context.md`。这个文件是 `plan.md` 和 `report.md` 的直接输入，目标是把 PRD 语言变成可执行的代码坐标。
 
-当 GitNexus 可用时，对每个 REQ 执行：
+对每个 REQ 执行源码扫描：
 
-1. 用 `mcp__gitnexus__query` 查询业务实体、字段名、接口名、动作词和 reference routing 关键词，找到相关 execution flows、函数、类、方法和文件。
-2. 对 Top symbols 用 `mcp__gitnexus__context` 获取 callers、callees、imports、properties、参与流程和文件位置。
-3. 对 MODIFY/DELETE/契约变化候选用 `mcp__gitnexus__impact` 获取 blast radius。
-4. 对 API/route/schema 变化用 `mcp__gitnexus__api_impact`、`route_map` 或 `shape_check` 获取 consumers、字段访问和 shape mismatch。
+1. 从 requirement-ir 提取业务实体、字段名、接口名、动作词和 reference routing 关键词。
+2. 用 `rg`/`glob` 搜索源码中匹配的函数、类、方法、文件和符号。
+3. 用 `Read` 读取命中文件，获取 callers、callees、imports、properties 和参与流程。
+4. 对 MODIFY/DELETE/契约变化候选用 `rg` 追踪引用链，评估 blast radius。
 5. 将命中的符号写成函数级技术线索：`symbol`、`kind`、`file:line`、`role_in_flow`、`callers`、`callees`、`risk`、`recommended_plan_usage`。
 
-当 Graphify 可用时，对每个 REQ 执行：
-
-1. 用 `/graphify query` 查询业务实体、隐式规则、历史术语。
-2. 用 `/graphify path "<需求关键词>" "<目标模块/业务概念>"` 追踪业务关联路径。
-3. 用 `/graphify explain "<变更概念>"` 获取设计原理、隐式约束和历史坑点。
-4. 将结果写入 `business_constraints`，并标明 `confidence: high|medium|low`。Graphify `INFERRED` 默认不能写 high。
-
-图谱不可用时也必须生成 `context/graph-context.md`，写明 unavailable reason，并列出 fallback `rg`/Read 查询。
+始终生成 `context/graph-context.md`，记录实际执行的搜索查询和命中结果。
 
 读取目标层适配器：
 
@@ -168,12 +161,11 @@ _ingest/
 
 ADD/MODIFY/DELETE/NO_CHANGE 必须由源码或负向搜索支撑。
 
-图谱增强（可选，当图谱可用时）：
+源码扫描增强：
 
 - 优先消费 `context/graph-context.md`，不要在 plan/report 阶段重新凭空猜函数。
-- 如 GitNexus available：将 `mcp__gitnexus__query/context/impact/api_impact` 结果写入 impact 条目的 `affected_symbols` 和 `graph_evidence_refs`。
-- 如 Graphify available：将 `/graphify query/path/explain` 结果写入 impact 条目的 `business_constraints`。
-- 图谱不可用时这些字段留空，不影响核心流程。
+- 将源码扫描命中的符号写入 impact 条目的 `affected_symbols` 和 `graph_evidence_refs`。
+- 将业务约束写入 impact 条目的 `business_constraints`。
 
 ## 步骤 4：Contract Delta
 
@@ -189,7 +181,7 @@ ADD/MODIFY/DELETE/NO_CHANGE 必须由源码或负向搜索支撑。
 - alignment_status
 - checked_by
 - evidence
-- graph_evidence_refs（可选，图谱可用时填充）
+- graph_evidence_refs（可选，源码扫描命中时填充）
 
 判断：
 
@@ -203,7 +195,7 @@ ADD/MODIFY/DELETE/NO_CHANGE 必须由源码或负向搜索支撑。
 生成 `plan.md`（函数级技术方案文档 + 开发计划）：
 
 - 精确到文件路径和行号。
-- 包含 12 个章节：范围与假设、图谱命中与代码坐标、整体架构、实现计划、API 设计、数据存储、配置与开关、校验规则汇总、QA 矩阵、契约对齐、风险与回滚、工作量估算、AI 执行说明。
+- 包含 12 个章节：范围与假设、源码扫描命中与代码坐标、整体架构、实现计划、API 设计、数据存储、配置与开关、校验规则汇总、QA 矩阵、契约对齐、风险与回滚、工作量估算、AI 执行说明。
 - 用 `- [ ]` checklist 格式，可直接勾选。
 - 每个任务包含：目标文件、操作描述、参考实现、关联 REQ/IMP/CONTRACT、验证命令。
 - 每个 MODIFY/DELETE 任务必须引用 `graph-context.md` 中的函数级线索；ADD 任务必须引用相邻参考实现或负向搜索证据。
@@ -228,7 +220,7 @@ ADD/MODIFY/DELETE/NO_CHANGE 必须由源码或负向搜索支撑。
 数据来源：
 - `_ingest/extraction-quality.yaml` → PRD 读取质量。
 - `spec/evidence.yaml` + `spec/requirement-ir.yaml` → 证据覆盖。
-- `context/graph-context.md` → GitNexus / Graphify provider 增益。
+- `context/graph-context.md` → source code scanning coverage。
 - `context/contract-delta.yaml` → 契约对齐和 owner 确认。
 - `plan.md` + `tasks/` → 任务是否可执行。
 
@@ -236,7 +228,7 @@ ADD/MODIFY/DELETE/NO_CHANGE 必须由源码或负向搜索支撑。
 - `status`: `pass | warning | fail`。
 - `score`: 0-100。
 - `decision`: `ready_for_dev | needs_owner_confirmation | blocked`。
-- `provider_value`: 分别列出 GitNexus、Graphify、reference 对 plan/report 实际贡献了什么。
+- `provider_value`: 列出 source code scanning 和 reference 对 plan/report 实际贡献了什么。
 - `next_actions`: 最多 5 条，优先处理 blocked 和 needs_confirmation。
 
 生成后提示用户运行：
@@ -294,9 +286,9 @@ suggestions:
 `report.md` 采用渐进式披露（Progressive Disclosure）结构，同一文件内从结论到细节逐层展开，最后以阻塞问题收尾：
 
 1. **需求摘要**（30秒决策）：一句话 + 变更类型统计
-2. **图谱命中摘要**：GitNexus/Graphify 可用状态、命中的关键函数/流程/业务约束、未命中原因
+2. **源码扫描命中摘要**：命中的关键函数/流程/业务约束、未命中原因
 3. **影响范围**：命中的层、能力面、关键文件
-4. **关键结论**：带 REQ-ID、代码路径和图谱证据
+4. **关键结论**：带 REQ-ID、代码路径和源码扫描证据
 5. **变更明细表**：所有 IMP-* 项，精确到文件路径
 6. **字段清单**：按功能模块分组，含类型/必填/契约ID
 7. **校验规则**：规则描述 + 错误文案 + 目标文件

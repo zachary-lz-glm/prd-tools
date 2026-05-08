@@ -58,12 +58,7 @@ _prd-tools/build/              # 过程和质量报告
 ├── modules-index.yaml
 ├── health-check.yaml
 ├── quality-report.yaml
-├── feedback-report.yaml
-└── graph/
-    ├── sync-report.yaml               # 始终生成
-    ├── STATUS.md                      # 人类可读图谱状态
-    ├── code-evidence.yaml             # GitNexus 证据
-    └── business-evidence.yaml         # Graphify 证据
+└── feedback-report.yaml
 ```
 
 兼容读取 v3.1（`01-entities.yaml` ~ `09-playbooks.yaml`），自动映射到 v4.0。
@@ -94,40 +89,6 @@ _prd-tools/build/              # 过程和质量报告
 - 搜不到也是证据 → `negative_code_search`（记录 query 和范围）。
 - 不确定写 `confidence: low`，进入开放问题。
 - 关键事实必须有 `evidence`、`verified_by` 或负向搜索。
-
-## 图谱增强（可选）
-
-图谱可用时从 `references/reference-v4.md` 的「图谱证据层」获取详细规则。
-
-| 工具 | 维度 | 适用文件 |
-|---|---|---|
-| GitNexus | 代码结构 | 01-codebase、03-contracts |
-| Graphify | 业务语义 | 02-coding-rules、04-routing-playbooks、05-domain |
-
-核心原则：**图谱是原始发现层，reference 是精选后的企业知识库。** Raw Graph ≠ Reference。
-
-### 图谱证据桥接
-
-两套独立证据追踪，不可互相替代：
-- `evidence: ["EV-xxx"]` — 可审计证据（源码、文档、人工确认）。
-- `graph_evidence_refs: ["GEV-xxx"]` — 图谱溯源。
-
-始终生成 `_prd-tools/build/graph/sync-report.yaml`（即使图谱不可用）。
-
-图谱不可用时回退到 `rg`/glob/Read，并提示用户运行：
-- `gitnexus analyze . --embeddings`（更新代码索引 + 语义搜索）
-- `/graphify . --mode deep`（构建业务语义图谱）
-
-### 置信度映射
-
-| 来源 | confidence | 需源码确认 |
-|---|---|---|
-| GitNexus AST 提取 | high | 不需要 |
-| Graphify EXTRACTED + locator | high | 不需要 |
-| Graphify EXTRACTED 无 locator | medium | 需要 |
-| Graphify INFERRED ≥ 0.8 | medium | 需要 |
-| Graphify INFERRED < 0.8 | low | 必须确认 |
-| Graphify AMBIGUOUS | low | 必须人工确认 |
 
 ## 执行步骤
 

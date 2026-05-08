@@ -61,7 +61,7 @@ _prd-tools/
 - `_prd-tools/distill/<slug>/readiness-report.yaml`（机器可读就绪度和 provider 增益）
 - `_prd-tools/distill/<slug>/tasks/`（AI 可执行任务）
 
-`spec/` 是结构化需求，`context/` 是图谱+契约分析上下文，`_ingest/` 是原始文档读取层。
+`spec/` 是结构化需求，`context/` 是契约分析上下文，`_ingest/` 是原始文档读取层。
 
 ## _ingest/
 
@@ -115,9 +115,9 @@ rules:
 ## 2. 影响范围
 命中的层、能力面、关键文件/模块（表格形式）。
 
-## 3. 图谱命中摘要
-| Provider | Status | 命中内容 | 用于哪些结论 | 缺口 |
-列出 GitNexus 命中的关键函数/调用链/API consumer，以及 Graphify 命中的业务约束。图谱不可用时写 unavailable reason 和 fallback 搜索范围。
+## 3. 代码命中摘要
+| 来源 | 命中内容 | 用于哪些结论 | 缺口 |
+列出代码搜索命中的关键函数/调用链/API consumer。
 
 ## 4. 关键结论
 新增/修改/不改什么，每个结论带 REQ-ID 和代码路径引用。
@@ -183,7 +183,7 @@ rules:
 - **report.md 是决策文档，不是所有细节的全集**。
 - 不要把完整 YAML 证据链展开到 report 里，那是 spec/ 和 context/ 的职责。
 - 不要复制 PRD 原文，只引用 REQ-ID。
-- 建议总长度控制在 300-650 行（Markdown 源码）。超限时精简优先级：字段清单 > 校验规则（先精简）；图谱命中摘要 > 变更明细表 > 阻塞问题与线索 > 契约风险 > 影响范围（不精简）。
+- 建议总长度控制在 300-650 行（Markdown 源码）。超限时精简优先级：字段清单 > 校验规则（先精简）；代码命中摘要 > 变更明细表 > 阻塞问题与线索 > 契约风险 > 影响范围（不精简）。
 
 ## plan.md
 
@@ -205,9 +205,9 @@ rules:
 需要先完成的基础设施、其他团队接口、外部系统准备。
 
 ## 2. 整体架构
-### 图谱命中与代码坐标
+### 代码坐标
 | REQ | 入口/函数/结构体 | 文件:行号 | 调用链角色 | 来源 |
-来自 `context/graph-context.md`。必须标注 GitNexus query/context/impact/api_impact 或 fallback rg/Read。
+来自代码搜索。必须标注搜索来源（rg/Read 等）。
 
 ### 方案概述
 用文字描述+简单框图说明整体方案。
@@ -228,7 +228,7 @@ rules:
   - 关键函数/结构体：`SymbolName`
   - 操作：具体操作描述
   - 调用链影响：入口 -> 当前函数 -> 下游函数/consumer
-  - 图谱依据：`GCTX-001` / `GEV-001` / `EV-001`
+  - 证据依据：`GCTX-001` / `EV-001`
   - 关联：REQ-001, IMP-BE-001
   - 验证：`grep -n "XXX" path/to/file.go`
 
@@ -326,7 +326,7 @@ rules:
 
 - **精确到文件和行号**：每个任务给出目标文件路径，尽量带行号。不确定行号时标注"约在 XX 附近"，不要编造。
 - **精确到函数级**：MODIFY/DELETE 任务必须给出入口函数、关键函数/方法/结构体、调用方/被调用方和回归影响；ADD 任务必须给出相邻参考实现或负向搜索证据。
-- **Graph Context 优先**：先消费 `context/graph-context.md`，再写 plan。不能只根据 `_prd-tools/reference/` 写计划。
+- **Graph Context 优先**：先消费代码搜索结果，再写 plan。不能只根据 `_prd-tools/reference/` 写计划。
 - **给出验证命令**：每个关键步骤附带 grep/go test 等验证命令。
 - **给出参考实现**：类似功能的已有代码路径，开发人员可以参照。
 - **代码线索不可省略**：每个任务必须保留文件路径、行号、参考结构体名、proxy 路径等线索。
@@ -405,20 +405,17 @@ rules:
 - **Code Context 精确度**：内联的代码片段仅包含与改动直接相关的部分（函数签名、结构体定义、关键逻辑），不超过 80 行。超过时截取关键部分并标注"完整实现见 `path/to/file.ts:行号`"。
 - **依赖声明**：每个 task 显式声明前置/后续 task，形成 DAG。
 - **禁止文件**：每个 task 继承 plan.md §12 的禁止文件清单。
-- **所有数据来自已有 artifacts**：spec/requirement-ir（业务上下文）、context/layer-impact（字段映射）、context/contract-delta（契约约束）、context/graph-context（调用链、参考实现）、源码（当前代码片段）。不引入新的事实判断。
+- **所有数据来自已有 artifacts**：spec/requirement-ir（业务上下文）、context/layer-impact（字段映射）、context/contract-delta（契约约束）、源码搜索（调用链、参考实现）、源码（当前代码片段）。不引入新的事实判断。
 
 ## context/graph-context.md
 
 ```markdown
-# 图谱技术上下文：<需求名称>
+# 代码搜索上下文：<需求名称>
 
-## 1. Provider 状态
-| Provider | Status | Index/Graph | 备注 |
-
-## 2. PRD 概念到代码路由
+## 1. PRD 概念到代码路由
 | REQ | 查询词 | 命中流程/模块 | 关键文件 | 置信度 |
 
-## 3. GitNexus 函数级上下文
+## 2. 函数级上下文
 ### GCTX-001 <symbol/process>
 - 查询来源：REQ-001 / 字段 / 接口 / 业务实体
 - 符号：`SymbolName`
@@ -429,31 +426,20 @@ rules:
 - 被调用方：`CalleeA`, `CalleeB`
 - 影响半径：模块/函数/route consumer 列表
 - 计划用途：modify | add-nearby | verify-no-change | regression-scope
-- 证据：EV-xxx / GEV-xxx
+- 证据：EV-xxx
 
-## 4. API / Contract Consumers
+## 3. API / Contract Consumers
 | Route/Contract | Producer | Consumers | Consumer 字段访问 | Shape 风险 |
 
-## 5. Graphify 业务约束
-### GCTX-B001 <concept>
-- 概念：<业务概念>
-- 关联路径：A -> B -> C
-- 设计原理：<rationale>
-- 隐式约束：<constraint>
-- 风险：<risk_if_violated>
-- 置信度：high | medium | low
-- 证据：EV-xxx / GEV-Bxxx
-
-## 6. Fallback 搜索与未命中
+## 4. 搜索未命中
 | Query | Scope | Result | 结论 |
 ```
 
 规则：
 
 - `graph-context.md` 是 plan/report 的前置上下文，不是最终报告。
-- **必须生成**：图谱不可用时也必须生成此文件，写明 unavailable reason 并列出 fallback rg/Read 查询。
-- GitNexus AST 精确命中的符号、调用链、route consumer 可以作为 high-confidence 代码线索。
-- Graphify `INFERRED` 默认为 medium/low，必须经源码、PRD、技术文档或人工确认后才可升级。
+- **必须生成**：列出所有代码搜索查询和结果。
+- 源码确认的符号、调用链、route consumer 可以作为 high-confidence 代码线索。
 - 所有 GCTX 条目必须被 `plan.md` 或 `report.md` 消费，未消费要说明原因。
 
 ## spec/evidence.yaml
@@ -527,18 +513,6 @@ layers:
         risks: []
         evidence: ["EV-001"]
         confidence: "high | medium | low"
-        affected_symbols:                     # GitNexus impact（可选，图谱可用时填充）
-          - symbol: ""
-            blast_radius: []
-            confidence: 0.0
-            graph_provider: "gitnexus"
-        business_constraints:                 # Graphify 业务关联（可选，图谱可用时填充）
-          - concept: ""
-            related_concepts: []
-            design_rationale: ""
-            risk_if_violated: ""
-            graph_provider: "graphify"
-        graph_evidence_refs: []               # GEV-xxx / GEV-Bxxx 溯源
   bff:
     impacts: []
   backend:
@@ -571,7 +545,6 @@ contracts:
     alignment_status: "aligned | needs_confirmation | blocked | not_applicable"
     checked_by: ["frontend", "bff"]
     evidence: ["EV-001"]
-    graph_evidence_refs: []               # GEV-xxx 图谱溯源（可选）
 alignment_summary:
   status: "aligned | needs_confirmation | blocked | not_applicable"
   blockers: []
@@ -600,7 +573,6 @@ suggestions:
       related_repos: []
       aggregation_status: "candidate | confirmed | rejected | not_applicable"
     evidence: ["EV-001"]
-    graph_context_refs: []
     priority: "high | medium | low"
     confidence: "high | medium | low"
     proposed_patch: ""
@@ -611,7 +583,6 @@ suggestions:
 - 当前仓可由源码、技术文档或 owner 确认的事实，`current_repo_scope.action` 才能是 `apply_to_current_repo`。
 - 跨仓契约、上下游 owner、团队级术语只作为 `record_as_signal` 或 `needs_owner_confirmation`，并填写 `owner_to_confirm`。
 - `team_reference_candidate: true` 只表示未来团队知识库候选，不代表 `/prd-distill` 或 `/reference` 会自动同步到团队级知识库。
-- 能被 `context/graph-context.md` 佐证的建议必须填写 `graph_context_refs`，但图谱推断不能替代 owner 确认。
 
 ## readiness-report.yaml
 
@@ -631,7 +602,7 @@ summary:
 scores:
   prd_ingestion: 0
   evidence_coverage: 0
-  graph_context: 0
+  code_search: 0
   contract_alignment: 0
   task_executability: 0
 risks:
@@ -647,16 +618,6 @@ risks:
       source: "contract | evidence | ingestion | task"
   low_confidence_assumptions: []
 provider_value:
-  gitnexus:
-    available: false
-    added_findings: 0
-    used_by_plan: 0
-    examples: []
-  graphify:
-    available: false
-    added_findings: 0
-    used_by_plan: 0
-    examples: []
   reference:
     reused_playbooks: 0
     reused_contracts: 0
@@ -670,7 +631,7 @@ next_actions: []
 |---|---:|---|
 | `prd_ingestion` | 20 | `_ingest/extraction-quality.yaml`、media/table warnings |
 | `evidence_coverage` | 25 | `spec/evidence.yaml`、`spec/requirement-ir.yaml` |
-| `graph_context` | 15 | `context/graph-context.md`、provider hit count |
+| `code_search` | 15 | 代码搜索覆盖率 |
 | `contract_alignment` | 25 | `context/contract-delta.yaml` |
 | `task_executability` | 15 | `plan.md`、`tasks/` |
 

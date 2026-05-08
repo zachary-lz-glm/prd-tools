@@ -7,14 +7,6 @@ last_verified: "<YYYY-MM-DD>"
 verify_cadence: "14d"
 owner: "<team>"
 boundary: "静态清单：代码库中已存在的事实。不放字段级契约（见03-contracts）、不放编码规则（见02-coding-rules）、不放业务术语解释（见05-domain）、不放场景打法步骤（见04-routing-playbooks）。"
-graph_providers:
-  - provider: "gitnexus"
-    graph: "code"
-    available: false
-  - provider: "graphify"
-    graph: "business"
-    available: false
-
 # 目录结构（树形文本）
 directory_tree: ""
 
@@ -26,8 +18,6 @@ enums:
       - name: "<NAME>"
         value: "<value>"
         label: "<一句话业务含义>"
-    graph_sources: ["gitnexus"]    # gitnexus | graphify | [] (可选，图谱不可用时为空)
-    graph_evidence_refs: []        # GEV-xxx 列表，图谱溯源用
     evidence:
       - "EV-001"
 
@@ -38,8 +28,6 @@ modules:
     responsibilities: []
     entrypoints: []           # 文件:方法 格式
     key_files: []
-    graph_sources: ["gitnexus"]
-    graph_evidence_refs: []
     evidence:
       - "EV-001"
 
@@ -48,8 +36,6 @@ registries:
   - name: "<registry-name>"
     file: "<path:line>"
     pattern: "switch-case by CampaignType"
-    graph_sources: ["gitnexus"]
-    graph_evidence_refs: []
     evidence:
       - "EV-001"
 
@@ -62,8 +48,6 @@ data_flows:
       - "<target>"
     contract_refs:
       - "CONTRACT-001"
-    graph_sources: ["gitnexus"]
-    graph_evidence_refs: []
     evidence:
       - "EV-001"
 
@@ -72,8 +56,6 @@ external_systems:
   - name: "<system-name>"
     integration_file: "<path>"
     contract_ref: "CONTRACT-001"
-    graph_sources: ["gitnexus"]   # 或 ["gitnexus", "graphify"]
-    graph_evidence_refs: []
     evidence:
       - "EV-001"
 
@@ -83,7 +65,5 @@ structures:
     kind: "<type|interface|payload|db_model>"
     definition_file: "<path:line>"
     fields: []                # 只列字段名，不放 type/required（那是 03-contracts 的事）
-    graph_sources: ["gitnexus"]
-    graph_evidence_refs: []
     evidence:
       - "EV-001"

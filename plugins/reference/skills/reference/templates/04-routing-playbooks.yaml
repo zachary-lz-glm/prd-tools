@@ -7,14 +7,6 @@ last_verified: "<YYYY-MM-DD>"
 verify_cadence: "14d"
 owner: "<team>"
 boundary: "PRD路由信号 + 场景打法。路由只记录信号到能力面的映射，不展开实现步骤。步骤只在 playbook 中。不放枚举值（见01-codebase）、不放字段级契约（见03-contracts）、不放编码规则（见02-coding-rules）。"
-graph_providers:
-  - provider: "graphify"
-    graph: "business"
-    available: false
-  - provider: "gitnexus"
-    graph: "code"
-    available: false
-
 # 能力边界
 capability_boundary:
   can_do: []
@@ -37,8 +29,6 @@ prd_routing:
         expected_owner: ""
         verification: "confirmed|needs_confirmation|unknown"
     confidence_rule: "high|medium|low"
-    graph_sources: []         # graphify（Leiden聚类→路由模式）、gitnexus（代码路径验证）、或两者
-    graph_evidence_refs: []
     evidence:
       - "EV-001"
 
@@ -48,8 +38,6 @@ field_mappings:
     code_field: ""
     target_layer: ""
     contract_ref: "CONTRACT-001"
-    graph_sources: []
-    graph_evidence_refs: []
     evidence:
       - "EV-001"
 
@@ -78,8 +66,6 @@ playbooks:
         owner_to_confirm: ""
     qa_matrix: []
     common_mistakes: []
-    graph_sources: []         # graphify（业务聚类发现场景）
-    graph_evidence_refs: []
     evidence:
       - "EV-001"
 
@@ -94,7 +80,5 @@ golden_samples:
     team_reference_candidate: false
     related_repos: []
     lessons: []
-    graph_sources: []         # graphify（历史样例关联）
-    graph_evidence_refs: []
     evidence:
       - "EV-001"

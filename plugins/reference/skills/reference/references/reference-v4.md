@@ -27,7 +27,7 @@ _prd-tools/reference/
 ### project-profile.yaml
 **项目画像：当前仓库的身份、技术栈、入口、能力面和协作边界。**
 
-包含：项目层级、技术栈、运行/测试命令、能力面、图谱 provider、`reference_scope`、`related_repositories`。
+包含：项目层级、技术栈、运行/测试命令、能力面、`reference_scope`、`related_repositories`。
 
 `reference_scope.authority` 固定表达当前 `_prd-tools/reference/` 的权威范围，默认是 `single_repo`。`related_repositories` 只记录与当前仓库有关的上下游/消费者/生产者线索，不能替代对方仓库的 reference。
 
@@ -105,7 +105,7 @@ _prd-tools/reference/
 | 状态 | 含义 | 允许用途 |
 |------|------|---------|
 | `confirmed` | 已由当前仓证据或对应 owner 确认 | 可进入 plan/report 的确定性结论 |
-| `needs_confirmation` | 有 PRD、图谱、调用线索或历史样例，但缺 owner 确认 | 可作为阻塞问题、handoff、回流候选 |
+| `needs_confirmation` | 有 PRD、调用线索或历史样例，但缺 owner 确认 | 可作为阻塞问题、handoff、回流候选 |
 | `unknown` | 仅知道可能相关，缺少足够证据 | 只能作为开放问题 |
 
 未来如果建设 B 端团队级知识库，应从各仓 `_prd-tools/reference/` 和 `reference-update-suggestions.yaml` 聚合：
@@ -151,7 +151,7 @@ related_repositories:
 ```yaml
 evidence:
   - id: "EV-001"
-    kind: "code | prd | tech_doc | git_diff | negative_code_search | human | api_doc | knowledge_graph"
+    kind: "code | prd | tech_doc | git_diff | negative_code_search | human | api_doc"
     source: ""
     locator: ""
     summary: ""
@@ -159,75 +159,6 @@ confidence: "high | medium | low"
 ```
 
 `high` 表示直接来自源码、PRD、技术文档等权威来源。`medium` 表示证据部分完整。`low` 表示可作为线索，但不能自动执行。
-
-## 图谱证据层（Graph Evidence）
-
-当 GitNexus 或 Graphify 图谱可用时，reference 可以从图谱获取结构化证据。图谱是原始发现层，reference 是精选后的企业知识库。
-
-### 原则
-
-| 原则 | 说明 |
-|------|------|
-| Raw Graph ≠ Reference | 图谱是原始知识发现层，reference 是精选后的企业知识库 |
-| 图谱结论仍需确认 | 关键契约、字段、枚举必须回到源码或接口定义确认 |
-| INFERRED 默认非高置信度 | Graphify 的 INFERRED 关系必须降级为 medium/low，除非能追到原文 |
-| 不把完整 graph 塞进 prompt | 只用 query 拉小子图，避免 context 爆炸 |
-| Provider 可替换 | 不绑定具体工具，未来可替换为内部 MCP、Neo4j、Sourcegraph、CodeQL |
-| 单仓先行 | 图谱可以发现跨仓线索，但 reference 默认只固化本仓确认事实 |
-
-### 统一图谱证据格式
-
-不绑定具体图谱工具，用 `graph_evidence` 统一记录：
-
-```yaml
-_prd-tools/build/graph/
-├── business-evidence.yaml          # Graphify 业务图谱证据
-├── code-evidence.yaml              # GitNexus 代码图谱证据
-└── sync-report.yaml                # 图谱同步状态报告
-```
-
-每条图谱证据：
-
-```yaml
-graph_evidence:
-  - id: "GEV-001"
-    provider: "graphify | gitnexus | <custom>"
-    graph: "business | code"
-    query: ""
-    result_summary: ""
-    source: "graphify-out/graph.json | .gitnexus/ | <custom>"
-    source_files: []
-    used_for: []                     # 哪些 reference 文件会引用
-    confidence: "high | medium | low"
-```
-
-### 图谱 Provider 对应关系
-
-| Provider | Graph 类型 | 适用的 reference 文件 | 核心能力 |
-|----------|-----------|---------------------|---------|
-| `gitnexus` | `code` | 01-codebase、03-contracts | 模块、调用链、字段、契约、影响面 |
-| `graphify` | `business` | 02-coding-rules、04-routing-playbooks、05-domain | 业务概念、规则、因果、历史决策、设计原理 |
-| `<custom>` | 自定义 | 按需 | 内部 MCP、Neo4j、Sourcegraph、CodeQL 等 |
-
-### reference 文件与图谱数据源
-
-| reference 文件 | 主要图谱来源 | 辅助来源 | 说明 |
-|---------------|------------|---------|------|
-| `01-codebase.yaml` | GitNexus (code) | — | 目录、模块、符号、入口、数据流从代码图谱辅助发现 |
-| `02-coding-rules.yaml` | Graphify (business) | GitNexus | 设计原理、常见模式、危险区从 rationale_for 节点和调用链提炼 |
-| `03-contracts.yaml` | GitNexus (code) | Graphify | FE/BFF/BE 字段、producer/consumer 从跨文件解析对齐 |
-| `04-routing-playbooks.yaml` | Graphify (business) | GitNexus | PRD 关键词到能力面映射从业务图谱提取 |
-| `05-domain.yaml` | Graphify (business) | — | 活动类型、权益、隐式规则从 PRD/技术方案多模态提取 |
-
-### 图谱置信度映射
-
-| 图谱 Provider 置信度 | evidence.confidence | 说明 |
-|---------------------|--------------------|----|
-| GitNexus (AST 精确提取) | `high` | 机器精度，无需降级 |
-| Graphify `EXTRACTED` | `high` | 直接提取，等同于源码证据 |
-| Graphify `INFERRED` confidence ≥ 0.8 | `medium` | 需要源码或文档确认 |
-| Graphify `INFERRED` confidence < 0.8 | `low` | 只能作为线索，不直接进入 reference |
-| Graphify `AMBIGUOUS` | `low` | 需人工确认后才能进入 reference |
 
 ## 从旧版 Reference 迁移
 

@@ -117,23 +117,6 @@ quality_score="$(yaml_value "$quality_file" "score")"
 quality_score="${quality_score:-unknown}"
 warning_count="$(count_yaml_list_items "$quality_file" "warnings")"
 
-graph_file="$OUT_DIR/build/graph/sync-report.yaml"
-gitnexus_available="$(section_yaml_value "$graph_file" "gitnexus" "available")"
-gitnexus_available="${gitnexus_available:-unknown}"
-gitnexus_index="$(section_yaml_value "$graph_file" "gitnexus" "index_status")"
-gitnexus_index="${gitnexus_index:-unknown}"
-gitnexus_query="$(section_yaml_value "$graph_file" "gitnexus" "query_usable")"
-gitnexus_query="${gitnexus_query:-unknown}"
-gitnexus_nodes="$(section_yaml_value "$graph_file" "gitnexus" "total_nodes")"
-gitnexus_nodes="${gitnexus_nodes:-unknown}"
-
-graphify_available="$(section_yaml_value "$graph_file" "graphify" "available")"
-graphify_available="${graphify_available:-unknown}"
-graphify_mode="$(section_yaml_value "$graph_file" "graphify" "mode")"
-graphify_mode="${graphify_mode:-unknown}"
-graphify_nodes="$(section_yaml_value "$graph_file" "graphify" "final_nodes")"
-graphify_nodes="${graphify_nodes:-unknown}"
-
 latest_distill_dir=""
 if [ -d "$OUT_DIR/distill" ]; then
   latest_distill_dir="$(find "$OUT_DIR/distill" -mindepth 1 -maxdepth 1 -type d -print 2>/dev/null \
@@ -180,16 +163,6 @@ fi
 if [ "$reference_status" != "exists" ]; then
   next_actions+=("Run /reference to build the project knowledge base.")
 fi
-if [ "$gitnexus_available" != "true" ]; then
-  next_actions+=("Run gitnexus analyze . to build the code graph.")
-elif [ "$gitnexus_query" = "false" ]; then
-  next_actions+=("Run gitnexus analyze . --embeddings to enable semantic query.")
-fi
-if [ "$graphify_available" != "true" ]; then
-  next_actions+=("Run graphify update . or /graphify . --mode deep for business graph context.")
-elif printf "%s" "$graphify_mode" | grep -qi "AST-only"; then
-  next_actions+=("Run /graphify . --mode deep to add semantic business graph context.")
-fi
 if [ "$latest_slug" = "none" ]; then
   next_actions+=("Run /prd-distill on a PRD to generate readiness, plan, and tasks.")
 elif [ "$readiness_status" = "not_available" ]; then
@@ -228,14 +201,7 @@ Generated: \`$now_utc\`
 | Reference | $reference_status | \`_prd-tools/reference/\` |
 | Reference Quality | $quality_status | score: $quality_score, warnings: $warning_count |
 
-## 2. Graph Providers
-
-| Provider | Status | Detail |
-|---|---|---|
-| GitNexus | $gitnexus_available | index: $gitnexus_index, query: $gitnexus_query, nodes: $gitnexus_nodes |
-| Graphify | $graphify_available | mode: $graphify_mode, nodes: $graphify_nodes |
-
-## 3. Latest Distill
+## 2. Latest Distill
 
 | Item | Value |
 |---|---|
@@ -247,7 +213,7 @@ Generated: \`$now_utc\`
 | Needs Confirmation | $needs_confirmation_count |
 | Tasks | $task_count |
 
-## 4. Legacy Signals
+## 3. Legacy Signals
 
 EOF
   if [ "${#legacy_notes[@]}" -eq 0 ]; then
@@ -257,17 +223,16 @@ EOF
   fi
   cat <<EOF
 
-## 5. Next Actions
+## 4. Next Actions
 
 EOF
   write_list_md "${next_actions[@]}"
   cat <<EOF
 
-## 6. Files
+## 5. Files
 
 - Dashboard: \`_prd-tools/dashboard/index.html\`
 - Reference quality: \`_prd-tools/build/quality-report.yaml\`
-- Graph sync: \`_prd-tools/build/graph/sync-report.yaml\`
 - Latest readiness: \`${readiness_file:-none}\`
 EOF
 } > "$STATUS_MD"
@@ -379,25 +344,7 @@ cat > "$DASHBOARD_HTML" <<EOF
       </div>
     </section>
 
-    <section class="two-col">
-      <div class="panel">
-        <h2>Provider Value</h2>
-        <table>
-          <thead><tr><th>Provider</th><th>Status</th><th>Details</th></tr></thead>
-          <tbody>
-            <tr>
-              <td>GitNexus</td>
-              <td><span class="badge $(status_class "$gitnexus_available")">$gitnexus_available</span></td>
-              <td>index: $gitnexus_index<br>query: $gitnexus_query<br>nodes: $gitnexus_nodes</td>
-            </tr>
-            <tr>
-              <td>Graphify</td>
-              <td><span class="badge $(status_class "$graphify_available")">$graphify_available</span></td>
-              <td>mode: $graphify_mode<br>nodes: $graphify_nodes</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+    <section>
       <div class="panel">
         <h2>Latest Distill</h2>
         <table>
