@@ -96,64 +96,40 @@ rules:
   - "Images are analyzed by Claude Read (native multimodal). AI-interpreted content is medium confidence by default."
 ```
 
-`document-structure.json` 示例：
+`document-structure.json` schema：
 
 ```json
 {
   "schema_version": "1.0",
   "blocks": [
     {
-      "block_id": "BLK-001",
-      "block_type": "heading",
-      "level": 1,
-      "text_excerpt": "1 需求背景",
-      "locator": { "line_start": 8, "line_end": 8 }
-    },
-    {
-      "block_id": "BLK-002",
-      "block_type": "paragraph",
-      "text_excerpt": "完成前4单的司机留存概率高...",
-      "locator": { "line_start": 9, "line_end": 14 }
-    },
-    {
-      "block_id": "BLK-003",
-      "block_type": "table",
-      "heading": "司机dive-创建-基础信息",
-      "row_count": 1,
-      "columns": ["模块", "示意图", "功能描述"],
-      "locator": { "line_start": 34, "line_end": 34 }
-    },
-    {
-      "block_id": "BLK-004",
-      "block_type": "media",
-      "media_ref": "media/image3.png",
-      "context": "司机dive-创建-基础信息示意图",
-      "locator": { "line_start": 34, "line_end": 34 }
+      "block_id": "",
+      "block_type": "heading | paragraph | table | media | code_block | list",
+      "level": 0,
+      "text_excerpt": "",
+      "heading": "",
+      "row_count": 0,
+      "columns": [],
+      "media_ref": "",
+      "context": "",
+      "locator": { "line_start": 0, "line_end": 0 }
     }
   ],
   "exclusion_types": ["toc", "header_footer", "decoration", "revision_history"]
 }
 ```
 
-`evidence-map.yaml` 示例：
+`evidence-map.yaml` schema：
 
 ```yaml
 schema_version: "1.0"
 blocks:
-  - block_id: "BLK-001"
-    evidence_id: null
-    excluded: true
-    exclude_reason: "heading_only"
-  - block_id: "BLK-002"
-    evidence_id: "EV-001"
-    requirement_ids: []  # 背景信息，不直接产生 requirement，但作为上下文证据
-  - block_id: "BLK-003"
-    evidence_id: "EV-005"
-    requirement_ids: ["REQ-004"]  # 基础信息表格 → REQ-004
-  - block_id: "BLK-004"
-    evidence_id: "EV-IMG-003"
-    requirement_ids: ["REQ-004"]
-    confidence: "medium"  # 图片证据
+  - block_id: ""
+    evidence_id: ""
+    excluded: false
+    exclude_reason: ""
+    requirement_ids: []
+    confidence: "high | medium | low"
 ```
 
 覆盖验证规则：
@@ -163,22 +139,14 @@ blocks:
 - `unmapped_blocks` 列出所有没有 evidence 也没有 excluded 标记的 block_id。
 - `coverage_ratio` = `mapped_blocks / total_blocks`。低于 0.8 时 `extraction-quality.yaml` 的 `status` 必须为 `warn` 或更低。
 
-`media-analysis.yaml` 示例：
+`media-analysis.yaml` schema：
 
 ```yaml
 schema_version: "1.0"
 images:
-  - file: "media/image2.png"
-    type: "ui_screenshot"
-    summary: "DIVE 2.0 MIS 创建活动页面-目标人群步骤，包含是否限制司机、人群选择方式、CSV上传等表单"
-    confidence: "medium"
-  - file: "media/image5.png"
-    type: "ui_screenshot"
-    summary: "活动规则配置页面，包含完单数、奖励类型（折扣卡/优惠券）、优惠券配置模块"
-    confidence: "medium"
-  - file: "media/image1.png"
-    type: "data_chart"
-    summary: "司机早期加油次数与30日留存增长率关系图"
+  - file: ""
+    type: "ui_screenshot | flowchart | data_chart | table_image | decoration"
+    summary: ""
     confidence: "medium"
 ```
 
@@ -310,7 +278,7 @@ prd-distill 消费规则：
 ### 11.1 阻塞问题
 每个阻塞问题必须包含 6 要素：
 - **问题**：阻塞项的具体描述
-- **线索**：代码/文档线索（如 `proxy/bpm.go:311 注释暗示冲单挑战系统已存在`）
+- **线索**：代码/文档线索（文件路径:行号 + 线索描述）
 - **影响**：哪些 REQ/IMP/CONTRACT 被阻塞
 - **建议 Owner**：建议谁确认
 - **需要证据**：确认人需要提供什么
@@ -335,7 +303,7 @@ prd-distill 消费规则：
 - **关联 ID**：每个条目引用 REQ-*/IMP-*/CONTRACT-*，方便跳到 context/ 查证。
 - **不隐藏低置信度**：低置信度项用 ⚠ 标注，进入 §11.2。
 - **Checklist 可直接执行**：开发人员拿到就能按步骤干活。
-- **线索式证据不能省略**：代码注释、已有结构体名、文件路径等线索必须保留（如 `proxy/bpm.go:311 注释暗示冲单挑战系统已存在`）。这些线索对开发定位问题有极高价值。
+- **线索式证据不能省略**：代码注释、已有结构体名、文件路径等线索必须保留。这些线索对开发定位问题有极高价值。
 
 ### 职责边界
 
@@ -438,13 +406,13 @@ prd-distill 消费规则：
 
 ## 10. 风险与回滚
 ### 回滚方案
-具体回滚步骤（如"关闭 Apollo 开关即可隐藏新类型"）。
+具体回滚步骤。
 
 ### 观测建议
 需要关注的 metric、日志、报警。
 
 ### 已知坑点
-源码线索暗示的潜在问题（如 `proxy/bpm.go:311 注释暗示冲单挑战系统已存在`）。
+源码线索暗示的潜在问题。
 
 ### 回归范围
 哪些已有功能可能受影响，需要回归验证。
@@ -656,7 +624,7 @@ suggestions:
 ```yaml
 schema_version: "3.0"
 tool_version: "<tool-version>"
-generated_at: "2026-05-08T00:00:00Z"
+generated_at: "<ISO-8601>"
 distill_slug: "<slug>"
 status: "pass | warning | fail"
 score: 0
