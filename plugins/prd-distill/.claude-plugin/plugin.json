@@ -1,6 +1,6 @@
 {
   "name": "prd-distill",
-  "version": "2.15.0",
+  "version": "2.16.0",
   "description": "PRD 蒸馏工具 — 先做 prd-ingest 读取与质量门禁，再输出渐进式披露的 report、可执行 plan、阻塞问题，证据链放入 artifacts",
   "skills": [
     "./skills/prd-distill"

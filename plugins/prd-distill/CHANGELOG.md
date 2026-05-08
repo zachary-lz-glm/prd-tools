@@ -3,7 +3,12 @@
 All notable changes to the **prd-distill** plugin are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
-## [2.15.0] - 2026-05-08
+## [2.16.0] - 2026-05-08
+
+### Added
+- feat: prd-distill 支持 .docx 输入，提取图片并使用 Claude 原生多模态看图
+
+- feat: prd-distill 支持 .docx 输入，提取图片并使用 Claude 原生多模态看图
 
 ### Added
 - feat: prd-distill 新增 portal.html 可视化页面生成步骤

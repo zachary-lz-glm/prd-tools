@@ -9,7 +9,7 @@
       "name": "reference",
       "source": "./plugins/reference",
       "description": "领域知识构建：生成前端/BFF/后端通用 reference v4.0（项目画像、能力面、契约、打法、反馈回流）",
-      "version": "2.15.0",
+      "version": "2.16.0",
       "tags": [
         "reference",
         "knowledge-base",
@@ -21,7 +21,7 @@
       "name": "prd-distill",
       "source": "./plugins/prd-distill",
       "description": "PRD 蒸馏：PRD → report/plan → artifacts(IR/Impact/Contract) → reference 回流",
-      "version": "2.15.0",
+      "version": "2.16.0",
       "tags": [
         "prd",
         "distillation",
