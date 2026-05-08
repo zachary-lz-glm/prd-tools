@@ -3,7 +3,12 @@
 All notable changes to the **reference** plugin are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
-## [2.12.0] - 2026-05-08
+## [2.13.0] - 2026-05-08
+
+### Changed
+- refactor: 移除 GitNexus/Graphify 第三方图谱工具依赖，回归原生能力
+
+- refactor: 移除 GitNexus/Graphify 第三方图谱工具依赖，回归原生能力
 
 ### Added
 - feat: add status dashboard MVP
