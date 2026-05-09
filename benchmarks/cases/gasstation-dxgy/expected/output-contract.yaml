@@ -1,0 +1,27 @@
+required_files:
+  - report.md
+  - plan.md
+  - context/requirement-ir.yaml
+  - context/graph-context.md
+  - context/layer-impact.yaml
+  - context/contract-delta.yaml
+  - context/readiness-report.yaml
+
+report_required_sections:
+  - §1 摘要
+  - §2 变更概览
+  - §3 关键字段
+  - §4 业务规则
+  - §5 源码扫描命中
+  - §6 契约风险
+  - §7 Checklist
+  - §8 开发计划
+  - §10 QA矩阵
+  - §11 阻塞项
+
+plan_required_sections:
+  - 概述
+  - 文件变更清单
+  - 开发顺序
+  - QA 矩阵
+  - 回滚方案

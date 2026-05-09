@@ -1,0 +1,48 @@
+anchors:
+  - id: ANCHOR-CAMPAIGN-TYPE
+    path: src/config/constant/campaignType.ts
+    symbols:
+      - CampaignType
+    priority: P0
+
+  - id: ANCHOR-DETAILS-INDEX
+    path: src/config/template/render/rules/details/index.ts
+    symbols:
+      - getDetailsTemplate
+    priority: P0
+
+  - id: ANCHOR-AUDIENCE-SEG
+    path: src/config/template/preview/options/audienceSegmentation/index.ts
+    symbols:
+      - getAudienceSegmentationTemplate
+    priority: P0
+
+  - id: ANCHOR-REWARD-CONDITION
+    path: src/config/template/render/rules/rewardCondition.ts
+    symbols:
+      - getRewardConditionTemplate
+    priority: P0
+
+  - id: ANCHOR-PREVIEW-REWARD-TYPE
+    path: src/config/constant/previewRewardType.ts
+    symbols:
+      - previewRewardTypeMap
+    priority: P1
+
+  - id: ANCHOR-BASIC-TEMPLATE
+    path: src/config/template/render/basic.ts
+    symbols:
+      - getRenderBasicTemplate
+    priority: P1
+
+  - id: ANCHOR-MESSAGE-TEMPLATE
+    path: src/config/template/render/message.ts
+    symbols:
+      - getRenderMessageTemplate
+    priority: P1
+
+  - id: ANCHOR-PREVIEW-ALL
+    path: src/config/template/preview/options/all.ts
+    symbols:
+      - getPreviewAllInfoTemplate
+    priority: P2

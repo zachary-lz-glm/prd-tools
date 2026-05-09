@@ -52,7 +52,12 @@ _prd-tools/reference/           # 长期知识库（v4.0，6 文件）
 ├── 03-contracts.yaml          # 跨层和外部契约
 ├── 04-routing-playbooks.yaml  # PRD 路由信号 + 场景打法
 ├── 05-domain.yaml             # 业务领域知识
-└── portal.html                # 可视化浏览器页面（零外部依赖）
+├── portal.html                # 可视化浏览器页面（零外部依赖）
+└── index/                     # Evidence Index（辅助层，v2.16+）
+    ├── entities.json          # 代码实体索引
+    ├── edges.json             # 实体关系索引
+    ├── inverted-index.json    # 倒排索引（term→entity）
+    └── manifest.yaml          # 索引元数据
 
 _prd-tools/build/              # 过程和质量报告
 ├── context-enrichment.yaml
@@ -99,9 +104,10 @@ _prd-tools/build/              # 过程和质量报告
 4. 标注 `reference_scope.authority: single_repo`，跨仓线索写确认状态字段。
 5. 用 `rg`/glob 找候选，再 Read 源码确认事实。
 6. 生成或更新 `_prd-tools/reference/`。
-7. 生成 `portal.html`（详见 `steps/step-05-portal.md`）。
-8. 执行健康检查或质量门控。
-9. 给用户摘要：新增/更新文件、质量状态、风险、下一步。
+7. 构建 Evidence Index（辅助层）：`scripts/build-index.py --repo <项目路径> --out _prd-tools/reference/index`。
+8. 生成 `portal.html`（详见 `steps/step-05-portal.md`）。
+9. 执行健康检查或质量门控。
+10. 给用户摘要：新增/更新文件、质量状态、风险、下一步。
 
 ## 参考文件
 

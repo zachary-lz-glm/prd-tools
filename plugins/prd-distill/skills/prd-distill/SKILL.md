@@ -66,7 +66,10 @@ _prd-tools/distill/<slug>/
     ├── graph-context.md           # 源码扫描的函数级上下文
     ├── layer-impact.yaml          # 分层影响
     ├── contract-delta.yaml        # 契约差异
-    └── reference-update-suggestions.yaml  # 回流建议
+    ├── reference-update-suggestions.yaml  # 回流建议
+    ├── query-plan.yaml              # 查询计划（辅助层）
+    ├── context-pack.md              # 上下文包（辅助层）
+    └── final-quality-gate.yaml      # 最终质量门禁（辅助层）
 ```
 
 ## 输出文件边界
@@ -83,6 +86,9 @@ _prd-tools/distill/<slug>/
 | `context/layer-impact.yaml` | 分层影响：目标层、能力面、计划变化、风险 | 不写字段级契约详情 |
 | `context/contract-delta.yaml` | 契约差异：字段、producer、consumer、alignment_status | 不写开发顺序 |
 | `context/reference-update-suggestions.yaml` | 回流建议 | 不直接改 `_prd-tools/reference/` |
+| `context/query-plan.yaml` | 查询计划：种子锚点、影响提示、P0 术语（辅助层） | 不替代 graph-context.md |
+| `context/context-pack.md` | 上下文包：模型可消费的精简代码上下文（辅助层） | 不替代 graph-context.md |
+| `context/final-quality-gate.yaml` | 最终质量门禁：5 项确定性检查评分（辅助层） | 不替代 readiness-report.yaml |
 | `portal.html` | 自包含可视化页面：总览、源码命中、影响、契约、计划、QA、阻塞问题、回流建议 | 不替代 report.md 和 plan.md 的人读文本 |
 
 ## 能力面适配器
@@ -134,15 +140,18 @@ _prd-tools/distill/<slug>/
 3. 读取 `_prd-tools/reference/`（优先 v4，兼容 v3.1）。
 4. 建立 `context/evidence.yaml`，映射 ingestion 证据后补充源码证据。
 5. 拆 `context/requirement-ir.yaml`。
-6. 构建 `context/graph-context.md`（源码扫描发现符号、调用链和业务约束）。
+6. （辅助层）如果 `_prd-tools/reference/index/` 存在，运行 `scripts/context-pack.py` 生成 `context/query-plan.yaml`（查询计划）。
+7. 构建 `context/graph-context.md`（源码扫描发现符号、调用链和业务约束）。
 - [ ] ⚠ graph-context.md 存在性检查：`context/graph-context.md` 必须存在。如不存在，必须先生成再继续 plan.md。
-7. 生成 `plan.md`（消费 `graph-context.md` 函数级上下文）。
-8. 生成 `context/layer-impact.yaml`。
-9. 生成 `context/contract-delta.yaml`。
-10. 生成 `report.md`（渐进式披露 + 源码扫描命中摘要 + §11）。
-11. 生成 `context/reference-update-suggestions.yaml`。
-12. 生成 `context/readiness-report.yaml`。
-13. 生成 `portal.html`（自包含可视化页面，详见 `steps/step-04-portal.md`）。
+8. （辅助层）如果索引存在，再次运行 `scripts/context-pack.py` 生成 `context/context-pack.md`（上下文包）。
+9. 生成 `plan.md`（消费 `graph-context.md` 函数级上下文）。
+10. 生成 `context/layer-impact.yaml`。
+11. 生成 `context/contract-delta.yaml`。
+12. 生成 `report.md`（渐进式披露 + 源码扫描命中摘要 + §11）。
+13. （辅助层）运行 `scripts/final-quality-gate.py` 生成 `context/final-quality-gate.yaml`（5 项确定性检查评分）。
+14. 生成 `context/reference-update-suggestions.yaml`。
+15. 生成 `context/readiness-report.yaml`。
+16. 生成 `portal.html`（自包含可视化页面，详见 `steps/step-04-portal.md`）。
 
 ## 参考文件
 

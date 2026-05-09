@@ -16,7 +16,12 @@ _prd-tools/
 │   ├── 03-contracts.yaml
 │   ├── 04-routing-playbooks.yaml
 │   ├── 05-domain.yaml
-│   └── project-profile.yaml
+│   ├── project-profile.yaml
+│   └── index/                     # Evidence Index（辅助层）
+│       ├── entities.json          # 代码实体索引
+│       ├── edges.json             # 实体关系索引
+│       ├── inverted-index.json    # 倒排索引
+│       └── manifest.yaml          # 索引元数据
 ├── build/                                 # reference 运行报告
 │   ├── modules-index.yaml
 │   ├── context-enrichment.yaml
@@ -39,7 +44,10 @@ _prd-tools/
         │   ├── graph-context.md
         │   ├── layer-impact.yaml
         │   ├── contract-delta.yaml
-        │   └── reference-update-suggestions.yaml
+        │   ├── reference-update-suggestions.yaml
+        │   ├── query-plan.yaml              # 查询计划（辅助层）
+        │   ├── context-pack.md              # 上下文包（辅助层）
+        │   └── final-quality-gate.yaml      # 最终质量门禁（辅助层）
         └── _ingest/
             ├── source-manifest.yaml
             ├── document.md
@@ -577,3 +585,64 @@ next_actions: []
 - `_ingest/extraction-quality.yaml` 为 `block` → `fail`。
 - 任一 P0 契约为 `blocked` → `fail`。
 - 多层需求缺少 `context/contract-delta.yaml` → `fail`。
+
+## _prd-tools/reference/index/
+
+Evidence Index（辅助层）：基于正则扫描的代码实体索引，为下游 `/prd-distill` 提供确定性代码锚点检索。
+
+| 文件 | 用途 | 边界 |
+|---|---|---|
+| `entities.json` | 代码实体：函数、类、枚举、接口、常量等 | 不替代 reference 的业务语义 |
+| `edges.json` | 实体关系：DEFINES、IMPORTS、REGISTERS、REFERENCES | 不记录跨仓关系 |
+| `inverted-index.json` | term→entity 倒排索引 | 不含业务术语（仅代码符号） |
+| `manifest.yaml` | 索引元数据：实体数、边数、term 数、构建时间 | 不含质量评分 |
+
+> **辅助层定位**：index/ 不替代 reference 的 6 个文件作为 SSOT。reference 是业务知识的权威来源，index 是代码结构的检索加速器。
+
+## context/query-plan.yaml
+
+查询计划（辅助层）：从 requirement-ir 和 layer-impact 提取的代码锚点检索提示。
+
+```yaml
+schema_version: "1.0"
+phases:
+  seed_anchors: []
+  impact_hints: []
+  p0_requirements: []
+```
+
+> **辅助层定位**：query-plan 是 context-pack.py 的中间产物，为 Graph Context 步骤提供搜索提示，不替代 graph-context.md。
+
+## context/context-pack.md
+
+上下文包（辅助层）：融合 Evidence Index 代码实体与 distill 上下文的精简文档（≤800 行），供模型直接消费。
+
+包含 6 个 Section：
+1. Requirement Seed Terms
+2. Key Code Entities（按 requirement 分组）
+3. Impact-Related Entities
+4. Similar Registry/Template
+5. High-Confidence Code Clues
+6. Query Plan Summary
+
+> **辅助层定位**：context-pack 不替代 graph-context.md。graph-context.md 是源码扫描的主产出，context-pack 是索引增强的辅助摘要。
+
+## context/final-quality-gate.yaml
+
+最终质量门禁（辅助层）：对所有交付物执行 5 项确定性检查的评分报告。
+
+```yaml
+schema_version: "1.0"
+status: "pass | warning | fail"
+score: 0
+checks:
+  required_files: { status: "", score: 0 }
+  context_pack_consumed: { status: "", score: 0 }
+  code_anchor_coverage: { status: "", score: 0 }
+  plan_actionability: { status: "", score: 0 }
+  blocker_quality: { status: "", score: 0 }
+summary:
+  top_gaps: []
+```
+
+> **辅助层定位**：final-quality-gate 不替代 readiness-report.yaml。readiness-report 是就绪度评估的主产出，final-quality-gate 是对交付物完整性的确定性检查补充。
