@@ -1,0 +1,16 @@
+id: gasstation-dxgy
+title: GasStationDxGy 新活动类型
+layer: bff
+project_type: typescript-bff
+prd: prd.md
+reference_fixture: reference-fixture/_prd-tools/reference
+expected:
+  requirements: expected/requirements.yaml
+  code_anchors: expected/code-anchors.yaml
+  blockers: expected/blockers.yaml
+  output_contract: expected/output-contract.yaml
+scoring:
+  min_total_score: 80
+  min_requirement_recall: 0.9
+  min_code_anchor_recall: 0.8
+  max_false_blockers: 2

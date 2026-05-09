@@ -1,0 +1,21 @@
+blockers:
+  - id: BLOCK-ORDER-RANGE-CONFLICT
+    title: 订单量校验范围矛盾
+    must_contain:
+      - 订单量
+      - "1-10"
+      - "1-99"
+    conflict_keywords:
+      - 矛盾
+      - 冲突
+      - 待确认
+      - 需确认
+      - 不一致
+    priority: P0
+
+  - id: BLOCK-COUPON-COUNT-TYPO
+    title: 券张数文案疑似笔误
+    must_contain:
+      - "1-0"
+      - "1-9"
+    priority: P1

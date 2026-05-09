@@ -1,0 +1,255 @@
+schema_version: "1.0"
+case_id: gasstation-dxgy
+
+# Oracle: human-annotated ground truth for quality scoring.
+# Unlike expected/*.yaml (text-hit regression), oracle checks:
+#   1. Right facts in the right deliverables
+#   2. No false claims
+#   3. P0 miss → hard fail
+
+requirements:
+  - id: REQ-FUEL-VOLUME
+    priority: P0
+    meaning: "每单最低加油升数支持 1-99 整数"
+    acceptable_terms:
+      - 加油升数
+      - "1-99"
+    must_appear_in:
+      - requirement-ir
+      - report
+      - plan
+
+  - id: REQ-ORDER-COUNT
+    priority: P0
+    meaning: "订单量配置需说明范围矛盾"
+    acceptable_terms:
+      - 订单量
+      - "1-10"
+      - "1-99"
+    must_flag_conflict: true
+    conflict_signals:
+      - 矛盾
+      - 冲突
+      - 待确认
+      - 需确认
+    must_appear_in:
+      - requirement-ir
+      - report
+
+  - id: REQ-NEW-CAMPAIGN-TYPE
+    priority: P0
+    meaning: "新增 GasStationDxGy = 44 活动类型"
+    acceptable_terms:
+      - GasStationDxGy
+      - "44"
+    must_appear_in:
+      - report
+      - plan
+
+  - id: REQ-REWARD-TYPE
+    priority: P0
+    meaning: "奖励类型包含油站优惠券和油站折扣卡"
+    acceptable_terms:
+      - 优惠券
+      - 折扣卡
+    must_appear_in:
+      - report
+      - plan
+
+  - id: REQ-COUPON-CONFIG
+    priority: P0
+    meaning: "券配置含批次/张数1-9/互斥选项"
+    acceptable_terms:
+      - 券批次
+      - 互斥
+    must_appear_in:
+      - report
+
+  - id: REQ-DISCOUNT-CARD
+    priority: P0
+    meaning: "折扣卡配置含Card ID/数量1-100/有效期校验/城市校验"
+    acceptable_terms:
+      - Card ID
+      - 折扣卡
+    must_appear_in:
+      - report
+
+  - id: REQ-DLP-VISIBILITY
+    priority: P0
+    meaning: "DLP等级条件可见性判断逻辑"
+    acceptable_terms:
+      - DLP
+      - 等级
+    must_appear_in:
+      - requirement-ir
+      - report
+
+  - id: REQ-TRIP-CHALLENGE
+    priority: P1
+    meaning: "冲单挑战等级条件"
+    acceptable_terms:
+      - 冲单挑战
+    must_appear_in:
+      - report
+
+  - id: REQ-BUDGET-GMV
+    priority: P1
+    meaning: "Budget/GMV 配置范围 0-30"
+    acceptable_terms:
+      - Budget
+      - GMV
+    must_appear_in:
+      - report
+
+  - id: REQ-BATCH-EVENTRULE
+    priority: P1
+    meaning: "批量EventRule格式含Trips*L*Card/Coupon"
+    acceptable_terms:
+      - EventRule
+      - Trips
+    must_appear_in:
+      - report
+
+  - id: REQ-PUSH-NOTIFICATION
+    priority: P1
+    meaning: "Push通知含油站占位符"
+    acceptable_terms:
+      - push
+      - 占位符
+    must_appear_in:
+      - report
+
+  - id: REQ-PREVIEW-PAGE
+    priority: P2
+    meaning: "预览页展示"
+    acceptable_terms:
+      - 预览
+    must_appear_in:
+      - plan
+
+code_anchors:
+  - id: CODE-CAMPAIGN-TYPE
+    priority: P0
+    meaning: "新增活动类型必须修改 CampaignType 枚举"
+    path: src/config/constant/campaignType.ts
+    symbol: CampaignType
+    must_appear_in:
+      - graph-context
+      - plan
+
+  - id: CODE-DETAILS-INDEX
+    priority: P0
+    meaning: "details switch 需新增 case"
+    path: src/config/template/render/rules/details/index.ts
+    symbol: getDetailsTemplate
+    must_appear_in:
+      - graph-context
+      - plan
+
+  - id: CODE-AUDIENCE-SEG-INDEX
+    priority: P0
+    meaning: "audienceSegmentation switch 需新增 case"
+    path: src/config/template/preview/options/audienceSegmentation/index.ts
+    symbol: getAudienceSegmentationTemplate
+    must_appear_in:
+      - graph-context
+      - plan
+
+  - id: CODE-PREVIEW-REWARD-TYPE
+    priority: P0
+    meaning: "previewRewardTypeMap 需新增映射"
+    path: src/config/constant/previewRewardType.ts
+    symbol: previewRewardTypeMap
+    must_appear_in:
+      - graph-context
+      - report
+
+  - id: CODE-REWARD-CONDITION
+    priority: P0
+    meaning: "rewardCondition.ts 6+处需新增 GasStationDxGy"
+    path: src/config/template/render/rules/rewardCondition.ts
+    symbol: getRewardConditionTemplate
+    must_appear_in:
+      - graph-context
+      - plan
+
+  - id: CODE-BASIC-TEMPLATE
+    priority: P1
+    meaning: "basic.ts 需配置 time_range 可见性"
+    path: src/config/template/render/basic.ts
+    symbol: getRenderBasicTemplate
+    must_appear_in:
+      - graph-context
+
+  - id: CODE-MESSAGE-TEMPLATE
+    priority: P1
+    meaning: "message.ts 需处理 push 占位符"
+    path: src/config/template/render/message.ts
+    symbol: getRenderMessageTemplate
+    must_appear_in:
+      - graph-context
+
+  - id: CODE-PREVIEW-ALL
+    priority: P2
+    meaning: "all.ts 可能需新增 message_preview case"
+    path: src/config/template/preview/options/all.ts
+    symbol: getPreviewAllInfoTemplate
+    must_appear_in:
+      - graph-context
+
+blockers:
+  - id: BLOCK-ORDER-RANGE
+    priority: P0
+    meaning: "订单量范围存在 1-10 与 1-99 冲突"
+    acceptable_terms:
+      - 订单量
+      - "1-10"
+      - "1-99"
+    must_appear_in:
+      - report
+
+  - id: BLOCK-COUPON-TYPO
+    priority: P1
+    meaning: "券张数报错文案1-0应为1-9"
+    acceptable_terms:
+      - "1-0"
+      - "1-9"
+    must_appear_in:
+      - report
+
+  - id: BLOCK-DCHAT-NOT-BFF
+    priority: P1
+    meaning: "D-chat告警应明确为后端职责"
+    acceptable_terms:
+      - D-chat
+      - 后端
+    must_appear_in:
+      - report
+
+forbidden_claims:
+  - id: FALSE-DCHAT-BFF
+    meaning: "不能声称 D-chat 告警需要 BFF 实现"
+    forbidden_terms:
+      - BFF实现D-chat告警
+      - 新增D-chat告警接口
+      - D-chat告警需要BFF
+
+  - id: FALSE-NEW-CONTROLLER
+    meaning: "不能声称需要新增 Controller"
+    forbidden_terms:
+      - 新增Controller
+      - 新建controller
+      - 新增controller
+
+  - id: FALSE-NEW-SERVICE
+    meaning: "不能声称需要新增 Service 类"
+    forbidden_terms:
+      - 新增Service
+      - 新建service
+
+  - id: FALSE-MODIFY-BASE
+    meaning: "不能声称需要修改 base 类"
+    forbidden_terms:
+      - 修改ComponentModel
+      - 修改ComponentService
+      - 修改ComponentController

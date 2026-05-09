@@ -12,6 +12,7 @@ PRD raw file/text
   -> plan.md（函数级技术方案）
   -> readiness-report.yaml（能不能开工的红绿灯）
   -> context/*
+  -> [辅助层] query-plan.yaml + context-pack.md + final-quality-gate.yaml
 ```
 
 主流程对前端、BFF、后端通用；层差异通过 `references/layer-adapters.md` 的能力面适配器生效。默认给人看轻量输出，机器可读细节放入 `context/`。
@@ -127,6 +128,37 @@ _ingest/
 - 不要把实现方案直接混进 IR；实现影响放到 layer impact。
 - 不确定项进入 `open_questions`。
 - **逐 block 提取**：遍历 `document-structure.json` 的每个 block，确保没有段落/表格/图片被跳过。
+
+## 步骤 2.5：Query Plan（辅助层）
+
+> **定位**：Query Plan 是辅助层，不替代 report.md 和 plan.md 作为主产物。
+
+如果 `_prd-tools/reference/index/` 存在，运行 `scripts/context-pack.py` 生成 `context/query-plan.yaml`，为后续 Graph Context（步骤 3.1）提供代码锚点检索提示。
+
+```bash
+scripts/context-pack.py \
+  --distill _prd-tools/distill/<slug> \
+  --index _prd-tools/reference/index \
+  --out _prd-tools/distill/<slug>/context/context-pack.md
+```
+
+产出 `context/query-plan.yaml`：
+
+```yaml
+schema_version: "1.0"
+phases:
+  seed_anchors: []        # 从 requirement-ir 提取的种子查询词
+  impact_hints: []        # 从 layer-impact 提取的文件路径提示
+  p0_requirements: []     # P0 需求的关键实体和术语
+```
+
+## 步骤 2.6：Context Pack（辅助层）
+
+> **定位**：Context Pack 是辅助层，不替代 graph-context.md。graph-context.md 仍是源码扫描的主产出。
+
+在步骤 3（Layer Impact）完成后，再次运行 `scripts/context-pack.py`（此时 layer-impact.yaml 已存在），生成 `context/context-pack.md`，将 Evidence Index 中的代码实体与 distill 上下文融合，形成模型可直接消费的精简上下文（建议 ≤800 行）。
+
+触发时机：步骤 3 完成后、步骤 4（Contract Delta）之前。如果索引不存在则跳过。
 
 ## 步骤 3：Layer Impact
 
@@ -289,6 +321,40 @@ suggestions:
 
 报告里不要隐藏低置信度项；低置信度是价值，不是瑕疵。**线索式证据不能省略**：代码注释、已有结构体名、文件路径等线索必须保留。
 
+## 步骤 8.5：Final Quality Gate（辅助层）
+
+> **定位**：Final Quality Gate 是辅助层，不替代 readiness-report.yaml。readiness-report.yaml 仍是就绪度评估的主产出。
+
+运行 `scripts/final-quality-gate.py` 对所有交付物执行 5 项确定性检查，生成 `context/final-quality-gate.yaml`。
+
+```bash
+scripts/final-quality-gate.py \
+  --distill _prd-tools/distill/<slug>
+```
+
+5 项检查：
+
+| 检查项 | 权重 | 说明 |
+|--------|------|------|
+| required_files | 20% | 必需文件和报告章节是否完整 |
+| context_pack_consumed | 15% | context-pack 中代码实体被 report/plan 消费的比例 |
+| code_anchor_coverage | 25% | 关键代码锚点在 graph-context/plan 中的覆盖率 |
+| plan_actionability | 25% | plan 是否包含 checklist、文件路径、验证命令 |
+| blocker_quality | 15% | 阻塞项是否有上下文和证据支撑 |
+
+产出 `context/final-quality-gate.yaml`：
+
+```yaml
+schema_version: "1.0"
+status: "pass | warning | fail"
+score: 0
+checks: { ... }
+summary:
+  top_gaps: []
+```
+
+触发时机：步骤 8（report.md）完成后、步骤 9（portal.html）之前。
+
 ## 步骤 9：Portal HTML 生成
 
 生成 `_prd-tools/distill/<slug>/portal.html`，将所有蒸馏产物内联为一个自包含的可视化页面。
@@ -320,3 +386,4 @@ suggestions:
 4. 多层需求必须给契约计划。
 5. 每个输出都要能回溯 evidence。
 6. 完成后简要告知输出路径、最重要的阻塞/风险，并优先引导用户阅读 `report.md`。同时告知 `portal.html` 可在浏览器中打开查看完整可视化报告。
+7. **report.md 和 plan.md 是主产物**；query-plan、context-pack、final-quality-gate 是辅助层，不替代主产物的阅读优先级。

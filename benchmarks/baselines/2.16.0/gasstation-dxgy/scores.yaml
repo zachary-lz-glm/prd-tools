@@ -1,0 +1,33 @@
+case_id: gasstation-dxgy
+version: 2.16.0
+total_score: 97
+passed: true
+
+scores:
+  output_contract:
+    score: 100
+    missing_files: []
+    missing_report_sections: []
+    missing_plan_sections: []
+  requirement_recall:
+    score: 100
+    matched: 15
+    total: 15
+    missing: []
+  code_anchor_recall:
+    score: 100
+    matched: 8
+    total: 8
+    missing: []
+  blocker_recall:
+    score: 100
+    matched: 2
+    total: 2
+    missing: []
+  plan_actionability:
+    score: 70
+    checklist_count: 0
+    file_path_hits: 10
+    verification_command_hits: 0
+    weak_signals:
+      - 缺少验证命令

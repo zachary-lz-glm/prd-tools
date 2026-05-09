@@ -1,0 +1,104 @@
+requirements:
+  - id: REQ-NEW-CAMPAIGN-TYPE
+    title: 新增 GasStationDxGy 活动类型
+    must_contain:
+      - GasStationDxGy
+      - "44"
+      - 新增活动类型
+    priority: P0
+
+  - id: REQ-FUEL-VOLUME
+    title: 每单最低加油升数
+    must_contain:
+      - 加油升数
+      - "1-99"
+    priority: P0
+
+  - id: REQ-ORDER-COUNT
+    title: 订单量配置
+    must_contain:
+      - 订单量
+      - "1-10"
+    should_flag_conflict:
+      - "1-99"
+    priority: P0
+
+  - id: REQ-REWARD-TYPE
+    title: 奖励类型选择(券/折扣卡)
+    must_contain:
+      - 券
+      - 折扣卡
+    priority: P0
+
+  - id: REQ-COUPON-CONFIG
+    title: 券配置(批次/张数/互斥)
+    must_contain:
+      - 券
+      - 张数
+      - 互斥
+    priority: P0
+
+  - id: REQ-DISCOUNT-CARD
+    title: 折扣卡配置(卡ID/数量)
+    must_contain:
+      - 折扣卡
+      - 卡ID
+    priority: P0
+
+  - id: REQ-DLP-VISIBILITY
+    title: DLP等级可见性逻辑
+    must_contain:
+      - DLP
+      - 可见性
+    priority: P0
+
+  - id: REQ-TRIP-CHALLENGE
+    title: 冲单挑战等级
+    must_contain:
+      - 冲单挑战
+    priority: P1
+
+  - id: REQ-BASIC-INFO
+    title: 基本信息配置页
+    must_contain:
+      - 活动周期
+      - Budget
+    priority: P1
+
+  - id: REQ-PUSH-NOTIFICATION
+    title: 推送通知
+    must_contain:
+      - os2_push
+    priority: P1
+
+  - id: REQ-TARGET-AUDIENCE
+    title: 目标受众
+    must_contain:
+      - audience
+    priority: P1
+
+  - id: REQ-PREVIEW-PAGE
+    title: 预览页
+    must_contain:
+      - 预览
+    priority: P1
+
+  - id: REQ-BATCH-EVENTRULE
+    title: 批次EventRule格式
+    must_contain:
+      - EventRule
+      - Trips
+    priority: P1
+
+  - id: REQ-BUDGET-GMV
+    title: Budget/GMV配置
+    must_contain:
+      - Budget
+      - GMV
+    priority: P2
+
+  - id: REQ-COUNTRY-BRAZIL
+    title: 巴西限定
+    must_contain:
+      - BR
+    priority: P2

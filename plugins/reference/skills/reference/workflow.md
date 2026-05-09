@@ -26,6 +26,7 @@ prd-tools 负责 PRD-to-code 全链路的发现、证据治理和质量门控，
 | 1 | 结构扫描 | 项目目录、核心源码、git 历史 | `_prd-tools/build/modules-index.yaml` |
 | 2 | 深度分析 | modules-index、源码、能力面适配器 | `_prd-tools/reference/` v4.0 |
 | 3 | 质量门控 | reference、源码、样例需求 | `_prd-tools/build/quality-report.yaml` |
+| 3.5 | Evidence Index | reference、项目源码 | `_prd-tools/reference/index/`（辅助层） |
 | 4 | 反馈回流 | `/prd-distill` 输出、源码、reference | `_prd-tools/build/feedback-report.yaml` |
 
 ## 阶段 0：上下文收集
@@ -188,6 +189,41 @@ next_actions: []
 致命项不通过时，不要宣称 reference 可用于生产；列出最小修复项。
 
 如果 quality-report 的 status 不是 fail 且 reference 文件有更新，重新生成 `portal.html`（按 `step-05-portal.md` 执行），确保可视化页面与最新 reference 数据一致。
+
+## 阶段 3.5：Evidence Index 构建
+
+基于阶段 2 生成的 reference 和项目源码，构建 Evidence Index（辅助层），为下游 `/prd-distill` 提供确定性代码锚点检索。
+
+> **定位**：Evidence Index 是辅助层，不替代 reference 作为 SSOT。reference 的 6 个文件仍是主产物。
+
+运行命令：
+
+```bash
+scripts/build-index.py --repo <项目路径> --out _prd-tools/reference/index
+```
+
+产出：
+
+```text
+_prd-tools/reference/index/
+├── entities.json          # 代码实体（函数、类、枚举、接口等）
+├── edges.json             # 实体关系（DEFINES、IMPORTS、REFERENCES 等）
+├── inverted-index.json    # term→entity 倒排索引
+└── manifest.yaml          # 索引元数据（实体数、边数、term 数、构建时间）
+```
+
+索引能力：
+
+- 实体类型：file、function、class、interface、enum、const、import、switch_case、template、registry
+- 关系类型：DEFINES、IMPORTS、REGISTERS、REFERENCES
+- 查询模式：`--query <关键词> --index _prd-tools/reference/index` 确定性评分检索
+- 支持语言：TypeScript/JavaScript、Go
+
+触发时机：
+
+- 全量构建（Mode A）后自动执行
+- 增量更新（Mode B）后可选执行
+- 健康检查（Mode B2）时检查索引与源码一致性
 
 ## 阶段 4：反馈回流
 
