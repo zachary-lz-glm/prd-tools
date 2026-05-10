@@ -4,34 +4,11 @@
 
 ---
 
-## [2.19.0] - 2026-05-08
-
-### Changed
-- refactor: step-02 深度分析拆为 5 个专注子步骤，降低 AI 单步上下文压力
-- refactor: portal CSS 设计系统提取为独立共享文件（-320 行冗余）
-- refactor: output-contracts 683 行拆为 6 个按需 schema 文件
-- refactor: 全部 11 个步骤文件新增 Self-Check 生成后验证清单
-- fix: step-00-greenfield 从 v3 更新到 v4 文件结构
-
-## [2.18.1] - 2026-05-08
-
-### Changed
-- refactor: 移除 output-contracts schema 中所有项目特定示例，仅保留空模板
-
-## [2.18.0] - 2026-05-08
+## [2.16.1] - 2026-05-10
 
 ### Added
-- feat: reference 新增 capability_inventory（能力清单），记录项目已有能力，区分 generic/dimensioned
-- feat: prd-distill 新增覆盖验证（coverage check），确保 PRD 每个 block 都被需求提取覆盖
-- feat: 新增 document-structure.json 和 evidence-map.yaml 完整 schema 定义
-
-### Changed
-- refactor: prd-distill 消费 capability_inventory 区分已有能力与需新增能力
-- refactor: readiness-report evidence_coverage 评分增加明确计算公式
-
-### Changed
-- refactor: 全面重设计 portal.html 视觉系统（Linear/Vercel 风格）
-- fix: 目录树用结构化 HTML 列表替代纯文本，解决 CJK 字符宽度错位
+- feat: add branch-backed multi-layer benchmark
+- feat: add evidence index benchmark harness
 
 
 ## [2.16.0] - 2026-05-08

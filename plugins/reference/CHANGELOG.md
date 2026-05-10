@@ -3,21 +3,13 @@
 All notable changes to the **reference** plugin are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
-## [2.19.0] - 2026-05-08
+## [2.16.1] - 2026-05-10
 
-### Changed
-- refactor: step-02 拆为 5 个子步骤（codebase/coding-rules/contracts/routing/domain）
-- refactor: portal CSS 设计系统提取为 portal-design-system.md
-- refactor: output-contracts 拆为 6 个按需 schema 文件
-- refactor: 全部步骤新增 Self-Check 验证清单
-- fix: step-00-greenfield 更新到 v4
+### Added
+- feat: add branch-backed multi-layer benchmark
+- feat: add evidence index benchmark harness
 
-## [2.18.1] - 2026-05-08
-
-### Changed
-- refactor: output-contracts schema 移除项目特定示例，改为通用空模板
-
-## [2.16.0] - 2026-05-08
+- feat: add evidence index benchmark harness
 
 ### Added
 - feat: prd-distill 支持 .docx 输入，提取图片并使用 Claude 原生多模态看图
