@@ -119,6 +119,9 @@ _prd-tools/distill/<slug>/
 - 中低置信度项必须进入 `report.md` §11。
 - 不确定标 `confidence: low`，不补脑。
 - 不直接修改 `_prd-tools/reference/`，只生成回流建议。
+- **⚠ Reference 强制消费**：reference 存在时，步骤 3 门禁→步骤 6 桥接→步骤 7 reference-first 扫描，缺一不可。reference 不存在时，必须显式标记缺失并降低置信度。
+- **⚠ Reference 不可盲信**：reference/index 只提供候选事实、路由和代码锚点。凡是会进入 report/plan 的结论，必须由 PRD、源码、技术文档、接口文档或负向搜索二次确认；无法确认时降置信度并写入 §11。
+- `report.md` 生成前必须核对 P0/P1 细节：券批次/券张数/互斥、折扣卡 Card ID/数量/有效期/城市校验、EventRule、Budget/GMV、Push 占位符、PRD 内部冲突或 typo。不能只在 context YAML 中出现。
 
 ## 暂停条件
 
@@ -129,6 +132,10 @@ _prd-tools/distill/<slug>/
 - 多层契约冲突导致计划不可执行。
 - 缺少关键证据且无法补齐。
 
+## 降级条件（不暂停但必须标记）
+
+- `_prd-tools/reference/` 不存在：layer-impact/contract-delta confidence 强制降为 `low`，report.md §11 暴露缺失，readiness-report next_actions 首位建议运行 `/reference`。
+
 ## 执行步骤
 
 1. 确认 PRD 来源和目标项目路径。
@@ -137,18 +144,30 @@ _prd-tools/distill/<slug>/
    - `.docx`：用 `unzip` 提取 `word/document.xml`（文本）和 `media/`（图片）。文本去 XML 标签后写入 `_ingest/document.md`，图片拷贝到 `_ingest/media/`。在文本中图片位置插入 `![image-N](media/imageN.png)` 占位。用 Read 工具逐个查看图片，理解内容后写入 `_ingest/media-analysis.yaml`。
    - 粘贴文本：手工建立来源和定位。
    创建 `_ingest/` 证据结构。
-3. 读取 `_prd-tools/reference/`（优先 v4，兼容 v3.1）。
-4. 建立 `context/evidence.yaml`，映射 ingestion 证据后补充源码证据。
+3. **Reference 消费门禁**：读取 `_prd-tools/reference/`（优先 v4，兼容 v3.1），**必须消费**以下内容：
+   - `04-routing-playbooks.yaml`：提取 PRD 关键词→target_surfaces 路由表，供步骤 7 源码扫描优先使用。
+   - `01-codebase.yaml`：提取 modules、registries、data_flows，作为源码扫描的代码地图。
+   - `02-coding-rules.yaml`：提取 fatal 级规则，在 layer-impact 中必须检查是否触及。
+   - `03-contracts.yaml`：提取现有契约，作为 contract-delta 基线。
+   - `05-domain.yaml`：提取领域术语，用于 requirement-ir 拆解时的术语对齐。
+   - 将消费状态写入 evidence.yaml（`EV-REF-CONSUMED`）。
+   - **⚠ reference 不存在时**：所有涉及 reference 的步骤标记缺失，layer-impact/contract-delta confidence 强制降为 `low`，report.md §11 必须暴露。
+4. 建立 `context/evidence.yaml`，映射 ingestion 证据后补充源码证据和 reference 消费证据。
 5. 拆 `context/requirement-ir.yaml`。
-6. （辅助层）如果 `_prd-tools/reference/index/` 存在，运行 `scripts/context-pack.py` 生成 `context/query-plan.yaml`（查询计划）。
-7. 构建 `context/graph-context.md`（源码扫描发现符号、调用链和业务约束）。
+6. **Index 桥接**：如果 `_prd-tools/reference/index/` 存在，**必须**运行 `python3 .prd-tools/scripts/context-pack.py` 生成 `context/query-plan.yaml`（查询计划）。步骤 7 源码扫描**必须消费** query-plan.yaml 的 matched_entities，不能跳过。
+7. **Reference-First 源码扫描**：构建 `context/graph-context.md`。
+   - **阶段 1（Reference 路由）**：先查 `04-routing-playbooks.yaml` 路由表确定 target_surfaces，再查 `01-codebase.yaml` 获得精确文件路径和符号。禁止跳过直接 grep。
+   - **阶段 2（Index 精确扫描）**：消费 query-plan.yaml 中 confidence=high 的 matched_entities，直接 Read 源码确认。
+   - **阶段 3（补充扫描）**：仅对阶段 1-2 未覆盖的部分用 rg/glob 补充扫描。
+   - 每条线索标注来源：`reference_routing` | `index_query` | `code_scan`。
 - [ ] ⚠ graph-context.md 存在性检查：`context/graph-context.md` 必须存在。如不存在，必须先生成再继续 plan.md。
-8. （辅助层）如果索引存在，再次运行 `scripts/context-pack.py` 生成 `context/context-pack.md`（上下文包）。
+- [ ] ⚠ reference 消费检查：如果 reference 存在，graph-context.md 中至少 30% 线索应来自 reference/index（阶段 1-2）。未达标时在 readiness-report 标记 `reference_underconsumed`。
+8. **Index 融合**：如果索引存在，**必须**运行 `python3 .prd-tools/scripts/context-pack.py` 生成 `context/context-pack.md`（上下文包）。index 不存在则跳过，但必须在 readiness-report 记录缺失。
 9. 生成 `plan.md`（消费 `graph-context.md` 函数级上下文）。
 10. 生成 `context/layer-impact.yaml`。
 11. 生成 `context/contract-delta.yaml`。
 12. 生成 `report.md`（渐进式披露 + 源码扫描命中摘要 + §11）。
-13. （辅助层）运行 `scripts/final-quality-gate.py` 生成 `context/final-quality-gate.yaml`（5 项确定性检查评分）。
+13. （辅助层）运行 `python3 .prd-tools/scripts/final-quality-gate.py` 生成 `context/final-quality-gate.yaml`（5 项确定性检查评分）。
 14. 生成 `context/reference-update-suggestions.yaml`。
 15. 生成 `context/readiness-report.yaml`。
 16. 生成 `portal.html`（自包含可视化页面，详见 `steps/step-04-portal.md`）。

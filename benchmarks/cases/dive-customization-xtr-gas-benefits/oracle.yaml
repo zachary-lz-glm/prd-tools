@@ -1,0 +1,317 @@
+schema_version: "1.0"
+case_id: dive-customization-xtr-gas-benefits
+
+# Oracle: reviewed ground truth for 可选择奖增加奖励类型XTR和油站相关权益 (Selectable DxGy Custom Reward).
+# Requirements extracted from PRD; code_anchors reviewed from branch diff.
+
+requirements:
+  - id: REQ-NEW-REWARD-TYPES
+    priority: P0
+    meaning: "可选择奖新增XTR、油站折扣卡、油站优惠券3种奖励类型"
+    acceptable_terms:
+      - XTR
+      - 油站折扣卡
+      - 油站优惠券
+      - Fuel Discount
+      - Coupon
+      - Card
+    must_appear_in:
+      - requirement-ir
+      - report
+      - plan
+
+  - id: REQ-REWARD-CATEGORIES
+    priority: P0
+    meaning: "奖励种类配置项(Cash/XTR/Fuel Discount)，最多选2种"
+    acceptable_terms:
+      - 奖励种类
+      - "2种"
+    must_appear_in:
+      - report
+      - plan
+
+  - id: REQ-XTR-EXCLUSIVE
+    priority: P0
+    meaning: "XTR与其他奖励类型互斥，XTR仅支持单阶梯"
+    acceptable_terms:
+      - XTR
+      - 互斥
+      - 单阶梯
+    must_appear_in:
+      - report
+      - plan
+
+  - id: REQ-CARD-COUPON-EXCLUSIVE
+    priority: P0
+    meaning: "油站折扣卡和油站优惠券不允许配置在同一Option中"
+    acceptable_terms:
+      - 折扣卡
+      - 优惠券
+      - 不允许
+      - 同一Option
+    must_appear_in:
+      - report
+      - plan
+
+  - id: REQ-SELECT-PERIOD
+    priority: P0
+    meaning: "选择周期≤7天"
+    acceptable_terms:
+      - 选择周期
+      - "7"
+    must_appear_in:
+      - report
+
+  - id: REQ-REWARD-PERIOD
+    priority: P0
+    meaning: "奖励期(选择周期+活动周期)最长30天"
+    acceptable_terms:
+      - 奖励期
+      - "30"
+    must_appear_in:
+      - report
+
+  - id: REQ-XTR-CONFIG
+    priority: P0
+    meaning: "XTR配置含抽成率(0-20%)、有效期(<100天)、接单有效时段"
+    acceptable_terms:
+      - 抽成率
+      - 有效期
+      - 接单有效时段
+    must_appear_in:
+      - report
+      - plan
+
+  - id: REQ-DISCOUNT-CARD-CONFIG
+    priority: P0
+    meaning: "折扣卡配置含Card ID和数量1-99"
+    acceptable_terms:
+      - Card ID
+      - 折扣卡
+      - "1-99"
+    must_appear_in:
+      - report
+      - plan
+
+  - id: REQ-COUPON-CONFIG
+    priority: P0
+    meaning: "优惠券配置含券批次ID、张数、互斥选项"
+    acceptable_terms:
+      - 券批次
+      - 互斥
+    must_appear_in:
+      - report
+
+  - id: REQ-COUPON-VALIDATION
+    priority: P0
+    meaning: "券批次有效期须包含活动周期，用券城市须包含活动城市"
+    acceptable_terms:
+      - 有效期
+      - 用券城市
+      - 活动城市
+    must_appear_in:
+      - report
+
+  - id: REQ-OPTION-MAX
+    priority: P1
+    meaning: "最多7个Option"
+    acceptable_terms:
+      - "7"
+      - Option
+    must_appear_in:
+      - report
+
+  - id: REQ-STAGE-MAX
+    priority: P1
+    meaning: "每个选项最多2个Stage"
+    acceptable_terms:
+      - "2"
+      - Stage
+    must_appear_in:
+      - report
+
+  - id: REQ-BATCH-EVENT-RULE
+    priority: P1
+    meaning: "批量EventRule格式支持Cash/XTR/Card/Coupon"
+    acceptable_terms:
+      - EventRule
+      - Cash
+      - XTR
+      - Card
+      - Coupon
+    must_appear_in:
+      - report
+
+  - id: REQ-USER-QUERY-CARD-COUPON
+    priority: P1
+    meaning: "User Query新增折扣卡/优惠券列"
+    acceptable_terms:
+      - 折扣卡/优惠券
+      - User Query
+    must_appear_in:
+      - report
+
+  - id: REQ-PUSH-KEY-REWARD
+    priority: P2
+    meaning: "Push占位符含{{key_reward}}"
+    acceptable_terms:
+      - key_reward
+    must_appear_in:
+      - report
+
+code_anchors:
+  - id: CODE-BFF-CAMPAIGN-TYPE
+    priority: P0
+    meaning: "活动类型枚举需新增可选择定制奖"
+    path: src/config/constant/campaignType.ts
+    symbol: CampaignType
+    layer: bff
+    must_appear_in:
+      - graph-context
+      - plan
+
+  - id: CODE-BFF-DETAILS-INDEX
+    priority: P0
+    meaning: "details switch需新增可选择定制奖case"
+    path: src/config/template/render/rules/details/index.ts
+    symbol: getDetailsTemplate
+    layer: bff
+    must_appear_in:
+      - graph-context
+      - plan
+
+  - id: CODE-BFF-AUDIENCE-SEG-INDEX
+    priority: P0
+    meaning: "audienceSegmentation switch需新增case"
+    path: src/config/template/preview/options/audienceSegmentation/index.ts
+    symbol: getAudienceSegmentationTemplate
+    layer: bff
+    must_appear_in:
+      - graph-context
+
+  - id: CODE-BFF-ORDER-OPTIONAL-PREVIEW
+    priority: P0
+    meaning: "可选择奖预览配置，需适配新奖励类型"
+    path: src/config/template/preview/options/audienceSegmentation/orderOptional.ts
+    layer: bff
+    must_appear_in:
+      - graph-context
+      - plan
+
+  - id: CODE-BFF-ORDER-OPTIONAL-DETAILS
+    priority: P0
+    meaning: "可选择奖详情渲染，需适配XTR/Card/Coupon"
+    path: src/config/template/render/rules/details/orderOptional.ts
+    layer: bff
+    must_appear_in:
+      - graph-context
+      - plan
+
+  - id: CODE-BFF-REWARD-CONDITION-LINKAGE
+    priority: P1
+    meaning: "奖励条件联动配置，需新增奖励类型切换逻辑"
+    path: src/config/template/linkageSchema/rewardCondition.ts
+    layer: bff
+    must_appear_in:
+      - graph-context
+
+  - id: CODE-BFF-RULES-LINKAGE
+    priority: P1
+    meaning: "规则联动配置，需适配Option/Stage切换"
+    path: src/config/template/linkageSchema/rules.ts
+    layer: bff
+    must_appear_in:
+      - graph-context
+
+  - id: CODE-BFF-TRIGGER-TYPE
+    priority: P1
+    meaning: "触发类型配置"
+    path: src/config/template/linkageSchema/triggerType.ts
+    layer: bff
+    must_appear_in:
+      - graph-context
+
+  - id: CODE-BFF-REWARD-CONDITION-RENDER
+    priority: P1
+    meaning: "奖励条件渲染模板"
+    path: src/config/template/render/rules/rewardCondition.ts
+    symbol: getRewardConditionTemplate
+    layer: bff
+    must_appear_in:
+      - graph-context
+
+  - id: CODE-BFF-PREVIEW-REWARD-TYPE
+    priority: P1
+    meaning: "预览奖励类型映射需新增XTR/Card/Coupon"
+    path: src/config/constant/previewRewardType.ts
+    symbol: previewRewardTypeMap
+    layer: bff
+    must_appear_in:
+      - graph-context
+      - report
+
+  - id: CODE-BFF-LINKAGE-INDEX
+    priority: P1
+    meaning: "联动配置入口"
+    path: src/config/template/linkageSchema/index.ts
+    layer: bff
+    must_appear_in:
+      - graph-context
+
+  - id: CODE-BFF-PREVIEW-RENDER
+    priority: P2
+    meaning: "预览渲染模板"
+    path: src/config/template/render/preview.ts
+    layer: bff
+    must_appear_in:
+      - graph-context
+
+  - id: CODE-BFF-REWARD-CONDITION-CTRL
+    priority: P2
+    meaning: "奖励条件Controller"
+    path: src/controller/schema/reward-condition.controller.ts
+    layer: bff
+    must_appear_in:
+      - graph-context
+
+  - id: CODE-BFF-REWARD-CONDITION-SVC
+    priority: P2
+    meaning: "奖励条件Service"
+    path: src/service/schema/reward-condition.service.ts
+    layer: bff
+    must_appear_in:
+      - graph-context
+
+blockers:
+  - id: BLOCK-COUPON-VALIDATION
+    priority: P0
+    meaning: "券批次有效期须包含活动周期，用券城市须包含活动城市"
+    acceptable_terms:
+      - 有效期
+      - 用券城市
+      - 包含活动周期
+    must_appear_in:
+      - report
+
+  - id: BLOCK-CARD-VALIDATION
+    priority: P0
+    meaning: "折扣卡有效期和城市校验"
+    acceptable_terms:
+      - 折扣卡
+      - 可核销
+      - 活动城市
+    must_appear_in:
+      - report
+
+forbidden_claims:
+  - id: FALSE-NEW-CONTROLLER
+    meaning: "不能声称需要新增Controller"
+    forbidden_terms:
+      - 新增Controller
+      - 新建controller
+
+  - id: FALSE-NEW-SERVICE
+    meaning: "不能声称需要新增Service类"
+    forbidden_terms:
+      - 新增Service
+      - 新建service

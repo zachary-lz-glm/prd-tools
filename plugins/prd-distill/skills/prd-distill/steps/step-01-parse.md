@@ -36,9 +36,11 @@ unzip -o <file>.docx "media/*" -d _ingest/
 
 - 来自 `.md/.txt` 或粘贴内容的 PRD。
 - 可选后端/API/技术方案文档。
-- 如存在，读取 `_prd-tools/reference/04-routing-playbooks.yaml`、`_prd-tools/reference/05-domain.yaml`。
-- v3.1 兼容：`_prd-tools/reference/05-routing.yaml`、`_prd-tools/reference/06-glossary.yaml`、`_prd-tools/reference/07-business-context.yaml`。
-- 旧版兼容：`_prd-tools/reference/05-mapping.yaml`。
+- `_prd-tools/reference/`（**必须消费**，如存在）：
+  - `04-routing-playbooks.yaml`：提取路由表，用于步骤 4 的 PRD 关键词匹配。
+  - `05-domain.yaml`：提取领域术语，用于步骤 4 的 glossary 同义词匹配。
+  - v3.1 兼容：`05-routing.yaml`、`06-glossary.yaml`、`07-business-context.yaml`。
+  - 旧版兼容：`05-mapping.yaml`。
 
 ## 执行
 
@@ -55,7 +57,9 @@ unzip -o <file>.docx "media/*" -d _ingest/
 2. 读取 `_ingest/extraction-quality.yaml`；`status: block` 时暂停，`status: warn` 时继续但必须暴露风险。
 3. 以 `_ingest/document.md` 为主输入，结合 `evidence-map.yaml` 建立 context/ evidence 台账。
 4. 将 PRD 拆成独立业务 requirement。
-4. 按以下信号匹配每个 requirement：
+4. 按以下信号匹配每个 requirement（**必须优先使用 reference 路由表**）：
+   - **reference 路由匹配**（优先级最高）：将 PRD 关键词与 `04-routing-playbooks.yaml` 的 `prd_keywords` 匹配，确定 target_surfaces 和 playbook_ref。
+   - **reference 术语匹配**：将 PRD 表述与 `05-domain.yaml` 的 terms/synonyms 对齐。
    - routing 关键词
    - glossary 同义词
    - 结构信号

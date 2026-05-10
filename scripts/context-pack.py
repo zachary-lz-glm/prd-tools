@@ -15,6 +15,10 @@ Usage:
       --distill /path/to/distill/output \
       --index /tmp/prd-index \
       --out /tmp/context-pack.md
+    python3 .prd-tools/scripts/context-pack.py \
+      --distill _prd-tools/distill/<slug> \
+      --index _prd-tools/reference/index \
+      --out _prd-tools/distill/<slug>/context/context-pack.md
 """
 
 import argparse
@@ -51,18 +55,35 @@ def parse_requirement_ir(path):
     """Extract structured requirements from requirement-ir.yaml."""
     text = Path(path).read_text(encoding='utf-8')
     reqs = []
-    for m in re.finditer(
-        r'- id: (REQ-\d+)\n'
-        r'\s+title: "([^"]+)"\n'
-        r'\s+business_intent: "([^"]+)"\n'
-        r'\s+change_type: (\w+)\n'
-        r'\s+priority: (P\d+)\n'
-        r'\s+confidence: (\w+)',
-        text,
-    ):
-        req_id, title, intent, change, prio, conf = m.groups()
-        # Extract rules
-        rules = re.findall(r'description: "([^"]+)"', text[m.start():m.end() + 600])
+    pattern = re.compile(r'^\s*-\s+id:\s+"?(REQ-\d+)"?\s*$(.*?)(?=^\s*-\s+id:|\Z)', re.S | re.M)
+    for m in pattern.finditer(text):
+        req_id = m.group(1)
+        block = m.group(2)
+
+        def _field(name, default=''):
+            fm = re.search(rf'^\s*{re.escape(name)}:\s*(.+?)\s*$', block, re.M)
+            if not fm:
+                return default
+            value = fm.group(1).strip()
+            if value.startswith('"') and value.endswith('"'):
+                value = value[1:-1]
+            return value
+
+        title = _field('title')
+        intent = _field('intent') or _field('business_intent')
+        change = _field('change_type')
+        prio = _field('priority', 'P1')
+        conf = _field('confidence', 'medium')
+
+        def _list_field(name):
+            fm = re.search(rf'^\s*{re.escape(name)}:\s*(.*?)(?:^\s*\w+:\s*|\Z)', block, re.S | re.M)
+            if not fm:
+                return []
+            return re.findall(r'^\s*-\s+"?([^"\n]+)"?\s*$', fm.group(1), re.M)
+
+        rules = _list_field('rules')
+        biz_entities = _list_field('business_entities')
+        open_questions = _list_field('open_questions')
         reqs.append({
             'id': req_id,
             'title': title,
@@ -71,6 +92,8 @@ def parse_requirement_ir(path):
             'priority': prio,
             'confidence': conf,
             'rules': rules[:6],
+            'business_entities': biz_entities[:8],
+            'open_questions': open_questions[:6],
         })
     return reqs
 
@@ -204,18 +227,6 @@ _KEYWORD_TYPE_MAP = {
     'Model': ['class'],
 }
 
-# Seed queries derived from the reference playbook (PB-001 anchor symbols)
-_SEED_QUERIES = [
-    'CampaignType',
-    'getDetailsTemplate',
-    'getAudienceSegmentationTemplate',
-    'previewRewardTypeMap',
-    'rewardCondition',
-    'courierDxGy',
-    'gasStation',
-]
-
-
 def _extract_query_hints_from_impacts(impacts):
     """Derive query terms from layer-impact targets."""
     hints = []
@@ -231,14 +242,93 @@ def _extract_query_hints_from_impacts(impacts):
     return list(set(hints))
 
 
+_TERM_STOPWORDS = frozenset({
+    'add', 'modify', 'delete', 'change', 'type', 'step', 'rules',
+    'rule', 'config', 'template', 'condition', 'options', 'default',
+    'string', 'number', 'boolean', 'input', 'select', 'checkbox',
+    'high', 'medium', 'low', 'bff', 'backend', 'frontend',
+})
+
+
+def _codeish_terms(text):
+    """Extract compact code/search terms without exploding context size."""
+    terms = set()
+    for raw in re.findall(r'[A-Za-z][A-Za-z0-9_]*', text or ''):
+        if len(raw) < 3:
+            continue
+        lower = raw.lower()
+        if lower in _TERM_STOPWORDS:
+            continue
+        has_signal = (
+            '_' in raw
+            or any(c.isupper() for c in raw[1:])
+            or raw.isupper()
+            or lower in {
+                'campaign', 'campaigntype', 'gasstation', 'gasstationdxgy',
+                'courierdxgy', 'previewrewardtypemap', 'rewardcondition',
+                'eventrule', 'budget', 'gmv', 'push', 'dlp', 'card',
+                'coupon', 'discount', 'message', 'basic',
+            }
+        )
+        if has_signal:
+            terms.add(raw)
+    return terms
+
+
 def build_query_plan(requirements, impacts, inv, by_id):
     """Build query plan from requirements + impacts + index."""
     queries = []
     qid = 0
 
-    # Phase 1: seed queries from playbook anchor symbols
+    # Phase 1: requirement-driven queries
     seen_terms = set()
-    for sq in _SEED_QUERIES:
+    req_terms = []
+    for req in requirements:
+        req_terms.extend(_codeish_terms(req['title']))
+        req_terms.extend(_codeish_terms(req['intent']))
+        for ent in req.get('business_entities', []):
+            req_terms.extend(_codeish_terms(ent))
+        for rule in req.get('rules', []):
+            req_terms.extend(_codeish_terms(rule))
+        for q in req.get('open_questions', []):
+            req_terms.extend(_codeish_terms(q))
+
+    for t in sorted({term for term in req_terms if len(term) > 2}, key=str.lower):
+        if t.lower() in seen_terms:
+            continue
+        seen_terms.add(t.lower())
+        hits = query_entities(t, inv, by_id, max_results=5)
+        matched = [e['id'] for _, e in hits]
+        if not matched:
+            continue
+        qid += 1
+        expected = _KEYWORD_TYPE_MAP.get(t, [])
+        conf = 'high' if any(e['type'] in ('enum', 'template', 'registry', 'class') for _, e in hits) else 'medium'
+        queries.append({
+            'id': f'QP-{qid:03d}',
+            'requirement_hint': 'req-term: ' + t,
+            'query_terms': sorted(name_to_terms(t)),
+            'expected_anchor_types': expected,
+            'matched_entities': matched,
+            'confidence': conf,
+        })
+        if qid >= 30:
+            break
+
+    # Phase 2: queries from reference seed symbols
+    seed_queries = [
+        'CampaignType',
+        'getDetailsTemplate',
+        'getAudienceSegmentationTemplate',
+        'previewRewardTypeMap',
+        'rewardCondition',
+        'courierDxGy',
+        'gasStation',
+    ]
+    for sq in seed_queries:
+        if sq.lower() in seen_terms:
+            continue
+        seen_terms.add(sq.lower())
         qid += 1
         hits = query_entities(sq, inv, by_id, max_results=5)
         matched = [e['id'] for _, e in hits]
@@ -254,9 +344,8 @@ def build_query_plan(requirements, impacts, inv, by_id):
             'matched_entities': matched,
             'confidence': conf,
         })
-        seen_terms.add(sq.lower())
 
-    # Phase 2: queries from layer-impact targets
+    # Phase 3: queries from layer-impact targets
     impact_hints = _extract_query_hints_from_impacts(impacts)
     for hint in sorted(set(impact_hints)):
         if hint.lower() in seen_terms:
@@ -275,7 +364,7 @@ def build_query_plan(requirements, impacts, inv, by_id):
             'confidence': conf,
         })
 
-    # Phase 3: queries from P0 requirements
+    # Phase 4: queries from P0 requirements
     for req in requirements:
         if req['priority'] != 'P0':
             continue

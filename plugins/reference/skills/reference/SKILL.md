@@ -104,7 +104,7 @@ _prd-tools/build/              # 过程和质量报告
 4. 标注 `reference_scope.authority: single_repo`，跨仓线索写确认状态字段。
 5. 用 `rg`/glob 找候选，再 Read 源码确认事实。
 6. 生成或更新 `_prd-tools/reference/`。
-7. 构建 Evidence Index（辅助层）：`scripts/build-index.py --repo <项目路径> --out _prd-tools/reference/index`。
+7. 构建 Evidence Index（辅助层）：`python3 .prd-tools/scripts/build-index.py --repo <项目路径> --out _prd-tools/reference/index`。
 8. 生成 `portal.html`（详见 `steps/step-05-portal.md`）。
 9. 执行健康检查或质量门控。
 10. 给用户摘要：新增/更新文件、质量状态、风险、下一步。

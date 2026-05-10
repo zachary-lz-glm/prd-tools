@@ -30,8 +30,33 @@ PRD raw file/text
   - `.docx`：用 `unzip` 提取 `word/document.xml`（文本）和 `media/`（图片）。文本去 XML 标签后写入 `_ingest/document.md`，图片拷贝到 `_ingest/media/`。在文本中图片位置插入 `![image-N](media/imageN.png)` 占位。Claude 用 Read 工具逐个查看图片（原生多模态），理解 UI 截图、流程图、数据图表，结果写入 `_ingest/media-analysis.yaml`。复杂格式（嵌套表格）可能丢失，此时 `extraction-quality.yaml` 标记 `warn`。
   - 粘贴文本：手工建立来源和定位。
 - 技术方案 / API 文档：可选，但多层或后端相关需求强烈建议读取。
-- `_prd-tools/reference/`：优先 v4（6 文件结构）；若只有 v3.1（10 文件结构），兼容读取；若只有旧版 `05-mapping.yaml`，兼容读取并在回流建议里提示迁移。
+- `_prd-tools/reference/`：**必须读取并消费**。优先 v4（6 文件结构）；若只有 v3.1（10 文件结构），兼容读取；若只有旧版 `05-mapping.yaml`，兼容读取并在回流建议里提示迁移。reference 消费是后续所有步骤的前置知识，不是可选建议。
 - 目标代码库：用于代码锚定。
+
+### Reference 消费门禁（Step 0 之后必须完成）
+
+如果 `_prd-tools/reference/` 存在，**必须**完成以下消费，缺一不可：
+
+1. **路由映射**（`04-routing-playbooks.yaml`）：提取所有 `prd_routing` 条目，建立 PRD 关键词 → target_surfaces → playbook_ref 映射表。后续 Step 3.1 源码扫描**必须先查此表**确定扫描范围，不能盲目 grep。
+2. **代码地图**（`01-codebase.yaml`）：提取 modules、registries、data_flows、enums、external_systems。后续源码扫描命中时，**必须与代码地图交叉验证**，确认命中的模块和注册点与 reference 一致。
+3. **编码规则**（`02-coding-rules.yaml`）：提取所有 fatal 级规则。影响分析时**必须检查是否触及这些规则**，在 layer-impact 中引用规则 ID。
+4. **契约**（`03-contracts.yaml`）：提取现有 API 契约。contract-delta 生成时**必须以此为基线**，逐条对比变更。
+5. **领域术语**（`05-domain.yaml`）：提取 terms 和 implicit_rules。requirement-ir 拆解时**必须用领域术语对齐** PRD 表述。
+
+将 reference 消费状态写入 `context/evidence.yaml`：
+
+```yaml
+- id: "EV-REF-CONSUMED"
+  kind: "reference"
+  source: "_prd-tools/reference/"
+  summary: "reference 消费完成：routing=N, rules=N, contracts=N, terms=N"
+  locator: "步骤 0 消费门禁"
+```
+
+如果 `_prd-tools/reference/` **不存在**：
+- 所有 layer-impact、contract-delta 的 confidence 强制降为 `low`。
+- readiness-report.yaml 必须在 `next_actions` 首位写入："建议运行 `/reference` 生成项目知识库后再蒸馏"。
+- report.md §11 必须暴露："本次蒸馏未消费 reference，影响分析和契约检查可能不完整"。
 
 创建输出目录：
 
@@ -114,14 +139,16 @@ _ingest/
 - 不要把实现方案直接混进 IR；实现影响放到 layer impact。
 - 不确定项进入 `open_questions`。
 
-## 步骤 2.5：Query Plan（辅助层）
+## 步骤 2.5：Query Plan（Reference Index 桥接层）
 
-> **定位**：Query Plan 是辅助层，不替代 report.md 和 plan.md 作为主产物。
+> **定位**：Query Plan 是 reference index 到源码扫描的**强制桥接层**。当 index 存在时，步骤 3.1 **必须消费** query-plan.yaml，不能跳过直接 grep。
 
-如果 `_prd-tools/reference/index/` 存在，运行 `scripts/context-pack.py` 生成 `context/query-plan.yaml`，为后续 Graph Context（步骤 3.1）提供代码锚点检索提示。
+**前置条件**：`context/requirement-ir.yaml` 已生成（步骤 2 完成）。
+
+如果 `_prd-tools/reference/index/` 存在，**必须**运行 `python3 .prd-tools/scripts/context-pack.py` 生成 `context/query-plan.yaml`，为后续 Graph Context（步骤 3.1）提供预匹配的代码锚点。
 
 ```bash
-scripts/context-pack.py \
+python3 .prd-tools/scripts/context-pack.py \
   --distill _prd-tools/distill/<slug> \
   --index _prd-tools/reference/index \
   --out _prd-tools/distill/<slug>/context/context-pack.md
@@ -137,31 +164,53 @@ phases:
   p0_requirements: []     # P0 需求的关键实体和术语
 ```
 
-## 步骤 2.6：Context Pack（辅助层）
+## 步骤 2.6：Context Pack（Reference Index 融合层）
 
-> **定位**：Context Pack 是辅助层，不替代 graph-context.md。graph-context.md 仍是源码扫描的主产出。
+> **定位**：Context Pack 融合 Evidence Index 与 distill 上下文，为 report/plan 提供精简代码坐标。当 index 存在时**必须运行**。
 
-在步骤 3（Layer Impact）完成后，再次运行 `scripts/context-pack.py`（此时 layer-impact.yaml 已存在），生成 `context/context-pack.md`，将 Evidence Index 中的代码实体与 distill 上下文融合，形成模型可直接消费的精简上下文（建议 ≤800 行）。
+在步骤 3（Layer Impact）完成后，**必须**运行 `python3 .prd-tools/scripts/context-pack.py`（此时 layer-impact.yaml 已存在），生成 `context/context-pack.md`，将 Evidence Index 中的代码实体与 distill 上下文融合，形成模型可直接消费的精简上下文（建议 ≤800 行）。
 
-触发时机：步骤 3 完成后、步骤 4（Contract Delta）之前。如果索引不存在则跳过。
+触发时机：步骤 3 完成后、步骤 4（Contract Delta）之前。如果索引不存在则跳过，但必须在 readiness-report 中记录缺失。
 
 ## 步骤 3：Layer Impact
 
 在生成 Layer Impact 前，先构建需求级代码上下文。
 
-### 3.1 Graph Context（源码驱动技术上下文）
+### 3.1 Graph Context（Reference-First 源码扫描）
 
 生成 `context/graph-context.md`。这个文件是 `plan.md` 和 `report.md` 的直接输入，目标是把 PRD 语言变成可执行的代码坐标。
 
-对每个 REQ 执行源码扫描：
+**⚠ 强制：必须先消费 reference 再扫描源码。禁止跳过 reference 直接 grep。**
 
-1. 从 requirement-ir 提取业务实体、字段名、接口名、动作词和 reference routing 关键词。
-2. 用 `rg`/`glob` 搜索源码中匹配的函数、类、方法、文件和符号。
-3. 用 `Read` 读取命中文件，获取 callers、callees、imports、properties 和参与流程。
-4. 对 MODIFY/DELETE/契约变化候选用 `rg` 追踪引用链，评估 blast radius。
-5. 将命中的符号写成函数级技术线索：`symbol`、`kind`、`file:line`、`role_in_flow`、`callers`、`callees`、`risk`、`recommended_plan_usage`。
+对每个 REQ 按以下优先级执行扫描：
 
-始终生成 `context/graph-context.md`，记录实际执行的搜索查询和命中结果。
+**阶段 1：Reference 路由（必须先执行）**
+
+1. 从 requirement-ir 提取业务实体、字段名、接口名、动作词。
+2. 将提取的关键词与 `04-routing-playbooks.yaml` 的 `prd_routing` 匹配，确定 target_surfaces 和 playbook_ref。
+3. 从 `01-codebase.yaml` 提取匹配到的 modules、registries、data_flows，获得精确的文件路径和符号列表。
+4. 检查 `02-coding-rules.yaml` 中是否有相关 fatal 规则（如"新增 CampaignType 必须在 3 处注册"），记录为必检项。
+5. 如存在 `query-plan.yaml`（步骤 2.5 产出），读取 `matched_entities` 获取预匹配的代码锚点。
+
+**阶段 2：Index 驱动精确扫描（index 存在时优先）**
+
+6. 对 query-plan.yaml 中 confidence=high 的 matched_entities，直接 Read 对应源码文件，确认符号和上下文。这比 grep 更精确，因为 index 已预计算了实体位置。
+7. 对 confidence=low 的实体，用 `rg` 验证是否为噪音。
+
+**阶段 3：补充扫描（仅覆盖阶段 1-2 未命中的部分）**
+
+8. 用 `rg`/`glob` 搜索阶段 1-2 **未覆盖**的业务实体和动作词。
+9. 用 `Read` 读取命中文件，获取 callers、callees、imports、properties 和参与流程。
+10. 对 MODIFY/DELETE/契约变化候选用 `rg` 追踪引用链，评估 blast radius。
+
+**阶段 4：汇总**
+
+11. 将命中的符号写成函数级技术线索：`symbol`、`kind`、`file:line`、`role_in_flow`、`callers`、`callees`、`risk`、`recommended_plan_usage`。
+12. 每条线索必须标注来源：`source: "reference_routing"` | `"index_query"` | `"code_scan"`。
+
+始终生成 `context/graph-context.md`，记录实际执行的搜索查询、命中结果和**reference 消费记录**（从哪些 reference 文件提取了哪些路由/规则/实体）。
+
+**门禁检查**：graph-context.md 中至少 30% 的线索应来自阶段 1-2（reference/index），否则在 readiness-report 中标记 `reference_underconsumed`。
 
 读取目标层适配器：
 
@@ -306,14 +355,23 @@ suggestions:
 
 报告里不要隐藏低置信度项；低置信度是价值，不是瑕疵。**线索式证据不能省略**：代码注释、已有结构体名、文件路径等线索必须保留。
 
+### Report 质量门禁
+
+生成 `report.md` 前必须重新读取 `context/requirement-ir.yaml`、`context/graph-context.md`、`context/contract-delta.yaml` 和 `context/context-pack.md`，核对报告已覆盖下列高收益信息。缺任一项时，不要用泛化总结替代，必须补进对应章节或 §11：
+
+- P0/P1 需求中的配置细节：券批次/券张数/互斥、折扣卡 Card ID/数量/有效期/城市校验、EventRule 格式、Budget/GMV 范围、Push 占位符。
+- PRD 内部矛盾或疑似 typo：例如同一字段同时出现 `1-10` 与 `1-99`、报错文案 `1-0` 与规则 `1-9` 不一致。此类内容必须进入 §11 阻塞问题或低置信度假设。
+- 关键代码锚点：`rewardCondition.ts`、`basic.ts`、`message.ts` 等如果已在 graph-context 中出现，report/plan 不得遗漏其风险说明。
+- reference 只作为候选事实和路由依据；任何 reference 结论必须被源码、PRD、技术文档或负向搜索二次确认。未确认时降为 `confidence: low|medium` 并进入 §11。
+
 ## 步骤 8.5：Final Quality Gate（辅助层）
 
 > **定位**：Final Quality Gate 是辅助层，不替代 readiness-report.yaml。readiness-report.yaml 仍是就绪度评估的主产出。
 
-运行 `scripts/final-quality-gate.py` 对所有交付物执行 5 项确定性检查，生成 `context/final-quality-gate.yaml`。
+运行 `python3 .prd-tools/scripts/final-quality-gate.py` 对所有交付物执行 5 项确定性检查，生成 `context/final-quality-gate.yaml`。
 
 ```bash
-scripts/final-quality-gate.py \
+python3 .prd-tools/scripts/final-quality-gate.py \
   --distill _prd-tools/distill/<slug>
 ```
 
@@ -372,3 +430,4 @@ summary:
 5. 每个输出都要能回溯 evidence。
 6. 完成后简要告知输出路径、最重要的阻塞/风险，并优先引导用户阅读 `report.md`。同时告知 `portal.html` 可在浏览器中打开查看完整可视化报告。
 7. **report.md 和 plan.md 是主产物**；query-plan、context-pack、final-quality-gate 是辅助层，不替代主产物的阅读优先级。
+8. **⚠ Reference 强制消费**：`_prd-tools/reference/` 存在时，必须消费。Step 0 消费门禁（路由/规则/契约/术语）→ Step 2.5 桥接 index → Step 3.1 reference-first 扫描。禁止跳过 reference 直接 grep 源码。reference 不存在时，所有涉及 reference 的步骤必须标记缺失并降低置信度。

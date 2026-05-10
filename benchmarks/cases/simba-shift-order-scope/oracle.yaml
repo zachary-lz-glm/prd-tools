@@ -1,0 +1,230 @@
+schema_version: "1.0"
+case_id: simba-shift-order-scope
+
+# Oracle: reviewed ground truth for Simba支持区分班次内外订单 (Order Statistics Scope).
+# Requirements extracted from PRD; code_anchors reviewed from branch diff.
+
+requirements:
+  - id: REQ-ORDER-SCOPE-CONFIG
+    priority: P0
+    meaning: "新增订单统计范围配置项：全部订单/班次内订单/班次外订单"
+    acceptable_terms:
+      - 订单统计范围
+      - 班次内订单
+      - 班次外订单
+    must_appear_in:
+      - requirement-ir
+      - report
+      - plan
+
+  - id: REQ-SHIFT-DEFAULT-INSIDE
+    priority: P0
+    meaning: "shift骑手默认勾选班次内订单，支持修改"
+    acceptable_terms:
+      - shift
+      - 默认
+      - 班次内
+    must_appear_in:
+      - report
+      - plan
+
+  - id: REQ-99PRO-MUST-ALL
+    priority: P0
+    meaning: "99pro骑手必须选择全部订单，不支持运营修改"
+    acceptable_terms:
+      - 99pro
+      - 全部订单
+      - 不支持修改
+    must_appear_in:
+      - report
+      - plan
+
+  - id: REQ-OL-NO-ALL-EXCEPT-SINGLE
+    priority: P0
+    meaning: "非单单奖不支持OL骑手统计全部订单，避免奖励金额拆分"
+    acceptable_terms:
+      - OL
+      - 非单单奖
+      - 全部订单
+    must_flag_conflict: true
+    conflict_signals:
+      - 不支持
+      - 非单单奖
+    must_appear_in:
+      - report
+
+  - id: REQ-DURATION-SCOPE-CONFLICT
+    priority: P0
+    meaning: "奖励门槛含在线时长时，仅可选班次内订单"
+    acceptable_terms:
+      - 在线时长
+      - 班次内订单
+    must_appear_in:
+      - report
+      - plan
+
+  - id: REQ-OL-FL-NON-SINGLE-DEFAULT
+    priority: P1
+    meaning: "OL+FL非单单奖默认班次外订单"
+    acceptable_terms:
+      - 班次外
+      - 非单单奖
+    must_appear_in:
+      - report
+
+  - id: REQ-PREVIEW-SCOPE
+    priority: P1
+    meaning: "预览展示订单统计范围"
+    acceptable_terms:
+      - 订单统计范围
+      - 预览
+    must_appear_in:
+      - plan
+
+  - id: REQ-USER-QUERY-SCOPE
+    priority: P1
+    meaning: "User Query计算详情新增订单统计范围列"
+    acceptable_terms:
+      - 订单统计范围
+      - 计算详情
+    must_appear_in:
+      - report
+
+  - id: REQ-RESET-ON-TYPE-CHANGE
+    priority: P2
+    meaning: "复制编辑时修改司机类型/活动类型/骑手类型/门槛则清空订单统计范围"
+    acceptable_terms:
+      - 清空
+      - 修改
+    must_appear_in:
+      - plan
+
+  - id: REQ-AFFECTED-TYPES
+    priority: P1
+    meaning: "影响9种奖励类型：单单奖/冲单奖/实时冲单/可选择冲单/实时定制冲单/保底奖/可选择保底/运力线冲单/签到奖"
+    acceptable_terms:
+      - 单单奖
+      - 冲单奖
+      - 保底奖
+    must_appear_in:
+      - report
+
+code_anchors:
+  - id: CODE-BFF-SHIFTCHECKIN-PREVIEW
+    priority: P1
+    meaning: "shiftCheckin预览配置，订单统计范围影响预览展示"
+    path: src/config/template/preview/options/audienceSegmentation/shiftCheckin.ts
+    layer: bff
+    must_appear_in:
+      - graph-context
+
+  - id: CODE-BFF-SHIFTCHECKIN-MOCK
+    priority: P2
+    meaning: "shiftCheckin mock数据"
+    path: src/config/template/render/rules/details/shiftCheckin.mock.ts
+    layer: bff
+    must_appear_in:
+      - graph-context
+
+  - id: CODE-BFF-SHIFTCHECKIN-DETAILS
+    priority: P1
+    meaning: "shiftCheckin详情渲染，订单统计范围在此配置"
+    path: src/config/template/render/rules/details/shiftCheckin.ts
+    layer: bff
+    must_appear_in:
+      - graph-context
+
+  - id: CODE-FE-CONDITION-METHOD
+    priority: P1
+    meaning: "门槛条件方法组件"
+    path: app/dive/src/components/FormField/DxgyFormList/ConditionMethodCmp.tsx
+    layer: frontend
+    must_appear_in:
+      - graph-context
+
+  - id: CODE-FE-EDITABLE-CONDITION-ROW
+    priority: P2
+    meaning: "可编辑条件行组件"
+    path: app/dive/src/components/FormField/DxgyFormList/EditableConditionMethodRow.tsx
+    layer: frontend
+    must_appear_in:
+      - graph-context
+
+  - id: CODE-FE-DXGY-FORM-LIST
+    priority: P1
+    meaning: "DxGy奖励条件列表组件"
+    path: app/dive/src/components/FormField/DxgyFormList/index.tsx
+    layer: frontend
+    must_appear_in:
+      - graph-context
+
+  - id: CODE-FE-REWARD-CONDITION
+    priority: P1
+    meaning: "奖励条件组件"
+    path: app/dive/src/components/FormField/RewardConditionCmp/index.tsx
+    layer: frontend
+    must_appear_in:
+      - graph-context
+
+  - id: CODE-FE-TIPS-TAG
+    priority: P2
+    meaning: "提示标签组件，用于订单统计范围推荐文案"
+    path: app/dive/src/components/FormField/TipsTag/index.tsx
+    layer: frontend
+    must_appear_in:
+      - graph-context
+
+  - id: CODE-FE-I18N
+    priority: P2
+    meaning: "i18n国际化配置"
+    path: app/dive/src/locales/i18n-info.js
+    layer: frontend
+    must_appear_in:
+      - graph-context
+
+  - id: CODE-FE-SETUP-PROXY
+    priority: P2
+    meaning: "代理配置"
+    path: app/dive/src/setupProxy.js
+    layer: frontend
+    must_appear_in:
+      - graph-context
+
+blockers:
+  - id: BLOCK-OL-ALL-VALIDATION
+    priority: P0
+    meaning: "非单单奖给OL选全部订单需拦截并toast"
+    acceptable_terms:
+      - OL骑手
+      - 全部订单
+      - 不支持
+    must_appear_in:
+      - report
+
+  - id: BLOCK-DURATION-SCOPE-CONFLICT
+    priority: P0
+    meaning: "在线时长门槛+班次外订单互斥需拦截"
+    acceptable_terms:
+      - 在线时长
+      - 班次内订单
+    must_appear_in:
+      - report
+
+forbidden_claims:
+  - id: FALSE-NEW-CONTROLLER
+    meaning: "不能声称需要新增Controller"
+    forbidden_terms:
+      - 新增Controller
+      - 新建controller
+
+  - id: FALSE-NEW-SERVICE
+    meaning: "不能声称需要新增Service类"
+    forbidden_terms:
+      - 新增Service
+      - 新建service
+
+  - id: FALSE-BACKEND-SCOPE
+    meaning: "不能声称订单统计范围需要后端实现（BFF层配置）"
+    forbidden_terms:
+      - 后端实现订单统计范围
+      - 订单统计范围需要后端

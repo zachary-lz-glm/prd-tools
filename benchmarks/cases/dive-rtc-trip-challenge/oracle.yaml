@@ -1,0 +1,293 @@
+schema_version: "1.0"
+case_id: dive-rtc-trip-challenge
+
+# Oracle: reviewed ground truth for 新增运力线冲单奖玩法 (Vehicle Capacity Line Trip Challenge).
+# Requirements extracted from PRD; code_anchors reviewed from branch diff.
+
+requirements:
+  - id: REQ-NEW-CAMPAIGN-TYPE
+    priority: P0
+    meaning: "新增运力线冲单奖活动类型"
+    acceptable_terms:
+      - 运力线冲单奖
+      - VehicleCapacityLine
+    must_appear_in:
+      - requirement-ir
+      - report
+      - plan
+
+  - id: REQ-TASK-TYPES
+    priority: P0
+    meaning: "任务类型=必达日+任务日 / 任务日 / 纯冲单奖"
+    acceptable_terms:
+      - 必达日
+      - 任务日
+      - 纯冲单奖
+    must_appear_in:
+      - requirement-ir
+      - report
+      - plan
+
+  - id: REQ-GUARANTEED-DAY
+    priority: P0
+    meaning: "必达日日期配置，多选日期标签，范围=活动周期"
+    acceptable_terms:
+      - 必达日日期
+      - 日期标签
+    must_appear_in:
+      - report
+      - plan
+
+  - id: REQ-DAILY-TRIPS
+    priority: P0
+    meaning: "每日完单量1-100整数"
+    acceptable_terms:
+      - 每日完单量
+      - "1-100"
+    must_appear_in:
+      - report
+      - plan
+
+  - id: REQ-GRADIENT-MAX
+    priority: P1
+    meaning: "奖励梯度最多20行"
+    acceptable_terms:
+      - "20"
+      - 梯度
+    must_appear_in:
+      - report
+
+  - id: REQ-ACTIVITY-CYCLE
+    priority: P1
+    meaning: "活动周期≤31天"
+    acceptable_terms:
+      - "31"
+      - 活动周期
+    must_appear_in:
+      - report
+
+  - id: REQ-RIDER-TYPE
+    priority: P1
+    meaning: "骑手类型=自由骑手/OL骑手/99Pro骑手，默认勾选99Pro"
+    acceptable_terms:
+      - 99Pro
+      - 自由骑手
+      - OL骑手
+    must_appear_in:
+      - report
+
+  - id: REQ-AR-CR-TYPE
+    priority: P1
+    meaning: "AR&CR计算类型=完整日/时段"
+    acceptable_terms:
+      - AR&CR
+      - 完整日
+      - 时段
+    must_appear_in:
+      - report
+      - plan
+
+  - id: REQ-FOOD-HOTZONE
+    priority: P2
+    meaning: "外卖热区选择，最多10个"
+    acceptable_terms:
+      - 外卖热区
+      - "10"
+    must_appear_in:
+      - plan
+
+  - id: REQ-REWARD-CEILING
+    priority: P1
+    meaning: "奖励金额上限=ASP*单量*6"
+    acceptable_terms:
+      - ASP
+      - "6"
+      - 上限
+    must_appear_in:
+      - report
+
+  - id: REQ-BATCH-EVENT-RULE
+    priority: P1
+    meaning: "批量EventRule格式含Trips*days*BRL，支持必达日+任务日/任务日/纯冲单奖三种组合"
+    acceptable_terms:
+      - EventRule
+      - Trips
+      - days
+    must_appear_in:
+      - report
+
+  - id: REQ-PUSH-PLACEHOLDERS
+    priority: P1
+    meaning: "Push占位符含maximum_task_days/daily_completed_orders/guaranteed_date"
+    acceptable_terms:
+      - maximum_task_days
+      - daily_completed_orders
+      - guaranteed_date
+    must_appear_in:
+      - report
+
+  - id: REQ-USER-QUERY-DETAIL
+    priority: P1
+    meaning: "User Query含计算详情（必达日/任务日）和具体订单模块"
+    acceptable_terms:
+      - 计算详情
+      - 必达日
+      - 任务日
+      - 具体订单
+    must_appear_in:
+      - report
+
+  - id: REQ-TEMPLATE-EXPLAIN
+    priority: P2
+    meaning: "模板explain页新增VehicleCapacityLineDxGyReward"
+    acceptable_terms:
+      - VehicleCapacityLineDxGyReward
+    must_appear_in:
+      - report
+
+code_anchors:
+  - id: CODE-BFF-CAMPAIGN-TYPE
+    priority: P0
+    meaning: "活动类型枚举需新增运力线冲单奖"
+    path: src/config/constant/campaignType.ts
+    symbol: CampaignType
+    layer: bff
+    must_appear_in:
+      - graph-context
+      - plan
+
+  - id: CODE-BFF-DETAILS-INDEX
+    priority: P0
+    meaning: "details switch需新增运力线冲单奖case"
+    path: src/config/template/render/rules/details/index.ts
+    symbol: getDetailsTemplate
+    layer: bff
+    must_appear_in:
+      - graph-context
+      - plan
+
+  - id: CODE-BFF-AUDIENCE-SEG-INDEX
+    priority: P0
+    meaning: "audienceSegmentation switch需新增case"
+    path: src/config/template/preview/options/audienceSegmentation/index.ts
+    symbol: getAudienceSegmentationTemplate
+    layer: bff
+    must_appear_in:
+      - graph-context
+
+  - id: CODE-BFF-STEPPOINT-DETAILS
+    priority: P0
+    meaning: "运力线冲单详情渲染（stepPoint对应冲单奖类型）"
+    path: src/config/template/render/rules/details/stepPoint.ts
+    layer: bff
+    must_appear_in:
+      - graph-context
+      - plan
+
+  - id: CODE-BFF-STEPPOINT-PREVIEW
+    priority: P1
+    meaning: "运力线冲单预览配置"
+    path: src/config/template/preview/options/audienceSegmentation/stepPoint.ts
+    layer: bff
+    must_appear_in:
+      - graph-context
+
+  - id: CODE-BFF-RULES-LINKAGE
+    priority: P1
+    meaning: "规则联动配置，需适配必达日/任务日条件"
+    path: src/config/template/linkageSchema/rules.ts
+    layer: bff
+    must_appear_in:
+      - graph-context
+
+  - id: CODE-BFF-TRIGGER-TYPE
+    priority: P1
+    meaning: "触发类型配置"
+    path: src/config/template/linkageSchema/triggerType.ts
+    layer: bff
+    must_appear_in:
+      - graph-context
+
+  - id: CODE-BFF-REWARD-CONDITION-RENDER
+    priority: P1
+    meaning: "奖励条件渲染模板，需适配新门槛类型"
+    path: src/config/template/render/rules/rewardCondition.ts
+    symbol: getRewardConditionTemplate
+    layer: bff
+    must_appear_in:
+      - graph-context
+
+  - id: CODE-BFF-PREVIEW-REWARD-TYPE
+    priority: P1
+    meaning: "预览奖励类型映射需新增运力线冲单奖"
+    path: src/config/constant/previewRewardType.ts
+    symbol: previewRewardTypeMap
+    layer: bff
+    must_appear_in:
+      - graph-context
+      - report
+
+  - id: CODE-BFF-BASIC-RENDER
+    priority: P2
+    meaning: "基础信息渲染，需适配必达日/任务日展示"
+    path: src/config/template/render/basic.ts
+    layer: bff
+    must_appear_in:
+      - graph-context
+
+  - id: CODE-BFF-MESSAGE-RENDER
+    priority: P2
+    meaning: "消息渲染，需处理Push占位符"
+    path: src/config/template/render/message.ts
+    layer: bff
+    must_appear_in:
+      - graph-context
+
+  - id: CODE-BFF-REWARD-CONDITION-LINKAGE
+    priority: P1
+    meaning: "奖励条件联动配置"
+    path: src/config/template/linkageSchema/rewardCondition.ts
+    layer: bff
+    must_appear_in:
+      - graph-context
+
+blockers:
+  - id: BLOCK-GUARANTEED-REQUIRE-TASK
+    priority: P0
+    meaning: "配置必达日后必须配置任务日条件"
+    acceptable_terms:
+      - 必达日
+      - 任务日
+      - 必须配置
+    must_appear_in:
+      - report
+
+  - id: BLOCK-TASK-DAYS-GTE-GUARANTEED
+    priority: P0
+    meaning: "任务日最小天数应≥必达日天数"
+    acceptable_terms:
+      - 任务日最小天数
+      - 必达日天数
+      - 大于等于
+    must_appear_in:
+      - report
+
+forbidden_claims:
+  - id: FALSE-NEW-CONTROLLER
+    meaning: "不能声称需要新增Controller"
+    forbidden_terms:
+      - 新增Controller
+      - 新建controller
+
+  - id: FALSE-NEW-SERVICE
+    meaning: "不能声称需要新增Service类"
+    forbidden_terms:
+      - 新增Service
+      - 新建service
+
+  - id: FALSE-MODIFY-BASE
+    meaning: "不能声称需要修改base类"
+    forbidden_terms:
+      - 修改ComponentModel
+      - 修改ComponentService
+      - 修改ComponentController

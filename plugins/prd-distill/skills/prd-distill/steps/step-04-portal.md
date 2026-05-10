@@ -61,24 +61,17 @@ YAML 内容转为 JSON 后嵌入。Markdown 内容解析为结构化数据（章
 
 ### 3. 页面结构
 
-页面分为 9 个可视化 Section，通过左侧 Sidebar 导航切换：
+页面分为 9 个可视化 Section，通过顶部 sticky Nav 导航切换。必须与 reference portal 使用同一套视觉语言：顶部渐变 Header、横向 sticky Nav、居中内容容器、白色信息卡片、8px 圆角、统一 tag/badge/score 色板。
 
 ```
 +---------------------------------------------------------------+
 | Header: 就绪度评分徽章 / PRD 标题 / 项目名 / 时间戳          |
-+----------+----------------------------------------------------+
-| Sidebar  |  Content Area                                      |
-| Nav      |  (根据 sidebar 选择切换)                            |
-|          |                                                    |
-| 总览     |                                                    |
-| 源码命中 |                                                    |
-| 影响分析 |                                                    |
-| 契约差异 |                                                    |
-| 开发计划 |                                                    |
-| QA 矩阵  |                                                    |
-| 阻塞问题 |                                                    |
-| 回流建议 |                                                    |
-+----------+----------------------------------------------------+
++---------------------------------------------------------------+
+| Sticky Top Nav: 总览 / 源码命中 / 影响分析 / 契约差异...       |
++---------------------------------------------------------------+
+| Centered Content Area                                          |
+|  (根据 nav 选择切换 section)                                   |
++---------------------------------------------------------------+
 ```
 
 ### 4. 各 Section 设计要求
@@ -162,28 +155,41 @@ YAML 内容转为 JSON 后嵌入。Markdown 内容解析为结构化数据（章
 ### 5. 配色方案（CSS 变量）
 
 ```css
-:root {
-  --bg-primary: #ffffff;
-  --bg-secondary: #f8f9fa;
-  --bg-sidebar: #1a1a2e;
-  --text-primary: #2d3436;
-  --text-secondary: #636e72;
-  --text-sidebar: #e0e0e0;
-  --accent: #6c5ce7;
-  --accent-light: #a29bfe;
-  --border: #dfe6e9;
-  --success: #00b894;
-  --warning: #fdcb6e;
-  --danger: #e17055;
-  --info: #74b9ff;
-  --fatal: #d63031;
+:root{
+  --bg:#f8f9fa;
+  --card:#ffffff;
+  --border:#e2e8f0;
+  --text:#1a202c;
+  --text2:#4a5568;
+  --accent:#3b82f6;
+  --accent2:#8b5cf6;
+  --green:#10b981;
+  --red:#ef4444;
+  --orange:#f59e0b;
+  --tag-bg:#edf2f7;
 }
+```
+
+基础布局样式建议：
+
+```css
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);line-height:1.6}
+.header{background:linear-gradient(135deg,#1e40af,#7c3aed);color:#fff;padding:32px 40px}
+.header h1{font-size:28px;font-weight:700;margin-bottom:8px}
+.header .meta{display:flex;gap:24px;font-size:14px;opacity:.9;flex-wrap:wrap}
+.nav{background:#fff;border-bottom:1px solid var(--border);padding:0 40px;display:flex;overflow-x:auto;position:sticky;top:0;z-index:100}
+.nav a{padding:12px 20px;font-size:14px;font-weight:500;color:var(--text2);text-decoration:none;border-bottom:3px solid transparent;white-space:nowrap}
+.nav a.active,.nav a:hover{color:var(--accent);border-bottom-color:var(--accent)}
+.container{max-width:1200px;margin:0 auto;padding:24px 40px}
+.section{display:none}.section.active{display:block}
+.card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:24px;margin-bottom:20px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
 ```
 
 ### 6. 交互要求
 
-- Sidebar 导航：点击切换右侧内容区，当前选中项高亮。
-- 移动端：sidebar 折叠为汉堡菜单。
+- Top Nav 导航：点击切换内容区，当前选中项高亮。
+- 移动端：导航横向滚动，内容全宽。
 - 可折叠区域：用 `<details>/<summary>` 或自定义 toggle。
 - 搜索/过滤：源码命中表和 QA 矩阵支持实时搜索。
 - Checklist 持久化：plan 的 checklist 勾选状态保存到 `localStorage`，刷新后保留。
@@ -203,19 +209,17 @@ YAML 内容转为 JSON 后嵌入。Markdown 内容解析为结构化数据（章
   </style>
 </head>
 <body>
-  <header id="app-header">...</header>
-  <div id="app-layout">
-    <nav id="sidebar">...</nav>
-    <main id="content">
-      <section id="sec-overview">...</section>
-      <section id="sec-code-hits">...</section>
-      <section id="sec-impact">...</section>
-      <section id="sec-contracts">...</section>
-      <section id="sec-plan">...</section>
-      <section id="sec-qa">...</section>
-      <section id="sec-blockers">...</section>
-      <section id="sec-suggestions">...</section>
-    </main>
+  <div class="header">...</div>
+  <div class="nav">...</div>
+  <div class="container">
+    <div class="section active" id="s-overview">...</div>
+    <div class="section" id="s-code-hits">...</div>
+    <div class="section" id="s-impact">...</div>
+    <div class="section" id="s-contracts">...</div>
+    <div class="section" id="s-plan">...</div>
+    <div class="section" id="s-qa">...</div>
+    <div class="section" id="s-blockers">...</div>
+    <div class="section" id="s-suggestions">...</div>
   </div>
   <script>
     const DATA = { /* 内联数据 */ };

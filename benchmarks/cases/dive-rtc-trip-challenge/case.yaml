@@ -1,0 +1,18 @@
+id: dive-rtc-trip-challenge
+title: 新增运力线冲单奖玩法
+layer: multi
+project_type: multi-repo
+prd_source: "/Users/didi/work/prd-docs/DIVE2.0-新增运力线冲单奖玩法-L1.docx"
+oracle: oracle.yaml
+branch_case: "../../branch-cases/dive-rtc-trip-challenge"
+targets:
+  - layer: "bff"
+    repo: "/Users/didi/work/dive-bff"
+    impl_ref: "feature_oe_rtc"
+  - layer: "frontend"
+    repo: "/Users/didi/work/genos/app/dive"
+    impl_ref: "feature_oe_rtc"
+scoring:
+  min_total_score: 80
+  min_requirement_recall: 0.85
+  min_code_anchor_recall: 0.75

@@ -1,0 +1,18 @@
+id: simba-shift-rider-type
+title: Simba新增shift骑手类型
+layer: multi
+project_type: multi-repo
+prd_source: "/Users/didi/work/prd-docs/DIVE-simba新增shift骑手类型-L1.docx"
+oracle: oracle.yaml
+branch_case: "../../branch-cases/simba-shift-rider-type"
+targets:
+  - layer: "bff"
+    repo: "/Users/didi/work/dive-bff"
+    impl_ref: "AI_dive_simba_shift"
+  - layer: "frontend"
+    repo: "/Users/didi/work/genos/app/dive"
+    impl_ref: "AI_dive_simba_shift"
+scoring:
+  min_total_score: 80
+  min_requirement_recall: 0.85
+  min_code_anchor_recall: 0.75

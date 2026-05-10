@@ -1,0 +1,219 @@
+schema_version: "1.0"
+case_id: simba-shift-rider-type
+
+# Oracle: human-annotated ground truth for quality scoring.
+# Unlike expected/*.yaml (text-hit regression), oracle checks:
+#   1. Right facts in the right deliverables
+#   2. No false claims
+#   3. P0 miss → hard fail
+
+requirements:
+  - id: REQ-RIDER-TYPE-ADD
+    priority: P0
+    meaning: "新增shift骑手类型枚举"
+    acceptable_terms:
+      - shift骑手
+      - shift
+      - 骑手类型
+    must_appear_in:
+      - requirement-ir
+      - report
+      - plan
+
+  - id: REQ-VISIBILITY-JUDGE
+    priority: P0
+    meaning: "活动可见性判断时支持区分shift运力线骑手"
+    acceptable_terms:
+      - 可见性
+      - shift
+      - 运力线
+    must_appear_in:
+      - requirement-ir
+      - report
+
+  - id: REQ-RIDER-TYPE-CONFIG
+    priority: P0
+    meaning: "骑手类型配置项：必填复选框，枚举=自由骑手/OL骑手/99Pro骑手/shift骑手"
+    acceptable_terms:
+      - 骑手类型
+      - 自由骑手
+      - OL骑手
+      - 99Pro骑手
+      - shift骑手
+      - 复选框
+    must_appear_in:
+      - requirement-ir
+      - report
+      - plan
+
+  - id: REQ-RIDER-TYPE-DEFAULT
+    priority: P1
+    meaning: "默认勾选自由骑手和OL骑手"
+    acceptable_terms:
+      - 默认
+      - 自由骑手
+      - OL骑手
+    must_appear_in:
+      - report
+      - plan
+
+  - id: REQ-SHIFT-EXCLUSIVE
+    priority: P0
+    meaning: "shift骑手不能和其他类型同时选中，toast提示'不能和其他类型同时选中'"
+    acceptable_terms:
+      - 互斥
+      - 不能和其他类型同时选中
+      - shift
+    must_appear_in:
+      - requirement-ir
+      - report
+      - plan
+
+  - id: REQ-BATCH-COURIER-TYPE
+    priority: P1
+    meaning: "批量模板courier type字段新增shift courier枚举"
+    acceptable_terms:
+      - 批量
+      - courier type
+      - shift courier
+    must_appear_in:
+      - report
+
+  - id: REQ-AFFECTED-REWARD-TYPES
+    priority: P1
+    meaning: "影响冲单奖/实时冲单/可选择冲单/自定义实时冲单/保底奖/可选择保底/单单奖/签到任务奖/运力线冲单奖"
+    acceptable_terms:
+      - 冲单奖
+      - 保底奖
+      - 单单奖
+      - 签到任务奖
+      - 运力线冲单奖
+    must_appear_in:
+      - report
+      - plan
+
+code_anchors:
+  - id: CODE-RIDER-TYPE-LINKAGE
+    priority: P0
+    meaning: "骑手类型联动配置，核心文件，定义枚举和联动规则"
+    path: src/config/template/linkageSchema/foodRiderType.ts
+    layer: bff
+    must_appear_in:
+      - graph-context
+      - plan
+
+  - id: CODE-SHIFT-CHECKIN-PREVIEW
+    priority: P1
+    meaning: "预览中骑手类型配置，shared with bundle"
+    path: src/config/template/preview/options/audienceSegmentation/shiftCheckin.ts
+    layer: bff
+    must_appear_in:
+      - graph-context
+
+  - id: CODE-COURIER-DXGY-DETAILS
+    priority: P0
+    meaning: "骑手类型在详情中的处理，影响奖励类型展示"
+    path: src/config/template/render/rules/details/courierDxGy.ts
+    layer: bff
+    must_appear_in:
+      - graph-context
+      - plan
+
+  - id: CODE-SHIFT-CHECKIN-MOCK
+    priority: P2
+    meaning: "shift签到mock数据，shared with bundle"
+    path: src/config/template/render/rules/details/shiftCheckin.mock.ts
+    layer: bff
+    must_appear_in:
+      - graph-context
+
+  - id: CODE-SHIFT-CHECKIN-DETAILS
+    priority: P1
+    meaning: "shift签到详情规则，shared with bundle"
+    path: src/config/template/render/rules/details/shiftCheckin.ts
+    layer: bff
+    must_appear_in:
+      - graph-context
+
+  - id: CODE-CONDITION-METHOD-CMP
+    priority: P1
+    meaning: "条件方法组件，前端表单核心"
+    path: app/dive/src/components/FormField/DxgyFormList/ConditionMethodCmp.tsx
+    layer: frontend
+    must_appear_in:
+      - graph-context
+
+  - id: CODE-EDITABLE-CONDITION-ROW
+    priority: P1
+    meaning: "可编辑条件行组件"
+    path: app/dive/src/components/FormField/DxgyFormList/EditableConditionMethodRow.tsx
+    layer: frontend
+    must_appear_in:
+      - graph-context
+
+  - id: CODE-DXGY-FORM-LIST
+    priority: P1
+    meaning: "DxgyFormList表单列表主入口"
+    path: app/dive/src/components/FormField/DxgyFormList/index.tsx
+    layer: frontend
+    must_appear_in:
+      - graph-context
+
+  - id: CODE-REWARD-CONDITION-CMP
+    priority: P1
+    meaning: "奖励条件组件"
+    path: app/dive/src/components/FormField/RewardConditionCmp/index.tsx
+    layer: frontend
+    must_appear_in:
+      - graph-context
+
+  - id: CODE-TIPS-TAG
+    priority: P2
+    meaning: "提示标签组件"
+    path: app/dive/src/components/FormField/TipsTag/index.tsx
+    layer: frontend
+    must_appear_in:
+      - graph-context
+
+  - id: CODE-I18N-INFO
+    priority: P2
+    meaning: "国际化信息配置"
+    path: app/dive/src/locales/i18n-info.js
+    layer: frontend
+    must_appear_in:
+      - graph-context
+
+  - id: CODE-SETUP-PROXY
+    priority: P2
+    meaning: "代理设置，shared infra"
+    path: app/dive/src/setupProxy.js
+    layer: frontend
+    must_appear_in:
+      - graph-context
+
+blockers:
+  - id: BLOCK-SHIFT-EXCLUSIVE
+    priority: P0
+    meaning: "shift骑手与其他类型互斥，选中shift时不能同时选自由骑手/OL骑手/99Pro骑手"
+    acceptable_terms:
+      - 互斥
+      - 不能和其他类型同时选中
+      - shift
+    must_appear_in:
+      - requirement-ir
+      - report
+      - plan
+
+forbidden_claims:
+  - id: FALSE-NEW-CONTROLLER
+    meaning: "不能声称需要新增Controller"
+    forbidden_terms:
+      - 新增Controller
+      - 新建controller
+      - 新增controller
+
+  - id: FALSE-NEW-SERVICE
+    meaning: "不能声称需要新增Service"
+    forbidden_terms:
+      - 新增Service
+      - 新建service

@@ -456,6 +456,19 @@ def run_lint():
             errors.append(f'{case_dir.name}: missing case.yaml')
             continue
 
+        # Mode 1: oracle-based case (has oracle.yaml, no expected/ required)
+        oracle_file = case_dir / 'oracle.yaml'
+        if oracle_file.exists():
+            try:
+                sections = _parse_oracle(oracle_file)
+                for sec_name in ['requirements', 'code_anchors', 'blockers', 'forbidden_claims']:
+                    if not sections.get(sec_name):
+                        errors.append(f'{case_dir.name}: oracle.yaml has empty {sec_name}')
+            except Exception as e:
+                errors.append(f'{case_dir.name}: oracle.yaml parse error: {e}')
+            continue
+
+        # Mode 2: expected-based case (legacy)
         expected_dir = case_dir / 'expected'
         for fname in ['requirements.yaml', 'code-anchors.yaml', 'blockers.yaml', 'output-contract.yaml']:
             fp = expected_dir / fname
@@ -650,6 +663,9 @@ def _parse_oracle(filepath):
         # Section headers
         for sec in sections:
             if stripped.startswith(f'{sec}:'):
+                # Flush current item before switching section
+                if current and current_section:
+                    sections[current_section].append(current)
                 current_section = sec
                 current = None
                 current_list_key = None
@@ -799,6 +815,9 @@ def oracle_score_code_anchors(anchor_items, output_dir):
     total_weight = 0.0
     hit_weight = 0.0
 
+    # Layer breakdown tracking
+    layer_stats = {}  # layer -> {matched, missed, total_weight, hit_weight}
+
     for anchor in anchor_items:
         aid = anchor.get('id', '?')
         prio = anchor.get('priority', 'P1')
@@ -832,14 +851,38 @@ def oracle_score_code_anchors(anchor_items, output_dir):
         else:
             missed.append(aid)
 
+        # Track per-layer stats
+        layer = anchor.get('layer', None) or 'unknown'
+        if layer not in layer_stats:
+            layer_stats[layer] = {'matched': [], 'missed': [], 'total_weight': 0.0, 'hit_weight': 0.0}
+        ls = layer_stats[layer]
+        ls['total_weight'] += w
+        if hit:
+            ls['matched'].append(aid)
+            ls['hit_weight'] += w
+        else:
+            ls['missed'].append(aid)
+
     max_score = ORACLE_WEIGHTS['code_anchor_accuracy']
     score = int(max_score * hit_weight / total_weight) if total_weight > 0 else 0
+
+    # Build layer breakdown scores
+    layer_breakdown = {}
+    for layer, ls in layer_stats.items():
+        layer_breakdown[f'{layer}_anchor_accuracy'] = {
+            'score': int(max_score * ls['hit_weight'] / ls['total_weight']) if ls['total_weight'] > 0 else 0,
+            'max': max_score,
+            'matched': ls['matched'],
+            'missed': ls['missed'],
+            'total_anchors': len(ls['matched']) + len(ls['missed']),
+        }
 
     return {
         'score': score,
         'max': max_score,
         'matched': matched,
         'missed': missed,
+        'layer_breakdown': layer_breakdown,
     }
 
 
@@ -1007,6 +1050,16 @@ def print_oracle_report(result):
         if d.get('issues') and d['issues'] != ['none']:
             print(f'      issues: {d["issues"]}')
 
+    # Layer breakdown for code_anchor_accuracy
+    anchor_result = result['scores'].get('code_anchor_accuracy', {})
+    layer_breakdown = anchor_result.get('layer_breakdown', {})
+    if layer_breakdown:
+        print(f'\n  Code anchor layer breakdown:')
+        for layer_key, ld in sorted(layer_breakdown.items()):
+            total = ld.get('total_anchors', 0)
+            hit = len(ld.get('matched', []))
+            print(f'    {layer_key}: {ld["score"]}/{ld["max"]} ({hit}/{total} anchors)')
+
     fp = result['scores']['false_positive_penalty']
     if fp['penalty'] > 0:
         print(f'\n  [!] false_positive_penalty  -{fp["penalty"]}')
@@ -1036,6 +1089,23 @@ def write_oracle_scores(result, filepath):
         d = result['scores'][dim]
         lines.append(f'  {dim}:')
         for k, v in d.items():
+            if k == 'layer_breakdown':
+                # Write layer breakdown as nested section
+                if v:
+                    lines.append(f'    layer_breakdown:')
+                    for layer_key, ld in sorted(v.items()):
+                        lines.append(f'      {layer_key}:')
+                        for lk, lv in ld.items():
+                            if isinstance(lv, list):
+                                if not lv:
+                                    lines.append(f'        {lk}: []')
+                                else:
+                                    lines.append(f'        {lk}:')
+                                    for item in lv:
+                                        lines.append(f'          - "{item}"')
+                            else:
+                                lines.append(f'        {lk}: {lv}')
+                continue
             if isinstance(v, list):
                 if not v:
                     lines.append(f'    {k}: []')

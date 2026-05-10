@@ -7,6 +7,7 @@ Supports TypeScript, JavaScript, and Go.
 
 Usage:
     python3 scripts/build-index.py --repo /path/to/repo --out /path/to/output
+    python3 .prd-tools/scripts/build-index.py --repo . --out _prd-tools/reference/index
 
 Output:
     manifest.yaml        — index metadata

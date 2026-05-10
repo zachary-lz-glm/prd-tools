@@ -199,7 +199,7 @@ next_actions: []
 运行命令：
 
 ```bash
-scripts/build-index.py --repo <项目路径> --out _prd-tools/reference/index
+python3 .prd-tools/scripts/build-index.py --repo <项目路径> --out _prd-tools/reference/index
 ```
 
 产出：
