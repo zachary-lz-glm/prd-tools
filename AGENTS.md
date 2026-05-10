@@ -68,75 +68,76 @@ scripts/install-hooks.sh
 <claude-mem-context>
 # Memory Context
 
-# [prd-tools] recent context, 2026-05-07 3:01pm GMT+8
+# [prd-tools] recent context, 2026-05-11 10:57am GMT+8
 
 Legend: 🎯session 🔴bugfix 🟣feature 🔄refactor ✅change 🔵discovery ⚖️decision 🚨security_alert 🔐security_note
 Format: ID TIME TYPE TITLE
 Fetch details: get_observations([IDs]) | Search: mem-search skill
 
-Stats: 50 obs (9,705t read) | 496,480t work | 98% savings
+Stats: 50 obs (11,261t read) | 17,817t work | 37% savings
 
-### May 7, 2026
-S110 诊断 build-reference 工作流在 dive-bff 项目上 GitNexus 查询返回空结果的根因 (May 7 at 12:03 PM)
-S111 诊断并定位 build-reference 在 dive-bff 项目上 GitNexus 查询返回空结果的完整根因 (May 7 at 12:30 PM)
-S115 诊断并修复 install.sh 中 GitNexus 索引不生成 embeddings 导致语义搜索不可用的问题 (May 7 at 12:35 PM)
-S116 简化 PRD-to-技术文档工作流，将多命令入口收敛为单一 /tech-doc 主命令 (May 7 at 12:44 PM)
-S125 为prd-distill设计多Agent架构与上下文管理方案，评估收益后实施到skill文档和模板 (May 7 at 12:51 PM)
-S126 研究 GitHub 热榜项目以提升 prd-tools 收益，并准备提交 prd-tools 入口精简重构的代码变更 (May 7 at 1:53 PM)
-S132 用户请求提交 prd-tools 项目的最新改动 (May 7 at 1:59 PM)
-808 2:06p ✅ 精简后的契约验证通过
-810 2:07p 🔵 入口精简后遗留旧命令引用，版本号一致性验证通过
-811 2:08p 🔵 全量扫描确认旧命令引用残留分布
-812 " 🔵 调研 GitNexus exploring skill 的代码探索工作流
-814 " 🔵 全面复查精简后核心文件状态
-815 2:09p 🔵 精简后文件状态最终确认：所有变更已提交无残留
-816 " ✅ v2.0 分支入口精简重构最终验证全部通过
-817 2:13p 🔵 用户深入了解 prd-distill 蒸馏流程的工作机制
-818 2:14p 🔵 prd-distill 完整蒸馏流程架构详解
-819 2:15p 🔵 build-reference 与 prd-distill 的闭环关系
-820 2:16p ✅ 为 build-reference 和 prd-distill 的 SKILL.md 新增 mermaid 流程图
-821 2:18p ✅ 用户请求提交最新改动
-822 " ✅ prd-tools 项目 v2.0 分支有待提交的 SKILL 文件修改
-823 2:19p ✅ build-reference 和 prd-distill 的 SKILL.md 新增 mermaid 流程图
-S133 改进 prd-tools 项目文档可读性：更新过时的第三方工具描述、为 skill 插件创建独立的人类可读 README、精简 SKILL.md 为纯机器指令 (May 7 at 2:20 PM)
-824 2:21p 🔵 用户反馈流程图未说明第三方 GitHub 库的使用方式
-825 2:26p ✅ 计划改进 prd-tools 项目文档可读性
-826 2:27p 🔵 prd-tools 项目文档结构现状审查
-827 2:28p 🔵 调研 Claude Code Skill 文档最佳实践
-828 " ⚖️ 决定精简 SKILL.md 并为插件创建独立 README
-829 2:29p ⚖️ 文档重构任务计划：5 个任务覆盖文档可读性改进全流程
-830 " ✅ 开始调研外部工具最新状态
-831 2:30p 🔵 调研 MarkItDown 最新能力和版本状态
-832 2:31p 🔵 调研 Graphify 知识图谱工具最新状态
-833 2:32p 🔵 确认本地安装的外部工具版本和能力
-834 2:33p ✅ 外部工具调研任务完成
-835 " 🔵 用户调研 GitHub 上热门的 harness 相关库以融合 prd-tools
-836 2:34p 🔵 插件目录结构确认
-837 " 🔵 GitHub 2026 热门开源测试自动化/Harness 工具调研结果
-838 " 🔵 2026 CI/CD 工具格局调研：Harness 平台定位与竞争态势
-839 2:35p 🟣 创建 build-reference 插件面向人类的 README.md
-840 " 🔵 Harness Open Source（原 Gitness）开源平台详细调研
-841 2:36p 🔵 AI Agent 框架与 PRD 自动化工具全景调研：发现多个可与 prd-tools 融合的候选
-842 2:37p 🟣 两个插件 README 全部创建完成，开始精简 SKILL.md
-843 " 🔵 Gitness（harness/harness）与 AI 编码工具的 2026 结合点
-844 " 🔄 精简 build-reference SKILL.md 为纯机器指令
-846 2:38p 🔄 精简 prd-distill SKILL.md 为纯机器指令
-845 2:39p 🔵 Spec-to-Code 与 AI Agent 生态调研：发现 Claude Code 自治项目生成器
-847 " 🔵 GitHub Spec Kit：Spec-Driven Development（SDD）运动的核心开源工具，与 prd-tools 高度互补
-S134 调研 GitHub 上热门的 harness 相关库，寻找可与 prd-tools 深度融合的候选项目 (May 7 at 2:40 PM)
-848 2:43p ✅ 文档重构 Git diff 确认
-849 2:44p ✅ 文档重构提交完成
-S135 改进 prd-tools 项目文档可读性：更新过时的第三方工具描述、为 skill 插件创建独立人类可读 README、精简 SKILL.md 为纯机器指令 (May 7 at 2:44 PM)
-850 2:46p ⚖️ prd-tools 与 Spec Kit 深度融合战略方向
-851 2:48p 🔵 prd-tools 项目约定与版本管理机制
-852 2:49p ✅ 用户执行 Git Push 推送操作
-855 " ✅ prd-tools v2.0 分支推送至远程仓库
-853 2:50p 🔵 Spec Kit 技术调研：开源 spec-to-code 工具详细能力画像
-854 " 🔵 Dify Knowledge Pipeline 与 Langflow Agent 编排能力调研
-856 " 🔵 prd-tools v2.10.3 完整架构梳理：双插件闭环流水线
-857 " 🔵 Spec Kit 三件套模板结构（spec→plan→tasks）与 prd-tools 融合映射
-858 " 🔵 Dify Knowledge Base API 完整能力画像：文档管理 + 外部知识库 + RAG Pipeline
-859 " 🔵 GitNexus 当前索引状态：3 个项目仓库已索引
+### May 10, 2026
+S341 基于 PRD-分支映射创建 5 个 Branch-backed Benchmark Case，含 bundle 归因策略 (May 10 at 11:43 AM)
+S342 设计BFF测试实施方案并为GLM编写提示词，同时讨论将测试扩展为前后端联合benchmark的架构 (May 10 at 11:58 AM)
+S343 设计前后端联合benchmark架构，将BFF和前端仓库纳入统一的prd-tools评测体系 (May 10 at 12:00 PM)
+S344 用户要求检查 prd-tools 项目中 branch-case 基准数据生成的质量，并完成全部验收检查 (May 10 at 12:00 PM)
+S345 补修 multi-repo branch benchmark 的 BFF target 对称性，为5个case创建targets/bff/目录并修改branch_case.py支持BFF层 (May 10 at 12:20 PM)
+S346 Task #15: 修复 draft-oracle 排除 needs_review 文件进入 code_anchors（bundle 案例下归因不明确的文件应路由到 blockers/risk_notes） (May 10 at 12:33 PM)
+S347 为 prd-tools 项目从 5 个 Simba Shift + DIVE 业务 PRD 生成正式 oracle.yaml 基准测试文件 (May 10 at 12:39 PM)
+2338 1:45p 🔵 prd-tools 基准测试体系：Simba Shift 三案例 oracle-draft 结构与 PRD 映射
+2339 " 🔵 prd-tools 基准测试扩展至5个案例：新增可选择定制奖和运力线冲单奖
+2340 1:46p 🔵 prd-tools 存在两套基准测试目录结构：cases/ 与 branch-cases/，oracle schema 成熟度不同
+2341 " ✅ prd-tools 任务17状态变更为 in_progress
+2342 " 🟣 在 benchmarks/cases/ 下为5个PRD案例创建正式目录结构
+2343 1:48p ✅ prd-tools 使用 worktree 隔离环境进行基准案例开发
+2344 1:49p 🟣 首个新案例正式 oracle.yaml 生成完成：simba-shift-rider-type
+2345 " 🔵 prd-tools oracle 生成使用 worktree 隔离 + agent 并行写入模式
+2346 1:50p 🟣 simba-shift-signin-award 正式 oracle.yaml 生成完成
+2347 1:51p 🟣 simba-shift-order-scope 正式 oracle.yaml 生成完成，3/5 Simba案例已完成
+2348 " 🟣 dive-customization-xtr-gas-benefits 正式 oracle.yaml 生成完成，4/5案例已完成
+2349 " 🟣 全部5个新案例正式 oracle.yaml 生成完成，prd-tools 基准测试体系扩展至6个案例
+2350 1:52p 🟣 prd-tools 基准测试5个新案例 oracle 全部验证通过，任务17完成
+S348 构建 prd-tools 基准测试系统，完成 Task 22 验证和冒烟测试 (May 10 at 1:53 PM)
+2351 1:54p 🟣 完成5个案例的预言（prophecy）生成
+2352 " 🔵 prd-tools 项目 oracle 基准结构与评分系统
+2353 " 🔵 5个新基准案例缺少 case.yaml 配置文件
+2354 1:55p 🟣 新建任务20：为 benchmark_score.py 添加分层评分能力
+2355 " 🟣 prd-tools 基准测试创建4个后续任务：case.yaml、分层评分、lint通过、冒烟测试
+2356 1:56p 🔵 benchmark_score.py lint 逻辑要求每个案例必须有 case.yaml + expected/ 目录下4个文件
+2357 " 🔵 5个基准案例对应3个不同的 Git 实现分支
+2358 1:57p 🟣 5个案例的 case.yaml 全部创建完成，taskId 19 完成，开始 lint 修复
+2359 " 🟣 benchmark_score.py run_lint() 支持双模式：oracle-based（新）和 expected-based（旧）
+2360 " 🟣 benchmark_score.py 新增 code_anchor 分层评分：按 layer 统计 bff/frontend/unknown 准确率
+S349 prd-tools branch-backed multi-layer benchmark patch 发版全流程 (May 10 at 1:57 PM)
+2361 2:06p 🔴 修复 _parse_oracle 在段落切换时丢弃最后一个项目的问题
+2362 " 🔵 benchmark 用例 simba-shift-signin-award 结构与图层评分配置
+2363 2:15p ✅ prd-tools branch-backed multi-layer benchmark patch 发版
+2364 2:16p ✅ prd-tools patch 发版四项校验全部通过
+2365 " 🔵 prd-tools install.sh 安装流程审查
+2367 " 🟣 prd-tools branch-backed multi-layer benchmark 提交成功
+2366 " 🔵 prd-tools 仓库当前状态和脚本清单
+2368 " 🔵 release.sh 执行后留下未提交的版本/CHANGELOG 改动
+2370 2:17p 🔵 release.sh 已将版本更新至 2.16.1 但未完成 commit
+2369 " 🔵 prd-tools 当前发版状态：HEAD 领先 v2.16.0 两个提交
+2371 " 🟣 prd-tools v2.16.1 release commit 和 tag 创建成功
+2372 " 🟣 prd-tools v2.16.1 发版完成并推送成功
+### May 11, 2026
+2373 10:19a 🔵 dive-bff 项目安装后初始状态探索
+2378 10:24a 🔵 用户研究方向：PRD to Code AI领域调研
+2379 " 🔵 PRD to Code领域2026年行业调研：核心趋势与关键资源
+2380 10:25a 🔵 AI软件工程Agent生态：Devin/OpenHands/SWE-Agent三足鼎立
+2381 " 🔵 PRD to Code 2026：PRD复兴运动与AI代理编码最佳实践
+2383 10:26a 🔵 Anthropic Claude 4系列模型迭代路线：从Opus 4到Mythos
+2384 " 🔵 Vibe Coding 2026：从流行词到主流开发范式的结构性转变
+2385 " 🔵 OpenAI Codex产品线快速迭代：从GPT-5到GPT-5.5的Agent编码进化
+S350 全网收集最近AI大事，聚焦PRD-to-Code相关方向，整理出有收益的报告 (May 11 at 10:27 AM)
+2390 10:35a 🔵 AI行业调研：PRD-to-Code方向2026年5月全景分析
+2391 " ⚖️ prd-tools战略定位决策：PRD-to-Code中间件定位
+2393 10:42a 🔵 用户关注AI友好的PRD编写方法
+2394 10:50a 🔵 prd-tools 项目进度查询
+2395 10:53a ⚖️ 计划开发 PRD 转 AI-friendly PRD 的工具能力
+2396 10:55a ✅ v2.0 分支合并到 main 分支（快进合并）
+2397 10:56a 🔴 合并后出现 3 个文件的合并冲突
 
-Access 496k tokens of past work via get_observations([IDs]) or mem-search skill.
+Access 18k tokens of past work via get_observations([IDs]) or mem-search skill.
 </claude-mem-context>

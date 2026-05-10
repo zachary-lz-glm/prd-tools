@@ -1,0 +1,262 @@
+schema_version: "1.0"
+case_id: simba-shift-signin-award
+
+# Oracle: reviewed ground truth for Simba班次签到奖 (Shift Checkin Reward).
+# Requirements extracted from PRD; code_anchors reviewed from branch diff.
+
+requirements:
+  - id: REQ-NEW-CAMPAIGN-TYPE
+    priority: P0
+    meaning: "新增班次签到奖活动类型"
+    acceptable_terms:
+      - 班次签到奖
+      - ShiftCheckin
+    must_appear_in:
+      - requirement-ir
+      - report
+      - plan
+
+  - id: REQ-THRESHOLD-TYPES
+    priority: P0
+    meaning: "门槛类型支持全部达标班次量和高峰达标班次量"
+    acceptable_terms:
+      - 全部达标班次量
+      - 高峰达标班次量
+      - total shift
+      - peak shift
+    must_appear_in:
+      - requirement-ir
+      - report
+
+  - id: REQ-PEAK-VALIDATION
+    priority: P0
+    meaning: "全部达标班次量必须大于高峰达标班次量"
+    acceptable_terms:
+      - 全部达标班次量应大于高峰达标班次量
+    must_appear_in:
+      - report
+
+  - id: REQ-RIDER-TYPE-SHIFT
+    priority: P0
+    meaning: "骑手类型默认勾选shift骑手，不支持运营修改"
+    acceptable_terms:
+      - shift骑手
+      - 默认勾选
+    must_appear_in:
+      - report
+      - plan
+
+  - id: REQ-SHIFT-EXCLUSIVE
+    priority: P0
+    meaning: "shift骑手不能和其他类型同时选中"
+    acceptable_terms:
+      - 不能和其他类型同时选中
+    must_flag_conflict: true
+    conflict_signals:
+      - 不能和其他类型同时选中
+      - shift互斥
+    must_appear_in:
+      - report
+      - plan
+
+  - id: REQ-GRADIENT-MAX
+    priority: P1
+    meaning: "奖励梯度最多20行"
+    acceptable_terms:
+      - "20"
+      - 梯度
+    must_appear_in:
+      - report
+
+  - id: REQ-REWARD-CEILING
+    priority: P1
+    meaning: "奖励金额上限=10*活动周期天数"
+    acceptable_terms:
+      - "10*"
+      - 活动周期天数
+    must_appear_in:
+      - report
+
+  - id: REQ-ACTIVITY-CYCLE
+    priority: P1
+    meaning: "活动周期≤31天"
+    acceptable_terms:
+      - "31"
+      - 活动周期
+    must_appear_in:
+      - report
+
+  - id: REQ-BATCH-TRIGGER-TYPE
+    priority: P1
+    meaning: "批量模板trigger type与event rules门槛必须一一对应"
+    acceptable_terms:
+      - trigger type
+      - 一一对应
+    must_appear_in:
+      - report
+
+  - id: REQ-PUSH-PEAK-PLACEHOLDER
+    priority: P1
+    meaning: "Push占位符含maximum_peak_shifts_amount（门槛含高峰班次时）"
+    acceptable_terms:
+      - maximum_peak_shifts_amount
+      - maximum_total_shifts_amount
+    must_appear_in:
+      - report
+
+  - id: REQ-USER-QUERY-SHIFT-DETAIL
+    priority: P1
+    meaning: "User Query计算详情含班次明细表，展示班次类型(普通/高峰)和达标情况"
+    acceptable_terms:
+      - 班次明细
+      - 普通班次
+      - 高峰班次
+    must_appear_in:
+      - report
+
+  - id: REQ-PREVIEW-SHIFT
+    priority: P2
+    meaning: "预览展示全部/高峰达标班次数量及奖励金额"
+    acceptable_terms:
+      - 预览
+      - 班次
+    must_appear_in:
+      - plan
+
+  - id: REQ-BUDGET-GMV
+    priority: P2
+    meaning: "Budget/GMV范围(0,30]"
+    acceptable_terms:
+      - Budget
+      - GMV
+    must_appear_in:
+      - report
+
+code_anchors:
+  - id: CODE-BFF-ATTENDANCE-PREVIEW
+    priority: P0
+    meaning: "签到预览配置，attendance对应签到奖的audienceSegmentation"
+    path: src/config/template/preview/options/audienceSegmentation/attendance.ts
+    layer: bff
+    must_appear_in:
+      - graph-context
+      - plan
+
+  - id: CODE-BFF-SHIFTCHECKIN-PREVIEW
+    priority: P1
+    meaning: "shiftCheckin预览配置，bundle共享文件"
+    path: src/config/template/preview/options/audienceSegmentation/shiftCheckin.ts
+    layer: bff
+    must_appear_in:
+      - graph-context
+
+  - id: CODE-BFF-ATTENDANCE-DETAILS
+    priority: P0
+    meaning: "签到详情渲染模板，attendance对应签到奖的details"
+    path: src/config/template/render/rules/details/attendance.ts
+    layer: bff
+    must_appear_in:
+      - graph-context
+      - plan
+
+  - id: CODE-BFF-SHIFTATTENDANCE-DETAILS
+    priority: P0
+    meaning: "新增shiftAttendance详情渲染文件"
+    path: src/config/template/render/rules/details/shiftAttendance.ts
+    layer: bff
+    must_appear_in:
+      - graph-context
+      - plan
+
+  - id: CODE-BFF-SHIFTCHECKIN-MOCK
+    priority: P2
+    meaning: "shiftCheckin mock数据文件"
+    path: src/config/template/render/rules/details/shiftCheckin.mock.ts
+    layer: bff
+    must_appear_in:
+      - graph-context
+
+  - id: CODE-BFF-SHIFTCHECKIN-DETAILS
+    priority: P1
+    meaning: "shiftCheckin详情渲染，bundle共享文件"
+    path: src/config/template/render/rules/details/shiftCheckin.ts
+    layer: bff
+    must_appear_in:
+      - graph-context
+
+  - id: CODE-FE-CONDITION-METHOD
+    priority: P1
+    meaning: "门槛条件方法组件，支持班次签到奖的条件配置"
+    path: app/dive/src/components/FormField/DxgyFormList/ConditionMethodCmp.tsx
+    layer: frontend
+    must_appear_in:
+      - graph-context
+
+  - id: CODE-FE-EDITABLE-CONDITION-ROW
+    priority: P2
+    meaning: "可编辑条件行组件"
+    path: app/dive/src/components/FormField/DxgyFormList/EditableConditionMethodRow.tsx
+    layer: frontend
+    must_appear_in:
+      - graph-context
+
+  - id: CODE-FE-DXGY-FORM-LIST
+    priority: P1
+    meaning: "DxGy奖励条件列表组件"
+    path: app/dive/src/components/FormField/DxgyFormList/index.tsx
+    layer: frontend
+    must_appear_in:
+      - graph-context
+
+  - id: CODE-FE-REWARD-CONDITION
+    priority: P1
+    meaning: "奖励条件组件，用于配置奖励门槛"
+    path: app/dive/src/components/FormField/RewardConditionCmp/index.tsx
+    layer: frontend
+    must_appear_in:
+      - graph-context
+
+  - id: CODE-FE-TIPS-TAG
+    priority: P2
+    meaning: "提示标签组件，用于推荐文案和校验提示"
+    path: app/dive/src/components/FormField/TipsTag/index.tsx
+    layer: frontend
+    must_appear_in:
+      - graph-context
+
+  - id: CODE-FE-I18N
+    priority: P2
+    meaning: "i18n国际化配置"
+    path: app/dive/src/locales/i18n-info.js
+    layer: frontend
+    must_appear_in:
+      - graph-context
+
+blockers:
+  - id: BLOCK-SHIFT-RIDER-ONLY
+    priority: P0
+    meaning: "shift骑手不能和其他类型同时选中"
+    acceptable_terms:
+      - 不能和其他类型同时选中
+    must_appear_in:
+      - report
+
+forbidden_claims:
+  - id: FALSE-NEW-CONTROLLER
+    meaning: "不能声称需要新增Controller"
+    forbidden_terms:
+      - 新增Controller
+      - 新建controller
+
+  - id: FALSE-NEW-SERVICE
+    meaning: "不能声称需要新增Service类"
+    forbidden_terms:
+      - 新增Service
+      - 新建service
+
+  - id: FALSE-MODIFY-BASE
+    meaning: "不能声称需要修改base类"
+    forbidden_terms:
+      - 修改ComponentModel
+      - 修改ComponentService
+      - 修改ComponentController

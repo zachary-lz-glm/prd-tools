@@ -1,0 +1,1945 @@
+schema_version: "1.0"
+bundle_id: "AI_dive_simba_shift"
+prd_cases:
+  - "simba-shift-signin-award"
+  - "simba-shift-rider-type"
+  - "simba-shift-order-scope"
+total_changed_files: 242
+total_symbols: 0
+changed_files:
+  - path: "src/base/component.controller.ts"
+    change_type: "modified"
+    additions: 165
+    deletions: 0
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/base/component.model.ts"
+    change_type: "modified"
+    additions: 979
+    deletions: 744
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/base/component.service.ts"
+    change_type: "modified"
+    additions: 416
+    deletions: 211
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/base/plugins/getAnyDataGadget.ts"
+    change_type: "modified"
+    additions: 161
+    deletions: 17
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/base/plugins/getInjectDActionsGadget.ts"
+    change_type: "modified"
+    additions: 616
+    deletions: 175
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/config/aiConfig.ts"
+    change_type: "modified"
+    additions: 1
+    deletions: 292
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/config/batchConfig.ts"
+    change_type: "modified"
+    additions: 9
+    deletions: 260
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/config/campaignType.ts"
+    change_type: "modified"
+    additions: 6
+    deletions: 36
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/config/campaign_type.ts"
+    change_type: "added"
+    additions: 17
+    deletions: 8
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/config/config.ts"
+    change_type: "modified"
+    additions: 893
+    deletions: 2057
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/config/constant/batchConstant.ts"
+    change_type: "modified"
+    additions: 19
+    deletions: 0
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/config/constant/campaignType.ts"
+    change_type: "modified"
+    additions: 12
+    deletions: 2
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/config/constant/distanceType.ts"
+    change_type: "modified"
+    additions: 4
+    deletions: 0
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/config/constant/eventTimeType.ts"
+    change_type: "modified"
+    additions: 4
+    deletions: 0
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/config/constant/mutexOptionsReverseMap.ts"
+    change_type: "modified"
+    additions: 7
+    deletions: 0
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/config/constant/nodes.ts"
+    change_type: "modified"
+    additions: 7
+    deletions: 0
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/config/constant/previewId.ts"
+    change_type: "modified"
+    additions: 10
+    deletions: 0
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/config/constant/previewRewardType.ts"
+    change_type: "modified"
+    additions: 6
+    deletions: 0
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/config/constant/productId.ts"
+    change_type: "modified"
+    additions: 52
+    deletions: 0
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/config/constant/triggerType.ts"
+    change_type: "modified"
+    additions: 7
+    deletions: 0
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/config/field-registry.ts"
+    change_type: "added"
+    additions: 600
+    deletions: 600
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/config/mobileConfig.ts"
+    change_type: "modified"
+    additions: 2
+    deletions: 24
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/config/previewRuleConfig.ts"
+    change_type: "modified"
+    additions: 1092
+    deletions: 1249
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/config/ruleConfig.ts"
+    change_type: "modified"
+    additions: 968
+    deletions: 1091
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/config/securityGate.ts"
+    change_type: "modified"
+    additions: 56
+    deletions: 56
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/config/strategyListConfig.ts"
+    change_type: "modified"
+    additions: 0
+    deletions: 73
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/config/template/batchCreate/create.ts"
+    change_type: "modified"
+    additions: 591
+    deletions: 16
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/config/template/editOrCopy.ts"
+    change_type: "modified"
+    additions: 117
+    deletions: 9
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/config/template/linkageSchema/budgetAllocation.ts"
+    change_type: "modified"
+    additions: 5
+    deletions: 5
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/config/template/linkageSchema/budget_allocation.ts"
+    change_type: "added"
+    additions: 84
+    deletions: 0
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/config/template/linkageSchema/campaignType.ts"
+    change_type: "modified"
+    additions: 77
+    deletions: 5
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/config/template/linkageSchema/cycleType.ts"
+    change_type: "modified"
+    additions: 108
+    deletions: 10
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/config/template/linkageSchema/description-placeholder.ts"
+    change_type: "added"
+    additions: 0
+    deletions: 41
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/config/template/linkageSchema/description.ts"
+    change_type: "modified"
+    additions: 43
+    deletions: 8
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/config/template/linkageSchema/descriptionPlaceholder.ts"
+    change_type: "modified"
+    additions: 57
+    deletions: 17
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/config/template/linkageSchema/displayAndEffectDate.ts"
+    change_type: "added"
+    additions: 38
+    deletions: 38
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/config/template/linkageSchema/effectMode.ts"
+    change_type: "modified"
+    additions: 39
+    deletions: 2
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/config/template/linkageSchema/foodRiderType.ts"
+    change_type: "modified"
+    additions: 27
+    deletions: 27
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/config/template/linkageSchema/index.ts"
+    change_type: "modified"
+    additions: 12
+    deletions: 6
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/config/template/linkageSchema/order-type.ts"
+    change_type: "added"
+    additions: 0
+    deletions: 0
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/config/template/linkageSchema/orderType.ts"
+    change_type: "added"
+    additions: 38
+    deletions: 2
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/config/template/linkageSchema/os2push-placeholder.ts"
+    change_type: "added"
+    additions: 0
+    deletions: 42
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/config/template/linkageSchema/os2pushPlaceholder.ts"
+    change_type: "modified"
+    additions: 74
+    deletions: 22
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/config/template/linkageSchema/product.ts"
+    change_type: "added"
+    additions: 38
+    deletions: 2
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/config/template/linkageSchema/push-placeholder.ts"
+    change_type: "added"
+    additions: 0
+    deletions: 36
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/config/template/linkageSchema/push.ts"
+    change_type: "modified"
+    additions: 44
+    deletions: 5
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/config/template/linkageSchema/pushPlaceholder.ts"
+    change_type: "modified"
+    additions: 82
+    deletions: 19
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/config/template/linkageSchema/reward-condition.ts"
+    change_type: "added"
+    additions: 0
+    deletions: 35
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/config/template/linkageSchema/rewardCondition.ts"
+    change_type: "modified"
+    additions: 49
+    deletions: 15
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/config/template/linkageSchema/rules.ts"
+    change_type: "modified"
+    additions: 98
+    deletions: 46
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/config/template/linkageSchema/title-placeholder.ts"
+    change_type: "added"
+    additions: 0
+    deletions: 34
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/config/template/linkageSchema/title.ts"
+    change_type: "modified"
+    additions: 2
+    deletions: 1
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/config/template/linkageSchema/titlePlaceholder.ts"
+    change_type: "modified"
+    additions: 99
+    deletions: 24
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/config/template/linkageSchema/triggerType.ts"
+    change_type: "modified"
+    additions: 149
+    deletions: 57
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/config/template/preview/index.ts"
+    change_type: "modified"
+    additions: 122
+    deletions: 68
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/config/template/preview/options/ai.ts"
+    change_type: "modified"
+    additions: 132
+    deletions: 36
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/config/template/preview/options/all.ts"
+    change_type: "modified"
+    additions: 273
+    deletions: 1202
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/config/template/preview/options/audienceSegmentation/_full.ts"
+    change_type: "modified"
+    additions: 1028
+    deletions: 0
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/config/template/preview/options/audienceSegmentation/attendance.ts"
+    change_type: "modified"
+    additions: 119
+    deletions: 0
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/config/template/preview/options/audienceSegmentation/boostTier.ts"
+    change_type: "modified"
+    additions: 110
+    deletions: 0
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/config/template/preview/options/audienceSegmentation/combo.ts"
+    change_type: "modified"
+    additions: 77
+    deletions: 0
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/config/template/preview/options/audienceSegmentation/departGet.ts"
+    change_type: "modified"
+    additions: 86
+    deletions: 3
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/config/template/preview/options/audienceSegmentation/duration.ts"
+    change_type: "modified"
+    additions: 312
+    deletions: 105
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/config/template/preview/options/audienceSegmentation/firstRefuelingGasStation.ts"
+    change_type: "modified"
+    additions: 189
+    deletions: 17
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/config/template/preview/options/audienceSegmentation/freeSubscription.ts"
+    change_type: "modified"
+    additions: 93
+    deletions: 0
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/config/template/preview/options/audienceSegmentation/gasStation.ts"
+    change_type: "modified"
+    additions: 127
+    deletions: 0
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/config/template/preview/options/audienceSegmentation/guaranteed.ts"
+    change_type: "modified"
+    additions: 102
+    deletions: 1
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/config/template/preview/options/audienceSegmentation/index.ts"
+    change_type: "modified"
+    additions: 68
+    deletions: 2
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/config/template/preview/options/audienceSegmentation/noThresholdGasStation.ts"
+    change_type: "modified"
+    additions: 157
+    deletions: 13
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/config/template/preview/options/audienceSegmentation/order.ts"
+    change_type: "modified"
+    additions: 167
+    deletions: 1
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/config/template/preview/options/audienceSegmentation/orderDouble.ts"
+    change_type: "modified"
+    additions: 83
+    deletions: 0
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/config/template/preview/options/audienceSegmentation/orderOptional.ts"
+    change_type: "modified"
+    additions: 101
+    deletions: 2
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/config/template/preview/options/audienceSegmentation/realTimeOrder.ts"
+    change_type: "modified"
+    additions: 310
+    deletions: 121
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/config/template/preview/options/audienceSegmentation/shiftCheckin.ts"
+    change_type: "modified"
+    additions: 165
+    deletions: 21
+    attribution:
+      confidence: "shared"
+      prd_signals: []
+      reason: "Path matches shared shift/simba signals only"
+  - path: "src/config/template/preview/options/audienceSegmentation/stepPoint.ts"
+    change_type: "modified"
+    additions: 115
+    deletions: 11
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/config/template/preview/options/audienceSegmentation/zeroCommission.ts"
+    change_type: "modified"
+    additions: 135
+    deletions: 21
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/config/template/render/basic.ts"
+    change_type: "modified"
+    additions: 1379
+    deletions: 379
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/config/template/render/group.ts"
+    change_type: "modified"
+    additions: 194
+    deletions: 31
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/config/template/render/index.ts"
+    change_type: "modified"
+    additions: 31
+    deletions: 0
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/config/template/render/message.ts"
+    change_type: "modified"
+    additions: 1404
+    deletions: 533
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/config/template/render/preview.ts"
+    change_type: "modified"
+    additions: 128
+    deletions: 60
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/config/template/render/rules.ts"
+    change_type: "added"
+    additions: 951
+    deletions: 951
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/config/template/render/rules/details.ts"
+    change_type: "added"
+    additions: 1065
+    deletions: 1065
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/config/template/render/rules/details/attendance.ts"
+    change_type: "modified"
+    additions: 105
+    deletions: 16
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/config/template/render/rules/details/boostTier.ts"
+    change_type: "modified"
+    additions: 179
+    deletions: 0
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/config/template/render/rules/details/combo.ts"
+    change_type: "modified"
+    additions: 290
+    deletions: 119
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/config/template/render/rules/details/courierDxGy.ts"
+    change_type: "modified"
+    additions: 0
+    deletions: 1
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/config/template/render/rules/details/departGet.ts"
+    change_type: "modified"
+    additions: 129
+    deletions: 11
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/config/template/render/rules/details/duration.ts"
+    change_type: "modified"
+    additions: 596
+    deletions: 211
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/config/template/render/rules/details/firstRefuelingGasStation.ts"
+    change_type: "modified"
+    additions: 99
+    deletions: 15
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/config/template/render/rules/details/freeSubscription.ts"
+    change_type: "modified"
+    additions: 275
+    deletions: 0
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/config/template/render/rules/details/full.ts"
+    change_type: "added"
+    additions: 983
+    deletions: 983
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/config/template/render/rules/details/gasStation.ts"
+    change_type: "modified"
+    additions: 111
+    deletions: 16
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/config/template/render/rules/details/guaranteed.ts"
+    change_type: "modified"
+    additions: 279
+    deletions: 26
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/config/template/render/rules/details/index.ts"
+    change_type: "modified"
+    additions: 82
+    deletions: 17
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/config/template/render/rules/details/noThresholdGasStation.ts"
+    change_type: "modified"
+    additions: 100
+    deletions: 16
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/config/template/render/rules/details/order.ts"
+    change_type: "modified"
+    additions: 401
+    deletions: 97
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/config/template/render/rules/details/orderDouble.ts"
+    change_type: "modified"
+    additions: 237
+    deletions: 61
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/config/template/render/rules/details/orderOptional.ts"
+    change_type: "modified"
+    additions: 248
+    deletions: 23
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/config/template/render/rules/details/realTimeOrder.ts"
+    change_type: "modified"
+    additions: 461
+    deletions: 134
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/config/template/render/rules/details/shiftAttendance.ts"
+    change_type: "added"
+    additions: 279
+    deletions: 279
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/config/template/render/rules/details/shiftCheckin.mock.ts"
+    change_type: "added"
+    additions: 211
+    deletions: 211
+    attribution:
+      confidence: "shared"
+      prd_signals: []
+      reason: "Path matches shared shift/simba signals only"
+  - path: "src/config/template/render/rules/details/shiftCheckin.ts"
+    change_type: "modified"
+    additions: 460
+    deletions: 166
+    attribution:
+      confidence: "shared"
+      prd_signals: []
+      reason: "Path matches shared shift/simba signals only"
+  - path: "src/config/template/render/rules/details/stepPoint.ts"
+    change_type: "modified"
+    additions: 252
+    deletions: 64
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/config/template/render/rules/details/zeroCommission.ts"
+    change_type: "modified"
+    additions: 225
+    deletions: 42
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/config/template/render/rules/index.ts"
+    change_type: "modified"
+    additions: 377
+    deletions: 61
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/config/template/render/rules/rewardCondition.ts"
+    change_type: "modified"
+    additions: 1606
+    deletions: 784
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/config/template/render/rules/templateUtils.ts"
+    change_type: "added"
+    additions: 96
+    deletions: 96
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/config/template/strategySchema/strategyListSchema.ts"
+    change_type: "modified"
+    additions: 431
+    deletions: 21
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/controller/api.controller.ts"
+    change_type: "added"
+    additions: 42
+    deletions: 121
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/controller/batch.controller.ts"
+    change_type: "modified"
+    additions: 106
+    deletions: 0
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/controller/create-copy.controller.ts"
+    change_type: "added"
+    additions: 34
+    deletions: 7
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/controller/create-edit.controller.ts"
+    change_type: "added"
+    additions: 31
+    deletions: 4
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/controller/create-render.controller.ts"
+    change_type: "added"
+    additions: 56
+    deletions: 12
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/controller/create-saveandnext.controller.ts"
+    change_type: "added"
+    additions: 105
+    deletions: 76
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/controller/create.controller.ts"
+    change_type: "modified"
+    additions: 80
+    deletions: 4
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/controller/edit-or-copy.controller.ts"
+    change_type: "modified"
+    additions: 77
+    deletions: 2
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/controller/hello.controller.ts"
+    change_type: "added"
+    additions: 0
+    deletions: 79
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/controller/linkage-schema.controller.ts"
+    change_type: "modified"
+    additions: 238
+    deletions: 111
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/controller/list-render.ts"
+    change_type: "modified"
+    additions: 88
+    deletions: 13
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/controller/manual/create-batch.controller.ts"
+    change_type: "modified"
+    additions: 5
+    deletions: 113
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/controller/manual/create-copy.controller.ts"
+    change_type: "modified"
+    additions: 0
+    deletions: 27
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/controller/manual/create-edit.controller.ts"
+    change_type: "modified"
+    additions: 0
+    deletions: 28
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/controller/manual/create-render.controller.ts"
+    change_type: "modified"
+    additions: 6
+    deletions: 44
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/controller/manual/create-saveandnext.controller.ts"
+    change_type: "modified"
+    additions: 0
+    deletions: 62
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/controller/preview.controller.ts"
+    change_type: "modified"
+    additions: 41
+    deletions: 42
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/controller/say.controller.ts"
+    change_type: "added"
+    additions: 0
+    deletions: 58
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/controller/schema/budget-allocation.controller.ts"
+    change_type: "modified"
+    additions: 10
+    deletions: 42
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/controller/schema/campaign-type.controller.ts"
+    change_type: "modified"
+    additions: 31
+    deletions: 38
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/controller/schema/cycle-type.controller.ts"
+    change_type: "modified"
+    additions: 43
+    deletions: 43
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/controller/schema/description-placeholder.controller.ts"
+    change_type: "modified"
+    additions: 0
+    deletions: 45
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/controller/schema/description.controller.ts"
+    change_type: "modified"
+    additions: 7
+    deletions: 40
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/controller/schema/order-type.controller.ts"
+    change_type: "modified"
+    additions: 0
+    deletions: 36
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/controller/schema/os2push-placeholder.controller.ts"
+    change_type: "modified"
+    additions: 0
+    deletions: 43
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/controller/schema/product.controller.ts"
+    change_type: "modified"
+    additions: 0
+    deletions: 36
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/controller/schema/push-placeholder.controller.ts"
+    change_type: "modified"
+    additions: 0
+    deletions: 42
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/controller/schema/push.controller.ts"
+    change_type: "modified"
+    additions: 7
+    deletions: 39
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/controller/schema/reward-condition.controller.ts"
+    change_type: "modified"
+    additions: 17
+    deletions: 45
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/controller/schema/rules.controller.ts"
+    change_type: "modified"
+    additions: 19
+    deletions: 56
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/controller/schema/title-placeholder.controller.ts"
+    change_type: "modified"
+    additions: 0
+    deletions: 32
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/controller/schema/title.controller.ts"
+    change_type: "modified"
+    additions: 7
+    deletions: 38
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/controller/schema/trigger-type.controller.ts"
+    change_type: "modified"
+    additions: 0
+    deletions: 33
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/controller/security-gate/config.ts"
+    change_type: "modified"
+    additions: 37
+    deletions: 0
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/controller/security-gate/index.controller.ts"
+    change_type: "modified"
+    additions: 90
+    deletions: 0
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/controller/security-gate/securityGate.ts"
+    change_type: "modified"
+    additions: 398
+    deletions: 0
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/controller/securityGate.controller.ts"
+    change_type: "modified"
+    additions: 102
+    deletions: 102
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/controller/securityGate/index.ts"
+    change_type: "added"
+    additions: 146
+    deletions: 146
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/controller/strategy/create-render.controller.ts"
+    change_type: "modified"
+    additions: 0
+    deletions: 114
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/controller/strategy/list-render.controller.ts"
+    change_type: "modified"
+    additions: 44
+    deletions: 72
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/diff-test/controller/diff-item.controller.ts"
+    change_type: "modified"
+    additions: 121
+    deletions: 2
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/diff-test/controller/diff-test.controller.ts"
+    change_type: "modified"
+    additions: 175
+    deletions: 2
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/diff-test/controller/smoke.controller.ts"
+    change_type: "modified"
+    additions: 19
+    deletions: 0
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/diff-test/controller/ui.controller.ts"
+    change_type: "modified"
+    additions: 30
+    deletions: 4
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/diff-test/db/entity/DiffItem.ts"
+    change_type: "modified"
+    additions: 29
+    deletions: 0
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/diff-test/db/entity/Entity.ts"
+    change_type: "modified"
+    additions: 21
+    deletions: 0
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/diff-test/db/entity/HttpRecord.ts"
+    change_type: "modified"
+    additions: 25
+    deletions: 0
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/diff-test/db/filterBuilder.ts"
+    change_type: "modified"
+    additions: 17
+    deletions: 0
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/diff-test/db/mysql.ts"
+    change_type: "modified"
+    additions: 48
+    deletions: 2
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/diff-test/db/sqlBuilder.ts"
+    change_type: "modified"
+    additions: 104
+    deletions: 0
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/diff-test/helper/axiosData.ts"
+    change_type: "modified"
+    additions: 26
+    deletions: 0
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/diff-test/helper/controllerHelper.ts"
+    change_type: "modified"
+    additions: 91
+    deletions: 0
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/diff-test/helper/diff.ts"
+    change_type: "modified"
+    additions: 195
+    deletions: 6
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/diff-test/helper/headers.ts"
+    change_type: "modified"
+    additions: 11
+    deletions: 0
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/diff-test/helper/proxyAxios.ts"
+    change_type: "modified"
+    additions: 22
+    deletions: 0
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/diff-test/helper/task.ts"
+    change_type: "modified"
+    additions: 19
+    deletions: 0
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/diff-test/model/diff-item.model.ts"
+    change_type: "modified"
+    additions: 54
+    deletions: 6
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/diff-test/model/http-record.model.ts"
+    change_type: "modified"
+    additions: 63
+    deletions: 0
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/diff-test/model/ui.model.ts"
+    change_type: "modified"
+    additions: 28
+    deletions: 10
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/diff-test/service/diff-item.service.ts"
+    change_type: "modified"
+    additions: 85
+    deletions: 2
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/diff-test/service/http-record.service.ts"
+    change_type: "modified"
+    additions: 28
+    deletions: 0
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/diff-test/service/ui.service.ts"
+    change_type: "modified"
+    additions: 50
+    deletions: 4
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/diff-test/template/allItem.ts"
+    change_type: "modified"
+    additions: 318
+    deletions: 2
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/index.ts"
+    change_type: "modified"
+    additions: 91
+    deletions: 94
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/locales/config/en-us.json"
+    change_type: "modified"
+    additions: 56
+    deletions: 11
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/locales/config/zh-cn.json"
+    change_type: "modified"
+    additions: 55
+    deletions: 10
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/locales/i18n-keys.txt"
+    change_type: "added"
+    additions: 1
+    deletions: 1
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/locales/i18n/en-us/transition.json"
+    change_type: "modified"
+    additions: 418
+    deletions: 260
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/locales/i18n/i18n-info.js"
+    change_type: "modified"
+    additions: 43
+    deletions: 43
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/locales/i18n/i18n-keys.txt"
+    change_type: "modified"
+    additions: 196
+    deletions: 35
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/locales/i18n/pt-br/transition.json"
+    change_type: "modified"
+    additions: 128
+    deletions: 38
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/locales/i18n/zh-cn/transition.json"
+    change_type: "modified"
+    additions: 420
+    deletions: 262
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/locales/utils.ts"
+    change_type: "modified"
+    additions: 16
+    deletions: 6
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/nodes/aiNode.ts"
+    change_type: "modified"
+    additions: 4
+    deletions: 115
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/nodes/baseNodeBFF.ts"
+    change_type: "modified"
+    additions: 480
+    deletions: 648
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/nodes/batchNodeBFF.ts"
+    change_type: "modified"
+    additions: 7
+    deletions: 63
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/nodes/editCopyBff.ts"
+    change_type: "modified"
+    additions: 26
+    deletions: 68
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/nodes/previewAllSchema.ts"
+    change_type: "modified"
+    additions: 2383
+    deletions: 2515
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/nodes/previewNodeBFF.ts"
+    change_type: "modified"
+    additions: 59
+    deletions: 90
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/nodes/ruleNodeBFF.ts"
+    change_type: "modified"
+    additions: 287
+    deletions: 710
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/nodes/securityGate.ts"
+    change_type: "modified"
+    additions: 1228
+    deletions: 1228
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/nodes/strategyListSchema.ts"
+    change_type: "modified"
+    additions: 218
+    deletions: 306
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/resTemp/basic_BFF.ts"
+    change_type: "added"
+    additions: 0
+    deletions: 555
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/resTemp/basic_Dive.ts"
+    change_type: "added"
+    additions: 0
+    deletions: 221
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/resTemp/group_BFF.ts"
+    change_type: "added"
+    additions: 0
+    deletions: 123
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/resTemp/group_Dive.ts"
+    change_type: "added"
+    additions: 0
+    deletions: 69
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/resTemp/message_BFF.ts"
+    change_type: "added"
+    additions: 0
+    deletions: 364
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/resTemp/messgae_Dive.ts"
+    change_type: "added"
+    additions: 0
+    deletions: 119
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/resTemp/preview_BFF.ts"
+    change_type: "added"
+    additions: 0
+    deletions: 197
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/resTemp/preview_Dive.ts"
+    change_type: "added"
+    additions: 0
+    deletions: 39
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/resTemp/preview_all_BFF.ts"
+    change_type: "added"
+    additions: 0
+    deletions: 174
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/resTemp/preview_all_Dive.ts"
+    change_type: "added"
+    additions: 0
+    deletions: 108
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/resTemp/rule_BFF.ts"
+    change_type: "added"
+    additions: 0
+    deletions: 302
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/resTemp/rule_Dive.ts"
+    change_type: "added"
+    additions: 0
+    deletions: 148
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/resTemp/rule_types.ts"
+    change_type: "added"
+    additions: 0
+    deletions: 216
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/resTemp/xx.json"
+    change_type: "added"
+    additions: 0
+    deletions: 145
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/resTemp/xxx.json"
+    change_type: "added"
+    additions: 0
+    deletions: 146
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/service/create-copy.service.ts"
+    change_type: "added"
+    additions: 23
+    deletions: 0
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/service/create-edit.service.ts"
+    change_type: "added"
+    additions: 23
+    deletions: 0
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/service/create-render.service.ts"
+    change_type: "added"
+    additions: 21
+    deletions: 0
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/service/create-saveandnext.service.ts"
+    change_type: "added"
+    additions: 21
+    deletions: 0
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/service/dive.ts"
+    change_type: "added"
+    additions: 55
+    deletions: 191
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/service/manual/create-copy.service.ts"
+    change_type: "modified"
+    additions: 1
+    deletions: 1
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/service/manual/create-edit.service.ts"
+    change_type: "modified"
+    additions: 1
+    deletions: 1
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/service/manual/create-render.service.ts"
+    change_type: "modified"
+    additions: 661
+    deletions: 658
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/service/manual/create-saveandnext.service.ts"
+    change_type: "modified"
+    additions: 6
+    deletions: 2
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/service/preview.service.ts"
+    change_type: "modified"
+    additions: 39
+    deletions: 12
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/service/schema/budget-allocation.service.ts"
+    change_type: "modified"
+    additions: 13
+    deletions: 5
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/service/schema/campaign-type.service.ts"
+    change_type: "modified"
+    additions: 29
+    deletions: 4
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/service/schema/cycle-type.service.ts"
+    change_type: "modified"
+    additions: 67
+    deletions: 47
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/service/schema/description.service.ts"
+    change_type: "modified"
+    additions: 25
+    deletions: 8
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/service/schema/push.service.ts"
+    change_type: "modified"
+    additions: 1
+    deletions: 0
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/service/schema/reward-condition.service.ts"
+    change_type: "modified"
+    additions: 13
+    deletions: 4
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/service/schema/rules.service.ts"
+    change_type: "modified"
+    additions: 13
+    deletions: 4
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/service/schema/title.service.ts"
+    change_type: "modified"
+    additions: 25
+    deletions: 8
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/service/schema/trigger-type.service.ts"
+    change_type: "modified"
+    additions: 12
+    deletions: 4
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/service/securityGate.service.ts"
+    change_type: "modified"
+    additions: 154
+    deletions: 110
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/service/strategy/list-render.service.ts"
+    change_type: "modified"
+    additions: 19
+    deletions: 11
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/sls-app-env.d.ts"
+    change_type: "modified"
+    additions: 5
+    deletions: 0
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/types/common.ts"
+    change_type: "modified"
+    additions: 12
+    deletions: 4
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/types/net.ts"
+    change_type: "modified"
+    additions: 13
+    deletions: 0
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/types/node.ts"
+    change_type: "modified"
+    additions: 117
+    deletions: 32
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/types/template.ts"
+    change_type: "modified"
+    additions: 9
+    deletions: 0
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/utils/header.ts"
+    change_type: "modified"
+    additions: 9
+    deletions: 0
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/utils/index.ts"
+    change_type: "modified"
+    additions: 5
+    deletions: 0
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/utils/isEmpty.ts"
+    change_type: "modified"
+    additions: 17
+    deletions: 2
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/utils/obj.ts"
+    change_type: "modified"
+    additions: 209
+    deletions: 0
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/utils/promise.ts"
+    change_type: "modified"
+    additions: 53
+    deletions: 0
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/utils/schemaUtils.ts"
+    change_type: "modified"
+    additions: 152
+    deletions: 2
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/utils/templateUtils.ts"
+    change_type: "modified"
+    additions: 192
+    deletions: 74
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/utils/to.ts"
+    change_type: "modified"
+    additions: 44
+    deletions: 0
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/utils/tools.ts"
+    change_type: "modified"
+    additions: 70
+    deletions: 1
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "src/utils/typeJudge.ts"
+    change_type: "modified"
+    additions: 35
+    deletions: 0
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"

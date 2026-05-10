@@ -1,0 +1,168 @@
+schema_version: "1.0"
+case_id: "dive-customization-xtr-gas-benefits"
+layer: "frontend"
+base_ref: "master"
+impl_ref: "feature_oe_dive_customization"
+changed_files:
+  - path: "app/dive/src/app.tsx"
+    change_type: "added"
+    additions: 2
+    deletions: 0
+    attribution:
+      confidence: "high"
+      prd_signals: []
+      reason: "single-branch case, all changes attributable"
+  - path: "app/dive/src/components/FormField/CustomRewardRule/RewardRuleForm.tsx"
+    change_type: "added"
+    additions: 359
+    deletions: 0
+    attribution:
+      confidence: "high"
+      prd_signals: []
+      reason: "single-branch case, all changes attributable"
+  - path: "app/dive/src/components/FormField/CustomRewardRule/components/ConditionCell.tsx"
+    change_type: "added"
+    additions: 39
+    deletions: 0
+    attribution:
+      confidence: "high"
+      prd_signals: []
+      reason: "single-branch case, all changes attributable"
+  - path: "app/dive/src/components/FormField/CustomRewardRule/components/RewardColumn.tsx"
+    change_type: "added"
+    additions: 253
+    deletions: 0
+    attribution:
+      confidence: "high"
+      prd_signals: []
+      reason: "single-branch case, all changes attributable"
+  - path: "app/dive/src/components/FormField/CustomRewardRule/components/RewardMethod.tsx"
+    change_type: "added"
+    additions: 631
+    deletions: 0
+    attribution:
+      confidence: "high"
+      prd_signals: []
+      reason: "single-branch case, all changes attributable"
+  - path: "app/dive/src/components/FormField/CustomRewardRule/core/tableConfig.tsx"
+    change_type: "added"
+    additions: 148
+    deletions: 0
+    attribution:
+      confidence: "high"
+      prd_signals: []
+      reason: "single-branch case, all changes attributable"
+  - path: "app/dive/src/components/FormField/CustomRewardRule/core/types.ts"
+    change_type: "added"
+    additions: 146
+    deletions: 0
+    attribution:
+      confidence: "high"
+      prd_signals: []
+      reason: "single-branch case, all changes attributable"
+  - path: "app/dive/src/components/FormField/CustomRewardRule/core/utils.ts"
+    change_type: "added"
+    additions: 202
+    deletions: 0
+    attribution:
+      confidence: "high"
+      prd_signals: []
+      reason: "single-branch case, all changes attributable"
+  - path: "app/dive/src/components/FormField/CustomRewardRule/index.tsx"
+    change_type: "added"
+    additions: 10
+    deletions: 0
+    attribution:
+      confidence: "high"
+      prd_signals: []
+      reason: "single-branch case, all changes attributable"
+  - path: "app/dive/src/components/FormField/PushTemplateCmp/sendTime.tsx"
+    change_type: "added"
+    additions: 2
+    deletions: 2
+    attribution:
+      confidence: "high"
+      prd_signals: []
+      reason: "single-branch case, all changes attributable"
+  - path: "app/dive/src/components/FormField/RegularDateTime/index.tsx"
+    change_type: "added"
+    additions: 2
+    deletions: 2
+    attribution:
+      confidence: "high"
+      prd_signals: []
+      reason: "single-branch case, all changes attributable"
+  - path: "app/dive/src/components/FormField/TimeRangeCmp/CrossTimeCmp.tsx"
+    change_type: "added"
+    additions: 1
+    deletions: 1
+    attribution:
+      confidence: "high"
+      prd_signals: []
+      reason: "single-branch case, all changes attributable"
+  - path: "app/dive/src/components/FormField/TimeRangeCmp/index.tsx"
+    change_type: "added"
+    additions: 15
+    deletions: 10
+    attribution:
+      confidence: "high"
+      prd_signals: []
+      reason: "single-branch case, all changes attributable"
+  - path: "app/dive/src/components/FormField/TimeRanger/index.tsx"
+    change_type: "added"
+    additions: 1
+    deletions: 1
+    attribution:
+      confidence: "high"
+      prd_signals: []
+      reason: "single-branch case, all changes attributable"
+  - path: "app/dive/src/components/Preview/DetailTargetRuleCmp.tsx"
+    change_type: "added"
+    additions: 131
+    deletions: 49
+    attribution:
+      confidence: "high"
+      prd_signals: []
+      reason: "single-branch case, all changes attributable"
+  - path: "app/dive/src/locales/i18n-info.js"
+    change_type: "added"
+    additions: 1
+    deletions: 1
+    attribution:
+      confidence: "high"
+      prd_signals: []
+      reason: "single-branch case, all changes attributable"
+  - path: "app/dive/src/setupProxy.js"
+    change_type: "added"
+    additions: 18
+    deletions: 18
+    attribution:
+      confidence: "high"
+      prd_signals: []
+      reason: "single-branch case, all changes attributable"
+  - path: "app/dive/src/utils/tools.ts"
+    change_type: "added"
+    additions: 13
+    deletions: 4
+    attribution:
+      confidence: "high"
+      prd_signals: []
+      reason: "single-branch case, all changes attributable"
+  - path: "packages/components/src/FormField/Checkbox/index.tsx"
+    change_type: "added"
+    additions: 3
+    deletions: 1
+    attribution:
+      confidence: "high"
+      prd_signals: []
+      reason: "single-branch case, all changes attributable"
+  - path: "packages/components/src/FormField/InlineInput/index.tsx"
+    change_type: "added"
+    additions: 4
+    deletions: 2
+    attribution:
+      confidence: "high"
+      prd_signals: []
+      reason: "single-branch case, all changes attributable"
+symbols:
+risk_notes: []

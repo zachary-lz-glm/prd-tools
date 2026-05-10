@@ -53,176 +53,146 @@ const DATA = {
 
 YAML 内容转为 JSON 后嵌入。Markdown 内容解析为结构化数据（章节标题、表格、checklist 项）。如果某个文件不存在，对应 key 的值为 `null`。
 
-### 2. 设计系统
+### 2. 纯内联样式
 
-读取 `references/portal-design-system.md`，按其中的配色、排版、组件样式、动效规范生成 CSS。所有 CSS 内联在 `<style>` 标签中。
+- 所有 CSS 写在 `<style>` 标签中。
+- 不引用任何 CDN、外部字体、外部 CSS/JS 文件。
+- 使用系统字体栈：`-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif`。
 
 ### 3. 页面结构
 
+页面分为 9 个可视化 Section，通过顶部 sticky Nav 导航切换。必须与 reference portal 使用同一套视觉语言：顶部渐变 Header、横向 sticky Nav、居中内容容器、白色信息卡片、8px 圆角、统一 tag/badge/score 色板。
+
 ```
 +---------------------------------------------------------------+
-| Header: 渐变背景 / 评分环形图 / PRD 标题 / 项目 / 时间        |
-+----------+----------------------------------------------------+
-| Sidebar  |  Content Area (max-width: 1000px, centered)        |
-| (窄，    |                                                    |
-|  图标+   |  卡片式内容，大量留白                               |
-|  文字)   |                                                    |
-|          |                                                    |
-| ○ 总览   |                                                    |
-| ○ 源码   |                                                    |
-| ○ 影响   |                                                    |
-| ○ 契约   |                                                    |
-| ○ 计划   |                                                    |
-| ○ QA     |                                                    |
-| ○ 阻塞   |                                                    |
-| ○ 回流   |                                                    |
-+----------+----------------------------------------------------+
+| Header: 就绪度评分徽章 / PRD 标题 / 项目名 / 时间戳          |
++---------------------------------------------------------------+
+| Sticky Top Nav: 总览 / 源码命中 / 影响分析 / 契约差异...       |
++---------------------------------------------------------------+
+| Centered Content Area                                          |
+|  (根据 nav 选择切换 section)                                   |
++---------------------------------------------------------------+
 ```
-
-#### Header
-
-Header 使用深色渐变背景，包含：
-- **评分环形图**：SVG 圆环动画显示 readiness score，颜色根据状态变化（pass=绿 85-100，warning=黄 60-84，fail=红 0-59）。环内显示大号分数数字。
-- **标题区**：PRD 标题（18px, 700 weight）、项目名 + decision 标签 + 生成时间（13px, secondary color）
-- **评分维度条**：水平排列 5 个小指标卡（prd_ingestion / evidence_coverage / code_search / contract_alignment / task_executability），每个显示标签 + 分数 + 迷你进度条
-
-```html
-<header id="app-header">
-  <div class="header-score-ring">
-    <svg><!-- 圆环进度 --></svg>
-    <span class="score-number">72</span>
-  </div>
-  <div class="header-info">
-    <h1>PRD 标题</h1>
-    <div class="header-meta">
-      <span class="badge badge-warning">warning</span>
-      <span class="text-tertiary">项目名 · 2026-05-08</span>
-    </div>
-  </div>
-  <div class="header-dimensions">
-    <!-- 5 个维度迷你卡片 -->
-  </div>
-</header>
-```
-
-#### Sidebar
-
-- 深色背景 (#0f0f11)，宽度 200px
-- 每个 nav item 带图标（用 Unicode emoji 或 SVG 内联）+ 文字
-- 选中项：左侧 2px 紫色竖条 + 半透明背景 + 白色文字
-- 悬停：微妙背景变化，平滑过渡
-- 移动端：折叠为汉堡菜单
-
-#### Content Area
-
-- 最大宽度 1000px，居中显示
-- `padding: 32px 40px`
-- section 切换使用 `opacity` + `transform` 过渡，不是瞬间显示/隐藏
 
 ### 4. 各 Section 设计要求
 
-#### Section 1：Dashboard（总览）
+#### Section 1：Dashboard Header（总览）
 
-**Executive Summary 卡片**：
-- 大号数字统计行：变更总数 / ADD 数 / MODIFY 数 / DELETE 数，每个数字下方有灰色小标签
-- 数字用 `font-size: 32px; font-weight: 700; letter-spacing: -0.02em`，ADD 绿色、MODIFY 紫色、DELETE 红色
+**Header（始终可见）**：
+- 就绪度评分：大号数字 + 颜色编码徽章（pass=绿色 85-100，warning=黄色 60-84，fail=红色 0-59）
+- decision 标签：`ready_for_dev` / `needs_owner_confirmation` / `blocked`
+- PRD 标题、项目名、生成时间戳
+- 评分维度小卡片（prd_ingestion / evidence_coverage / code_search / contract_alignment / task_executability），每项显示分数和进度条
 
-**Top Conclusions**：
-- 带编号的结论列表，每条前面有紫色圆点
-- 每条结论带关联 REQ-ID 标签（小号 badge）
-
-**关键风险摘要**：
-- 用 `border-left: 3px solid var(--warning)` 的警告卡片
-- 风险条目带 priority 徽章
-
-**证据分布**：
-- 小型横向柱状图或 badge 列表显示各类型证据数量
+**Executive Summary（总览内容区）**：
+- Top conclusions：从 report.md §4 提取的关键结论列表
+- 变更类型统计：ADD/MODIFY/DELETE/NO_CHANGE 各几项，用彩色数字展示
+- 关键风险摘要：从 readiness-report.yaml risks 提取
+- 证据统计：各类型证据数量（prd / code / tech_doc / negative_code_search 等）
 
 #### Section 2：源码命中
 
-- 搜索框在顶部，带放大镜 Unicode 字符
-- 表格行带圆角，行间有微妙分隔
-- `role_in_flow` 用不同颜色的小标签展示
-- 未命中条目用淡灰背景区分
-- 按钮式过滤器：全部 / entrypoint / validator / transformer / persistence / external_call
+- 交互式表格，列为：`| GCTX-ID | 符号 | 文件:行号 | 类型 | 角色 | 调用方 | 被调用方 | 置信度 |`
+- 数据来源：`graph-context.md` 的函数级上下文条目
+- 搜索未命中的条目单独展示
+- 支持按角色（entrypoint/validator/transformer/persistence/external_call/consumer）过滤
+- 支持按置信度过滤
 
 #### Section 3：影响分析（Layer Impact）
 
-- 按层分组，每层一个白色卡片
-- 卡片顶部：层名（大号）+ 变更数量 badge + 展开/折叠按钮
-- 卡片内容：
-  - 受影响能力面用 tag 列表展示
-  - 每个 IMP-* 项用紧凑行展示：target（代码样式）→ planned_delta（简述）→ confidence badge
-- 无影响的层显示带对勾的 "该层无影响" 绿色提示
+- 按层分组的卡片（frontend / BFF / backend），每层一个卡片
+- 每张卡片显示：
+  - 影响数量和变更类型分布
+  - 受影响能力面（surface）列表
+  - 受影响文件/模块列表
+  - 每个 IMP-* 项的摘要：target、planned_delta、confidence 徽章
+- 无影响的层显示"该层无影响"
 
 #### Section 4：契约差异（Contract Delta）
 
-- alignment_status 概况卡片：4 个数字（aligned / needs_confirmation / blocked / not_applicable），各带颜色
-- 契约表格：
-  - alignment 用彩色药丸 badge
-  - 点击行展开详情面板（平滑高度过渡），显示 request_fields / response_fields 的字段列表
-  - 展开时行背景微变
+- 表格：`| ID | 名称 | Producer | Consumers | 变更类型 | 对齐状态 |`
+- alignment_status 颜色编码：
+  - `aligned` = 绿色徽章
+  - `needs_confirmation` = 黄色徽章
+  - `blocked` = 红色徽章
+  - `not_applicable` = 灰色徽章
+- 点击契约行可展开查看 request_fields / response_fields 详情
+- 顶部显示 alignment_summary 概况
 
 #### Section 5：开发计划（Plan Overview）
 
-- Phase 用大号标题 + 依赖描述分隔
-- 每个 Phase 内的 Step 用卡片包裹
-- Checklist 项：
-  - 自定义复选框（圆角方形，勾选动画）
-  - 任务描述 + 文件路径（monospace 灰底）+ 行号
-  - 关联标签（REQ-001 / IMP-003 / CONTRACT-001）用小 badge
-  - 验证命令用 code block 展示
-- **交互式 checklist**：点击勾选，状态存 localStorage（key = `prd-distill-checklist-{slug}`）
-- Phase 完成进度：Phase 标题旁显示 `3/7` 和迷你进度条
+- 按 Phase 分组的可折叠面板
+- 每个 Phase 内的 Step 用 `- [ ]` checklist 展示
+- 每个 checklist 项包含：
+  - 任务描述
+  - 文件路径（可点击复制的代码路径样式）
+  - 行号（如有）
+  - 关联 REQ/IMP/CONTRACT 标签
+  - 验证命令（代码样式展示）
+- **交互式 checklist**：点击可切换勾选状态，状态保存在 localStorage
+- Phase 间的前置依赖标注
 
 #### Section 6：QA 矩阵
 
-- 表格：场景 | 关键检查点 | 关联 REQ | 优先级
-- 优先级用 badge：P0=红色、P1=橙色、P2=蓝色
-- 过滤按钮组
+- 表格：`| 场景 | 关键检查点 | 关联 REQ | 优先级 |`
+- 优先级徽章：P0=红色、P1=橙色、P2=蓝色
+- 支持按优先级过滤
 
 #### Section 7：阻塞问题
 
-- 如有阻塞问题：
-  - §11.1 阻塞问题用红色左边框卡片，每个问题含 6 要素
-  - §11.2 低置信度假设用黄色左边框卡片
-  - §11.3 Owner 确认项按角色分组，用蓝色左边框
-- 如无阻塞问题：绿色大号对勾图标 + "当前无阻塞问题" 文字
+- 高亮警告区域
+- §11.1 阻塞问题：每个问题卡片包含 6 要素（问题、线索、影响、建议 Owner、需要证据、默认策略）
+- §11.2 低置信度假设：带警告图标的列表
+- §11.3 Owner 确认项：按 Owner 角色分组的列表
+- 如无阻塞问题，显示绿色"当前无阻塞问题"提示
 
 #### Section 8：回流建议
 
-- 卡片列表，每张卡片：
-  - 顶部：ID + 类型 badge + 优先级 badge（右上角）
-  - 中部：summary 文字
-  - 底部：target_file（代码样式）+ 置信度 badge
+- 卡片列表：`| ID | 类型 | 目标文件 | 摘要 | 优先级 | 置信度 |`
+- 优先级颜色编码（high=红、medium=黄、low=蓝）
+- 类型标签：new_term / new_route / new_contract / new_playbook / contradiction / golden_sample_candidate
 
-### 5. 动效要求
+### 5. 配色方案（CSS 变量）
 
 ```css
-/* Section 切换 */
-section { opacity: 0; transform: translateY(8px); transition: opacity 0.2s, transform 0.2s; display: none; }
-section.active { display: block; opacity: 1; transform: translateY(0); }
+:root{
+  --bg:#f8f9fa;
+  --card:#ffffff;
+  --border:#e2e8f0;
+  --text:#1a202c;
+  --text2:#4a5568;
+  --accent:#3b82f6;
+  --accent2:#8b5cf6;
+  --green:#10b981;
+  --red:#ef4444;
+  --orange:#f59e0b;
+  --tag-bg:#edf2f7;
+}
+```
 
-/* 卡片悬停 */
-.card { transition: box-shadow var(--transition-fast), transform var(--transition-fast); }
-.card:hover { box-shadow: var(--shadow-md); transform: translateY(-1px); }
+基础布局样式建议：
 
-/* 进度条动画 */
-.progress-fill { animation: fillIn 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
-@keyframes fillIn { from { width: 0; } }
-
-/* 评分环形图动画 */
-.score-ring-progress { animation: ringIn 1s cubic-bezier(0.4, 0, 0.2, 1) forwards; stroke-dashoffset: [target]; }
+```css
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);line-height:1.6}
+.header{background:linear-gradient(135deg,#1e40af,#7c3aed);color:#fff;padding:32px 40px}
+.header h1{font-size:28px;font-weight:700;margin-bottom:8px}
+.header .meta{display:flex;gap:24px;font-size:14px;opacity:.9;flex-wrap:wrap}
+.nav{background:#fff;border-bottom:1px solid var(--border);padding:0 40px;display:flex;overflow-x:auto;position:sticky;top:0;z-index:100}
+.nav a{padding:12px 20px;font-size:14px;font-weight:500;color:var(--text2);text-decoration:none;border-bottom:3px solid transparent;white-space:nowrap}
+.nav a.active,.nav a:hover{color:var(--accent);border-bottom-color:var(--accent)}
+.container{max-width:1200px;margin:0 auto;padding:24px 40px}
+.section{display:none}.section.active{display:block}
+.card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:24px;margin-bottom:20px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
 ```
 
 ### 6. 交互要求
 
-- Sidebar 导航：点击切换右侧内容区，当前选中项高亮（左侧竖条 + 背景色变化）。
-- 移动端：sidebar 折叠为汉堡菜单。
-- 可折叠区域：自定义 toggle + CSS max-height 过渡（不用 details/summary，视觉不够灵活）。
-- 搜索/过滤：源码命中表和 QA 矩阵支持实时搜索，输入框带放大镜图标。
-- 契约行展开：点击行展开字段详情，平滑高度过渡。
-- Checklist 持久化：plan 的 checklist 勾选状态保存到 `localStorage`，key 为 `prd-distill-checklist-{slug}`。
+- Top Nav 导航：点击切换内容区，当前选中项高亮。
+- 移动端：导航横向滚动，内容全宽。
+- 可折叠区域：用 `<details>/<summary>` 或自定义 toggle。
+- 搜索/过滤：源码命中表和 QA 矩阵支持实时搜索。
+- Checklist 持久化：plan 的 checklist 勾选状态保存到 `localStorage`，刷新后保留。
 - 无需任何 JavaScript 框架，纯原生 JS。
 
 ### 7. 模板结构
@@ -235,28 +205,21 @@ section.active { display: block; opacity: 1; transform: translateY(0); }
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>PRD Distill: {title}</title>
   <style>
-    /* 全部 CSS 内联 — 使用上面的设计系统变量和组件样式 */
-    /* 重置 → 变量 → 布局 → Header → Sidebar → Content → 组件 → 动效 → 响应式 */
+    /* 所有 CSS 内联于此 */
   </style>
 </head>
 <body>
-  <header id="app-header">
-    <!-- 评分环形图 + 标题 + 维度指标 -->
-  </header>
-  <div id="app-layout">
-    <nav id="sidebar">
-      <!-- 图标 + 文字导航 -->
-    </nav>
-    <main id="content">
-      <section id="sec-overview">...</section>
-      <section id="sec-code-hits">...</section>
-      <section id="sec-impact">...</section>
-      <section id="sec-contracts">...</section>
-      <section id="sec-plan">...</section>
-      <section id="sec-qa">...</section>
-      <section id="sec-blockers">...</section>
-      <section id="sec-suggestions">...</section>
-    </main>
+  <div class="header">...</div>
+  <div class="nav">...</div>
+  <div class="container">
+    <div class="section active" id="s-overview">...</div>
+    <div class="section" id="s-code-hits">...</div>
+    <div class="section" id="s-impact">...</div>
+    <div class="section" id="s-contracts">...</div>
+    <div class="section" id="s-plan">...</div>
+    <div class="section" id="s-qa">...</div>
+    <div class="section" id="s-blockers">...</div>
+    <div class="section" id="s-suggestions">...</div>
   </div>
   <script>
     const DATA = { /* 内联数据 */ };
@@ -266,22 +229,7 @@ section.active { display: block; opacity: 1; transform: translateY(0); }
 </html>
 ```
 
-### 8. CSS 编写顺序
-
-按以下顺序组织 CSS，确保可维护性：
-
-```
-1. CSS Reset (*, body)
-2. CSS Variables (:root)
-3. Typography (body, h1-h4, p, code, pre)
-4. Layout (#app-header, #app-layout, #sidebar, #content)
-5. Components (.card, .badge, .progress-bar, .search-box, table)
-6. Sections (各 section 特有样式)
-7. Animations (@keyframes, transitions)
-8. Responsive (@media)
-```
-
-### 9. 质量要求
+### 8. 质量要求
 
 - **file:// 协议可用**：双击文件即可在浏览器中打开，无需 HTTP 服务器。
 - **零外部依赖**：不加载任何 CDN、字体、CSS/JS 文件。
@@ -289,9 +237,8 @@ section.active { display: block; opacity: 1; transform: translateY(0); }
 - **空数据处理**：如果某个产出文件不存在或为空，对应 section 显示"该部分尚未生成"提示，不报错。
 - **编码**：UTF-8，中文内容正常显示。
 - **大小**：控制在合理范围（通常 < 500KB）。如数据量巨大，截断展示但保留完整数据在 `<script>` 中。
-- **视觉一致性**：所有卡片、表格、徽章使用统一的 CSS 变量，不硬编码颜色值。
 
-### 10. 生成后验证
+### 9. 生成后验证
 
 生成 portal.html 后，Claude 应：
 

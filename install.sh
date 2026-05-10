@@ -16,6 +16,8 @@ TARGET="$(cd "$TARGET" && pwd)"
 
 CLAUDE_SKILLS_DIR="$TARGET/.claude/skills"
 GLOBAL_CLAUDE_SKILLS_DIR="$HOME/.claude/skills"
+PRD_TOOLS_DIR="$TARGET/.prd-tools"
+PRD_TOOLS_SCRIPTS_DIR="$PRD_TOOLS_DIR/scripts"
 TMP_DIR="$(mktemp -d)"
 cleanup() { rm -rf "$TMP_DIR"; }
 trap cleanup EXIT
@@ -74,6 +76,21 @@ if [ -d "$GLOBAL_CLAUDE_SKILLS_DIR/build-reference" ]; then
   rm -rf "$GLOBAL_CLAUDE_SKILLS_DIR/build-reference"
   echo "    已清理全局旧 skill：build-reference"
 fi
+
+# ── 复制运行时辅助脚本 ─────────────────────────────────────────
+# Skills 在目标项目内执行，因此确定性辅助脚本也必须安装到目标项目。
+mkdir -p "$PRD_TOOLS_SCRIPTS_DIR"
+echo "==> 安装 runtime scripts 到 $PRD_TOOLS_SCRIPTS_DIR"
+for script in build-index.py context-pack.py final-quality-gate.py; do
+  src="$ARCHIVE_ROOT/scripts/$script"
+  if [ -f "$src" ]; then
+    cp "$src" "$PRD_TOOLS_SCRIPTS_DIR/$script"
+    chmod +x "$PRD_TOOLS_SCRIPTS_DIR/$script" 2>/dev/null || true
+    echo "    已安装脚本：$script"
+  else
+    echo "    警告：源码包内未找到 scripts/$script" >&2
+  fi
+done
 
 # ── 清理旧命令 alias ────────────────────────────────────────────
 # /reference 由 skills/reference/SKILL.md 的 skill name 提供，不再复制

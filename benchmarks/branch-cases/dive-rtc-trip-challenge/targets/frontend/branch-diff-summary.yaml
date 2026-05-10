@@ -1,0 +1,8 @@
+schema_version: "1.0"
+case_id: "dive-rtc-trip-challenge"
+layer: "frontend"
+base_ref: "master"
+impl_ref: "feature_oe_rtc"
+changed_files:
+symbols:
+risk_notes: []

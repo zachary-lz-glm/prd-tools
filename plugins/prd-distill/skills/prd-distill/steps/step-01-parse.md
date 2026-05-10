@@ -36,9 +36,11 @@ unzip -o <file>.docx "media/*" -d _ingest/
 
 - 来自 `.md/.txt` 或粘贴内容的 PRD。
 - 可选后端/API/技术方案文档。
-- 如存在，读取 `_prd-tools/reference/04-routing-playbooks.yaml`、`_prd-tools/reference/05-domain.yaml`。
-- v3.1 兼容：`_prd-tools/reference/05-routing.yaml`、`_prd-tools/reference/06-glossary.yaml`、`_prd-tools/reference/07-business-context.yaml`。
-- 旧版兼容：`_prd-tools/reference/05-mapping.yaml`。
+- `_prd-tools/reference/`（**必须消费**，如存在）：
+  - `04-routing-playbooks.yaml`：提取路由表，用于步骤 4 的 PRD 关键词匹配。
+  - `05-domain.yaml`：提取领域术语，用于步骤 4 的 glossary 同义词匹配。
+  - v3.1 兼容：`05-routing.yaml`、`06-glossary.yaml`、`07-business-context.yaml`。
+  - 旧版兼容：`05-mapping.yaml`。
 
 ## 执行
 
@@ -52,28 +54,18 @@ unzip -o <file>.docx "media/*" -d _ingest/
      e. 用 Read 工具逐个查看 `_ingest/media/` 下的图片，理解内容（UI 截图、流程图、数据图表），将分析结果写入 `_ingest/media-analysis.yaml`。
    - 粘贴文本：直接作为 document 内容。
    创建 `_ingest/` 证据结构。
-2. **生成 `_ingest/document-structure.json`**：逐段扫描 `document.md`，为每个段落、标题、表格、图片生成 block 条目（含 block_id、block_type、text_excerpt、locator）。
-3. 读取 `_ingest/extraction-quality.yaml`；`status: block` 时暂停，`status: warn` 时继续但必须暴露风险。
-4. 读取 `_prd-tools/reference/04-routing-playbooks.yaml` 的 `capability_inventory`（如存在），用于后续区分已有能力与需新增能力。
-5. 以 `_ingest/document.md` 为主输入，结合 `evidence-map.yaml` 建立 context/ evidence 台账。
-6. **逐 block 提取需求**：遍历 `document-structure.json` 的每个 block，对每个内容块执行需求拆解。确保每个 block 都有 evidence_id 或被标记为 excluded。
-7. 按以下信号匹配每个 requirement：
+2. 读取 `_ingest/extraction-quality.yaml`；`status: block` 时暂停，`status: warn` 时继续但必须暴露风险。
+3. 以 `_ingest/document.md` 为主输入，结合 `evidence-map.yaml` 建立 context/ evidence 台账。
+4. 将 PRD 拆成独立业务 requirement。
+4. 按以下信号匹配每个 requirement（**必须优先使用 reference 路由表**）：
+   - **reference 路由匹配**（优先级最高）：将 PRD 关键词与 `04-routing-playbooks.yaml` 的 `prd_keywords` 匹配，确定 target_surfaces 和 playbook_ref。
+   - **reference 术语匹配**：将 PRD 表述与 `05-domain.yaml` 的 terms/synonyms 对齐。
    - routing 关键词
    - glossary 同义词
    - 结构信号
    - playbook/golden sample 相似度
    - 低置信度兜底匹配
-8. **消费 capability_inventory**：
-   - PRD 提到的功能在 `generic_capabilities` 中 `status: verified` → 不需要新增 REQ，但在相关 REQ 的 `rules` 中注明"复用已有 XXX 能力"。
-   - PRD 提到的功能在 `dimensioned_capabilities` 中但 `existing_entries` 不包含目标维度值 → 需要 ADD 类型的 REQ。
-   - PRD 提到的功能在 `missing_capabilities` 中 → 标记 `confidence: low` 并加入 `open_questions`。
-9. 产出 `context/requirement-ir.yaml`。
-10. **覆盖验证**：
-    a. 生成 `_ingest/evidence-map.yaml`，记录每个 block_id → evidence_id → requirement_ids 的映射。
-    b. 计算 `coverage_ratio = mapped_blocks / total_blocks`。
-    c. 更新 `_ingest/extraction-quality.yaml` 的 `coverage` 字段（total_blocks、mapped_blocks、excluded_blocks、unmapped_blocks、coverage_ratio）。
-    d. `coverage_ratio < 0.8` 时 `extraction-quality.yaml` 的 `status` 必须为 `warn`，并在 `unmapped_blocks` 中列出未覆盖的 block_id。
-    e. 未覆盖的 block 必须人工确认是遗漏还是可排除。
+5. 产出 `context/requirement-ir.yaml`。
 
 ## 规则
 
@@ -85,15 +77,6 @@ unzip -o <file>.docx "media/*" -d _ingest/
 - 使用 `ADD | MODIFY | DELETE | NO_CHANGE`。
 - 业务规则、限制、互斥、权益、奖励发放、审计、rollout 假设都必须显式写出。
 - 未知项进入 `open_questions`，不要隐藏不确定性。
-
-## Self-Check（生成后必须逐项验证）
-- [ ] document-structure.json 的每个 block 都有 block_id 和 block_type
-- [ ] evidence-map.yaml 覆盖了 document-structure.json 中的所有 block_id
-- [ ] coverage_ratio = mapped_blocks / total_blocks，计算正确
-- [ ] coverage_ratio < 0.8 时 extraction-quality.yaml 的 status 为 warn
-- [ ] 每个 REQ 至少有一个 PRD evidence（EV-ID）
-- [ ] capability_inventory 中的已有能力在 REQ 的 rules 中标注了"复用已有"
-- [ ] open_questions 中没有隐藏的不确定性
 
 ## 最小输出
 

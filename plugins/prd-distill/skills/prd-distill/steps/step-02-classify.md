@@ -12,25 +12,39 @@
 
 - `context/evidence.yaml`
 - `context/requirement-ir.yaml`
-- `_prd-tools/reference/project-profile.yaml`，如存在
-- `_prd-tools/reference/01-codebase.yaml`
-- `_prd-tools/reference/02-coding-rules.yaml`
-- `_prd-tools/reference/03-contracts.yaml`
-- `_prd-tools/reference/04-routing-playbooks.yaml`
-- v3.1 兼容：`_prd-tools/reference/01-entities.yaml`、`_prd-tools/reference/02-architecture.yaml`、`_prd-tools/reference/03-conventions.yaml`、`_prd-tools/reference/04-constraints.yaml`、`_prd-tools/reference/08-contracts.yaml`、`_prd-tools/reference/09-playbooks.yaml`
+- `_prd-tools/reference/`（**必须消费**，如存在）：
+  - `project-profile.yaml`：项目元数据。
+  - `01-codebase.yaml`：模块、注册点、数据流——作为源码扫描的代码地图。
+  - `02-coding-rules.yaml`：fatal 级规则——layer-impact 必须检查是否触及。
+  - `03-contracts.yaml`：现有契约——作为 contract-delta 基线。
+  - `04-routing-playbooks.yaml`：路由表——确定每个 REQ 的 target_surfaces。
+  - v3.1 兼容：`01-entities.yaml`、`02-architecture.yaml`、`03-conventions.yaml`、`04-constraints.yaml`、`08-contracts.yaml`、`09-playbooks.yaml`
+- `context/query-plan.yaml`（如步骤 2.5 已生成，**必须消费**）
 - `references/layer-adapters.md`
 
 ## 执行
 
-### 源码上下文构建（始终执行）
+### 源码上下文构建（Reference-First，始终执行）
+
+**⚠ 强制：必须先消费 reference 再扫描源码。禁止跳过 reference 直接 grep。**
 
 1. 先生成 `context/graph-context.md`：
-   a. 从 requirement-ir 提取业务实体、字段、枚举、接口、动作词和目标层。
-   b. 使用 `rg`/`glob` 搜索源码中匹配的符号、文件和 execution flows。
-   c. 使用 `Read` 读取命中文件，获取 callers/callees/processes/file path。
+   a. **阶段 1 — Reference 路由**（必须先执行）：
+      - 从 requirement-ir 提取业务实体、字段、枚举、接口、动作词和目标层。
+      - 将关键词与 `04-routing-playbooks.yaml` 的 `prd_routing` 匹配，确定 target_surfaces。
+      - 从 `01-codebase.yaml` 提取匹配的 modules、registries、data_flows，获得精确文件路径。
+      - 检查 `02-coding-rules.yaml` 中是否有相关 fatal 规则，记录为必检项。
+      - 如存在 `query-plan.yaml`，读取 `matched_entities` 获取预匹配代码锚点。
+   b. **阶段 2 — Index 精确扫描**（index 存在时优先）：
+      - 对 query-plan.yaml 中 confidence=high 的 matched_entities，直接 Read 源码确认。
+      - 对 confidence=low 的实体用 `rg` 验证是否为噪音。
+   c. **阶段 3 — 补充扫描**（仅覆盖阶段 1-2 未命中的部分）：
+      - 使用 `rg`/`glob` 搜索源码中**未被 reference/index 覆盖**的符号、文件和 execution flows。
+      - 使用 `Read` 读取命中文件，获取 callers/callees/processes/file path。
    d. 对 MODIFY/DELETE 或高风险改动用 `rg` 追踪引用链，评估 blast radius。
    e. 对 API/route/schema 改动用 `rg` 搜索 consumer 和字段访问模式。
-   f. 记录实际执行的搜索查询和命中结果。
+   f. 记录实际执行的搜索查询、命中结果和 **reference 消费记录**（从哪些 reference 文件提取了哪些路由/规则/实体）。
+   g. 每条线索标注来源：`reference_routing` | `index_query` | `code_scan`。
 
 `graph-context.md` 必须给每条关键线索分配 GCTX ID，供 plan.md / report.md 引用。
 

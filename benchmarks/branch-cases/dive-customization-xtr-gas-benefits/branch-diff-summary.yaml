@@ -1,0 +1,824 @@
+schema_version: "1.0"
+case_id: "dive-customization-xtr-gas-benefits"
+layer: "bff"
+base_ref: "master"
+impl_ref: "feature_oe_dive_customization"
+changed_files:
+  - path: ".env.development"
+    change_type: "modified"
+    additions: 2
+    deletions: 2
+    attribution:
+      confidence: "high"
+      prd_signals: []
+      reason: "single-branch case, all changes attributable"
+  - path: ".env.test"
+    change_type: "modified"
+    additions: 2
+    deletions: 2
+    attribution:
+      confidence: "high"
+      prd_signals: []
+      reason: "single-branch case, all changes attributable"
+  - path: "dist/index.js"
+    change_type: "modified"
+    additions: 724
+    deletions: 797
+    attribution:
+      confidence: "high"
+      prd_signals: []
+      reason: "single-branch case, all changes attributable"
+  - path: "src/base/component.model.ts"
+    change_type: "modified"
+    additions: 14
+    deletions: 0
+    attribution:
+      confidence: "high"
+      prd_signals: []
+      reason: "single-branch case, all changes attributable"
+  - path: "src/config/constant/batchConstant.ts"
+    change_type: "modified"
+    additions: 1
+    deletions: 1
+    attribution:
+      confidence: "high"
+      prd_signals: []
+      reason: "single-branch case, all changes attributable"
+  - path: "src/config/constant/campaignType.ts"
+    change_type: "modified"
+    additions: 2
+    deletions: 0
+    attribution:
+      confidence: "high"
+      prd_signals: []
+      reason: "single-branch case, all changes attributable"
+  - path: "src/config/constant/previewId.ts"
+    change_type: "modified"
+    additions: 1
+    deletions: 0
+    attribution:
+      confidence: "high"
+      prd_signals: []
+      reason: "single-branch case, all changes attributable"
+  - path: "src/config/template/batchCreate/create.ts"
+    change_type: "modified"
+    additions: 2
+    deletions: 3
+    attribution:
+      confidence: "high"
+      prd_signals: []
+      reason: "single-branch case, all changes attributable"
+  - path: "src/config/template/linkageSchema/index.ts"
+    change_type: "modified"
+    additions: 1
+    deletions: 0
+    attribution:
+      confidence: "high"
+      prd_signals: []
+      reason: "single-branch case, all changes attributable"
+  - path: "src/config/template/linkageSchema/rules.ts"
+    change_type: "modified"
+    additions: 1
+    deletions: 0
+    attribution:
+      confidence: "high"
+      prd_signals: []
+      reason: "single-branch case, all changes attributable"
+  - path: "src/config/template/linkageSchema/title.ts"
+    change_type: "modified"
+    additions: 35
+    deletions: 0
+    attribution:
+      confidence: "high"
+      prd_signals: []
+      reason: "single-branch case, all changes attributable"
+  - path: "src/config/template/preview/options/all.ts"
+    change_type: "modified"
+    additions: 1
+    deletions: 0
+    attribution:
+      confidence: "high"
+      prd_signals: []
+      reason: "single-branch case, all changes attributable"
+  - path: "src/config/template/preview/options/audienceSegmentation/customSelectableReward.ts"
+    change_type: "modified"
+    additions: 202
+    deletions: 0
+    attribution:
+      confidence: "high"
+      prd_signals: []
+      reason: "single-branch case, all changes attributable"
+  - path: "src/config/template/preview/options/audienceSegmentation/index.ts"
+    change_type: "modified"
+    additions: 3
+    deletions: 0
+    attribution:
+      confidence: "high"
+      prd_signals: []
+      reason: "single-branch case, all changes attributable"
+  - path: "src/config/template/render/basic.ts"
+    change_type: "modified"
+    additions: 88
+    deletions: 7
+    attribution:
+      confidence: "high"
+      prd_signals: []
+      reason: "single-branch case, all changes attributable"
+  - path: "src/config/template/render/message.ts"
+    change_type: "modified"
+    additions: 39
+    deletions: 0
+    attribution:
+      confidence: "high"
+      prd_signals: []
+      reason: "single-branch case, all changes attributable"
+  - path: "src/config/template/render/rules/details/attendance.ts"
+    change_type: "modified"
+    additions: 2
+    deletions: 35
+    attribution:
+      confidence: "high"
+      prd_signals: []
+      reason: "single-branch case, all changes attributable"
+  - path: "src/config/template/render/rules/details/boost.ts"
+    change_type: "modified"
+    additions: 2
+    deletions: 35
+    attribution:
+      confidence: "high"
+      prd_signals: []
+      reason: "single-branch case, all changes attributable"
+  - path: "src/config/template/render/rules/details/boostTier.ts"
+    change_type: "modified"
+    additions: 2
+    deletions: 35
+    attribution:
+      confidence: "high"
+      prd_signals: []
+      reason: "single-branch case, all changes attributable"
+  - path: "src/config/template/render/rules/details/combo.ts"
+    change_type: "modified"
+    additions: 2
+    deletions: 35
+    attribution:
+      confidence: "high"
+      prd_signals: []
+      reason: "single-branch case, all changes attributable"
+  - path: "src/config/template/render/rules/details/courierDxGy.ts"
+    change_type: "modified"
+    additions: 2
+    deletions: 35
+    attribution:
+      confidence: "high"
+      prd_signals: []
+      reason: "single-branch case, all changes attributable"
+  - path: "src/config/template/render/rules/details/customSelectable.ts"
+    change_type: "modified"
+    additions: 57
+    deletions: 0
+    attribution:
+      confidence: "high"
+      prd_signals: []
+      reason: "single-branch case, all changes attributable"
+  - path: "src/config/template/render/rules/details/departGet.ts"
+    change_type: "modified"
+    additions: 2
+    deletions: 35
+    attribution:
+      confidence: "high"
+      prd_signals: []
+      reason: "single-branch case, all changes attributable"
+  - path: "src/config/template/render/rules/details/duration.ts"
+    change_type: "modified"
+    additions: 2
+    deletions: 34
+    attribution:
+      confidence: "high"
+      prd_signals: []
+      reason: "single-branch case, all changes attributable"
+  - path: "src/config/template/render/rules/details/firstRefuelingGasStation.ts"
+    change_type: "modified"
+    additions: 2
+    deletions: 35
+    attribution:
+      confidence: "high"
+      prd_signals: []
+      reason: "single-branch case, all changes attributable"
+  - path: "src/config/template/render/rules/details/freeSubscription.ts"
+    change_type: "modified"
+    additions: 2
+    deletions: 35
+    attribution:
+      confidence: "high"
+      prd_signals: []
+      reason: "single-branch case, all changes attributable"
+  - path: "src/config/template/render/rules/details/gasStation.ts"
+    change_type: "modified"
+    additions: 2
+    deletions: 35
+    attribution:
+      confidence: "high"
+      prd_signals: []
+      reason: "single-branch case, all changes attributable"
+  - path: "src/config/template/render/rules/details/guaranteed.ts"
+    change_type: "modified"
+    additions: 2
+    deletions: 35
+    attribution:
+      confidence: "high"
+      prd_signals: []
+      reason: "single-branch case, all changes attributable"
+  - path: "src/config/template/render/rules/details/index.ts"
+    change_type: "modified"
+    additions: 3
+    deletions: 0
+    attribution:
+      confidence: "high"
+      prd_signals: []
+      reason: "single-branch case, all changes attributable"
+  - path: "src/config/template/render/rules/details/levelTrialCard.ts"
+    change_type: "modified"
+    additions: 10
+    deletions: 0
+    attribution:
+      confidence: "high"
+      prd_signals: []
+      reason: "single-branch case, all changes attributable"
+  - path: "src/config/template/render/rules/details/noThresholdGasStation.ts"
+    change_type: "modified"
+    additions: 2
+    deletions: 35
+    attribution:
+      confidence: "high"
+      prd_signals: []
+      reason: "single-branch case, all changes attributable"
+  - path: "src/config/template/render/rules/details/order.ts"
+    change_type: "modified"
+    additions: 2
+    deletions: 35
+    attribution:
+      confidence: "high"
+      prd_signals: []
+      reason: "single-branch case, all changes attributable"
+  - path: "src/config/template/render/rules/details/orderDouble.ts"
+    change_type: "modified"
+    additions: 2
+    deletions: 35
+    attribution:
+      confidence: "high"
+      prd_signals: []
+      reason: "single-branch case, all changes attributable"
+  - path: "src/config/template/render/rules/details/orderOptional.ts"
+    change_type: "modified"
+    additions: 2
+    deletions: 35
+    attribution:
+      confidence: "high"
+      prd_signals: []
+      reason: "single-branch case, all changes attributable"
+  - path: "src/config/template/render/rules/details/points.ts"
+    change_type: "modified"
+    additions: 10
+    deletions: 0
+    attribution:
+      confidence: "high"
+      prd_signals: []
+      reason: "single-branch case, all changes attributable"
+  - path: "src/config/template/render/rules/details/realTimeOrder.ts"
+    change_type: "modified"
+    additions: 2
+    deletions: 35
+    attribution:
+      confidence: "high"
+      prd_signals: []
+      reason: "single-branch case, all changes attributable"
+  - path: "src/config/template/render/rules/details/shiftCheckin.ts"
+    change_type: "modified"
+    additions: 2
+    deletions: 35
+    attribution:
+      confidence: "high"
+      prd_signals: []
+      reason: "single-branch case, all changes attributable"
+  - path: "src/config/template/render/rules/details/stepPoint.ts"
+    change_type: "modified"
+    additions: 2
+    deletions: 35
+    attribution:
+      confidence: "high"
+      prd_signals: []
+      reason: "single-branch case, all changes attributable"
+  - path: "src/config/template/render/rules/details/subscriptionPlan.ts"
+    change_type: "modified"
+    additions: 2
+    deletions: 35
+    attribution:
+      confidence: "high"
+      prd_signals: []
+      reason: "single-branch case, all changes attributable"
+  - path: "src/config/template/render/rules/details/zeroCommission.ts"
+    change_type: "modified"
+    additions: 2
+    deletions: 35
+    attribution:
+      confidence: "high"
+      prd_signals: []
+      reason: "single-branch case, all changes attributable"
+  - path: "src/config/template/render/rules/rewardCondition.ts"
+    change_type: "modified"
+    additions: 2
+    deletions: 0
+    attribution:
+      confidence: "high"
+      prd_signals: []
+      reason: "single-branch case, all changes attributable"
+  - path: "src/config/template/render/rules/schemaRulesAction.ts"
+    change_type: "modified"
+    additions: 61
+    deletions: 0
+    attribution:
+      confidence: "high"
+      prd_signals: []
+      reason: "single-branch case, all changes attributable"
+  - path: "src/controller/create.controller.ts"
+    change_type: "modified"
+    additions: 1
+    deletions: 0
+    attribution:
+      confidence: "high"
+      prd_signals: []
+      reason: "single-branch case, all changes attributable"
+  - path: "src/controller/linkage-schema.controller.ts"
+    change_type: "modified"
+    additions: 23
+    deletions: 0
+    attribution:
+      confidence: "high"
+      prd_signals: []
+      reason: "single-branch case, all changes attributable"
+  - path: "src/locales/i18n/en-us/transition.json"
+    change_type: "modified"
+    additions: 16
+    deletions: 0
+    attribution:
+      confidence: "high"
+      prd_signals: []
+      reason: "single-branch case, all changes attributable"
+  - path: "src/locales/i18n/i18n-info.js"
+    change_type: "modified"
+    additions: 1
+    deletions: 1
+    attribution:
+      confidence: "high"
+      prd_signals: []
+      reason: "single-branch case, all changes attributable"
+  - path: "src/locales/i18n/i18n-keys.txt"
+    change_type: "modified"
+    additions: 16
+    deletions: 0
+    attribution:
+      confidence: "high"
+      prd_signals: []
+      reason: "single-branch case, all changes attributable"
+  - path: "src/locales/i18n/pt-br/transition.json"
+    change_type: "modified"
+    additions: 178
+    deletions: 162
+    attribution:
+      confidence: "high"
+      prd_signals: []
+      reason: "single-branch case, all changes attributable"
+  - path: "src/locales/i18n/zh-cn/transition.json"
+    change_type: "modified"
+    additions: 16
+    deletions: 0
+    attribution:
+      confidence: "high"
+      prd_signals: []
+      reason: "single-branch case, all changes attributable"
+  - path: "src/types/node.ts"
+    change_type: "modified"
+    additions: 3
+    deletions: 0
+    attribution:
+      confidence: "high"
+      prd_signals: []
+      reason: "single-branch case, all changes attributable"
+symbols:
+  - path: "dist/index.js"
+    symbol: "schema"
+    kind: "const"
+    confidence: "high"
+  - path: "dist/index.js"
+    symbol: "campaign_type"
+    kind: "const"
+    confidence: "high"
+  - path: "dist/index.js"
+    symbol: "stageOptionsOnlyOne"
+    kind: "const"
+    confidence: "high"
+  - path: "dist/index.js"
+    symbol: "RewardMethodTypeEume"
+    kind: "const"
+    confidence: "high"
+  - path: "dist/index.js"
+    symbol: "reward_method_type"
+    kind: "const"
+    confidence: "high"
+  - path: "dist/index.js"
+    symbol: "41"
+    kind: "switch_case"
+    confidence: "high"
+  - path: "dist/index.js"
+    symbol: "SCHEMA_RULES_API"
+    kind: "const"
+    confidence: "high"
+  - path: "dist/index.js"
+    symbol: "createSchemaRulesAction"
+    kind: "function"
+    confidence: "high"
+  - path: "dist/index.js"
+    symbol: "trigger_type"
+    kind: "const"
+    confidence: "high"
+  - path: "dist/index.js"
+    symbol: "distance_type"
+    kind: "const"
+    confidence: "high"
+  - path: "dist/index.js"
+    symbol: "effect_mode"
+    kind: "const"
+    confidence: "high"
+  - path: "dist/index.js"
+    symbol: "stage"
+    kind: "const"
+    confidence: "high"
+  - path: "dist/index.js"
+    symbol: "attrs"
+    kind: "const"
+    confidence: "high"
+  - path: "dist/index.js"
+    symbol: "getCustomSelectableRewardDetailsTemplate"
+    kind: "const"
+    confidence: "high"
+  - path: "dist/index.js"
+    symbol: "schemaWithDefaultFields"
+    kind: "const"
+    confidence: "high"
+  - path: "dist/index.js"
+    symbol: "dActiveActions"
+    kind: "const"
+    confidence: "high"
+  - path: "dist/index.js"
+    symbol: "getCustomSelectableRewardAudienceSegmentationTemplate"
+    kind: "const"
+    confidence: "high"
+  - path: "dist/index.js"
+    symbol: "getDetailDataList"
+    kind: "const"
+    confidence: "high"
+  - path: "dist/index.js"
+    symbol: "getRewardMethod"
+    kind: "const"
+    confidence: "high"
+  - path: "dist/index.js"
+    symbol: "formatEffectTimeRange"
+    kind: "const"
+    confidence: "high"
+  - path: "dist/index.js"
+    symbol: "timeRanges"
+    kind: "const"
+    confidence: "high"
+  - path: "dist/index.js"
+    symbol: "getRewardTypeLabel"
+    kind: "const"
+    confidence: "high"
+  - path: "dist/index.js"
+    symbol: "getRewardConfig"
+    kind: "const"
+    confidence: "high"
+  - path: "dist/index.js"
+    symbol: "_a"
+    kind: "const"
+    confidence: "high"
+  - path: "dist/index.js"
+    symbol: "value"
+    kind: "const"
+    confidence: "high"
+  - path: "dist/index.js"
+    symbol: "takeRate"
+    kind: "const"
+    confidence: "high"
+  - path: "dist/index.js"
+    symbol: "effectDays"
+    kind: "const"
+    confidence: "high"
+  - path: "dist/index.js"
+    symbol: "eventPeriod"
+    kind: "const"
+    confidence: "high"
+  - path: "dist/index.js"
+    symbol: "id"
+    kind: "const"
+    confidence: "high"
+  - path: "dist/index.js"
+    symbol: "count"
+    kind: "const"
+    confidence: "high"
+  - path: "dist/index.js"
+    symbol: "groupedStages"
+    kind: "const"
+    confidence: "high"
+  - path: "dist/index.js"
+    symbol: "order_number"
+    kind: "const"
+    confidence: "high"
+  - path: "dist/index.js"
+    symbol: "isAdditionalStage"
+    kind: "const"
+    confidence: "high"
+  - path: "dist/index.js"
+    symbol: "methodList"
+    kind: "const"
+    confidence: "high"
+  - path: "dist/index.js"
+    symbol: "rewardTypes"
+    kind: "const"
+    confidence: "high"
+  - path: "dist/index.js"
+    symbol: "rewardConfigs"
+    kind: "const"
+    confidence: "high"
+  - path: "dist/index.js"
+    symbol: "config"
+    kind: "const"
+    confidence: "high"
+  - path: "dist/index.js"
+    symbol: "rewardTypeValue"
+    kind: "const"
+    confidence: "high"
+  - path: "dist/index.js"
+    symbol: "rewardConfigValue"
+    kind: "const"
+    confidence: "high"
+  - path: "dist/index.js"
+    symbol: "getLinkageTitleTemplate"
+    kind: "const"
+    confidence: "high"
+  - path: "dist/index.js"
+    symbol: "stepName"
+    kind: "const"
+    confidence: "high"
+  - path: "dist/index.js"
+    symbol: "schemaName"
+    kind: "const"
+    confidence: "high"
+  - path: "dist/index.js"
+    symbol: "temp"
+    kind: "const"
+    confidence: "high"
+  - path: "dist/index.js"
+    symbol: "template4"
+    kind: "const"
+    confidence: "high"
+  - path: "dist/index.js"
+    symbol: "tempDetail"
+    kind: "const"
+    confidence: "high"
+  - path: "dist/index.js"
+    symbol: "ctx"
+    kind: "const"
+    confidence: "high"
+  - path: "dist/index.js"
+    symbol: "params"
+    kind: "const"
+    confidence: "high"
+  - path: "dist/index.js"
+    symbol: "data2"
+    kind: "const"
+    confidence: "high"
+  - path: "src/base/component.model.ts"
+    symbol: "ctx"
+    kind: "const"
+    confidence: "high"
+  - path: "src/config/template/linkageSchema/title.ts"
+    symbol: "getLinkageTitleTemplate"
+    kind: "const"
+    confidence: "high"
+  - path: "src/config/template/linkageSchema/title.ts"
+    symbol: "stepName"
+    kind: "const"
+    confidence: "high"
+  - path: "src/config/template/linkageSchema/title.ts"
+    symbol: "schemaName"
+    kind: "const"
+    confidence: "high"
+  - path: "src/config/template/linkageSchema/title.ts"
+    symbol: "temp"
+    kind: "const"
+    confidence: "high"
+  - path: "src/config/template/linkageSchema/title.ts"
+    symbol: "template"
+    kind: "const"
+    confidence: "high"
+  - path: "src/config/template/linkageSchema/title.ts"
+    symbol: "tempDetail"
+    kind: "const"
+    confidence: "high"
+  - path: "src/config/template/preview/options/audienceSegmentation/customSelectableReward.ts"
+    symbol: "RewardMethodType"
+    kind: "enum"
+    confidence: "high"
+  - path: "src/config/template/preview/options/audienceSegmentation/customSelectableReward.ts"
+    symbol: "getCustomSelectableRewardAudienceSegmentationTemplate"
+    kind: "const"
+    confidence: "high"
+  - path: "src/config/template/preview/options/audienceSegmentation/customSelectableReward.ts"
+    symbol: "getDetailDataList"
+    kind: "const"
+    confidence: "high"
+  - path: "src/config/template/preview/options/audienceSegmentation/customSelectableReward.ts"
+    symbol: "getRewardMethod"
+    kind: "const"
+    confidence: "high"
+  - path: "src/config/template/preview/options/audienceSegmentation/customSelectableReward.ts"
+    symbol: "formatEffectTimeRange"
+    kind: "const"
+    confidence: "high"
+  - path: "src/config/template/preview/options/audienceSegmentation/customSelectableReward.ts"
+    symbol: "timeRanges"
+    kind: "const"
+    confidence: "high"
+  - path: "src/config/template/preview/options/audienceSegmentation/customSelectableReward.ts"
+    symbol: "getRewardTypeLabel"
+    kind: "const"
+    confidence: "high"
+  - path: "src/config/template/preview/options/audienceSegmentation/customSelectableReward.ts"
+    symbol: "getRewardConfig"
+    kind: "const"
+    confidence: "high"
+  - path: "src/config/template/preview/options/audienceSegmentation/customSelectableReward.ts"
+    symbol: "value"
+    kind: "const"
+    confidence: "high"
+  - path: "src/config/template/preview/options/audienceSegmentation/customSelectableReward.ts"
+    symbol: "takeRate"
+    kind: "const"
+    confidence: "high"
+  - path: "src/config/template/preview/options/audienceSegmentation/customSelectableReward.ts"
+    symbol: "effectDays"
+    kind: "const"
+    confidence: "high"
+  - path: "src/config/template/preview/options/audienceSegmentation/customSelectableReward.ts"
+    symbol: "eventPeriod"
+    kind: "const"
+    confidence: "high"
+  - path: "src/config/template/preview/options/audienceSegmentation/customSelectableReward.ts"
+    symbol: "id"
+    kind: "const"
+    confidence: "high"
+  - path: "src/config/template/preview/options/audienceSegmentation/customSelectableReward.ts"
+    symbol: "count"
+    kind: "const"
+    confidence: "high"
+  - path: "src/config/template/preview/options/audienceSegmentation/customSelectableReward.ts"
+    symbol: "groupedStages"
+    kind: "const"
+    confidence: "high"
+  - path: "src/config/template/preview/options/audienceSegmentation/customSelectableReward.ts"
+    symbol: "order_number"
+    kind: "const"
+    confidence: "high"
+  - path: "src/config/template/preview/options/audienceSegmentation/customSelectableReward.ts"
+    symbol: "isAdditionalStage"
+    kind: "const"
+    confidence: "high"
+  - path: "src/config/template/preview/options/audienceSegmentation/customSelectableReward.ts"
+    symbol: "methodList"
+    kind: "const"
+    confidence: "high"
+  - path: "src/config/template/preview/options/audienceSegmentation/customSelectableReward.ts"
+    symbol: "rewardTypes"
+    kind: "const"
+    confidence: "high"
+  - path: "src/config/template/preview/options/audienceSegmentation/customSelectableReward.ts"
+    symbol: "rewardConfigs"
+    kind: "const"
+    confidence: "high"
+  - path: "src/config/template/preview/options/audienceSegmentation/customSelectableReward.ts"
+    symbol: "config"
+    kind: "const"
+    confidence: "high"
+  - path: "src/config/template/preview/options/audienceSegmentation/customSelectableReward.ts"
+    symbol: "rewardTypeValue"
+    kind: "const"
+    confidence: "high"
+  - path: "src/config/template/preview/options/audienceSegmentation/customSelectableReward.ts"
+    symbol: "rewardConfigValue"
+    kind: "const"
+    confidence: "high"
+  - path: "src/config/template/render/basic.ts"
+    symbol: "schema"
+    kind: "const"
+    confidence: "high"
+  - path: "src/config/template/render/basic.ts"
+    symbol: "campaign_type"
+    kind: "const"
+    confidence: "high"
+  - path: "src/config/template/render/basic.ts"
+    symbol: "stageOptionsOnlyOne"
+    kind: "const"
+    confidence: "high"
+  - path: "src/config/template/render/basic.ts"
+    symbol: "RewardMethodTypeEume"
+    kind: "const"
+    confidence: "high"
+  - path: "src/config/template/render/basic.ts"
+    symbol: "reward_method_type"
+    kind: "const"
+    confidence: "high"
+  - path: "src/config/template/render/message.ts"
+    symbol: "dActiveActions"
+    kind: "const"
+    confidence: "high"
+  - path: "src/config/template/render/rules/details/customSelectable.ts"
+    symbol: "getCustomSelectableRewardDetailsTemplate"
+    kind: "const"
+    confidence: "high"
+  - path: "src/config/template/render/rules/details/customSelectable.ts"
+    symbol: "schemaWithDefaultFields"
+    kind: "const"
+    confidence: "high"
+  - path: "src/config/template/render/rules/details/customSelectable.ts"
+    symbol: "attrs"
+    kind: "const"
+    confidence: "high"
+  - path: "src/config/template/render/rules/details/customSelectable.ts"
+    symbol: "schema"
+    kind: "const"
+    confidence: "high"
+  - path: "src/config/template/render/rules/details/levelTrialCard.ts"
+    symbol: "reward_method_type"
+    kind: "const"
+    confidence: "high"
+  - path: "src/config/template/render/rules/details/levelTrialCard.ts"
+    symbol: "stage"
+    kind: "const"
+    confidence: "high"
+  - path: "src/config/template/render/rules/details/points.ts"
+    symbol: "reward_method_type"
+    kind: "const"
+    confidence: "high"
+  - path: "src/config/template/render/rules/details/points.ts"
+    symbol: "stage"
+    kind: "const"
+    confidence: "high"
+  - path: "src/config/template/render/rules/schemaRulesAction.ts"
+    symbol: "SCHEMA_RULES_API"
+    kind: "const"
+    confidence: "high"
+  - path: "src/config/template/render/rules/schemaRulesAction.ts"
+    symbol: "ActionContext"
+    kind: "interface"
+    confidence: "high"
+  - path: "src/config/template/render/rules/schemaRulesAction.ts"
+    symbol: "createSchemaRulesAction"
+    kind: "function"
+    confidence: "high"
+  - path: "src/config/template/render/rules/schemaRulesAction.ts"
+    symbol: "campaign_type"
+    kind: "const"
+    confidence: "high"
+  - path: "src/config/template/render/rules/schemaRulesAction.ts"
+    symbol: "trigger_type"
+    kind: "const"
+    confidence: "high"
+  - path: "src/config/template/render/rules/schemaRulesAction.ts"
+    symbol: "distance_type"
+    kind: "const"
+    confidence: "high"
+  - path: "src/config/template/render/rules/schemaRulesAction.ts"
+    symbol: "effect_mode"
+    kind: "const"
+    confidence: "high"
+  - path: "src/config/template/render/rules/schemaRulesAction.ts"
+    symbol: "reward_method_type"
+    kind: "const"
+    confidence: "high"
+  - path: "src/config/template/render/rules/schemaRulesAction.ts"
+    symbol: "stage"
+    kind: "const"
+    confidence: "high"
+  - path: "src/controller/linkage-schema.controller.ts"
+    symbol: "params"
+    kind: "const"
+    confidence: "high"
+  - path: "src/controller/linkage-schema.controller.ts"
+    symbol: "data"
+    kind: "const"
+    confidence: "high"
+  - path: "src/controller/linkage-schema.controller.ts"
+    symbol: "schema"
+    kind: "const"
+    confidence: "high"
+risk_notes: []

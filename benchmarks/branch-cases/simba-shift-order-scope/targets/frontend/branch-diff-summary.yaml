@@ -1,0 +1,64 @@
+schema_version: "1.0"
+case_id: "simba-shift-order-scope"
+layer: "frontend"
+base_ref: "master"
+impl_ref: "AI_dive_simba_shift"
+changed_files:
+  - path: "app/dive/src/components/FormField/DxgyFormList/ConditionMethodCmp.tsx"
+    change_type: "added"
+    additions: 62
+    deletions: 8
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "app/dive/src/components/FormField/DxgyFormList/EditableConditionMethodRow.tsx"
+    change_type: "added"
+    additions: 35
+    deletions: 22
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "app/dive/src/components/FormField/DxgyFormList/index.tsx"
+    change_type: "added"
+    additions: 2
+    deletions: 2
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "app/dive/src/components/FormField/RewardConditionCmp/index.tsx"
+    change_type: "added"
+    additions: 35
+    deletions: 19
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "app/dive/src/components/FormField/TipsTag/index.tsx"
+    change_type: "added"
+    additions: 29
+    deletions: 6
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "app/dive/src/locales/i18n-info.js"
+    change_type: "added"
+    additions: 2
+    deletions: 2
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+  - path: "app/dive/src/setupProxy.js"
+    change_type: "added"
+    additions: 1
+    deletions: 1
+    attribution:
+      confidence: "needs_review"
+      prd_signals: []
+      reason: "No clear signal match, manual attribution needed"
+symbols:
+risk_notes: []

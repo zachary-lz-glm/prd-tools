@@ -15,7 +15,7 @@ curl -fsSL https://raw.githubusercontent.com/zachary-lz-glm/prd-tools/v2.0/insta
 /prd-distill path/to/prd.md
 ```
 
-安装完成后目标项目下生成 `.claude/skills/`（两个 skill）和 `.prd-tools-version`（版本标记）。
+安装完成后目标项目下生成 `.claude/skills/`（两个 skill）、`.prd-tools/scripts/`（零依赖 runtime 辅助脚本）和 `.prd-tools-version`（版本标记）。
 
 离线安装：下载 `install.sh` 到本地后 `bash install.sh /path/to/project`。
 
@@ -56,7 +56,12 @@ _prd-tools/reference/
 ├── 03-contracts.yaml           # 跨层和外部契约（字段级）
 ├── 04-routing-playbooks.yaml   # PRD 路由信号 + 场景打法 + QA 矩阵
 ├── 05-domain.yaml              # 业务领域知识（术语、隐式规则、决策日志）
-└── portal.html                 # 可视化浏览器页面（零外部依赖，双击即可打开）
+├── portal.html                 # 可视化浏览器页面（零外部依赖，双击即可打开）
+└── index/                      # Evidence Index：给 prd-distill 用的机器检索辅助层
+    ├── manifest.yaml
+    ├── entities.json
+    ├── edges.json
+    └── inverted-index.json
 ```
 
 核心原则：**每个事实只存在于一个文件（SSOT）**，其他文件通过 ID 引用。
@@ -72,6 +77,9 @@ _prd-tools/distill/<slug>/
 └── context/           # 机器可读的中间产物
     ├── evidence.yaml
     ├── requirement-ir.yaml
+    ├── query-plan.yaml
+    ├── context-pack.md
+    ├── final-quality-gate.yaml
     ├── readiness-report.yaml
     ├── layer-impact.yaml
     ├── contract-delta.yaml

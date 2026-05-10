@@ -15,6 +15,8 @@ Checks (no LLM, pure text analysis):
 Usage:
     python3 scripts/final-quality-gate.py \
       --distill /path/to/distill/output
+    python3 .prd-tools/scripts/final-quality-gate.py \
+      --distill _prd-tools/distill/<slug>
 
 Output:
     <distill>/context/final-quality-gate.yaml

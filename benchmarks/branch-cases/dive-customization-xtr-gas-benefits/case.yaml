@@ -1,0 +1,22 @@
+schema_version: "1.1"
+case_id: "dive-customization-xtr-gas-benefits"
+title: "巴西可选择奖增加 XTR 和油站相关权益"
+prd_source: "/Users/didi/work/prd-docs/DIVE2.0-巴西-可选择奖增加奖励类型XTR和油站相关权益-L1.docx"
+repo: "/Users/didi/work/dive-bff"
+base_ref: "master"
+impl_ref: "feature_oe_dive_customization"
+branch_mode: "single"
+
+targets:
+  - layer: "bff"
+    repo: "/Users/didi/work/dive-bff"
+    base_ref: "master"
+    impl_ref: "feature_oe_dive_customization"
+    status: "draft"
+  - layer: "frontend"
+    repo: "/Users/didi/work/genos/app/dive"
+    base_ref: "master"
+    impl_ref: "feature_oe_dive_customization"
+    status: "draft"
+status: "draft"
+notes: []

@@ -1,0 +1,32 @@
+schema_version: "1.0"
+case_id: "dive-rtc-trip-challenge"
+layer: "frontend"
+status: "draft"
+oracle_source: "branch_diff"
+
+# Requirements: TODO — 需从 PRD 正文人工/AI 审核补齐
+requirements:
+  - id: "REQ-TBD"
+    title: "TODO: 从 PRD 提取"
+    intent: "TODO"
+    change_type: "TODO"
+    confidence: "TODO"
+
+code_anchors:
+
+blockers:
+  []
+
+forbidden_claims:
+  - "不得声称需要新增 Controller，除非 diff 真的新增了 controller"
+  - "不得声称需要新增 Service，除非 diff 真的新增了 service"
+  - "不得把后端职责错归到 BFF"
+  - "不得把非本 PRD 的 bundle 改动当成本 PRD 必做项"
+  - "前端 anchor 不得声称后端逻辑变更"
+  - "不得把 CSS/样式调整当成功能变更"
+  - "route 变更必须关联具体页面路径"
+  - "i18n key 变更不得被忽略"
+  - "tracking/埋点变更必须在 oracle 中体现"
+
+risk_notes:
+  []
