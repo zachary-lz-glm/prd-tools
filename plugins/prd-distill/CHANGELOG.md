@@ -3,7 +3,13 @@
 All notable changes to the **prd-distill** plugin are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
-## [2.16.0] - 2026-05-08
+## [2.16.1] - 2026-05-10
+
+### Added
+- feat: add branch-backed multi-layer benchmark
+- feat: add evidence index benchmark harness
+
+- feat: add evidence index benchmark harness
 
 ### Added
 - feat: prd-distill 支持 .docx 输入，提取图片并使用 Claude 原生多模态看图

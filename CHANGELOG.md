@@ -4,6 +4,13 @@
 
 ---
 
+## [2.16.1] - 2026-05-10
+
+### Added
+- feat: add branch-backed multi-layer benchmark
+- feat: add evidence index benchmark harness
+
+
 ## [2.16.0] - 2026-05-08
 
 ### Added
