@@ -9,6 +9,20 @@ Claude Code 中通过 `/prd-distill <PRD 文件或需求文本>` 触发。
 
 人类可读文档见插件根目录 `README.md`。
 
+## Final Completion Gate（硬约束）
+
+/prd-distill 完成必须满足以下条件，缺一不可：
+
+1. `spec/ai-friendly-prd.md` 必须存在且包含 13 个章节。不生成不得进入 requirement-ir。
+2. `context/requirement-ir.yaml` 必须包含 `ai_prd_req_id`。
+3. `context/layer-impact.yaml` 必须包含 `code_anchors` 或 fallback reason。
+4. 如果 `_prd-tools/reference/index` 存在，必须运行 `context-pack.py` 生成 `context/query-plan.yaml` 和 `context/context-pack.md`。
+5. `context/final-quality-gate.yaml` 必须生成。
+6. 必须运行 `python3 .prd-tools/scripts/distill-quality-gate.py --distill-dir _prd-tools/distill/<slug> --repo-root .`，且 exit code 不为 2。
+7. completion gate 不通过，不得宣称 /prd-distill 完成。
+8. `report.md` 必须包含 PRD 质量摘要。
+9. `plan.md` 不得包含把 `missing_confirmation` 当确定任务的内容。
+
 ## 触发条件
 
 - 用户提供 PRD 文件路径或需求文本，要求分析。

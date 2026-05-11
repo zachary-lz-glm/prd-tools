@@ -1,5 +1,24 @@
 # reference 工作流
 
+## 语言规则（硬约束）
+
+- YAML/JSON schema key 保持英文。
+- 代码路径、函数名、类名、接口名、字段名、API path、枚举值、配置 key 保持原样。
+- 所有自然语言内容必须中文，包括：
+  - summary
+  - description
+  - responsibility
+  - rationale
+  - risk
+  - notes
+  - warnings
+  - evidence.summary
+  - portal 文案
+  - quality-report / health-check 的人类可读解释
+- 如果引用英文源码注释或英文 API 名称，保留原文，但必须补中文解释。
+- 生成完成前必须做语言自检。
+- 自然语言大面积英文时，completion gate 应 warning。
+
 ## 目标
 
 构建 reference v4.0，让后续 `/prd-distill` 能稳定产出：
@@ -224,6 +243,33 @@ _prd-tools/reference/index/
 - 全量构建（Mode A）后自动执行
 - 增量更新（Mode B）后可选执行
 - 健康检查（Mode B2）时检查索引与源码一致性
+
+## 阶段 3.6：Reference Completion Gate（硬约束）
+
+> **定位**：Completion Gate 是 /reference 的硬完成门禁。不通过不得宣称 /reference 完成。
+
+运行命令：
+
+```bash
+python3 .prd-tools/scripts/reference-quality-gate.py --root .
+```
+
+检查内容：
+
+1. required reference files 是否存在且非空
+2. index 四个文件是否存在且非空
+3. portal.html 是否存在且非空
+4. YAML 文件是否基本可读
+5. 关键 reference 文件是否包含 schema_version
+6. 自然语言是否疑似大面积英文（warning）
+
+门禁规则：
+
+- exit code 2（fail）：必须补缺失文件，不得宣称 /reference 完成。
+- exit code 0（pass 或 warning）：可以完成，但 warning 必须在最终回复中说明。
+- index 缺失时，不得宣称 /reference 完成。
+- portal.html 缺失时，不得宣称 /reference 完成。
+- 最终回复必须列出 index manifest 摘要（实体数、边数、term 数）。
 
 ## 阶段 4：反馈回流
 

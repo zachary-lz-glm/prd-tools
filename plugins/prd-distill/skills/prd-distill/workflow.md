@@ -640,6 +640,36 @@ summary:
 
 触发时机：步骤 8（report.md）完成后、步骤 9（portal.html）之前。
 
+## 步骤 8.6：Distill Completion Gate（硬约束）
+
+> **定位**：Distill Completion Gate 是 /prd-distill 的硬完成门禁。不通过不得宣称 /prd-distill 完成。
+
+运行命令：
+
+```bash
+python3 .prd-tools/scripts/distill-quality-gate.py \
+  --distill-dir _prd-tools/distill/<slug> \
+  --repo-root .
+```
+
+检查内容：
+
+1. required distill files 是否存在且非空
+2. spec/ai-friendly-prd.md 是否包含 13 个章节
+3. context/prd-quality-report.yaml 是否存在 status/score
+4. requirement-ir.yaml 是否包含 ai_prd_req_id
+5. requirement-ir.yaml 是否包含 planning eligibility 相关字段
+6. layer-impact.yaml 是否包含 code_anchors 或 fallback/fallback_reason
+7. 若 _prd-tools/reference/index 存在：query-plan.yaml 和 context-pack.md 必须存在
+8. final-quality-gate.yaml 必须存在
+9. report.md 必须包含 PRD 质量摘要
+10. plan.md 不应包含把 missing_confirmation 当确定任务的内容
+
+门禁规则：
+
+- exit code 2（fail）：必须补缺失文件，不得宣称 /prd-distill 完成。
+- exit code 0（pass 或 warning）：可以完成，但 warning 必须写入 report 或最终回复。
+
 ## 步骤 9：Portal HTML 生成
 
 生成 `_prd-tools/distill/<slug>/portal.html`，将所有蒸馏产物内联为一个自包含的可视化页面。

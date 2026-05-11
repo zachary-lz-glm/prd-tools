@@ -9,6 +9,38 @@ Claude Code 中通过 `/reference` 触发。
 
 人类可读文档见插件根目录 `README.md`。
 
+## 语言规则（硬约束）
+
+- YAML/JSON schema key 保持英文。
+- 代码路径、函数名、类名、接口名、字段名、API path、枚举值、配置 key 保持原样。
+- 所有自然语言内容必须中文，包括：
+  - summary
+  - description
+  - responsibility
+  - rationale
+  - risk
+  - notes
+  - warnings
+  - evidence.summary
+  - portal 文案
+  - quality-report / health-check 的人类可读解释
+- 如果引用英文源码注释或英文 API 名称，保留原文，但必须补中文解释。
+- 生成完成前必须做语言自检。
+- 自然语言大面积英文时，completion gate 应 warning。
+
+## Final Completion Gate（硬约束）
+
+/reference 全量构建完成必须满足以下条件，缺一不可：
+
+1. `_prd-tools/reference/` 下 00-05 共 6 个主文件 + `project-profile.yaml` 存在且非空。
+2. 必须运行 `python3 .prd-tools/scripts/build-index.py --repo <项目路径> --out _prd-tools/reference/index`，生成 `index/` 下 4 个文件。
+3. 必须生成 `portal.html`。
+4. 必须运行 `python3 .prd-tools/scripts/reference-quality-gate.py --root .`，且 exit code 不为 2。
+5. index 缺失时，不得宣称 /reference 完成。
+6. portal.html 缺失时，不得宣称 /reference 完成。
+7. 最终回复必须列出 index manifest 摘要（实体数、边数、term 数）。
+8. quality-gate 报告的 warning 必须在最终回复中说明。
+
 ## 触发条件
 
 - 用户说"构建/更新/检查 reference"、"项目知识库"、"初始化"。

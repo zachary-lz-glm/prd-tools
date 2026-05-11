@@ -17,6 +17,7 @@ _prd-tools/
 │   ├── 04-routing-playbooks.yaml
 │   ├── 05-domain.yaml
 │   ├── project-profile.yaml
+│   ├── portal.html                        # 可视化浏览器页面（零外部依赖，双击即可打开）
 │   └── index/                     # Evidence Index（辅助层）
 │       ├── entities.json          # 代码实体索引
 │       ├── edges.json             # 实体关系索引

@@ -12,7 +12,13 @@ _prd-tools/
 │   ├── 03-contracts.yaml
 │   ├── 04-routing-playbooks.yaml
 │   ├── 05-domain.yaml
-│   └── project-profile.yaml
+│   ├── portal.html                        # 可视化浏览器页面（零外部依赖，双击即可打开）
+│   ├── project-profile.yaml
+│   └── index/                             # Evidence Index（辅助层）
+│       ├── entities.json                  # 代码实体索引
+│       ├── edges.json                     # 实体关系索引
+│       ├── inverted-index.json            # 倒排索引
+│       └── manifest.yaml                  # 索引元数据
 ├── build/                                 # reference 运行报告
 │   ├── modules-index.yaml
 │   ├── context-enrichment.yaml
