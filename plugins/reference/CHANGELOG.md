@@ -8,7 +8,6 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 ### Added
 - 固定模板 + `render-reference-portal.py` 脚本渲染 `portal.html`，避免 AI 每次手写页面导致风格漂移。
 - reference 完成门禁脚本 `reference-quality-gate.py`，检查 required files、Evidence Index、portal marker 和基础 schema。
-- reference 输出语言规则：schema key 保持英文，自然语言内容默认中文。
 
 ### Fixed
 - 强化 `/reference` 完成门禁：不生成 `index/` 和脚本渲染的 `portal.html` 不得宣称完成。

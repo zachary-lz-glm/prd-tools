@@ -35,7 +35,7 @@ surfaces:
 | `form_or_schema` | 表单字段、动态 schema、组件元数据 | 字段名、类型、默认值、提交 payload 与契约一致 |
 | `state_flow` | store、hook、cache、派生状态、跨组件数据流 | 追踪“接口响应 -> 状态 -> UI -> 提交”的链路 |
 | `client_contract` | 前端到 BFF/后端的 API client、request/response | 记录 endpoint/method/字段/错误处理 |
-| `content_i18n` | 文案、枚举 label、locale key、占位符 | 新可见文案要有 i18n 或明确文案计划 |
+| `content_i18n` | 文案、locale key、占位符 | 新可见文案要有 i18n 或明确文案计划 |
 | `client_validation` | disabled、互斥、上限、格式校验、guard | 奖励/金额/资格等关键规则不能只有前端 owner |
 | `preview_readonly` | 预览、详情、编辑、复制、只读回显 | 新字段要覆盖读写两条链路 |
 | `tracking_permission` | 埋点、权限、灰度、实验开关 | 涉及发布观测或权限时记录 owner 和验证方式 |
