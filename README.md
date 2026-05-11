@@ -174,12 +174,12 @@ python3 .prd-tools/scripts/distill-quality-gate.py \
 3. 脚本读取模板，注入数据，输出 `portal.html`
 4. 任何对 `portal.html` 的直接手写修改都会在下次渲染时被覆盖
 
-## 中文输出规则
+## 输出语言规则
 
 - YAML/JSON schema key 保持英文。
 - 代码路径、函数名、类名、接口名、字段名、API path、枚举值、配置 key 保持原样。
-- 所有自然语言内容必须中文（summary、description、responsibility、rationale、risk、notes、warnings、evidence.summary、portal 文案等）。
-- 引用英文源码注释或 API 名称时保留原文，但必须补中文解释。
+- 源码事实不翻译、不改写、不补业务含义。
+- 人类可读说明可以用中文，但不能为了中文友好给 enum、字段、接口补释义。
 
 ## 质量原则
 
