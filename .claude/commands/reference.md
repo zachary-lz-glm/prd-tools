@@ -15,17 +15,18 @@ Before each step, read `_prd-tools/build/reference-workflow-state.yaml`. If it d
 
 Source code reads MAY run in parallel. Artifact generation MUST be sequential.
 
-Phase 2 deep analysis is strictly ordered — each step depends on the previous step's output:
+Phase 2 deep analysis is strictly ordered — read `steps/step-02-deep-analysis.md` as one complete file, execute 5 stages sequentially:
 
-1. `steps/step-02a-codebase.md` → `01-codebase.yaml`
-2. `steps/step-02b-coding-rules.md` → `02-coding-rules.yaml` (must read 01 first)
-3. `steps/step-02c-contracts.md` → `03-contracts.yaml` (must read 01, 02 first)
-4. `steps/step-02d-routing.md` → `04-routing-playbooks.yaml` (must read 01, 02 first)
-5. `steps/step-02e-domain-portal.md` → `05-domain.yaml` + `00-portal.md` (must read 01–04 first)
-6. render `portal.html` with `.prd-tools/scripts/render-reference-portal.py`
-7. build Evidence Index with `.prd-tools/scripts/build-index.py`
-8. run `.prd-tools/scripts/reference-quality-gate.py --root .`
-9. run `.prd-tools/scripts/reference-workflow-gate.py --root .`
+1. Stage 1: `01-codebase.yaml`
+2. Stage 2: `02-coding-rules.yaml` (must read 01 first)
+3. Stage 3: `03-contracts.yaml` (must read 01, 02 first)
+4. Stage 4: `04-routing-playbooks.yaml` (must read 01, 02 first)
+5. Stage 5: `05-domain.yaml` + `00-portal.md` (must read 01–04 first)
+6. After all 5 stages: run "去重检查" and "确定性验证"
+7. render `portal.html` with `.prd-tools/scripts/render-reference-portal.py`
+8. build Evidence Index with `.prd-tools/scripts/build-index.py`
+9. run `.prd-tools/scripts/reference-quality-gate.py --root .`
+10. run `.prd-tools/scripts/reference-workflow-gate.py --root .`
 
 **Do NOT use background agents for artifact generation.** Only source code reading may be parallelized.
 
@@ -50,5 +51,6 @@ Do not claim /reference is complete if any gate exits with code 2. Do not claim 
 - Do not generate `03-contracts.yaml` before `02-coding-rules.yaml` exists.
 - Do not generate `04-routing-playbooks.yaml` before `03-contracts.yaml` exists.
 - Do not generate `05-domain.yaml` before `04-routing-playbooks.yaml` exists.
+- Do not split step-02-deep-analysis.md into separate reads — read it as one complete file.
 
 Now continue with the user's `/reference` request.
