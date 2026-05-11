@@ -6,11 +6,11 @@ project: "<project>"
 last_verified: "<YYYY-MM-DD>"
 verify_cadence: "14d"
 owner: "<team>"
-boundary: "业务领域知识：术语、背景、隐式规则、历史决策。不放代码路径（见01-codebase）、不放编码规则（见02-coding-rules）、不放契约字段（见03-contracts）。术语只收录无法归入 01-codebase 枚举 label 的业务概念。"
+boundary: "业务领域知识：术语、背景、隐式规则、历史决策。不放代码路径（见01-codebase）、不放编码规则（见02-coding-rules）、不放契约字段（见03-contracts）。"
 # 业务域概览
 domain_overview: ""
 
-# 术语（只收录非枚举的业务概念，枚举术语已在 01-codebase 的 label 中）
+# 术语
 terms:
   - term: ""
     definition: ""

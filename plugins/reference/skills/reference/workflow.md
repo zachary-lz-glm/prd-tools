@@ -1,26 +1,5 @@
 # reference 工作流
 
-## 语言规则（硬约束）
-
-- YAML/JSON schema key 保持英文。
-- 代码路径、函数名、类名、接口名、字段名、API path、枚举值、配置 key 保持原样。
-- 禁止把源码、接口文档、PRD 原文、英文注释、字段说明整段机翻成中文；证据原文必须保留原文。
-- 生成性解释内容必须中文，包括：
-  - summary
-  - description
-  - responsibility
-  - rationale
-  - risk
-  - notes
-  - warnings
-  - evidence.summary
-  - portal 文案
-  - quality-report / health-check 的人类可读解释
-- 如果引用英文源码注释、英文 API 名称或英文业务词，保留原文，并在旁边补一句中文解释；不要替换原文。
-- 如果现有 reference 是英文，不要做“翻译式更新”；必须回到源码/配置/文档证据重新生成中文解释。
-- 生成完成前必须做语言自检。
-- 生成性解释大面积英文时，completion gate 应 warning；原文证据、代码符号、字段名不计入翻译要求。
-
 ## 目标
 
 构建 reference v4.0，让后续 `/prd-distill` 能稳定产出：
@@ -152,7 +131,7 @@ project-profile.yaml        # 项目画像
 2. `step-02b-coding-rules.md` → `02-coding-rules.yaml`（检查 01 去重）
 3. `step-02c-contracts.md` → `03-contracts.yaml`（检查 01 去重，移入字段级信息）
 4. `step-02d-routing.md` → `04-routing-playbooks.yaml`（含 capability_inventory，检查 02 去重）
-5. `step-02e-domain-portal.md` → `05-domain.yaml` + `00-portal.md`（检查 01 枚举去重）
+5. `step-02e-domain-portal.md` → `05-domain.yaml` + `00-portal.md`（检查术语与静态事实边界）
 6. 运行脚本生成 `portal.html`：`python3 .prd-tools/scripts/render-reference-portal.py --root . --template .prd-tools/assets/reference-portal-template.html --out _prd-tools/reference/portal.html`（**AI 不得手写 portal.html**，必须通过脚本渲染生成）
 
 每个子步骤文件末尾有 Self-Check 清单，生成后必须逐项验证通过再进入下一步。
@@ -181,7 +160,7 @@ confidence: "high | medium | low"
 - 字段 type/required 只在 `03-contracts`，其他文件用 `contract_ref` 引用。
 - 编码规则只在 `02-coding-rules`，playbook 步骤用 `ref_rule` 引用。
 - 开发步骤只在 `04-routing-playbooks` 的 playbook 中。
-- 术语只在 `05-domain`（枚举 label 在 `01-codebase` 的 enums 中）。
+- 术语只在 `05-domain`。
 - 外部系统 endpoint 详情只在 `03-contracts`，`01-codebase` 用 `contract_ref` 引用。
 
 ## 阶段 3：质量门控

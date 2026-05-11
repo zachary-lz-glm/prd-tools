@@ -72,7 +72,7 @@ _prd-tools/reference/
 ### 05-domain.yaml
 **业务领域知识。**
 
-包含：业务域概览、术语（只收录无法归入 01 枚举 label 的概念）、隐式业务规则、历史决策。
+包含：业务域概览、术语、隐式业务规则、历史决策。
 
 **不放**：代码路径（见 01）、编码规则（见 02）、契约字段（见 03）。
 
@@ -80,7 +80,7 @@ _prd-tools/reference/
 
 | 信息类型 | 权威文件 | 其他文件中的引用方式 |
 |---------|---------|-------------------|
-| 枚举值和 label | 01-codebase.enums | 其他文件用枚举名引用，不重复值 |
+| 枚举值 | 01-codebase.enums | 其他文件用枚举名引用，不重复值 |
 | 字段 type/required | 03-contracts.fields | 01 和 04 用 `contract_ref` 引用 |
 | 编码规则 | 02-coding-rules.rules | 04 的 playbook 步骤用 `ref_rule` 引用 |
 | 开发步骤 | 04-routing-playbooks.playbooks | 01 的模块不展开步骤，用 `playbook_ref` 引用 |

@@ -37,7 +37,7 @@
 
 4. 生成 `01-codebase.yaml`，包含以下 section：
    - `directory_tree`：目录结构（树形文本）
-   - `enums`：枚举值（从源码读取，不从文件名推断）及业务 label
+   - `enums`：枚举值（从源码读取，不从文件名推断）
    - `modules`：模块（能力面 + 入口点）
    - `registries`：注册点（只记录"在哪里注册"，不记录"怎么写"）
    - `data_flows`：数据流（只记录通用结构流）

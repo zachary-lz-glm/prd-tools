@@ -14,7 +14,7 @@
 | 2 | `step-02b-coding-rules.md` | `02-coding-rules.yaml` | 检查 01 的 registries，移入规则 |
 | 3 | `step-02c-contracts.md` | `03-contracts.yaml` | 从 01 移入字段级信息和 endpoint 详情 |
 | 4 | `step-02d-routing.md` | `04-routing-playbooks.yaml` | 从 02 移入场景驱动步骤 |
-| 5 | `step-02e-domain-portal.md` | `05-domain.yaml` + `00-portal.md` | 检查 01 枚举 label 去重 |
+| 5 | `step-02e-domain-portal.md` | `05-domain.yaml` + `00-portal.md` | 检查术语与静态事实边界 |
 
 每个子步骤末尾有 Self-Check 清单，生成后必须逐项验证通过再进入下一步。
 
@@ -25,7 +25,7 @@
 1. **字段级信息**：01-codebase 或 04-routing-playbooks 中出现字段 type/required 等契约信息 → 删除并添加 `contract_ref: "CONTRACT-xxx"` 引用 03-contracts。
 2. **编码规则**：04-routing-playbooks 的步骤中包含编码级规则 → 将规则移到 02-coding-rules，步骤中只写 `ref_rule: "RULE-xxx"`。
 3. **实现步骤**：01-codebase 的模块描述中包含场景驱动的实现步骤 → 将步骤移到 04-routing-playbooks 的 playbook 中。
-4. **术语解释**：05-domain 的术语与 01-codebase 的枚举 label 完全重复 → 删除 05 中的重复条目，改为 `see_enum: "<EnumName>"`。
+4. **术语解释**：05-domain 只放业务术语和隐式规则；与静态事实重复时保留更合适的权威位置。
 5. **外部集成**：01-codebase 的 external_systems 中展开了 endpoint 列表 → 将 endpoint 详情移到 03-contracts，01 中只保留系统名和 `contract_ref`。
 
 ## 确定性验证

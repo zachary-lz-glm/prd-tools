@@ -7,7 +7,7 @@
 ## 输入
 
 - PRD / 技术方案 / QA 记录
-- `_prd-tools/reference/01-codebase.yaml`（已生成，枚举 label 用于去重）
+- `_prd-tools/reference/01-codebase.yaml`（已生成）
 - `_prd-tools/reference/02-coding-rules.yaml`（已生成）
 - `_prd-tools/reference/03-contracts.yaml`（已生成）
 - `_prd-tools/reference/04-routing-playbooks.yaml`（已生成）
@@ -25,8 +25,8 @@
 ### Part 1：业务领域
 
 1. 从 PRD、技术方案、QA 记录中提取领域概念和隐式规则。
-2. 生成 `05-domain.yaml`：业务域概览、术语（只收录非枚举概念）、隐式业务规则、历史决策。
-3. 读取 `01-codebase.yaml` 中的枚举 label，如果 05-domain 的术语与枚举 label 重复，删除 05 中的重复条目，改为 `see_enum: "<EnumName>"`。
+2. 生成 `05-domain.yaml`：业务域概览、术语、隐式业务规则、历史决策。
+3. 检查 05-domain 中的术语是否与 01-codebase 的静态事实重复，重复时保留更合适的权威位置。
 
 ### Part 2：导航门户
 
@@ -43,11 +43,11 @@
 - 代码路径——那是 01-codebase 的事
 - 编码规则——那是 02-coding-rules 的事
 - 契约字段——那是 03-contracts 的事
-- 枚举值列表——那是 01-codebase 的 enums 的事，术语重复时用 `see_enum` 引用
+- 枚举值列表——那是 01-codebase 的 enums 的事
 
 ## Self-Check（生成后必须逐项验证）
 
-- [ ] 术语与 01-codebase 的枚举 label 不重复（重复的用 see_enum 引用）
+- [ ] 术语没有与 01-codebase 的静态事实重复
 - [ ] 无代码路径、编码规则、契约字段
 - [ ] 00-portal.md 覆盖所有 01-05 文件的导航
 - [ ] project-profile.yaml 的 capability_surfaces 与 modules-index.yaml 一致

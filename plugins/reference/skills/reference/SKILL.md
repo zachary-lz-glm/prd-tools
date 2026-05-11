@@ -9,27 +9,6 @@ Claude Code 中通过 `/reference` 触发。
 
 人类可读文档见插件根目录 `README.md`。
 
-## 语言规则（硬约束）
-
-- YAML/JSON schema key 保持英文。
-- 代码路径、函数名、类名、接口名、字段名、API path、枚举值、配置 key 保持原样。
-- 禁止把源码、接口文档、PRD 原文、英文注释、字段说明整段机翻成中文；证据原文必须保留原文。
-- 生成性解释内容必须中文，包括：
-  - summary
-  - description
-  - responsibility
-  - rationale
-  - risk
-  - notes
-  - warnings
-  - evidence.summary
-  - portal 文案
-  - quality-report / health-check 的人类可读解释
-- 如果引用英文源码注释、英文 API 名称或英文业务词，保留原文，并在旁边补一句中文解释；不要替换原文。
-- 如果现有 reference 是英文，不要做“翻译式更新”；必须回到源码/配置/文档证据重新生成中文解释。
-- 生成完成前必须做语言自检。
-- 生成性解释大面积英文时，completion gate 应 warning；原文证据、代码符号、字段名不计入翻译要求。
-
 ## Final Completion Gate（硬约束）
 
 /reference 全量构建完成必须满足以下条件，缺一不可：
@@ -130,9 +109,6 @@ _prd-tools/build/              # 过程和质量报告
 - 搜不到也是证据 → `negative_code_search`（记录 query 和范围）。
 - 不确定写 `confidence: low`，进入开放问题。
 - 关键事实必须有 `evidence`、`verified_by` 或负向搜索。
-- 禁止使用 `120+`、`几十个`、`大量` 这类模糊统计；没有脚本/源码计数证据时写 `unknown` 或 `needs_counting`。
-- 禁止臆造 owner、群名、频道、上下游系统职责；当前仓不能证明的内容只能写 `verification: needs_confirmation`。
-- `confidence: high` 附近必须有 evidence/verified_by/source/locator；否则降为 `medium` 或 `low`。
 
 ## 执行步骤
 
