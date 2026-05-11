@@ -249,8 +249,7 @@ python3 .prd-tools/scripts/reference-quality-gate.py --root .
 3. portal.html 是否存在且非空
 4. YAML 文件是否基本可读
 5. 关键 reference 文件是否包含 schema_version
-6. 自然语言是否疑似大面积英文（warning）
-7. 是否存在模糊统计、未证据化 owner/contact、无证据 high confidence（warning）
+6. 是否存在模糊统计、未证据化 owner/contact、无证据 high confidence（warning）
 
 门禁规则：
 

@@ -55,11 +55,6 @@ SCHEMA_VERSION_FIELDS = {
     '05-domain.yaml': 'schema_version',
 }
 
-# Natural language field names to check for English ratio
-NL_FIELD_PATTERNS = [
-    re.compile(r'(?:summary|description|responsibility|rationale|risk|notes|warnings?):\s*["\']?(.+)', re.I),
-]
-
 VAGUE_STAT_PATTERNS = [
     re.compile(r':\s*[0-9][0-9,]*\+\s*(?:#.*)?$'),
     re.compile(r':\s*["\'][^"\']*[0-9][0-9,]*\+[^"\']*["\']'),
@@ -103,30 +98,6 @@ def _check_schema_version(path, field_name):
         return False
     pattern = re.compile(rf'^{re.escape(field_name)}:\s*.+', re.M)
     return bool(pattern.search(text))
-
-
-def _english_ratio(text):
-    """Estimate English character ratio in natural language text."""
-    if not text.strip():
-        return 0.0
-    # Extract values from NL fields
-    nl_texts = []
-    for pat in NL_FIELD_PATTERNS:
-        for m in pat.finditer(text):
-            nl_texts.append(m.group(1))
-    if not nl_texts:
-        # Fallback: sample the whole text
-        sample = text[:5000]
-    else:
-        sample = ' '.join(nl_texts[:200])
-
-    # Count ASCII letters vs CJK characters
-    ascii_letters = sum(1 for c in sample if c.isascii() and c.isalpha())
-    cjk_chars = sum(1 for c in sample if '\u4e00' <= c <= '\u9fff')
-    total = ascii_letters + cjk_chars
-    if total == 0:
-        return 0.0
-    return ascii_letters / total
 
 
 def _line_has_evidence_context(lines, idx, window=8):
@@ -184,7 +155,6 @@ def run_checks(root):
         'portal_html': {'status': 'pass', 'exists': False, 'marker_ok': False},
         'yaml_readable': {'status': 'pass', 'failed': []},
         'schema_version': {'status': 'pass', 'missing': []},
-        'english_ratio': {'status': 'pass', 'ratio': 0.0, 'warning': False},
         'evidence_claims': {'status': 'pass', 'warnings': []},
     }
 
@@ -238,21 +208,7 @@ def run_checks(root):
     if results['schema_version']['missing']:
         results['schema_version']['status'] = 'warning'
 
-    # 6. English ratio in natural language
-    # Check the main YAML files for NL content
-    all_nl_text = ''
-    for f in REQUIRED_REF_FILES:
-        if f.endswith('.yaml'):
-            all_nl_text += _read_safe(ref_dir / f) + '\n'
-    all_nl_text += _read_safe(ref_dir / '00-portal.md') + '\n'
-
-    ratio = _english_ratio(all_nl_text)
-    results['english_ratio']['ratio'] = round(ratio, 3)
-    if ratio > 0.6:
-        results['english_ratio']['warning'] = True
-        results['english_ratio']['status'] = 'warning'
-
-    # 7. Unsupported claim smell checks
+    # 6. Unsupported claim smell checks
     claim_warnings = _collect_evidence_warnings(ref_dir)
     results['evidence_claims']['warnings'] = claim_warnings
     if claim_warnings:
@@ -317,13 +273,6 @@ def print_summary(results):
     print(f'  [{sym}] schema_version: {sv["status"]}')
     if sv['missing']:
         print(f'      missing in: {sv["missing"]}')
-
-    # English ratio
-    er = results['english_ratio']
-    sym = '+' if er['status'] == 'pass' else '!'
-    print(f'  [{sym}] language check: {er["status"]} (english ratio: {er["ratio"]})')
-    if er['warning']:
-        print(f'      WARNING: natural language is predominantly English (>60%), expected Chinese')
 
     # Evidence claim smells
     ec = results['evidence_claims']
