@@ -9,6 +9,16 @@ Claude Code 中通过 `/prd-distill <PRD 文件或需求文本>` 触发。
 
 人类可读文档见插件根目录 `README.md`。
 
+## 语言规则（硬约束）
+
+- YAML/JSON schema key 保持英文。
+- 代码路径、函数名、类名、接口名、字段名、API path、枚举值、配置 key 保持原样。
+- 禁止把 PRD 原文、源码、接口文档、英文注释、字段说明整段机翻成中文；证据原文必须保留原文。
+- 生成性解释内容必须中文，包括 report、plan、AI-friendly PRD 的解释段、风险、开放问题、portal 文案、quality gate 的人类可读说明。
+- 如果引用英文源码注释、英文 API 名称、英文业务词或 PRD 原句，保留原文，并在旁边补一句中文解释；不要替换原文。
+- 如果输入 PRD 是英文，不要先翻译整篇 PRD；先做证据分块，再用中文归纳需求含义，并保留 source/locator。
+- 生成完成前必须做语言自检；生成性解释大面积英文时，completion gate 应 warning。
+
 ## Final Completion Gate（硬约束）
 
 /prd-distill 完成必须满足以下条件，缺一不可：

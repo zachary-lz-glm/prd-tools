@@ -60,6 +60,16 @@ NL_FIELD_PATTERNS = [
     re.compile(r'(?:summary|description|responsibility|rationale|risk|notes|warnings?):\s*["\']?(.+)', re.I),
 ]
 
+VAGUE_STAT_PATTERNS = [
+    re.compile(r':\s*[0-9][0-9,]*\+\s*(?:#.*)?$'),
+    re.compile(r':\s*["\'][^"\']*[0-9][0-9,]*\+[^"\']*["\']'),
+]
+
+PLACEHOLDER_OWNER_PATTERNS = [
+    re.compile(r'owner:\s*(growth-team|team|unknown|todo|tbd)\s*$', re.I),
+    re.compile(r'contact:\s*["\']?#(?:[a-z0-9_-]+)["\']?\s*$', re.I),
+]
+
 
 def _read_safe(path):
     """Read file, return text or empty string."""
@@ -119,6 +129,50 @@ def _english_ratio(text):
     return ascii_letters / total
 
 
+def _line_has_evidence_context(lines, idx, window=8):
+    """Check nearby lines for evidence-like fields."""
+    start = max(0, idx - window)
+    end = min(len(lines), idx + window + 1)
+    snippet = '\n'.join(lines[start:end])
+    return bool(re.search(r'^\s*(evidence|verified_by|source|locator):\s*\S+', snippet, re.M))
+
+
+def _collect_evidence_warnings(ref_dir):
+    """Detect obvious unsupported-claim patterns in generated reference files."""
+    warnings = []
+    for f in REQUIRED_REF_FILES:
+        path = ref_dir / f
+        if not path.exists() or not path.is_file():
+            continue
+        lines = _read_safe(path).splitlines()
+        for idx, line in enumerate(lines):
+            stripped = line.strip()
+            if any(p.search(stripped) for p in VAGUE_STAT_PATTERNS):
+                warnings.append({
+                    'file': f,
+                    'line': idx + 1,
+                    'reason': 'vague_numeric_claim',
+                    'text': stripped[:140],
+                })
+            if any(p.search(stripped) for p in PLACEHOLDER_OWNER_PATTERNS):
+                if not _line_has_evidence_context(lines, idx):
+                    warnings.append({
+                        'file': f,
+                        'line': idx + 1,
+                        'reason': 'owner_or_contact_without_evidence',
+                        'text': stripped[:140],
+                    })
+            if re.search(r'confidence:\s*high\b', stripped, re.I):
+                if not _line_has_evidence_context(lines, idx):
+                    warnings.append({
+                        'file': f,
+                        'line': idx + 1,
+                        'reason': 'high_confidence_without_nearby_evidence',
+                        'text': stripped[:140],
+                    })
+    return warnings
+
+
 def run_checks(root):
     """Run all checks and return results dict."""
     ref_dir = Path(root) / '_prd-tools' / 'reference'
@@ -131,6 +185,7 @@ def run_checks(root):
         'yaml_readable': {'status': 'pass', 'failed': []},
         'schema_version': {'status': 'pass', 'missing': []},
         'english_ratio': {'status': 'pass', 'ratio': 0.0, 'warning': False},
+        'evidence_claims': {'status': 'pass', 'warnings': []},
     }
 
     # 1. Required reference files
@@ -196,6 +251,12 @@ def run_checks(root):
     if ratio > 0.6:
         results['english_ratio']['warning'] = True
         results['english_ratio']['status'] = 'warning'
+
+    # 7. Unsupported claim smell checks
+    claim_warnings = _collect_evidence_warnings(ref_dir)
+    results['evidence_claims']['warnings'] = claim_warnings
+    if claim_warnings:
+        results['evidence_claims']['status'] = 'warning'
 
     return results
 
@@ -263,6 +324,19 @@ def print_summary(results):
     print(f'  [{sym}] language check: {er["status"]} (english ratio: {er["ratio"]})')
     if er['warning']:
         print(f'      WARNING: natural language is predominantly English (>60%), expected Chinese')
+
+    # Evidence claim smells
+    ec = results['evidence_claims']
+    sym = '+' if ec['status'] == 'pass' else '!'
+    print(f'  [{sym}] evidence claim smells: {ec["status"]}')
+    if ec['warnings']:
+        for item in ec['warnings'][:12]:
+            print(
+                f'      {item["file"]}:{item["line"]} '
+                f'{item["reason"]}: {item["text"]}'
+            )
+        if len(ec['warnings']) > 12:
+            print(f'      ... and {len(ec["warnings"]) - 12} more')
 
     print()
 

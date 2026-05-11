@@ -4,7 +4,8 @@
 
 - YAML/JSON schema key 保持英文。
 - 代码路径、函数名、类名、接口名、字段名、API path、枚举值、配置 key 保持原样。
-- 所有自然语言内容必须中文，包括：
+- 禁止把源码、接口文档、PRD 原文、英文注释、字段说明整段机翻成中文；证据原文必须保留原文。
+- 生成性解释内容必须中文，包括：
   - summary
   - description
   - responsibility
@@ -15,9 +16,10 @@
   - evidence.summary
   - portal 文案
   - quality-report / health-check 的人类可读解释
-- 如果引用英文源码注释或英文 API 名称，保留原文，但必须补中文解释。
+- 如果引用英文源码注释、英文 API 名称或英文业务词，保留原文，并在旁边补一句中文解释；不要替换原文。
+- 如果现有 reference 是英文，不要做“翻译式更新”；必须回到源码/配置/文档证据重新生成中文解释。
 - 生成完成前必须做语言自检。
-- 自然语言大面积英文时，completion gate 应 warning。
+- 生成性解释大面积英文时，completion gate 应 warning；原文证据、代码符号、字段名不计入翻译要求。
 
 ## 目标
 
@@ -167,6 +169,13 @@ evidence:
 confidence: "high | medium | low"
 ```
 
+事实生成硬约束：
+
+- 禁止使用 `120+`、`几十个`、`大量` 这类模糊统计；没有确定计数来源时写 `unknown`，并把补计数放入 `open_questions` 或 `next_actions`。
+- 禁止臆造 owner、IM 群、频道、上下游系统职责、部署平台细节。当前仓无法证明的内容写成候选线索，并标记 `verification: needs_confirmation`。
+- `confidence: high` 必须在同一条目或相邻上下文中出现 `evidence`、`verified_by`、`source` 或 `locator`。
+- 对跨仓 API、前端消费方、后端 producer 的描述必须区分 `confirmed` / `inferred` / `needs_confirmation`。
+
 跨文件引用规则（详见 `references/reference-v4.md`）：
 
 - 字段 type/required 只在 `03-contracts`，其他文件用 `contract_ref` 引用。
@@ -262,6 +271,7 @@ python3 .prd-tools/scripts/reference-quality-gate.py --root .
 4. YAML 文件是否基本可读
 5. 关键 reference 文件是否包含 schema_version
 6. 自然语言是否疑似大面积英文（warning）
+7. 是否存在模糊统计、未证据化 owner/contact、无证据 high confidence（warning）
 
 门禁规则：
 

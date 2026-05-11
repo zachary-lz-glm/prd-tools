@@ -68,76 +68,81 @@ scripts/install-hooks.sh
 <claude-mem-context>
 # Memory Context
 
-# [prd-tools] recent context, 2026-05-11 10:57am GMT+8
+# [prd-tools] recent context, 2026-05-11 7:12pm GMT+8
 
 Legend: 🎯session 🔴bugfix 🟣feature 🔄refactor ✅change 🔵discovery ⚖️decision 🚨security_alert 🔐security_note
 Format: ID TIME TYPE TITLE
 Fetch details: get_observations([IDs]) | Search: mem-search skill
 
-Stats: 50 obs (11,261t read) | 17,817t work | 37% savings
+Stats: 50 obs (7,767t read) | 0t work
 
 ### May 10, 2026
-S341 基于 PRD-分支映射创建 5 个 Branch-backed Benchmark Case，含 bundle 归因策略 (May 10 at 11:43 AM)
-S342 设计BFF测试实施方案并为GLM编写提示词，同时讨论将测试扩展为前后端联合benchmark的架构 (May 10 at 11:58 AM)
-S343 设计前后端联合benchmark架构，将BFF和前端仓库纳入统一的prd-tools评测体系 (May 10 at 12:00 PM)
-S344 用户要求检查 prd-tools 项目中 branch-case 基准数据生成的质量，并完成全部验收检查 (May 10 at 12:00 PM)
 S345 补修 multi-repo branch benchmark 的 BFF target 对称性，为5个case创建targets/bff/目录并修改branch_case.py支持BFF层 (May 10 at 12:20 PM)
 S346 Task #15: 修复 draft-oracle 排除 needs_review 文件进入 code_anchors（bundle 案例下归因不明确的文件应路由到 blockers/risk_notes） (May 10 at 12:33 PM)
 S347 为 prd-tools 项目从 5 个 Simba Shift + DIVE 业务 PRD 生成正式 oracle.yaml 基准测试文件 (May 10 at 12:39 PM)
-2338 1:45p 🔵 prd-tools 基准测试体系：Simba Shift 三案例 oracle-draft 结构与 PRD 映射
-2339 " 🔵 prd-tools 基准测试扩展至5个案例：新增可选择定制奖和运力线冲单奖
-2340 1:46p 🔵 prd-tools 存在两套基准测试目录结构：cases/ 与 branch-cases/，oracle schema 成熟度不同
-2341 " ✅ prd-tools 任务17状态变更为 in_progress
-2342 " 🟣 在 benchmarks/cases/ 下为5个PRD案例创建正式目录结构
-2343 1:48p ✅ prd-tools 使用 worktree 隔离环境进行基准案例开发
-2344 1:49p 🟣 首个新案例正式 oracle.yaml 生成完成：simba-shift-rider-type
-2345 " 🔵 prd-tools oracle 生成使用 worktree 隔离 + agent 并行写入模式
-2346 1:50p 🟣 simba-shift-signin-award 正式 oracle.yaml 生成完成
-2347 1:51p 🟣 simba-shift-order-scope 正式 oracle.yaml 生成完成，3/5 Simba案例已完成
-2348 " 🟣 dive-customization-xtr-gas-benefits 正式 oracle.yaml 生成完成，4/5案例已完成
-2349 " 🟣 全部5个新案例正式 oracle.yaml 生成完成，prd-tools 基准测试体系扩展至6个案例
-2350 1:52p 🟣 prd-tools 基准测试5个新案例 oracle 全部验证通过，任务17完成
 S348 构建 prd-tools 基准测试系统，完成 Task 22 验证和冒烟测试 (May 10 at 1:53 PM)
-2351 1:54p 🟣 完成5个案例的预言（prophecy）生成
-2352 " 🔵 prd-tools 项目 oracle 基准结构与评分系统
-2353 " 🔵 5个新基准案例缺少 case.yaml 配置文件
-2354 1:55p 🟣 新建任务20：为 benchmark_score.py 添加分层评分能力
-2355 " 🟣 prd-tools 基准测试创建4个后续任务：case.yaml、分层评分、lint通过、冒烟测试
-2356 1:56p 🔵 benchmark_score.py lint 逻辑要求每个案例必须有 case.yaml + expected/ 目录下4个文件
-2357 " 🔵 5个基准案例对应3个不同的 Git 实现分支
-2358 1:57p 🟣 5个案例的 case.yaml 全部创建完成，taskId 19 完成，开始 lint 修复
-2359 " 🟣 benchmark_score.py run_lint() 支持双模式：oracle-based（新）和 expected-based（旧）
-2360 " 🟣 benchmark_score.py 新增 code_anchor 分层评分：按 layer 统计 bff/frontend/unknown 准确率
 S349 prd-tools branch-backed multi-layer benchmark patch 发版全流程 (May 10 at 1:57 PM)
-2361 2:06p 🔴 修复 _parse_oracle 在段落切换时丢弃最后一个项目的问题
-2362 " 🔵 benchmark 用例 simba-shift-signin-award 结构与图层评分配置
-2363 2:15p ✅ prd-tools branch-backed multi-layer benchmark patch 发版
-2364 2:16p ✅ prd-tools patch 发版四项校验全部通过
-2365 " 🔵 prd-tools install.sh 安装流程审查
-2367 " 🟣 prd-tools branch-backed multi-layer benchmark 提交成功
-2366 " 🔵 prd-tools 仓库当前状态和脚本清单
-2368 " 🔵 release.sh 执行后留下未提交的版本/CHANGELOG 改动
-2370 2:17p 🔵 release.sh 已将版本更新至 2.16.1 但未完成 commit
-2369 " 🔵 prd-tools 当前发版状态：HEAD 领先 v2.16.0 两个提交
-2371 " 🟣 prd-tools v2.16.1 release commit 和 tag 创建成功
-2372 " 🟣 prd-tools v2.16.1 发版完成并推送成功
+S350 全网收集最近AI大事，聚焦PRD-to-Code相关方向，整理出有收益的报告 (May 10 at 2:18 PM)
 ### May 11, 2026
-2373 10:19a 🔵 dive-bff 项目安装后初始状态探索
-2378 10:24a 🔵 用户研究方向：PRD to Code AI领域调研
-2379 " 🔵 PRD to Code领域2026年行业调研：核心趋势与关键资源
-2380 10:25a 🔵 AI软件工程Agent生态：Devin/OpenHands/SWE-Agent三足鼎立
-2381 " 🔵 PRD to Code 2026：PRD复兴运动与AI代理编码最佳实践
-2383 10:26a 🔵 Anthropic Claude 4系列模型迭代路线：从Opus 4到Mythos
-2384 " 🔵 Vibe Coding 2026：从流行词到主流开发范式的结构性转变
-2385 " 🔵 OpenAI Codex产品线快速迭代：从GPT-5到GPT-5.5的Agent编码进化
-S350 全网收集最近AI大事，聚焦PRD-to-Code相关方向，整理出有收益的报告 (May 11 at 10:27 AM)
-2390 10:35a 🔵 AI行业调研：PRD-to-Code方向2026年5月全景分析
-2391 " ⚖️ prd-tools战略定位决策：PRD-to-Code中间件定位
-2393 10:42a 🔵 用户关注AI友好的PRD编写方法
-2394 10:50a 🔵 prd-tools 项目进度查询
-2395 10:53a ⚖️ 计划开发 PRD 转 AI-friendly PRD 的工具能力
-2396 10:55a ✅ v2.0 分支合并到 main 分支（快进合并）
-2397 10:56a 🔴 合并后出现 3 个文件的合并冲突
+S351 将 v2.0 分支代码合并到 main 分支并推送到远程仓库 (May 11 at 10:27 AM)
+S353 为 prd-tools 新增 AI-friendly PRD Compiler MVP，将原始 PRD 编译为 13-section 规范化 AI-friendly PRD，作为 distill 流程的中间层 (May 11 at 10:58 AM)
+S354 为 prd-tools 的 /reference 和 /prd-distill 插件添加硬完成门禁（Completion Gate），确保关键产出文件不被跳过 (May 11 at 2:31 PM)
+2438 5:26p 🔵 用户请求仅为"PM"，信息不足
+2439 " 🔵 prd-tools 项目统一产出目录结构
+2440 5:27p 🔵 portal.html 功能边界定义
+2441 " 🟣 reference 目录新增 portal.html 和 Evidence Index 索引层
+2442 " ✅ prd-distill 插件目录结构 schema 同步更新
+2443 5:28p 🔵 output-contracts.md 已包含 Evidence Index 但缺少 portal.html
+2444 " ✅ output-contracts.md 同步新增 reference 下 portal.html 条目
+2445 5:29p 🟣 prd-distill SKILL.md 新增 Final Completion Gate 硬约束
+2446 " 🟣 workflow.md 新增步骤 8.6 Distill Completion Gate
+2447 5:30p ✅ output-contracts.md 新增 Distill Completion Gate 章节
+2448 " 🔵 final-quality-gate.py 脚本已存在
+2449 " 🟣 新增 reference-quality-gate.py 脚本
+2450 5:31p ✅ 任务 5 完成，任务 6 开始
+2451 5:32p 🟣 新增 distill-quality-gate.py 脚本
+2452 " 🔵 install.sh 存在，任务 7 可能涉及安装脚本更新
+2453 " ✅ install.sh 新增两个质量门禁脚本的部署
+2454 5:33p ✅ 任务 7 完成，任务 8 开始
+2455 " 🔵 README.md 存在，任务 8 可能涉及文档更新
+2456 " 🔵 README.md 结构概览
+2457 5:34p ✅ README.md 新增质量门禁脚本和中文输出规则章节
+2459 " ✅ 任务 8 完成，任务 9 开始
+2461 5:35p ✅ 所有 Python 脚本编译检查和 lint 验证通过
+2462 " 🔴 output-contracts.md 两个插件副本不同步
+2463 " 🔵 安装验证确认两个插件的 Completion Gate 和中文规则已完整集成
+2464 5:36p 🔴 reference-quality-gate.py 冒烟测试通过
+2465 " 🔴 distill-quality-gate.py 冒烟测试通过
+2466 5:37p 🔴 reference-quality-gate.py 全文件冒烟测试通过
+2468 " 🔴 distill-quality-gate.py 全文件冒烟测试通过
+2471 " 🔴 distill-quality-gate.py 缺失 ai_prd_req_id 场景验证通过
+2473 5:38p 🔴 output-contracts.md 两插件副本仅空格对齐差异
+2474 " 🔴 output-contracts.md 空格对齐差异确认并修复
+2476 " 🔴 output-contracts.md 空格差异待统一
+2478 5:40p 🔴 00-directory-structure.md 两插件副本也出现不同步
+2479 " 🔴 同步检查在错误工作目录下执行导致误报 MISMATCH
+2480 " 🔴 macOS cat 不支持 -A 选项导致 diff 调试失败
+2481 5:41p 🔴 工作目录问题确认：文件路径在当前目录下不存在
+2482 5:42p 🔴 output-contracts.md 空格对齐差异确认需修复
+2483 " 🔴 output-contracts.md 空格差异精确定位
+2484 " 🔴 output-contracts.md 空格对齐已修复，00-directory-structure.md 确认同步
+2485 " 🔴 所有共享文件同步验证最终通过
+2486 5:43p 🔴 00-directory-structure.md 二进制级别同步确认
+2487 " ✅ 最终全面验证全部通过
+2488 " 🟣 完整安装验证通过：5 个脚本部署、关键词搜索确认所有新功能集成
+2489 5:44p ✅ 本次变更涉及 12 个文件的完整清单
+2490 " ✅ prd-tools v2.16 Completion Gate 体系完整实现总结
+2491 5:45p 🟣 prd-tools Completion Gate 体系全部任务完成
+2492 5:46p ✅ Completion Gate 体系已提交：commit 632e4e7
+2493 5:47p 🟣 新增 portal 模板和渲染脚本任务计划
+2494 " 🟣 Portal 模板化改造：从 Claude 内联生成改为模板+脚本渲染
+2495 5:48p 🟣 Portal 模板化改造：全面读取现有规范准备创建模板和渲染脚本
+S355 Phase 2: Portal 模板+渲染脚本实现 — 将 portal.html 生成从 Claude 内联手写改为固定模板+Python 脚本渲染 (May 11 at 5:48 PM)
+**Investigated**: 探索了 reference 和 distill 两个插件的 SKILL.md 文件，定位了所有需要更新的 portal/gate/render 相关行。Reference SKILL.md 164行，关键行：37(Completion Gate item 3)、140(执行步骤8)、154-155(参考文件表)。Distill SKILL.md 关键行：218(执行步骤16)、225(参考文件表)、240(完成消息)。
 
-Access 18k tokens of past work via get_observations([IDs]) or mem-search skill.
+**Learned**: Phase 2 的核心文件已由主会话创建完成：2个portal模板HTML（reference+distill）、2个渲染Python脚本（render-reference-portal.py ~280行、render-distill-portal.py ~300行）、2个步骤文档已重写（step-05-portal.md 202→48行、step-04-portal.md 248→44行）。SKILL.md文件尚未更新以引用新的渲染脚本。两个插件共享文件同步约束（output-contracts.md等需byte-identical）。
+
+**Completed**: ✅ 4个代码文件创建（2模板+2脚本）✅ 2个步骤文档重写 ✅ SKILL.md文件分析定位更新行。❌ SKILL.md更新未执行 ❌ output-contracts.md/install.sh/quality-gate/README更新未执行 ❌ 冒烟测试未运行
+
+**Next Steps**: 1. 更新 reference SKILL.md：行37改为引用render-reference-portal.py命令，行140改为脚本渲染描述，行154-155更新参考文件表。2. 更新 distill SKILL.md：行218改为引用render-distill-portal.py命令，行225更新参考文件表，行240更新完成消息。3. 更新 output-contracts.md 添加模板和渲染脚本条目。4. 更新 install.sh 添加2个渲染脚本和2个模板的安装。5. 更新 quality-gate 脚本检查渲染脚本存在性。6. 更新 README.md。7. 运行冒烟测试。8. git commit + release.sh --auto
 </claude-mem-context>
