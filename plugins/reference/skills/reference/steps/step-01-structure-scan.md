@@ -62,3 +62,10 @@ unclassified_files: []
 - 所有关键文件都存在。
 - 当前层适配器的核心能力面已检查。
 - 无法归类的文件要列入 `unclassified_files`，不要猜测归属。
+
+## Self-Check（生成后必须逐项验证）
+- [ ] project-profile.yaml 的 layer 字段与源码实际架构一致
+- [ ] capability_surfaces 中每个 surface 都有至少一个 key_files 路径确认存在
+- [ ] symbols 来自源码读取，不是从文件名推断
+- [ ] status 为 negative_search 的条目记录了搜索 query 和范围
+- [ ] modules-index.yaml 覆盖了项目主要目录（排除 node_modules/dist/build）

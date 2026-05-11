@@ -1,6 +1,6 @@
 ---
 name: prd-distill
-description: 将 PRD、需求文本、技术方案或变更说明先做稳定读取与质量检查，再蒸馏为有证据支撑的 report、plan、spec 和 context，包括 Requirement IR、Layer Impact、Contract Delta、技术方案、开发/测试/契约计划和 reference 回流建议。适用于用户调用 /prd-distill，要求分析 PRD、拆需求、评估影响范围、生成开发计划、识别接口契约风险或生成 QA 矩阵时。
+description: 将 PRD、需求文本、技术方案或变更说明先做稳定读取与质量检查，再编译为 AI-friendly PRD（13-section 规范化中间层），最后蒸馏为有证据支撑的 report、plan、spec 和 context，包括 Requirement IR、Layer Impact、Contract Delta、技术方案、开发/测试/契约计划和 reference 回流建议。适用于用户调用 /prd-distill，要求分析 PRD、拆需求、评估影响范围、生成开发计划、识别接口契约风险或生成 QA 矩阵时。
 ---
 
 # prd-distill
@@ -56,10 +56,13 @@ _prd-tools/distill/<slug>/
 │   ├── tables/                    #   抽出的表格
 │   ├── extraction-quality.yaml    #   pass/warn/block 质量门禁
 │   └── conversion-warnings.md     #   转换风险
+├── spec/                          # AI-friendly PRD（规范化中间层）
+│   └── ai-friendly-prd.md         #   13-section 对 AI agent 友好的 PRD
 ├── report.md                      # 渐进式披露报告
 ├── plan.md                        # 函数级技术方案 + 开发/测试计划 + QA 矩阵
 ├── portal.html                    # 可视化浏览器页面（零外部依赖，双击即可打开）
 └── context/
+    ├── prd-quality-report.yaml    #   AI-friendly PRD 质量评分
     ├── requirement-ir.yaml        # 结构化需求：业务意图、规则、验收条件
     ├── evidence.yaml              # 证据台账：PRD、技术方案、源码、负向搜索
     ├── readiness-report.yaml      # 就绪度评分 + 风险 + provider 增益
@@ -89,6 +92,8 @@ _prd-tools/distill/<slug>/
 | `context/query-plan.yaml` | 查询计划：种子锚点、影响提示、P0 术语（辅助层） | 不替代 graph-context.md |
 | `context/context-pack.md` | 上下文包：模型可消费的精简代码上下文（辅助层） | 不替代 graph-context.md |
 | `context/final-quality-gate.yaml` | 最终质量门禁：5 项确定性检查评分（辅助层） | 不替代 readiness-report.yaml |
+| `spec/ai-friendly-prd.md` | AI-friendly PRD：13-section 规范化中间层，给 AI agent 消费 | 不替代原始 PRD；不替代 report.md / plan.md / requirement-ir.yaml |
+| `context/prd-quality-report.yaml` | AI-friendly PRD 质量评分：source 分布、缺失项、推断项、风险项 | 不替代 readiness-report.yaml |
 | `portal.html` | 自包含可视化页面：总览、源码命中、影响、契约、计划、QA、阻塞问题、回流建议 | 不替代 report.md 和 plan.md 的人读文本 |
 
 ## 能力面适配器
@@ -122,6 +127,32 @@ _prd-tools/distill/<slug>/
 - **⚠ Reference 强制消费**：reference 存在时，步骤 3 门禁→步骤 6 桥接→步骤 7 reference-first 扫描，缺一不可。reference 不存在时，必须显式标记缺失并降低置信度。
 - **⚠ Reference 不可盲信**：reference/index 只提供候选事实、路由和代码锚点。凡是会进入 report/plan 的结论，必须由 PRD、源码、技术文档、接口文档或负向搜索二次确认；无法确认时降置信度并写入 §11。
 - `report.md` 生成前必须核对 P0/P1 细节：券批次/券张数/互斥、折扣卡 Card ID/数量/有效期/城市校验、EventRule、Budget/GMV、Push 占位符、PRD 内部冲突或 typo。不能只在 context YAML 中出现。
+
+### AI-friendly PRD 规则
+
+1. 输入 PRD 后，**必须先生成 AI-friendly PRD**（`spec/ai-friendly-prd.md`），不允许直接从原始 PRD 跳到 report/plan。
+2. AI-friendly PRD 是规范化中间层，不替代原始 PRD。
+3. 所有 `inferred` / `missing_confirmation` 必须显式标注 source。
+4. `missing_confirmation` 不得进入确定性开发任务（plan.md 的 checklist）。
+5. `requirement-ir.yaml` 中每条 requirement 应能追溯到 ai-friendly-prd.md 的 REQ-ID。
+
+### Requirement-IR 对齐规则
+
+1. `requirement-ir.yaml` 必须以 `spec/ai-friendly-prd.md` 为主输入，`_ingest/document.md` 只能作为证据回查。
+2. 每条 requirement 必须包含 `ai_prd_req_id` 和 `source`，`source` 必须继承 AI-friendly PRD 的 source 标记（explicit / inferred / missing_confirmation）。
+3. `missing_confirmation` 必须进入 `open_question_refs`，且 `planning.eligibility=blocked`。
+4. `inferred` 默认 `planning.eligibility=assumption_only`，不得直接进入确定开发 checklist。
+5. report.md 和 plan.md 不得绕过 requirement-ir 直接从原始 PRD 推导确定任务。
+
+### REQ → Code Anchor 强绑定规则
+
+1. 每个确定性实现任务必须能回溯到 requirement-ir 的 REQ-ID，并经由 IMP-ID 关联到代码锚点。
+2. 每个 MODIFY/DELETE 任务必须有 `code_anchor`（layer、file、symbol/line、confidence、source）或 fallback reason。
+3. 每个 `code_anchor` 必须标注 `layer`、`file`、`symbol`、`line`（尽量精确）、`anchor_type`、`confidence`、`source`（graph / rg / reference / inferred）。
+4. `planning.eligibility != ready` 的 requirement 不得生成确定性实现任务，只能生成 risks / open questions / needs_confirmation / fallback notes。
+5. report/plan 不得绕过 layer-impact 直接编造目标文件。
+6. 没有 `code_anchor` 的 ready MODIFY/DELETE 项必须在 report 中标红为风险。
+7. `code_anchor.source=inferred` 时，不得作为唯一 high confidence 证据。
 
 ## 暂停条件
 

@@ -15,7 +15,8 @@
 - `context/graph-context.md`
 - `context/layer-impact.yaml`
 - `context/contract-delta.yaml`
-- `references/output-contracts.md` 中 report.md 和 plan.md 的格式定义
+- `references/schemas/04-report-plan.md`（report.md + plan.md 格式定义）
+- `references/schemas/03-context.md`（reference-update-suggestions schema）
 
 ## report.md（渐进式披露 + 阻塞问题）
 
@@ -178,6 +179,16 @@
 - reference 与代码的矛盾
 - 跨仓契约、owner、handoff 或团队级知识库候选
 
-每条建议必须按 `references/output-contracts.md` 标注 `current_repo_scope`。当前仓可验证的事实才能标记为 `apply_to_current_repo`；其他仓实现细节、跨仓 owner、团队级 taxonomy 必须标记为 `record_as_signal` 或 `needs_owner_confirmation`，并填写 `owner_to_confirm`。`team_reference_candidate: true` 只表示未来团队知识库候选。
+每条建议必须按 `references/schemas/03-context.md` 中 reference-update-suggestions schema 标注 `current_repo_scope`。当前仓可验证的事实才能标记为 `apply_to_current_repo`；其他仓实现细节、跨仓 owner、团队级 taxonomy 必须标记为 `record_as_signal` 或 `needs_owner_confirmation`，并填写 `owner_to_confirm`。`team_reference_candidate: true` 只表示未来团队知识库候选。
 
 `/prd-distill` 不直接编辑 `_prd-tools/reference/`；实际修改交给 `/reference` 的反馈回流。
+
+## Self-Check（生成后必须逐项验证）
+- [ ] report.md 包含全部 11 个章节（§1-§11）
+- [ ] plan.md 包含全部 11 个章节（§1-§11，§11 工作量估算可选）
+- [ ] 每个 IMP 在 report.md §5 变更明细表中有对应行
+- [ ] 每个 Phase 在 plan.md §3 中有 checklist 格式的任务
+- [ ] 每个 MODIFY/DELETE 任务引用了至少一个 GCTX ID
+- [ ] reference-update-suggestions.yaml 的 current_repo_scope.action 与证据来源匹配
+- [ ] report.md 长度在 300-650 行范围内（超出时按优先级精简）
+- [ ] plan.md 长度在 300-700 行范围内（超出时按优先级精简）

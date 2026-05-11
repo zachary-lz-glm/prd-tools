@@ -108,11 +108,10 @@ capability_surfaces:
 
 ## 阶段 2：深度分析
 
-先读取：
-
-- `references/reference-v4.md`
-- `references/layer-adapters.md` 中当前层章节
-- `references/output-contracts.md` 中 evidence 和 contract 部分
+每个子步骤独立读取所需的参考文件：
+- step-02a~02e 各自声明所需的输入和参考文件
+- 共享规则：`references/reference-v4.md` 的文件边界规则、`references/layer-adapters.md` 的能力面适配器
+- 读取 `references/output-contracts.md` 索引，按需加载 `schemas/` 下的具体 schema
 
 生成 `_prd-tools/reference/` v4.0：
 
@@ -126,15 +125,16 @@ project-profile.yaml        # 项目画像
 05-domain.yaml              # 业务领域
 ```
 
-提取顺序（后生成的文件必须检查先生成的文件，避免重叠）：
+按以下顺序逐步执行子步骤（每步只读当前子步骤文件 + 上一步输出），后生成的文件必须检查先生成的文件，避免内容重叠：
 
-1. `01-codebase`：目录、枚举、模块、注册点、数据流、外部系统、结构体。
-2. `02-coding-rules`：编码规范与约束、高风险区域、踩坑经验。
-3. `03-contracts`：producer/consumer、endpoint/schema/event、字段级定义、跨仓确认状态。
-4. `04-routing-playbooks`：PRD 路由信号、字段映射、场景打法、跨仓 handoff、golden samples。
-5. `05-domain`：业务域概览、术语、隐式规则、历史决策。
-6. `00-portal` + `project-profile`：导航和画像汇总。
-7. `portal.html`：读取步骤 5（`step-05-portal.md`）生成可视化 HTML 页面。全量构建完成后自动生成。
+1. `step-02a-codebase.md` → `01-codebase.yaml`
+2. `step-02b-coding-rules.md` → `02-coding-rules.yaml`（检查 01 去重）
+3. `step-02c-contracts.md` → `03-contracts.yaml`（检查 01 去重，移入字段级信息）
+4. `step-02d-routing.md` → `04-routing-playbooks.yaml`（含 capability_inventory，检查 02 去重）
+5. `step-02e-domain-portal.md` → `05-domain.yaml` + `00-portal.md`（检查 01 枚举去重）
+6. `step-05-portal.md` → `portal.html`（全量构建完成后自动生成）
+
+每个子步骤文件末尾有 Self-Check 清单，生成后必须逐项验证通过再进入下一步。
 
 每条事实必须具备：
 

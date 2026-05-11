@@ -116,9 +116,10 @@ _prd-tools/build/              # 过程和质量报告
 | `workflow.md` | 完整构建/健康检查/质量门控/反馈回流时 |
 | `references/reference-v4.md` | 确认文件职责、边界、质量规则时 |
 | `references/layer-adapters.md` | 判断前端/BFF/后端能力面时 |
-| `references/output-contracts.md` | 和 prd-distill 输出契约对齐时 |
+| `references/output-contracts.md` | 输出契约索引（按需加载 `schemas/` 下具体文件） |
 | `templates/*.yaml` | 创建 reference 骨架时 |
 | `references/selectable-reward-golden-sample.md` | 需要示例或校准复杂需求时 |
+| `references/portal-design-system.md` | 生成 portal.html 时读取设计系统 |
 | `steps/step-05-portal.md` | 生成 portal.html 可视化页面时 |
 
 ## 完成标准
