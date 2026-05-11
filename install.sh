@@ -96,15 +96,18 @@ done
 # Portal HTML 由渲染脚本+模板生成，模板必须安装到目标项目。
 mkdir -p "$PRD_TOOLS_DIR/assets"
 echo "==> 安装 portal 模板到 $PRD_TOOLS_DIR/assets"
-for tpl in reference-portal-template.html distill-portal-template.html; do
-  for skill in reference prd-distill; do
-    src="$ARCHIVE_ROOT/plugins/$skill/skills/$skill/assets/$tpl"
-    if [ -f "$src" ]; then
-      cp "$src" "$PRD_TOOLS_DIR/assets/$tpl"
-      echo "    已安装模板：$tpl (from $skill)"
-      break
-    fi
-  done
+for skill in reference prd-distill; do
+  src="$ARCHIVE_ROOT/plugins/$skill/skills/$skill/assets/portal-template.html"
+  case "$skill" in
+    reference) dst="reference-portal-template.html" ;;
+    prd-distill) dst="distill-portal-template.html" ;;
+  esac
+  if [ -f "$src" ]; then
+    cp "$src" "$PRD_TOOLS_DIR/assets/$dst"
+    echo "    已安装模板：$dst (from $skill)"
+  else
+    echo "    警告：源码包内未找到 $skill/assets/portal-template.html" >&2
+  fi
 done
 
 # ── 清理旧命令 alias ────────────────────────────────────────────
