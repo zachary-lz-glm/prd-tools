@@ -17,7 +17,7 @@ _prd-tools/
 │   ├── 04-routing-playbooks.yaml
 │   ├── 05-domain.yaml
 │   ├── project-profile.yaml
-│   ├── portal.html                        # 可视化浏览器页面（零外部依赖，双击即可打开）
+│   ├── portal.html                        # ⚠️ 脚本渲染（render-reference-portal.py），AI 不得手写
 │   └── index/                     # Evidence Index（辅助层）
 │       ├── entities.json          # 代码实体索引
 │       ├── edges.json             # 实体关系索引
@@ -39,7 +39,7 @@ _prd-tools/
         │   └── ai-friendly-prd.md         #   13-section 对 AI agent 友好的 PRD
         ├── plan.md
         ├── report.md
-        ├── portal.html                    # 可视化浏览器页面（零外部依赖，双击即可打开）
+        ├── portal.html                    # ⚠️ 脚本渲染（render-distill-portal.py），AI 不得手写
         ├── context/
         │   ├── prd-quality-report.yaml    #   AI-friendly PRD 质量评分
         │   ├── requirement-ir.yaml
@@ -312,9 +312,19 @@ coverage:
 
 > **辅助层定位**：prd-quality-report 是 Step 1.5 的质量评估产出，为后续 Step 2 Requirement IR 和 Step 8 Report 提供输入，但不替代 readiness-report 的综合就绪度评估。
 
-## portal.html
+## portal.html ⚠️ 脚本渲染
+
+> **由渲染脚本生成，AI 不得手写。**
+> 修改此文件前，应编辑对应插件的 portal-template.html 并重新运行渲染脚本。
 
 自包含 HTML 可视化页面，将 report.md、plan.md 和 context/* 的内容整合为一个浏览器可交互页面。零外部依赖，file:// 协议可用。
+
+| 属性 | 值 |
+|------|-----|
+| generated_by | 渲染脚本（各插件独立） |
+| template | 各插件的 `assets/portal-template.html` |
+| 手写 | ❌ 禁止 |
+| 渲染命令 | `python3 scripts/render-*-portal.py`（各插件独立） |
 
 | 用途 | 边界 |
 |---|---|
@@ -941,3 +951,30 @@ summary:
 ```
 
 > **辅助层定位**：final-quality-gate 不替代 readiness-report.yaml。readiness-report 是就绪度评估的主产出，final-quality-gate 是对交付物完整性的确定性检查补充。
+
+## Portal 模板与渲染脚本
+
+Portal 页面采用模板+脚本渲染机制，AI 不得直接手写 `portal.html`，必须通过修改模板并运行渲染脚本生成。
+
+### reference portal
+
+| 文件 | 路径 | 用途 |
+|------|------|------|
+| 模板 | `plugins/reference/skills/reference/assets/portal-template.html` | HTML 骨架 + CSS + 占位符，AI 可编辑 |
+| 渲染脚本 | `scripts/render-reference-portal.py` | 读取模板 + reference 数据，输出 `portal.html` |
+| 产出 | `_prd-tools/reference/portal.html` | 脚本渲染生成，AI 禁止手写 |
+
+### distill portal
+
+| 文件 | 路径 | 用途 |
+|------|------|------|
+| 模板 | `plugins/prd-distill/skills/prd-distill/assets/portal-template.html` | HTML 骨架 + CSS + 占位符，AI 可编辑 |
+| 渲染脚本 | `scripts/render-distill-portal.py` | 读取模板 + distill 数据，输出 `portal.html` |
+| 产出 | `_prd-tools/distill/<slug>/portal.html` | 脚本渲染生成，AI 禁止手写 |
+
+### 渲染流程
+
+1. 编辑对应插件的 `portal-template.html`（修改布局、样式、占位符）
+2. 运行渲染脚本：`python3 scripts/render-reference-portal.py` 或 `python3 scripts/render-distill-portal.py`
+3. 脚本读取模板，注入数据，输出 `portal.html`
+4. 任何对 `portal.html` 的直接手写修改都会在下次渲染时被覆盖

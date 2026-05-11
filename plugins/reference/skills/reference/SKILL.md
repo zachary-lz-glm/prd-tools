@@ -34,12 +34,13 @@ Claude Code 中通过 `/reference` 触发。
 
 1. `_prd-tools/reference/` 下 00-05 共 6 个主文件 + `project-profile.yaml` 存在且非空。
 2. 必须运行 `python3 .prd-tools/scripts/build-index.py --repo <项目路径> --out _prd-tools/reference/index`，生成 `index/` 下 4 个文件。
-3. 必须生成 `portal.html`。
+3. 必须运行 `python3 .prd-tools/scripts/render-reference-portal.py --root . --template .prd-tools/assets/reference-portal-template.html --out _prd-tools/reference/portal.html` 生成 `portal.html`。AI 不得手写 portal.html。
 4. 必须运行 `python3 .prd-tools/scripts/reference-quality-gate.py --root .`，且 exit code 不为 2。
 5. index 缺失时，不得宣称 /reference 完成。
 6. portal.html 缺失时，不得宣称 /reference 完成。
 7. 最终回复必须列出 index manifest 摘要（实体数、边数、term 数）。
 8. quality-gate 报告的 warning 必须在最终回复中说明。
+9. portal.html 是脚本渲染产物，风格由固定模板决定，AI 不得手写或修改其内容。
 
 ## 触发条件
 

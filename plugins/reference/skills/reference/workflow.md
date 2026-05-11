@@ -151,7 +151,7 @@ project-profile.yaml        # 项目画像
 3. `step-02c-contracts.md` → `03-contracts.yaml`（检查 01 去重，移入字段级信息）
 4. `step-02d-routing.md` → `04-routing-playbooks.yaml`（含 capability_inventory，检查 02 去重）
 5. `step-02e-domain-portal.md` → `05-domain.yaml` + `00-portal.md`（检查 01 枚举去重）
-6. `step-05-portal.md` → `portal.html`（全量构建完成后自动生成）
+6. 运行脚本生成 `portal.html`：`python3 .prd-tools/scripts/render-reference-portal.py --root . --template .prd-tools/assets/reference-portal-template.html --out _prd-tools/reference/portal.html`（**AI 不得手写 portal.html**，必须通过脚本渲染生成）
 
 每个子步骤文件末尾有 Self-Check 清单，生成后必须逐项验证通过再进入下一步。
 
@@ -207,7 +207,7 @@ next_actions: []
 
 致命项不通过时，不要宣称 reference 可用于生产；列出最小修复项。
 
-如果 quality-report 的 status 不是 fail 且 reference 文件有更新，重新生成 `portal.html`（按 `step-05-portal.md` 执行），确保可视化页面与最新 reference 数据一致。
+如果 quality-report 的 status 不是 fail 且 reference 文件有更新，重新运行脚本生成 `portal.html`：`python3 .prd-tools/scripts/render-reference-portal.py --root . --template .prd-tools/assets/reference-portal-template.html --out _prd-tools/reference/portal.html`（**AI 不得手写 portal.html**，必须通过脚本渲染生成），确保可视化页面与最新 reference 数据一致。
 
 ## 阶段 3.5：Evidence Index 构建
 

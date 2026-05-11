@@ -127,7 +127,7 @@ def run_checks(root):
     results = {
         'required_files': {'status': 'pass', 'missing': [], 'empty': []},
         'index_files': {'status': 'pass', 'missing': [], 'empty': []},
-        'portal_html': {'status': 'pass', 'exists': False},
+        'portal_html': {'status': 'pass', 'exists': False, 'marker_ok': False},
         'yaml_readable': {'status': 'pass', 'failed': []},
         'schema_version': {'status': 'pass', 'missing': []},
         'english_ratio': {'status': 'pass', 'ratio': 0.0, 'warning': False},
@@ -158,6 +158,13 @@ def run_checks(root):
     results['portal_html']['exists'] = _file_exists_nonempty(portal_path)
     if not results['portal_html']['exists']:
         results['portal_html']['status'] = 'fail'
+    else:
+        portal_text = _read_safe(portal_path)
+        if 'data-prd-tools-portal="reference"' in portal_text:
+            results['portal_html']['marker_ok'] = True
+        else:
+            results['portal_html']['status'] = 'warning'
+            results['portal_html']['message'] = 'portal.html 缺少 data-prd-tools-portal="reference" 标记，可能非脚本渲染'
 
     # 4. YAML readability
     for f in REQUIRED_REF_FILES:
@@ -228,8 +235,13 @@ def print_summary(results):
 
     # portal.html
     ph = results['portal_html']
-    sym = '+' if ph['status'] == 'pass' else 'x'
-    print(f'  [{sym}] portal.html: {"exists" if ph["exists"] else "MISSING"}')
+    sym = '+' if ph['status'] == 'pass' else ('!' if ph['status'] == 'warning' else 'x')
+    marker_info = ''
+    if ph.get('marker_ok'):
+        marker_info = ' (script-rendered)'
+    elif ph.get('message'):
+        marker_info = f' — {ph["message"]}'
+    print(f'  [{sym}] portal.html: {"exists" if ph["exists"] else "MISSING"}{marker_info}')
 
     # YAML readable
     yr = results['yaml_readable']

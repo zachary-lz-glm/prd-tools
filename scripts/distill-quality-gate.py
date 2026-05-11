@@ -273,6 +273,29 @@ def _check_plan_missing_confirmation(base):
     }
 
 
+
+def _check_portal_html(base):
+    """Check portal.html exists and has script-rendered marker."""
+    portal_path = base / 'portal.html'
+    exists = _file_exists_nonempty(portal_path)
+    marker_ok = False
+    message = ''
+    if exists:
+        text = _read_safe(portal_path)
+        if 'data-prd-tools-portal="distill"' in text:
+            marker_ok = True
+        else:
+            message = 'portal.html 缺少 data-prd-tools-portal="distill" 标记，可能非脚本渲染'
+    else:
+        message = 'portal.html 不存在或为空'
+    status = 'pass' if (exists and marker_ok) else ('warning' if exists else 'fail')
+    return {
+        'status': status,
+        'exists': exists,
+        'marker_ok': marker_ok,
+        'message': message,
+    }
+
 def run_checks(distill_dir, repo_root):
     """Run all checks and return results dict."""
     base = Path(distill_dir).resolve()
@@ -287,6 +310,7 @@ def run_checks(distill_dir, repo_root):
     results['final_quality_gate'] = _check_final_quality_gate(base)
     results['report_quality'] = _check_report_quality(base)
     results['plan_missing_confirmation'] = _check_plan_missing_confirmation(base)
+    results['portal_html'] = _check_portal_html(base)
 
     return results
 
@@ -315,6 +339,7 @@ def print_summary(results):
         ('final_quality_gate', 'Final quality gate'),
         ('report_quality', 'Report quality'),
         ('plan_missing_confirmation', 'Plan missing_confirmation'),
+        ('portal_html', 'Portal HTML'),
     ]
 
     for key, label in checks:

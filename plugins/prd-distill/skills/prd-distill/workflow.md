@@ -672,7 +672,16 @@ python3 .prd-tools/scripts/distill-quality-gate.py \
 
 ## 步骤 9：Portal HTML 生成
 
-生成 `_prd-tools/distill/<slug>/portal.html`，将所有蒸馏产物内联为一个自包含的可视化页面。
+运行脚本生成 `_prd-tools/distill/<slug>/portal.html`，将所有蒸馏产物内联为一个自包含的可视化页面：
+
+```bash
+python3 .prd-tools/scripts/render-distill-portal.py \
+  --distill-dir _prd-tools/distill/<slug> \
+  --template .prd-tools/assets/distill-portal-template.html \
+  --out _prd-tools/distill/<slug>/portal.html
+```
+
+**AI 不得手写 portal.html**，必须通过脚本渲染生成。
 
 详细生成规则见 `steps/step-04-portal.md`。
 

@@ -22,6 +22,8 @@ Claude Code 中通过 `/prd-distill <PRD 文件或需求文本>` 触发。
 7. completion gate 不通过，不得宣称 /prd-distill 完成。
 8. `report.md` 必须包含 PRD 质量摘要。
 9. `plan.md` 不得包含把 `missing_confirmation` 当确定任务的内容。
+10. 必须运行 `python3 .prd-tools/scripts/render-distill-portal.py --distill-dir _prd-tools/distill/<slug> --template .prd-tools/assets/distill-portal-template.html --out _prd-tools/distill/<slug>/portal.html` 生成 `portal.html`。AI 不得手写 portal.html。
+11. portal.html 是脚本渲染产物，风格由固定模板决定，AI 不得手写或修改其内容。
 
 ## 触发条件
 

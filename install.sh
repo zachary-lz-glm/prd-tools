@@ -81,7 +81,7 @@ fi
 # Skills 在目标项目内执行，因此确定性辅助脚本也必须安装到目标项目。
 mkdir -p "$PRD_TOOLS_SCRIPTS_DIR"
 echo "==> 安装 runtime scripts 到 $PRD_TOOLS_SCRIPTS_DIR"
-for script in build-index.py context-pack.py final-quality-gate.py reference-quality-gate.py distill-quality-gate.py; do
+for script in build-index.py context-pack.py final-quality-gate.py reference-quality-gate.py distill-quality-gate.py render-reference-portal.py render-distill-portal.py; do
   src="$ARCHIVE_ROOT/scripts/$script"
   if [ -f "$src" ]; then
     cp "$src" "$PRD_TOOLS_SCRIPTS_DIR/$script"
@@ -90,6 +90,21 @@ for script in build-index.py context-pack.py final-quality-gate.py reference-qua
   else
     echo "    警告：源码包内未找到 scripts/$script" >&2
   fi
+done
+
+# ── 复制 portal 模板 ─────────────────────────────────────────────
+# Portal HTML 由渲染脚本+模板生成，模板必须安装到目标项目。
+mkdir -p "$PRD_TOOLS_DIR/assets"
+echo "==> 安装 portal 模板到 $PRD_TOOLS_DIR/assets"
+for tpl in reference-portal-template.html distill-portal-template.html; do
+  for skill in reference prd-distill; do
+    src="$ARCHIVE_ROOT/plugins/$skill/skills/$skill/assets/$tpl"
+    if [ -f "$src" ]; then
+      cp "$src" "$PRD_TOOLS_DIR/assets/$tpl"
+      echo "    已安装模板：$tpl (from $skill)"
+      break
+    fi
+  done
 done
 
 # ── 清理旧命令 alias ────────────────────────────────────────────
