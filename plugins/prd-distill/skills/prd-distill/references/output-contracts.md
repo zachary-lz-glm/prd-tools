@@ -34,10 +34,13 @@ _prd-tools/
 │       └── business-evidence.yaml
 └── distill/                               # prd-distill 蒸馏产出
     └── <slug>/
+        ├── spec/                          # AI-friendly PRD（规范化中间层）
+        │   └── ai-friendly-prd.md         #   13-section 对 AI agent 友好的 PRD
         ├── plan.md
         ├── report.md
         ├── portal.html                    # 可视化浏览器页面（零外部依赖，双击即可打开）
         ├── context/
+        │   ├── prd-quality-report.yaml    #   AI-friendly PRD 质量评分
         │   ├── requirement-ir.yaml
         │   ├── evidence.yaml
         │   ├── readiness-report.yaml
@@ -122,6 +125,191 @@ images:
 - `block`：暂停蒸馏，要求用户提供 markdown/text。
 - `warn`：允许继续，但必须在 `report.md` §11 中暴露风险。
 - Claude 看图提取的信息置信度为 `medium`（AI 视觉理解），关键结论仍需文本证据或人工确认才能升为 `high`。
+
+## spec/ai-friendly-prd.md
+
+AI-friendly PRD（规范化中间层）：把现实中不够 AI-friendly 的 PRD 编译成对 AI agent 友好的统一 13-section 结构。它不替代原始 PRD，也不替代 report.md / plan.md / requirement-ir.yaml，但后续步骤必须优先读取它。
+
+| 用途 | 边界 |
+|---|---|
+| 给 AI agent 消费的规范化 PRD，13 个固定章节、原子化 REQ-ID、source 标记 | 不替代原始 PRD；不替代 report.md / plan.md / requirement-ir.yaml |
+
+### 13-section 结构
+
+```markdown
+# AI-friendly PRD: <title>
+
+## 1. Overview
+说明需求背景、业务目标、产品范围。
+
+## 2. Problem Statement
+说明要解决的问题、当前痛点、为什么要做。
+
+## 3. Target Users
+列出角色、用户群、使用场景。
+
+## 4. Goals & Success Metrics
+列出目标和可衡量指标。
+如果原 PRD 没有指标，必须标注：`Missing confirmation`。
+
+## 5. User Stories
+用统一格式：
+- As a <role>, I want <capability>, so that <benefit>.
+每条必须有 source 标记。
+
+## 6. Functional Requirements
+原子化需求列表。
+格式：
+- REQ-001
+  - Priority: P0/P1/P2
+  - Statement:
+  - Source: explicit | inferred | missing_confirmation
+  - Evidence: 原 PRD 摘要或位置描述
+  - Acceptance Criteria:
+    - AC-001:
+
+## 7. Non-Functional Requirements
+性能、权限、兼容性、稳定性、国际化、可观测性等。
+没有则写 `No explicit NFR found`，不能编造。
+
+## 8. Technical Considerations
+接口、字段、枚举、状态、配置、数据流、前端/BFF/后端边界。
+不确定的写 `Needs owner confirmation`。
+
+## 9. UI/UX Requirements
+页面、表单、组件、文案、错误提示、预览、交互。
+没有明确 UI 描述则写缺失。
+
+## 10. Out of Scope
+明确不做什么。
+如果原 PRD 没写，列出 inferred risks，不要当事实。
+
+## 11. Timeline & Milestones
+里程碑、灰度、上线、依赖。
+原 PRD 没有则标 missing。
+
+## 12. Risks & Mitigations
+列出冲突、歧义、缺字段、跨团队依赖、实现风险。
+
+## 13. Open Questions
+必须列出所有需要 owner 确认的问题。
+每条包含：
+- Question
+- Why it matters
+- Blocking level: P0/P1/P2
+- Suggested owner: PM/FE/BFF/BE/QA/Unknown
+```
+
+### Source 标记规则
+
+所有关键条目必须标注：
+
+- `source: explicit`：原 PRD 明确写了。
+- `source: inferred`：从上下文合理推断，但原文没有直接写清楚。
+- `source: missing_confirmation`：缺失或冲突，必须确认。
+
+硬约束：
+
+1. `inferred` 不能进入最终 plan 的必做项，除非 report/questions 明确提示需确认。
+2. `missing_confirmation` 必须进入 Open Questions（§13）。
+3. `requirement-ir.yaml` 中每条 requirement 应能追溯到 ai-friendly-prd.md 的 REQ-ID。
+4. `report.md` 中必须说明 AI-friendly PRD 的质量状态。
+5. `plan.md` 不得把 `missing_confirmation` 当确定实现任务。
+
+## context/prd-quality-report.yaml
+
+AI-friendly PRD 质量评分：评估原始 PRD 转换为 AI-friendly PRD 的质量、缺失项、推断项和风险项。
+
+```yaml
+schema_version: "1.0"
+status: "pass | warning | fail"
+score: 0
+summary:
+  decision: "ready_for_distill | distill_with_warnings | needs_prd_clarification"
+  top_reasons: []
+scores:
+  structure:
+    score: 0
+    max: 20
+    findings: []
+  atomicity:
+    score: 0
+    max: 15
+    findings: []
+  acceptance_criteria:
+    score: 0
+    max: 20
+    findings: []
+  constraints_and_scope:
+    score: 0
+    max: 15
+    findings: []
+  technical_specificity:
+    score: 0
+    max: 15
+    findings: []
+  ambiguity_risk:
+    score: 0
+    max: 15
+    findings: []
+counts:
+  requirements_total: 0
+  explicit_requirements: 0
+  inferred_requirements: 0
+  missing_confirmation_items: 0
+  acceptance_criteria_total: 0
+  open_questions: 0
+risks:
+  blockers: []
+  warnings: []
+  ambiguous_terms: []
+  conflicting_values: []
+  missing_sections: []
+coverage:
+  has_overview: true/false
+  has_problem_statement: true/false
+  has_target_users: true/false
+  has_success_metrics: true/false
+  has_user_stories: true/false
+  has_functional_requirements: true/false
+  has_nfr: true/false
+  has_technical_considerations: true/false
+  has_ui_ux: true/false
+  has_out_of_scope: true/false
+  has_timeline: true/false
+  has_risks: true/false
+  has_open_questions: true/false
+```
+
+评分规则（总分 100）：
+
+| 维度 | 分值 | 说明 |
+|---|---:|---|
+| structure | 20 | 是否能映射到 13 个章节；是否有清晰标题/表格/列表；是否能区分背景、需求、规则、问题 |
+| atomicity | 15 | 需求是否可拆成原子 REQ；是否混合多个动作；是否存在一条需求多个验收口径 |
+| acceptance_criteria | 20 | 是否有可验证 AC；是否有数值范围、边界条件、错误提示；是否能转成测试条件 |
+| constraints_and_scope | 15 | 是否有 out of scope；是否有权限、互斥、灰度、兼容、依赖边界 |
+| technical_specificity | 15 | 是否有字段、枚举、状态、接口、配置、前端/BFF/后端边界 |
+| ambiguity_risk | 15 | 模糊词越多扣分；冲突数字扣分；图片/表格无文字说明扣分；关键 owner 缺失扣分 |
+
+状态阈值：
+
+- 85-100：`pass`
+- 60-84：`warning`
+- 0-59：`fail`
+
+硬降级：
+
+- P0 需求超过 3 条 `missing_confirmation`：最多 `warning`
+- 核心功能目标不明确：`fail`
+- 无法提取 functional requirements：`fail`
+- PRD 主要信息在图片/表格但未解析：`warning` 或 `fail`
+
+| 用途 | 边界 |
+|---|---|
+| 评估 AI-friendly PRD 转换质量、source 分布、缺失项 | 不替代 readiness-report.yaml（就绪度评估）；不替代 report.md（人类决策文档） |
+
+> **辅助层定位**：prd-quality-report 是 Step 1.5 的质量评估产出，为后续 Step 2 Requirement IR 和 Step 8 Report 提供输入，但不替代 readiness-report 的综合就绪度评估。
 
 ## portal.html
 
@@ -353,10 +541,13 @@ images:
 # 代码搜索上下文：<需求名称>
 
 ## 1. PRD 概念到代码路由
-| REQ | 查询词 | 命中流程/模块 | 关键文件 | 置信度 |
+| REQ | ai_prd_req_id | 查询词 | 命中流程/模块 | 关键文件 | 置信度 |
 
 ## 2. 函数级上下文
 ### GCTX-001 <symbol/process>
+- requirement_id：REQ-001
+- impact_id：IMP-FE-001（如已确定）
+- ai_prd_req_id：REQ-001
 - 查询来源：REQ-001 / 字段 / 接口 / 业务实体
 - 符号：`SymbolName`
 - 位置：`path/to/file.go:123`
@@ -366,12 +557,18 @@ images:
 - 被调用方：`CalleeA`, `CalleeB`
 - 影响半径：模块/函数/route consumer 列表
 - 计划用途：modify | add-nearby | verify-no-change | regression-scope
+- 证据来源：graph | rg | reference | inferred
 - 证据：EV-xxx
+- 置信度：high | medium | low
 
-## 3. API / Contract Consumers
+## 3. Code Anchor 汇总
+| Anchor ID | Layer | File | Symbol | Line | Type | REQ | IMP | Source | Confidence |
+每个 GCTX 条目中定位到的代码锚点汇总表，方便 report/plan 直接引用。
+
+## 4. API / Contract Consumers
 | Route/Contract | Producer | Consumers | Consumer 字段访问 | Shape 风险 |
 
-## 4. 搜索未命中
+## 5. 搜索未命中
 | Query | Scope | Result | 结论 |
 ```
 
@@ -381,6 +578,11 @@ images:
 - **必须生成**：列出所有代码搜索查询和结果。
 - 源码确认的符号、调用链、route consumer 可以作为 high-confidence 代码线索。
 - 所有 GCTX 条目必须被 `plan.md` 或 `report.md` 消费，未消费要说明原因。
+- 每个 GCTX entry 必须引用 `requirement_id`、`impact_id`（如已确定）、`ai_prd_req_id`、`layer`、`code_anchor id/file/symbol/line`、`confidence`、`evidence source`。
+- graph-context 不只是代码扫描摘要，要成为 REQ→代码证据链的一部分。
+- 每个 code anchor 必须说明是由 rg、GitNexus/reference、源码阅读还是推断得到。
+- 低置信度 anchor 必须进入 report 风险或 plan 假设。
+- 新增 §3 Code Anchor 汇总表，为 report/plan 提供可直接引用的锚点清单。
 
 ## context/evidence.yaml
 
@@ -404,25 +606,48 @@ items:
 
 ## context/requirement-ir.yaml
 
+Requirement IR 是 AI-friendly PRD 的结构化 IR。每条 requirement 必须能追溯到 `spec/ai-friendly-prd.md` 的 REQ-ID 和 source 状态。
+
 ```yaml
-schema_version: "4.0"
+schema_version: "5.0"
 tool_version: "<tool-version>"
 meta:
   id: ""
   title: ""
   source_docs: []
+  ai_prd_source: "spec/ai-friendly-prd.md"
   target_layers: ["frontend", "bff", "backend"]
   overall_confidence: "high | medium | low"
 requirements:
   - id: "REQ-001"
+    ai_prd_req_id: "REQ-001"
     title: ""
+    statement: ""
+    priority: "P0 | P1 | P2"
+    source: "explicit | inferred | missing_confirmation"
     intent: ""
     change_type: "ADD | MODIFY | DELETE | NO_CHANGE"
     business_entities: []
     rules: []
-    acceptance_criteria: []
+    acceptance_criteria:
+      - id: "AC-001"
+        statement: ""
+        source: "explicit | inferred | missing_confirmation"
+        testability: "testable | partial | not_testable"
     target_layers: []
-    evidence: ["EV-001"]
+    evidence:
+      summary: ""
+      location: ""
+      source_block_ids: []
+      evidence_ids: ["EV-001"]
+    open_question_refs: []
+    confirmation:
+      status: "confirmed | needs_confirmation | blocked"
+      reason: ""
+      suggested_owner: "PM | FE | BFF | BE | QA | Unknown"
+    planning:
+      eligibility: "ready | assumption_only | blocked"
+      rule: ""
     confidence: "high | medium | low"
     risk_flags: []
 open_questions:
@@ -432,23 +657,68 @@ open_questions:
     owner: "product | frontend | bff | backend | qa"
 ```
 
+### 字段说明
+
+| 字段 | 含义 |
+|---|---|
+| `id` | requirement-ir 自己的稳定 REQ-ID |
+| `ai_prd_req_id` | 必须引用 `spec/ai-friendly-prd.md` 中的 REQ-ID |
+| `source` | 继承 AI-friendly PRD 的 source 状态：explicit / inferred / missing_confirmation |
+| `evidence.summary` | 该需求来自 AI-friendly PRD 哪段、原始 PRD 哪段 |
+| `evidence.source_block_ids` | AI-friendly PRD 或原始 PRD 的 block ID |
+| `acceptance_criteria.source` | AC 的 source 状态 |
+| `acceptance_criteria.testability` | AC 是否可转成测试条件 |
+| `open_question_refs` | 关联 ai-friendly-prd §13 或 questions.md 的问题 ID |
+| `confirmation.status` | 是否已确认：confirmed / needs_confirmation / blocked |
+| `planning.eligibility` | explicit 且无阻塞 → ready；inferred → assumption_only；missing_confirmation → blocked |
+
+### Source 继承规则
+
+- AI-friendly PRD 中 `explicit` 的 REQ → requirement-ir `source` 必须为 `explicit`，`planning.eligibility` 可为 `ready`。
+- AI-friendly PRD 中 `inferred` 的 REQ → requirement-ir `source` 必须为 `inferred`，`planning.eligibility` 默认为 `assumption_only`（除非 report/questions 明确标注确认路径）。
+- AI-friendly PRD 中 `missing_confirmation` 的 REQ → requirement-ir `source` 必须为 `missing_confirmation`，`planning.eligibility` 必须为 `blocked`，`confirmation.status` 必须为 `blocked`。
+
+### 降级规则
+
+- 如果 acceptance_criteria 缺失或 `testability: not_testable`，`planning.eligibility` 不能为 `ready`。
+- 如果 P0 requirement 是 `missing_confirmation`，`confirmation.status` 必须为 `blocked`。
+- `missing_confirmation` 必须进入 `open_question_refs`。
+- `inferred` 不能直接进入确定开发 checklist，只能作为 `assumption_only`。
+- report.md 和 plan.md 只能消费 `planning.eligibility` 为 `ready` 的确定实现项。`assumption_only` / `blocked` 必须进入问题、风险或前置确认。
+
 Requirement IR 只描述业务意图和可验收规则，不写文件级实现细节。
 
 ## context/layer-impact.yaml
 
+Layer Impact 是 REQ→代码影响的结构化映射。每个 IMP 必须能追溯到 requirement-ir 的 REQ-ID 和 AI-friendly PRD 的 source 状态。
+
 ```yaml
-schema_version: "4.0"
+schema_version: "5.0"
 tool_version: "<tool-version>"
 layers:
   frontend:
     impacts:
       - id: "IMP-FE-001"
         requirement_id: "REQ-001"
+        ai_prd_req_id: "REQ-001"
+        requirement_source: "explicit | inferred | missing_confirmation"
+        planning_eligibility: "ready | assumption_only | blocked"
         change_type: "ADD | MODIFY | DELETE | NO_CHANGE"
         surface: "ui_route | view_component | form_or_schema | client_contract | edge_api | schema_or_template | api_surface | domain_model | ..."
         target: ""
         current_state: ""
         planned_delta: ""
+        code_anchors:
+          - id: "ANCHOR-001"
+            layer: "frontend | bff | backend | unknown"
+            file: ""
+            symbol: ""
+            line_start: 0
+            line_end: 0
+            anchor_type: "route | component | api | schema | model | service | config | test | unknown"
+            evidence: ""
+            confidence: "high | medium | low"
+            source: "graph | rg | reference | inferred"
         dependencies: []
         risks: []
         evidence: ["EV-001"]
@@ -459,6 +729,27 @@ layers:
     impacts: []
 quality_gates: []
 ```
+
+### 字段说明
+
+| 字段 | 含义 |
+|---|---|
+| `id` | IMP 稳定 ID，格式 IMP-{层缩写}-{序号} |
+| `requirement_id` | 必须引用 requirement-ir 的 REQ-ID |
+| `ai_prd_req_id` | 必须引用 `spec/ai-friendly-prd.md` 的 REQ-ID |
+| `requirement_source` | 继承 requirement 的 source 状态 |
+| `planning_eligibility` | 继承 requirement 的 planning.eligibility |
+| `code_anchors` | 代码锚点列表：精确定位到文件/符号/行号 |
+| `code_anchors[].source` | 锚点来源：graph（源码确认）/ rg（搜索命中）/ reference（知识库路由）/ inferred（推断） |
+
+### 强绑定规则
+
+- 每个 IMP 必须引用 `requirement_id`，并继承 `ai_prd_req_id`、`requirement_source`、`planning_eligibility`。
+- `planning_eligibility=blocked` 的 requirement 不得生成确定性实现 IMP，只能生成风险/待确认影响。
+- `planning_eligibility=assumption_only` 的 requirement 只能生成假设性影响，标注需确认。
+- `ready` 的 MODIFY/DELETE IMP 必须至少有一个 `code_anchor`，除非明确写入 fallback reason。
+- ADD IMP 可以没有已有 `code_anchor`，但必须写 `target` surface 和 proposed location / owner layer。
+- `code_anchor.source=inferred` 时，不得作为唯一 high confidence 证据。
 
 `surface` 使用 `layer-adapters.md` 中定义的能力面名称。
 
