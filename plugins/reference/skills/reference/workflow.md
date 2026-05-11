@@ -127,11 +127,11 @@ project-profile.yaml        # 项目画像
 
 按以下顺序逐步执行子步骤（每步只读当前子步骤文件 + 上一步输出），后生成的文件必须检查先生成的文件，避免内容重叠：
 
-1. `step-02a-codebase.md` → `01-codebase.yaml`
-2. `step-02b-coding-rules.md` → `02-coding-rules.yaml`（检查 01 去重）
-3. `step-02c-contracts.md` → `03-contracts.yaml`（检查 01 去重，移入字段级信息）
-4. `step-02d-routing.md` → `04-routing-playbooks.yaml`（含 capability_inventory，检查 02 去重）
-5. `step-02e-domain-portal.md` → `05-domain.yaml` + `00-portal.md`（检查术语与静态事实边界）
+1. 阶段 1：`01-codebase.yaml`
+2. 阶段 2：`02-coding-rules.yaml`（检查 01 去重）
+3. 阶段 3：`03-contracts.yaml`（检查 01 去重，移入字段级信息）
+4. 阶段 4：`04-routing-playbooks.yaml`（含 capability_inventory，检查 02 去重）
+5. 阶段 5：`05-domain.yaml` + `00-portal.md`（检查术语与静态事实边界）
 6. 运行脚本生成 `portal.html`：`python3 .prd-tools/scripts/render-reference-portal.py --root . --template .prd-tools/assets/reference-portal-template.html --out _prd-tools/reference/portal.html`（**AI 不得手写 portal.html**，必须通过脚本渲染生成）
 
 每个子步骤文件末尾有 Self-Check 清单，生成后必须逐项验证通过再进入下一步。
