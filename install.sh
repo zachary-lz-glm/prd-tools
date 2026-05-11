@@ -15,6 +15,7 @@ TARGET="${1:-.}"
 TARGET="$(cd "$TARGET" && pwd)"
 
 CLAUDE_SKILLS_DIR="$TARGET/.claude/skills"
+CLAUDE_COMMANDS_DIR="$TARGET/.claude/commands"
 GLOBAL_CLAUDE_SKILLS_DIR="$HOME/.claude/skills"
 PRD_TOOLS_DIR="$TARGET/.prd-tools"
 PRD_TOOLS_SCRIPTS_DIR="$PRD_TOOLS_DIR/scripts"
@@ -110,15 +111,19 @@ for skill in reference prd-distill; do
   fi
 done
 
-# ── 清理旧命令 alias ────────────────────────────────────────────
-# /reference 由 skills/reference/SKILL.md 的 skill name 提供，不再复制
-# .claude/commands/reference.md，避免出现两套入口定义。
-LEGACY_COMMAND="$TARGET/.claude/commands/reference.md"
-if [ -f "$LEGACY_COMMAND" ]; then
-  rm -f "$LEGACY_COMMAND"
-  rmdir "$TARGET/.claude/commands" 2>/dev/null || true
-  echo "    已清理旧命令 alias：.claude/commands/reference.md"
-fi
+# ── 复制 slash command 兼容入口 ─────────────────────────────────
+# Skills 是主入口；commands 是薄 wrapper，用于兼容不稳定触发 skill 的客户端/中转环境。
+mkdir -p "$CLAUDE_COMMANDS_DIR"
+echo "==> 安装 slash command wrappers 到 $CLAUDE_COMMANDS_DIR"
+for command in reference prd-distill; do
+  src="$ARCHIVE_ROOT/.claude/commands/$command.md"
+  if [ -f "$src" ]; then
+    cp "$src" "$CLAUDE_COMMANDS_DIR/$command.md"
+    echo "    已安装命令：/$command"
+  else
+    echo "    警告：源码包内未找到 .claude/commands/$command.md" >&2
+  fi
+done
 
 # ── Version marker ────────────────────────────────────────────────
 TOOL_VERSION="unknown"

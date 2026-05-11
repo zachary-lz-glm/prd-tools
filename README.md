@@ -15,7 +15,7 @@ curl -fsSL https://raw.githubusercontent.com/zachary-lz-glm/prd-tools/v2.0/insta
 /prd-distill path/to/prd.md
 ```
 
-安装完成后目标项目下生成 `.claude/skills/`（两个 skill）、`.prd-tools/scripts/`（零依赖 runtime 辅助脚本）和 `.prd-tools-version`（版本标记）。
+安装完成后目标项目下生成 `.claude/skills/`（两个 skill）、`.claude/commands/`（slash command 兼容入口）、`.prd-tools/scripts/`（零依赖 runtime 辅助脚本）和 `.prd-tools-version`（版本标记）。
 
 离线安装：下载 `install.sh` 到本地后 `bash install.sh /path/to/project`。
 
