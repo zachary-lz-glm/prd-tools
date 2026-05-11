@@ -3,7 +3,28 @@
 All notable changes to the **prd-distill** plugin are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
-## [2.16.1] - 2026-05-10
+## [2.16.2] - 2026-05-11
+
+### Added
+- feat: render stable portal pages
+- feat: add AI-friendly PRD compiler pipeline
+- feat: add branch-backed multi-layer benchmark
+- feat: add evidence index benchmark harness
+
+### Changed
+- chore: release v2.16.1
+- chore: release v2.19.0
+- refactor: workflow quality overhaul — split steps, extract design system, add self-check
+- chore: release v2.18.1
+- refactor: remove DIVE-specific examples from output-contracts schema
+- chore: release v2.18.0
+- chore: release v2.17.0
+- refactor: redesign portal visual system for modern look
+
+### Fixed
+- fix: add hard completion gates
+
+- fix: add hard completion gates
 
 ### Added
 - feat: add branch-backed multi-layer benchmark
