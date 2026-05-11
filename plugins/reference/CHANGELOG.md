@@ -6,69 +6,53 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 ## [2.16.2] - 2026-05-11
 
 ### Added
-- feat: render stable portal pages
-- feat: add AI-friendly PRD compiler pipeline
-- feat: add branch-backed multi-layer benchmark
-- feat: add evidence index benchmark harness
-
-### Changed
-- chore: release v2.16.1
-- chore: release v2.19.0
-- refactor: workflow quality overhaul — split steps, extract design system, add self-check
-- chore: release v2.18.1
-- refactor: remove DIVE-specific examples from output-contracts schema
-- chore: release v2.18.0
-- chore: release v2.17.0
-- refactor: redesign portal visual system for modern look
+- 固定模板 + `render-reference-portal.py` 脚本渲染 `portal.html`，避免 AI 每次手写页面导致风格漂移。
+- reference 完成门禁脚本 `reference-quality-gate.py`，检查 required files、Evidence Index、portal marker 和基础 schema。
+- reference 输出语言规则：schema key 保持英文，自然语言内容默认中文。
 
 ### Fixed
-- fix: add hard completion gates
+- 强化 `/reference` 完成门禁：不生成 `index/` 和脚本渲染的 `portal.html` 不得宣称完成。
+- 修复安装链路，确保 `reference-portal-template.html` 会安装到目标项目 `.prd-tools/assets/`。
 
-- fix: add hard completion gates
-
-### Added
-- feat: add branch-backed multi-layer benchmark
-- feat: add evidence index benchmark harness
-
-- feat: add evidence index benchmark harness
+## [2.16.1] - 2026-05-10
 
 ### Added
-- feat: prd-distill 支持 .docx 输入，提取图片并使用 Claude 原生多模态看图
+- branch-backed multi-layer benchmark 支持 reference 相关锚点评测。
+- Evidence Index benchmark harness，用于验证 reference/index 对下游 code anchor 的收益。
 
-- feat: prd-distill 支持 .docx 输入，提取图片并使用 Claude 原生多模态看图
-
-### Added
-- feat: prd-distill 新增 portal.html 可视化页面生成步骤
-- feat: reference 新增 portal.html 可视化页面生成步骤
-
-### Changed
-- docs: 重写三个 README，强化对外可读性
-
-- docs: 重写三个 README，强化对外可读性
-
-### Changed
-- refactor: 移除全部第三方依赖和辅助脚本，精简 distill 产出结构
-
-- refactor: 移除全部第三方依赖和辅助脚本，精简 distill 产出结构
-
-### Changed
-- refactor: 移除 GitNexus/Graphify 第三方图谱工具依赖，回归原生能力
-
-- refactor: 移除 GitNexus/Graphify 第三方图谱工具依赖，回归原生能力
+## [2.15.0] - 2026-05-08
 
 ### Added
-- feat: add status dashboard MVP
+- reference 新增 `portal.html` 可视化页面生成步骤。
 
 ### Changed
-- docs: streamline prd tools guidance
-- refactor: rename reference plugin internals
+- 重写 README，强化对外可读性。
 
-- refactor: rename reference plugin internals
+## [2.14.0] - 2026-05-08
 
 ### Changed
-- refactor: install.sh 三层职责拆分 (ADR-0008)
+- 移除全部第三方依赖和辅助脚本，精简 reference/prd-distill 共享产出结构。
 
-- refactor: install.sh 三层职责拆分 (ADR-0008)
+## [2.13.0] - 2026-05-08
+
+### Changed
+- 移除 GitNexus/Graphify 第三方图谱工具依赖，回归原生能力。
+
+## [2.12.0] - 2026-05-08
+
+### Added
+- status dashboard MVP。
+
+### Changed
+- 精简 prd-tools guidance。
+- 重命名 reference plugin internals。
+
+## [2.11.1] - 2026-05-07
+
+### Changed
+- install.sh 三层职责拆分（ADR-0008）。
+
+## [2.11.0] - 2026-05-07
 
 ### Changed
 - refactor: _output/ + _reference/ 统一为 _prd-tools/，Spec Kit 对齐重组
@@ -83,22 +67,12 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 ### Fixed
 - fix: 修复安装归档路径与输出口径漂移
 
-- fix: 修复安装归档路径与输出口径漂移
+## [2.9.0] - 2026-05-06
 
 ### Added
-- feat: v2.8 质量复盘 — 输出契约全面升级 + 契约校验自动化
+- v2.8 质量复盘：输出契约全面升级 + 契约校验自动化。
 
-- feat: v2.8 质量复盘 — 输出契约全面升级 + 契约校验自动化
-
-### Changed
-- (待补充)
-
-- (待补充)
-
-### Changed
-- (待补充)
-
-- (待补充)
+## [2.5.1] - 2026-05-01
 
 ### Fixed
 - 6 个模板（01-05 + project-profile）增加 `graph_sources: []` 和 `graph_evidence_refs: []` 字段

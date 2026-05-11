@@ -6,71 +6,63 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 ## [2.16.2] - 2026-05-11
 
 ### Added
-- feat: render stable portal pages
-- feat: add AI-friendly PRD compiler pipeline
-- feat: add branch-backed multi-layer benchmark
-- feat: add evidence index benchmark harness
-
-### Changed
-- chore: release v2.16.1
-- chore: release v2.19.0
-- refactor: workflow quality overhaul — split steps, extract design system, add self-check
-- chore: release v2.18.1
-- refactor: remove DIVE-specific examples from output-contracts schema
-- chore: release v2.18.0
-- chore: release v2.17.0
-- refactor: redesign portal visual system for modern look
+- AI-friendly PRD Compiler：新增 `spec/ai-friendly-prd.md` 和 `context/prd-quality-report.yaml`。
+- requirement-ir 对齐 AI-friendly PRD，新增 `ai_prd_req_id`、source、confirmation、planning eligibility 等字段。
+- REQ → IMP → code_anchor 强绑定，增强 layer-impact、graph-context、report/plan 的可追溯性。
+- 固定模板 + `render-distill-portal.py` 脚本渲染 `portal.html`，避免 AI 每次手写页面导致风格漂移。
+- distill 完成门禁脚本 `distill-quality-gate.py`，检查 AI-friendly PRD、IR、anchors、final gate 和 portal marker。
 
 ### Fixed
-- fix: add hard completion gates
+- 强化 `/prd-distill` 完成门禁：关键产物缺失时不得宣称完成。
+- 修复安装链路，确保 `distill-portal-template.html` 会安装到目标项目 `.prd-tools/assets/`。
 
-- fix: add hard completion gates
-
-### Added
-- feat: add branch-backed multi-layer benchmark
-- feat: add evidence index benchmark harness
-
-- feat: add evidence index benchmark harness
+## [2.16.1] - 2026-05-10
 
 ### Added
-- feat: prd-distill 支持 .docx 输入，提取图片并使用 Claude 原生多模态看图
+- branch-backed multi-layer benchmark。
+- Evidence Index benchmark harness。
 
-- feat: prd-distill 支持 .docx 输入，提取图片并使用 Claude 原生多模态看图
-
-### Added
-- feat: prd-distill 新增 portal.html 可视化页面生成步骤
-
-### Changed
-- docs: 重写三个 README，强化对外可读性
-
-- docs: 重写三个 README，强化对外可读性
-
-### Changed
-- refactor: 移除全部第三方依赖和辅助脚本，精简 distill 产出结构
-
-- refactor: 移除全部第三方依赖和辅助脚本，精简 distill 产出结构
-
-### Changed
-- refactor: 移除 GitNexus/Graphify 第三方图谱工具依赖，回归原生能力
-
-- refactor: 移除 GitNexus/Graphify 第三方图谱工具依赖，回归原生能力
+## [2.16.0] - 2026-05-08
 
 ### Added
-- feat: add status dashboard MVP
+- prd-distill 支持 `.docx` 输入，提取图片并使用 Claude 原生多模态看图。
+
+## [2.15.0] - 2026-05-08
+
+### Added
+- prd-distill 新增 `portal.html` 可视化页面生成步骤。
 
 ### Changed
-- docs: streamline prd tools guidance
-- refactor: rename reference plugin internals
+- 重写 README，强化对外可读性。
+
+## [2.14.0] - 2026-05-08
+
+### Changed
+- 移除全部第三方依赖和辅助脚本，精简 distill 产出结构。
+
+## [2.13.0] - 2026-05-08
+
+### Changed
+- 移除 GitNexus/Graphify 第三方图谱工具依赖，回归原生能力。
+
+## [2.12.0] - 2026-05-08
+
+### Added
+- status dashboard MVP。
+
+### Changed
+- 精简 prd-tools guidance。
+- 重命名 reference plugin internals。
 
 ### Fixed
-- fix: unify reference install workflow
+- 统一 reference install workflow。
 
-- fix: unify reference install workflow
+## [2.11.1] - 2026-05-07
 
 ### Changed
-- refactor: install.sh 三层职责拆分 (ADR-0008)
+- install.sh 三层职责拆分（ADR-0008）。
 
-- refactor: install.sh 三层职责拆分 (ADR-0008)
+## [2.11.0] - 2026-05-07
 
 ### Changed
 - refactor: _output/ + _reference/ 统一为 _prd-tools/，Spec Kit 对齐重组
@@ -85,15 +77,15 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 ### Fixed
 - fix: 修复安装归档路径与输出口径漂移
 
-- fix: 修复安装归档路径与输出口径漂移
+## [2.9.0] - 2026-05-06
 
 ### Added
-- feat: v2.8 质量复盘 — 输出契约全面升级 + 契约校验自动化
+- v2.8 质量复盘：输出契约全面升级 + 契约校验自动化。
 
-- feat: v2.8 质量复盘 — 输出契约全面升级 + 契约校验自动化
+## [2.8.0] - 2026-05-06
 
 ### Added
-- feat: prd-distill v2.8 质量复盘 — 修复图片confidence + questions合并 + plan升级技术方案 + 线索保留
+- prd-distill v2.8 质量复盘：修复图片 confidence、questions 合并、plan 升级技术方案、线索保留。
 
 - **MarkItDown 集成**：用 microsoft/markitdown 替换手写 OOXML 解析和 pdftotext，作为文件转换后端
 - **LLM Vision 图片分析**：自动检测环境变量，启用 markitdown-ocr 分析 PRD 流程图/截图/设计稿
