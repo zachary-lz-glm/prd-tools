@@ -119,7 +119,7 @@ def _check_media_coverage(distill_dir):
             if fname:
                 analyzed_files.add(os.path.basename(fname))
     elif isinstance(analysis, dict):
-        for item in analysis.get("media", analysis.get("items", [])):
+        for item in analysis.get("media") or analysis.get("items") or analysis.get("images") or []:
             fname = item.get("file") or item.get("filename") or item.get("media_ref", "")
             if fname:
                 analyzed_files.add(os.path.basename(fname))

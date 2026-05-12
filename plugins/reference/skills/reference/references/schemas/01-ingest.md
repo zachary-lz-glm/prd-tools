@@ -82,7 +82,7 @@ blocks:
 
 ```yaml
 schema_version: "1.0"
-images:
+media:
   - file: ""
     type: "ui_screenshot | flowchart | data_chart | table_image | decoration"
     summary: ""

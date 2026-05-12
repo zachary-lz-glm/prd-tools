@@ -78,7 +78,7 @@ _prd-tools/
 | `document-structure.json` | 段落、标题、表格、图片等结构块，含 block id 和 locator | 不写业务语义结论 |
 | `evidence-map.yaml` | PRD 块级证据，供 `context/evidence.yaml` 映射。顶层字段：`meta`（元数据）、`blocks`（数组，每个元素含 `block_id / lines / content_summary / req_ids`） | 不放源码、diff、reference 证据 |
 | `media/` | 抽出的图片、截图、流程图原文件（docx 提取时自动抽取） | 不修改图片内容 |
-| `media-analysis.yaml` | 图片分析状态和摘要；Claude 用 Read 工具（原生多模态）直接查看图片后填写。类型：`ui_screenshot | flowchart | data_chart | table_image | decoration`。每条包含：文件名、类型、关键信息摘要、置信度 | 不确认的图片内容只能产生低置信度问题 |
+| `media-analysis.yaml` | 图片分析状态和摘要。顶层字段 `media`（权威）是数组，每条含 `file / type / summary / confidence`；`images`/`items` 仅为兼容旧产物。类型：`ui_screenshot | flowchart | data_chart | table_image | decoration` | 不确认的图片内容只能产生低置信度问题 |
 | `tables/` | 单独抽出的表格 markdown | 不修复原表格，只保留转换结果 |
 | `extraction-quality.yaml` | 读取质量门禁：`pass | warn | block`、统计、风险 | 不写开发计划 |
 | `conversion-warnings.md` | 给人看的转换风险 | 不替代 report.md §11 |
@@ -102,7 +102,7 @@ rules:
 
 ```yaml
 schema_version: "1.0"
-images:
+media:
   - file: "media/image2.png"
     type: "ui_screenshot"
     summary: "DIVE 2.0 MIS 创建活动页面-目标人群步骤，包含是否限制司机、人群选择方式、CSV上传等表单"
