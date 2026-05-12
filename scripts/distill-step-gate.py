@@ -79,6 +79,9 @@ STEP_TABLE = {
         "prerequisites": [
             ("spec/ai-friendly-prd.md", "Step 1.5"),
             ("context/prd-quality-report.yaml", "Step 1.5"),
+            ("_ingest/document.md", "Step 0"),
+            ("_ingest/document-structure.json", "Step 1"),
+            ("_ingest/evidence-map.yaml", "Step 1"),
         ],
         "output": ["context/requirement-ir.yaml"],
     },

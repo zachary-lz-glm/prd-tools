@@ -68,7 +68,7 @@ items:
 
 ## context/requirement-ir.yaml
 
-Requirement IR 是 AI-friendly PRD 的结构化 IR。每条 requirement 必须能追溯到 `spec/ai-friendly-prd.md` 的 REQ-ID 和 source 状态。
+Requirement IR 是原始 PRD 的结构化 IR。每条 requirement 必须能追溯到 `_ingest/document.md` 的 source_blocks 和 `spec/ai-friendly-prd.md` 的 REQ-ID。
 
 ```yaml
 schema_version: "5.0"
@@ -77,6 +77,7 @@ meta:
   id: ""
   title: ""
   source_docs: []
+  primary_source: "_ingest/document.md"
   ai_prd_source: "spec/ai-friendly-prd.md"
   target_layers: ["frontend", "bff", "backend"]
   overall_confidence: "high | medium | low"
@@ -100,6 +101,9 @@ requirements:
     evidence:
       summary: ""
       location: ""
+      source_blocks:
+        - block_id: ""
+          type: "text | table | media | list"
       source_block_ids: []
       evidence_ids: ["EV-001"]
     open_question_refs: []

@@ -271,12 +271,15 @@ AI-friendly PRD 必须使用 13 个固定章节：
 
 ## 步骤 2：Requirement IR
 
-将 `spec/ai-friendly-prd.md` 转成 `context/requirement-ir.yaml`。
+将原始 PRD 需求转成 `context/requirement-ir.yaml`。
 
 ### 主输入
 
-- **主输入**：`spec/ai-friendly-prd.md` + `context/prd-quality-report.yaml`。
-- **证据回查**：`_ingest/document.md` 只用于证据回查和 block 定位，不是主输入。不允许直接从原始 PRD 推导 requirement，必须经过 AI-friendly PRD 的 REQ-ID 和 source 标记。
+- **主输入**：`_ingest/document.md`（原始 PRD 全文）。
+- **索引辅助**：`spec/ai-friendly-prd.md`（REQ-ID 框架 + 章节索引，用于定位和结构化，不替代原始内容）。
+- **证据指针**：`_ingest/evidence-map.yaml` + `_ingest/document-structure.json`（block 级切片和覆盖追踪）。
+- **质量参考**：`context/prd-quality-report.yaml`。
+- 不允许只读 ai-friendly-prd.md 就生成 requirement-ir，必须回查 document.md 获取完整细节。
 
 ### Source 继承规则
 

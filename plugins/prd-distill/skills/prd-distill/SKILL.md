@@ -241,14 +241,14 @@ _prd-tools/distill/<slug>/
 ### AI-friendly PRD 规则
 
 1. 输入 PRD 后，**必须先生成 AI-friendly PRD**（`spec/ai-friendly-prd.md`），不允许直接从原始 PRD 跳到 report/plan。
-2. AI-friendly PRD 是规范化中间层，不替代原始 PRD。
+2. AI-friendly PRD 是结构化索引层（帮助 AI 定位信息），不替代原始 PRD。
 3. 所有 `inferred` / `missing_confirmation` 必须显式标注 source。
 4. `missing_confirmation` 不得进入确定性开发任务（plan.md 的 checklist）。
 5. `requirement-ir.yaml` 中每条 requirement 应能追溯到 ai-friendly-prd.md 的 REQ-ID。
 
 ### Requirement-IR 对齐规则
 
-1. `requirement-ir.yaml` 必须以 `spec/ai-friendly-prd.md` 为主输入，`_ingest/document.md` 只能作为证据回查。
+1. `requirement-ir.yaml` 必须以 `_ingest/document.md` 为主输入，`spec/ai-friendly-prd.md` 作为 REQ-ID 框架和章节索引，`_ingest/evidence-map.yaml` 作为 block 级证据指针。不允许只读 ai-friendly-prd.md 就生成 requirement-ir。
 2. 每条 requirement 必须包含 `ai_prd_req_id` 和 `source`，`source` 必须继承 AI-friendly PRD 的 source 标记（explicit / inferred / missing_confirmation）。
 3. `missing_confirmation` 必须进入 `open_question_refs`，且 `planning.eligibility=blocked`。
 4. `inferred` 默认 `planning.eligibility=assumption_only`，不得直接进入确定开发 checklist。

@@ -317,6 +317,27 @@ def _check_portal_html(base):
         'message': message,
     }
 
+def _check_prd_coverage(base):
+    """Run prd-coverage-gate checks and return aggregated status."""
+    coverage_path = base / 'context' / 'coverage-report.yaml'
+    if coverage_path.is_file():
+        with open(coverage_path, 'r', encoding='utf-8') as f:
+            report = yaml.safe_load(f)
+        if report and isinstance(report, dict):
+            status = report.get('status', 'skip')
+            if status == 'fail':
+                return {'status': 'fail', 'message': 'coverage-report.yaml status: fail'}
+            elif status == 'warning':
+                return {'status': 'warning', 'message': 'coverage-report.yaml status: warning'}
+            else:
+                return {'status': 'pass', 'message': 'coverage-report.yaml status: pass'}
+
+    ds_path = base / '_ingest' / 'document-structure.json'
+    if not ds_path.is_file():
+        return {'status': 'pass', 'message': 'No document-structure.json (coverage gate not applicable)'}
+
+    return {'status': 'warning', 'message': 'coverage-report.yaml not found; run prd-coverage-gate.py'}
+
 def run_checks(distill_dir, repo_root):
     """Run all checks and return results dict."""
     base = Path(distill_dir).resolve()
@@ -333,6 +354,7 @@ def run_checks(distill_dir, repo_root):
     results['report_confirmation'] = _check_report_confirmation(base)
     results['plan_missing_confirmation'] = _check_plan_missing_confirmation(base)
     results['portal_html'] = _check_portal_html(base)
+    results['prd_coverage'] = _check_prd_coverage(base)
 
     return results
 
@@ -363,6 +385,7 @@ def print_summary(results):
         ('report_confirmation', 'Report confirmation'),
         ('plan_missing_confirmation', 'Plan missing_confirmation'),
         ('portal_html', 'Portal HTML'),
+        ('prd_coverage', 'PRD coverage (fidelity)'),
     ]
 
     for key, label in checks:
