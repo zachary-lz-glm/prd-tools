@@ -57,3 +57,7 @@ python3 .prd-tools/scripts/render-distill-portal.py \
 - portal.html 是脚本渲染产物，风格由模板固定。
 - portal.html 缺失或为空时，distill-quality-gate 必须 fail。
 - 最终回复必须说明 portal 是脚本生成。
+
+## Self-Check
+
+- [ ] [M] `portal.html` 渲染完成后，如果 `context/evidence.yaml` 存在，其中所有 EV-PRD-* ID 必须出现在 portal 的 HTML 内容中（全集校验）。缺失 EV 必须在 portal 源码报告中标注为 "unrendered"。

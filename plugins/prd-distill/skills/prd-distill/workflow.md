@@ -432,6 +432,8 @@ phases:
 
 **门禁检查**：graph-context.md 中至少 30% 的线索应来自阶段 1-2（reference/index），否则在 readiness-report 中标记 `reference_underconsumed`。
 
+**推测信息约束**：所有"推测"/"speculative"信息（如未确认的接口路径、未验证的调用关系）必须加 `⚠ speculative, confidence=<low|medium>, verify before use` 前缀，否则不得出现在 `graph-context.md` 中。
+
 ### 3.2 Layer Impact 生成
 
 读取目标层适配器：
