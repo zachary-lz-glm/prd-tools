@@ -812,17 +812,17 @@ def main():
     ap = argparse.ArgumentParser(
         description='Generate Context Pack from distill artifacts + evidence index'
     )
-    ap.add_argument('--distill', required=True,
+    ap.add_argument('--distill', '--distill-dir', dest='distill', required=True,
                     help='Path to distill output directory')
-    ap.add_argument('--index', required=True,
-                    help='Path to evidence index directory')
-    ap.add_argument('--out', required=True,
-                    help='Output path for context-pack.md')
+    ap.add_argument('--index', required=False,
+                    help='Path to evidence index directory (default: <distill>/../reference/index)')
+    ap.add_argument('--out', required=False,
+                    help='Output path for context-pack.md (default: <distill>/context/context-pack.md)')
     args = ap.parse_args()
 
     distill = Path(args.distill).resolve()
-    index_dir = Path(args.index).resolve()
-    out_path = Path(args.out).resolve()
+    index_dir = Path(args.index).resolve() if args.index else distill.parent / 'reference' / 'index'
+    out_path = Path(args.out).resolve() if args.out else distill / 'context' / 'context-pack.md'
 
     # Validate inputs
     ctx_dir = distill / 'context'
