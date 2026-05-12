@@ -650,6 +650,7 @@ requirements:
       summary: ""
       location: ""
       source_block_ids: []
+      source_blocks: []
       evidence_ids: ["EV-001"]
     open_question_refs: []
     confirmation:
@@ -676,7 +677,8 @@ open_questions:
 | `ai_prd_req_id` | 必须引用 `spec/ai-friendly-prd.md` 中的 REQ-ID |
 | `source` | 继承 AI-friendly PRD 的 source 状态：explicit / inferred / missing_confirmation |
 | `evidence.summary` | 该需求来自 AI-friendly PRD 哪段、原始 PRD 哪段 |
-| `evidence.source_block_ids` | AI-friendly PRD 或原始 PRD 的 block ID |
+| `evidence.source_block_ids` | AI-friendly PRD 或原始 PRD 的 block ID（旧格式兼容） |
+| `evidence.source_blocks` | AI-friendly PRD 或原始 PRD 的 block ID（新格式，与 source_block_ids 任一非空即可） |
 | `acceptance_criteria.source` | AC 的 source 状态 |
 | `acceptance_criteria.testability` | AC 是否可转成测试条件 |
 | `open_question_refs` | 关联 ai-friendly-prd §13 或 questions.md 的问题 ID |

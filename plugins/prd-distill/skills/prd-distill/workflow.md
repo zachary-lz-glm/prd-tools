@@ -326,7 +326,7 @@ requirement-ir 中每条 requirement 的 `source` 和 `planning.eligibility` 必
 - `rules`
 - `acceptance_criteria`：每条 AC 包含 `id`、`statement`、`source`、`testability`
 - `target_layers`
-- `evidence`：包含 `summary`、`location`、`source_blocks`（原始 PRD block_id 列表，必填）、`source_block_ids`（兼容旧格式）、`evidence_ids`
+- `evidence`：包含 `summary`、`location`、`source_blocks` 或 `source_block_ids`（原始 PRD block_id 列表，至少一个非空；新产物用 source_blocks，旧产物保留 source_block_ids 兼容）、`evidence_ids`
 - `open_question_refs`：关联 ai-friendly-prd §13 的问题 ID
 - `confirmation`：包含 `status`、`reason`、`suggested_owner`
 - `planning`：包含 `eligibility`、`rule`
