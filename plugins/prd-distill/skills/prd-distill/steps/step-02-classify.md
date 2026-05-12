@@ -78,6 +78,20 @@
 2. 为每个目标层选择能力面适配器。
 3. 对每个 requirement 搜索并读取代码，确认当前状态。
 4. 按适配器 surface 记录 Layer Impact。
+
+### 四层影响强制分析
+
+对每个 requirement，**必须按下列顺序分别判断 4 层**：
+
+1. **frontend 影响**：这个需求会让前端 UI / 组件 / 表单 / 路由 / 客户端契约产生什么变化？
+2. **bff 影响**：同上
+3. **backend 影响**：即使本地没有后端仓，只要 PRD 提到数据/接口/枚举/校验/预算等后端职责，就必须生成 `IMP-BE-*` 条目
+4. **external 影响**：涉及第三方系统（券、折扣卡、Push、DMS、权益、风控等）必须生成 `IMP-EXT-*`
+
+**硬规则**：
+- 4 个 layer key 必须同时存在于 layer-impact.yaml
+- 空数组要显式写 `capability_areas: []` 并加 comment 说明理由
+- 非当前仓层的 IMP confidence 不得 high，必须 needs_confirmation
 5. 对每个跨层/API/schema/event/downstream 契约面创建 Contract Delta。
 6. 从规范、约束、third rails、契约、playbook 和 `graph-context.md` 中补充风险。
 

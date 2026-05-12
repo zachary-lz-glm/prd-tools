@@ -4,6 +4,11 @@ required_top_level:
   - schema_version
   - layers
 rules:
+  - id: "all_four_layers_present"
+    require: "'frontend' in layers and 'bff' in layers and 'backend' in layers and 'external' in layers"
+    severity: fail
+    fix_hint: "layer-impact.yaml 必须同时含 frontend/bff/backend/external 四个 key。无影响的层显式写 'capability_areas: []  # no impact' 并注明原因"
+
   - id: "impact_has_req_id"
     each: "layers.*.capability_areas"
     required:
@@ -11,6 +16,15 @@ rules:
       - requirement_id
       - change_type
       - code_anchors
+
   - id: "code_anchors_or_fallback"
     each: "layers.*.capability_areas"
     require: "len(code_anchors) > 0 or fallback_reason exists"
+
+  - id: "non_current_layer_needs_confirmation"
+    each: "layers.*.capability_areas"
+    when:
+      field: "code_anchors[0].source"
+      equals: "inferred"
+    require: "confirmation.status == 'needs_confirmation'"
+    note: "非本仓层的 IMP（source=inferred）必须标为 needs_confirmation"
