@@ -109,6 +109,15 @@
 
 如无阻塞问题，显式写"当前无阻塞问题"。
 
+### Context Pack 必引用规则
+
+`context/context-pack.md` 中 **🔴 Must-Reference Anchors** 段的每个锚点，必须在以下位置之一出现：
+
+- report.md §5（关键结论）或 §6（变更明细表）
+- plan.md §3（实现计划 / Implementation Checklist）
+
+如果某个 🔴 Must-Reference 锚点无法关联到任何变更，必须在 report.md §12 显式说明原因（如："该锚点已确认不受本 PRD 影响"）。
+
 写作规则：
 - 自然语言为主，用 Markdown 表格提高可扫描性
 - 每个变更项都带目标文件路径

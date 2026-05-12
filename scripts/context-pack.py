@@ -625,21 +625,20 @@ def generate_context_pack(slug, requirements, impacts, query_plan, by_id):
         lines.append(f'| {q["id"]} | {q["requirement_hint"][:50]} | `{terms_short}` | {hits} | {q["confidence"]} |')
     lines.append('')
 
-    # ── 3. Code Anchors ──
+    # ── 3. Code Anchors (tiered) ──
     lines.append('## 3. Code Anchors')
     lines.append('')
-    lines.append('### 3.1 Type Registry')
-    lines.append('')
-    lines.append('| Location | Symbol | Type | Reason |')
-    lines.append('|----------|--------|------|--------|')
 
-    # Collect anchors by category
+    # Collect anchors by category and tier
     type_anchors = []
     template_anchors = []
     registry_anchors = []
     dispatcher_anchors = []
     similar_anchors = []
     seen_ids = set()
+
+    # Tier assignment: P0/high-confidence hits → must, P1-P2 → should, low → optional
+    p0_req_ids = {r['id'] for r in requirements if r['priority'] == 'P0'}
 
     for q in query_plan:
         for eid in q['matched_entities']:
@@ -650,50 +649,104 @@ def generate_context_pack(slug, requirements, impacts, query_plan, by_id):
                 continue
             seen_ids.add(eid)
             cat = _categorize_entity(ent)
+            # Determine tier based on query confidence and requirement priority
+            hint = q['requirement_hint']
+            is_p0 = any(rid in hint for rid in p0_req_ids)
+            if q['confidence'] == 'high' or is_p0:
+                tier = 'must'
+            elif q['confidence'] == 'medium':
+                tier = 'should'
+            else:
+                tier = 'optional'
+            record = (ent, hint, tier)
             if cat == 'type':
-                type_anchors.append((ent, q['requirement_hint']))
+                type_anchors.append(record)
             elif cat == 'template':
-                template_anchors.append((ent, q['requirement_hint']))
+                template_anchors.append(record)
             elif cat == 'registry':
-                registry_anchors.append((ent, q['requirement_hint']))
+                registry_anchors.append(record)
             elif cat == 'dispatcher':
-                dispatcher_anchors.append((ent, q['requirement_hint']))
+                dispatcher_anchors.append(record)
             elif cat == 'similar':
-                similar_anchors.append((ent, q['requirement_hint']))
+                similar_anchors.append(record)
 
-    for ent, hint in type_anchors:
-        lines.append(_ent_anchor(ent, hint[:50]))
+    # Collect all anchors with tier info for grouping
+    all_anchors = []
+    for lst, cat_name in [
+        (type_anchors, 'Type Registry'),
+        (template_anchors, 'Template Functions'),
+        (registry_anchors, 'Registries and Maps'),
+        (dispatcher_anchors, 'Dispatchers (Switch-Case)'),
+        (similar_anchors, 'Similar Examples'),
+    ]:
+        for ent, hint, tier in lst:
+            all_anchors.append((ent, hint, tier, cat_name))
+
+    # ── 3.1 Must-Reference ──
+    must_anchors = [(e, h, t, c) for e, h, t, c in all_anchors if t == 'must']
+    lines.append('### 🔴 Must-Reference Anchors (key_anchors)')
+    lines.append('')
+    lines.append('> report.md §5/§6 and plan.md Implementation Checklist **must reference every anchor below**.')
+    lines.append('')
+    if must_anchors:
+        lines.append('| Location | Symbol | Type | Category | Reason |')
+        lines.append('|----------|--------|------|----------|--------|')
+        for ent, hint, tier, cat in must_anchors:
+            line_str = f':{ent["line"]}' if ent.get('line') else ''
+            lines.append(
+                f'| `{ent["path"]}{line_str}` '
+                f'| `{ent["name"]}` '
+                f'| {ent["type"]} '
+                f'| {cat} '
+                f'| {hint[:50]} |'
+            )
+    else:
+        lines.append('_No P0 / high-confidence anchors found._')
     lines.append('')
 
-    lines.append('### 3.2 Template Functions')
+    # ── 3.2 Should-Reference ──
+    should_anchors = [(e, h, t, c) for e, h, t, c in all_anchors if t == 'should']
+    lines.append('### 🟡 Should-Reference Anchors (supporting)')
     lines.append('')
-    lines.append('| Location | Symbol | Type | Reason |')
-    lines.append('|----------|--------|------|--------|')
-    for ent, hint in template_anchors:
-        lines.append(_ent_anchor(ent, hint[:50]))
+    lines.append('> P1/P2 or needs_confirmation items. Recommended to reference but not enforced.')
+    lines.append('')
+    if should_anchors:
+        lines.append('| Location | Symbol | Type | Category | Reason |')
+        lines.append('|----------|--------|------|----------|--------|')
+        for ent, hint, tier, cat in should_anchors:
+            line_str = f':{ent["line"]}' if ent.get('line') else ''
+            lines.append(
+                f'| `{ent["path"]}{line_str}` '
+                f'| `{ent["name"]}` '
+                f'| {ent["type"]} '
+                f'| {cat} '
+                f'| {hint[:50]} |'
+            )
+    else:
+        lines.append('_No medium-confidence anchors._')
     lines.append('')
 
-    if registry_anchors:
-        lines.append('### 3.3 Registries and Maps')
-        lines.append('')
-        lines.append('| Location | Symbol | Type | Reason |')
-        lines.append('|----------|--------|------|--------|')
-        for ent, hint in registry_anchors:
-            lines.append(_ent_anchor(ent, hint[:50]))
-        lines.append('')
-
-    if dispatcher_anchors:
-        lines.append('### 3.4 Dispatchers (Switch-Case)')
-        lines.append('')
-        lines.append('| Location | Symbol | Type | Reason |')
-        lines.append('|----------|--------|------|--------|')
-        for ent, hint in dispatcher_anchors:
-            cases = ent.get('meta', {}).get('cases', [])
-            case_str = ', '.join(cases[:4])
-            if len(cases) > 4:
-                case_str += ' ...'
-            lines.append(_ent_anchor(ent, f'{len(cases)} cases: {case_str}'[:70]))
-        lines.append('')
+    # ── 3.3 Optional ──
+    optional_anchors = [(e, h, t, c) for e, h, t, c in all_anchors if t == 'optional']
+    lines.append('### ⚪ Optional Anchors (context only)')
+    lines.append('')
+    lines.append('> Background context. Optional to reference in report/plan.')
+    lines.append('')
+    if optional_anchors:
+        lines.append('| Location | Symbol | Type | Category | Reason |')
+        lines.append('|----------|--------|------|----------|--------|')
+        for ent, hint, tier, cat in optional_anchors:
+            line_str = f':{ent["line"]}' if ent.get('line') else ''
+            lines.append(
+                f'| `{ent["path"]}{line_str}` '
+                f'| `{ent["name"]}` '
+                f'| {ent["type"]} '
+                f'| {cat} '
+                f'| {hint[:50]} |'
+            )
+    else:
+        lines.append('_No low-confidence anchors._')
+    lines.append('')
 
     # ── 4. Similar Examples ──
     lines.append('## 4. Similar Examples')
