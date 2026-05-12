@@ -69,10 +69,12 @@ class WorkflowState:
             "run_id": _generate_run_id(),
             "tool_version": self.tool_version,
             "current_step": None,
+            "current_stage": None,
             "status": "in_progress",
             "completed_steps": [],
             "blocked_steps": [],
             "artifacts": {},
+            "human_checkpoints": {},
             "resume": {"next_step": None, "next_action": None},
         }
 
@@ -92,6 +94,12 @@ class WorkflowState:
 
     def is_step_completed(self, step_id: str) -> bool:
         return step_id in self.get_completed_step_ids()
+
+    def get_stage(self) -> Optional[str]:
+        return self.data.get("current_stage")
+
+    def get_human_checkpoint(self, name: str) -> dict:
+        return self.data.get("human_checkpoints", {}).get(name, {})
 
     # --- Writing ---
 
@@ -187,6 +195,19 @@ class WorkflowState:
             "next_step": next_step,
             "next_action": next_action,
         }
+
+    def set_stage(self, stage: str):
+        """Set the current workflow stage (e.g. spec/report/plan)."""
+        self.data["current_stage"] = stage
+
+    def set_human_checkpoint(self, name: str, status: str, details: Optional[Dict] = None):
+        """Record a human checkpoint (e.g. report_review, mode_selection)."""
+        if "human_checkpoints" not in self.data:
+            self.data["human_checkpoints"] = {}
+        entry = {"status": status, "confirmed_at": _iso_now()}
+        if details:
+            entry.update(details)
+        self.data["human_checkpoints"][name] = entry
 
     def mark_workflow_completed(self):
         """Mark the entire workflow as completed."""

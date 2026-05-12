@@ -259,6 +259,17 @@ def run_gate(distill_dir, repo_root, step_id):
 
     print(f"=== Distill Step Gate: {label} ===")
 
+    # Stage boundary warnings
+    stage = STEP_STAGES.get(step_id, "")
+    if stage == "spec":
+        if os.path.isfile(os.path.join(distill_dir, "report.md")):
+            print("  [!] WARNING: report.md exists during spec stage (stale from previous run?)")
+        if os.path.isfile(os.path.join(distill_dir, "plan.md")):
+            print("  [!] WARNING: plan.md exists during spec stage (stale from previous run?)")
+    elif stage == "report":
+        if os.path.isfile(os.path.join(distill_dir, "plan.md")):
+            print("  [!] WARNING: plan.md exists during report stage (stale from previous run?)")
+
     missing = []
     for rel_path, source_step in prerequisites:
         exists, size = file_exists_nonempty(distill_dir, rel_path)
@@ -312,6 +323,8 @@ def main():
     parser.add_argument("--repo-root", required=True, help="Path to project root directory")
     parser.add_argument("--write-state", action="store_true",
                         help="Write/update workflow-state.yaml on pass or fail")
+    parser.add_argument("--allow-rerun", action="store_true",
+                        help="Skip ordering check (allow running a step out of sequence)")
     parser.add_argument("--tool-version", default="2.17.0",
                         help="Tool version for workflow state file")
     args = parser.parse_args()
@@ -323,11 +336,23 @@ def main():
         print(f"ERROR: distill-dir does not exist: {distill_dir}")
         sys.exit(1)
 
+    # Ordering check: verify requested step matches state.resume.next_step
+    state_path = os.path.join(distill_dir, "workflow-state.yaml")
+    if os.path.isfile(state_path) and not args.allow_rerun:
+        state_check = WorkflowState(state_path, "prd-distill", args.tool_version)
+        expected = state_check.get_resume().get("next_step")
+        if expected and expected != "completed" and args.step != expected:
+            if state_check.is_step_completed(args.step):
+                print(f"  [!] WARNING: Step {args.step} already completed — unusual rerun")
+            else:
+                print(f"  [x] ORDERING ERROR: expected step {expected!r}, got {args.step!r}")
+                print(f"      Use --allow-rerun to override ordering check.")
+                sys.exit(2)
+
     passed, message, missing_files = run_gate(distill_dir, repo_root, args.step)
 
     # Write workflow state if requested
     if args.write_state:
-        state_path = os.path.join(distill_dir, "workflow-state.yaml")
         state = WorkflowState(state_path, "prd-distill", args.tool_version)
 
         step_info = STEP_TABLE[args.step]
@@ -336,9 +361,13 @@ def main():
 
         if passed:
             state.mark_step_passed(args.step, label, output_files, distill_dir)
+            state.set_stage(STEP_STAGES.get(args.step, "unknown"))
             next_step = _get_next_step(args.step)
             next_label = STEP_TABLE.get(next_step, {}).get("label", "completed")
             state.set_resume(next_step, next_label)
+            # Write human checkpoint for report review
+            if args.step == "8.1-confirm":
+                state.set_human_checkpoint("report_review", "approved")
         else:
             state.mark_step_blocked(args.step, label, missing_files)
             state.set_resume(args.step, f"Retry {label} after completing prerequisites")

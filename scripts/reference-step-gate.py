@@ -192,13 +192,15 @@ def run_gate(root_dir, step_id):
         return True, "ok", []
 
 
+STEPS_REQUIRING_MODE_SELECTION = {"1", "2a", "2b", "2c", "2d", "2e", "3", "3.5", "3.6", "4"}
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Reference Step Gate — check prerequisites before each step"
     )
     parser.add_argument(
         "--step",
-        required=True,
         help="Step ID (0, 1, 2a, 2b, 2c, 2d, 2e, 3, 3.5, 3.6, 4)",
     )
     parser.add_argument(
@@ -210,6 +212,15 @@ def main():
         "--write-state",
         action="store_true",
         help="Write/update workflow-state.yaml on pass or fail",
+    )
+    parser.add_argument(
+        "--allow-rerun",
+        action="store_true",
+        help="Skip ordering check (allow running a step out of sequence)",
+    )
+    parser.add_argument(
+        "--confirm-mode",
+        help="Record mode selection (F_then_A, F_only, A_only, B, B2, C, E). Does not run step gate.",
     )
     parser.add_argument(
         "--tool-version",
@@ -224,11 +235,56 @@ def main():
         print(f"ERROR: root directory does not exist: {root_dir}")
         sys.exit(1)
 
+    state_path = os.path.join(root_dir, "_prd-tools", "build", "reference-workflow-state.yaml")
+
+    # --confirm-mode: just write mode selection checkpoint and exit
+    if args.confirm_mode:
+        valid_modes = {"F_then_A", "F_only", "A_only", "B", "B2", "C", "E"}
+        if args.confirm_mode not in valid_modes:
+            print(f"ERROR: invalid mode {args.confirm_mode!r}. Valid: {', '.join(sorted(valid_modes))}")
+            sys.exit(1)
+        state = WorkflowState(state_path, "reference", args.tool_version)
+        state.set_human_checkpoint("mode_selection", "approved", {"selected_mode": args.confirm_mode})
+        state.save()
+        print(f"  [+] Mode selection confirmed: {args.confirm_mode}")
+        print(f"  [state] Written to {state_path}")
+        sys.exit(0)
+
+    if not args.step:
+        print("ERROR: --step is required (unless using --confirm-mode)")
+        sys.exit(1)
+
+    # Ordering check
+    if os.path.isfile(state_path) and not args.allow_rerun:
+        state_check = WorkflowState(state_path, "reference", args.tool_version)
+        expected = state_check.get_resume().get("next_step")
+        if expected and expected != "completed" and args.step != expected:
+            if state_check.is_step_completed(args.step):
+                print(f"  [!] WARNING: Step {args.step} already completed — unusual rerun")
+            else:
+                print(f"  [x] ORDERING ERROR: expected step {expected!r}, got {args.step!r}")
+                print(f"      Use --allow-rerun to override ordering check.")
+                sys.exit(2)
+
+    # Mode Selection Gate: steps >= 1 require mode_selection approved
+    if args.step in STEPS_REQUIRING_MODE_SELECTION:
+        if os.path.isfile(state_path):
+            state_check = WorkflowState(state_path, "reference", args.tool_version)
+            checkpoint = state_check.get_human_checkpoint("mode_selection")
+            if not checkpoint or checkpoint.get("status") != "approved":
+                print(f"  [x] MODE SELECTION REQUIRED: run --confirm-mode <mode> before Phase 1+")
+                print(f"      用户必须先选择 reference 构建模式。")
+                sys.exit(2)
+            else:
+                print(f"  [+] Mode selection: {checkpoint.get('selected_mode', '?')} (approved)")
+        else:
+            print(f"  [x] MODE SELECTION REQUIRED: no workflow state found. Run --confirm-mode <mode> first.")
+            sys.exit(2)
+
     passed, message, missing_files = run_gate(root_dir, args.step)
 
     # Write workflow state if requested
     if args.write_state:
-        state_path = os.path.join(root_dir, "_prd-tools", "build", "reference-workflow-state.yaml")
         state = WorkflowState(state_path, "reference", args.tool_version)
 
         step_info = STEP_TABLE[args.step]
@@ -236,9 +292,8 @@ def main():
         output_files = step_info.get("output", [])
 
         if passed:
-            # Check if step was already completed (rerun warning)
             if state.is_step_completed(args.step):
-                print(f"  [WARNING] Step {args.step} ({label}) already completed — unusual rerun")
+                print(f"  [!] WARNING: Step {args.step} ({label}) already completed — unusual rerun")
 
             state.mark_step_passed(args.step, label, output_files, root_dir)
             next_step = _get_next_step(args.step)
