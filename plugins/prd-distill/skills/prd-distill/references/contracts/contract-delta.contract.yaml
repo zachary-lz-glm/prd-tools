@@ -1,13 +1,13 @@
+# Contract for context/contract-delta.yaml
+# Source of truth: references/output-contracts.md §contract-delta
+# NOTE: top-level key is `deltas` (matching actual LLM output), not `contracts`
 artifact: "context/contract-delta.yaml"
 schema_version: "2.0"
-required_top_level:
-  - meta
-  - deltas
 rules:
-  - id: "delta_has_trace"
+  - id: "delta_has_identity"
     each: "deltas"
     required:
       - id
-      - requirement_id
-      - layer
+      - producer
       - change_type
+      - alignment_status
