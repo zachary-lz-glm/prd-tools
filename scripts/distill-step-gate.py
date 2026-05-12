@@ -374,7 +374,16 @@ def main():
             state.set_resume(next_step, next_label)
             # Write human checkpoint for report review
             if args.step == "8.1-confirm":
-                state.set_human_checkpoint("report_review", "approved")
+                rc_path = os.path.join(distill_dir, "context", "report-confirmation.yaml")
+                rc_status = "pending"
+                if os.path.isfile(rc_path):
+                    try:
+                        with open(rc_path, encoding='utf-8') as f:
+                            rc = yaml.safe_load(f) or {}
+                        rc_status = "approved" if rc.get("status") == "approved" else "pending"
+                    except Exception:
+                        rc_status = "pending"
+                state.set_human_checkpoint("report_review", rc_status)
         else:
             state.mark_step_blocked(args.step, label, missing_files)
             state.set_resume(args.step, f"Retry {label} after completing prerequisites")
