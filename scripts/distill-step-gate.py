@@ -70,6 +70,9 @@ STEP_TABLE = {
         "stage": "spec",
         "prerequisites": [
             ("_ingest/document.md", "Step 0"),
+            ("_ingest/document-structure.json", "Step 0"),
+            ("_ingest/evidence-map.yaml", "Step 0"),
+            ("_ingest/source-manifest.yaml", "Step 0"),
         ],
         "output": ["context/evidence.yaml"],
         "forbidden_outputs": ["report.md", "plan.md"],
