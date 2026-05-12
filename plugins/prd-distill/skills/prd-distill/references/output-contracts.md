@@ -76,7 +76,7 @@ _prd-tools/
 | `source-manifest.yaml` | 原始文件路径、格式、大小、hash、生成时间、读取方式 | 不写需求摘要或实现判断 |
 | `document.md` | 转换后的可读 markdown，作为 Requirement IR 的主输入 | 不补充 PRD 没写的信息 |
 | `document-structure.json` | 段落、标题、表格、图片等结构块，含 block id 和 locator | 不写业务语义结论 |
-| `evidence-map.yaml` | PRD 块级证据，供 `context/evidence.yaml` 映射 | 不放源码、diff、reference 证据 |
+| `evidence-map.yaml` | PRD 块级证据，供 `context/evidence.yaml` 映射。顶层字段：`meta`（元数据）、`blocks`（数组，每个元素含 `block_id / lines / content_summary / req_ids`） | 不放源码、diff、reference 证据 |
 | `media/` | 抽出的图片、截图、流程图原文件（docx 提取时自动抽取） | 不修改图片内容 |
 | `media-analysis.yaml` | 图片分析状态和摘要；Claude 用 Read 工具（原生多模态）直接查看图片后填写。类型：`ui_screenshot | flowchart | data_chart | table_image | decoration`。每条包含：文件名、类型、关键信息摘要、置信度 | 不确认的图片内容只能产生低置信度问题 |
 | `tables/` | 单独抽出的表格 markdown | 不修复原表格，只保留转换结果 |
