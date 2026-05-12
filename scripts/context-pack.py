@@ -370,7 +370,7 @@ def _codeish_terms(text):
     return terms
 
 
-def build_query_plan(requirements, impacts, inv, by_id, domain_terms=None):
+def build_query_plan(requirements, impacts, inv, by_id, domain_terms=None, ref_dir=None):
     """Build query plan from requirements + impacts + index."""
     queries = []
     qid = 0
@@ -449,7 +449,7 @@ def build_query_plan(requirements, impacts, inv, by_id, domain_terms=None):
             break
 
     # Phase 2: queries from reference seed symbols
-    seed_queries = [
+    SEED_QUERIES_DEFAULT = [
         'CampaignType',
         'getDetailsTemplate',
         'getAudienceSegmentationTemplate',
@@ -460,6 +460,27 @@ def build_query_plan(requirements, impacts, inv, by_id, domain_terms=None):
         'build/**/*.d.ts',
         'build/**/*.js',
     ]
+
+    def _load_seed_queries(ref_dir):
+        if ref_dir:
+            rp = ref_dir / "04-routing-playbooks.yaml"
+            if rp.exists():
+                try:
+                    import yaml as _yaml
+                    data = _yaml.safe_load(rp.read_text(encoding='utf-8')) or {}
+                    queries = []
+                    for route in data.get('prd_routing', []):
+                        for f in route.get('key_files', []):
+                            stem = Path(f).stem
+                            if stem:
+                                queries.append(stem)
+                    if queries:
+                        return queries
+                except Exception:
+                    pass
+        return SEED_QUERIES_DEFAULT
+
+    seed_queries = _load_seed_queries(ref_dir)
     for sq in seed_queries:
         if sq.lower() in seen_terms:
             continue
@@ -832,7 +853,7 @@ def main():
 
     # Build query plan
     query_plan = build_query_plan(requirements, impacts, inv, by_id,
-                                  domain_terms=domain_terms)
+                                  domain_terms=domain_terms, ref_dir=ref_dir)
     high_q = sum(1 for q in query_plan if q['confidence'] == 'high')
     low_q = sum(1 for q in query_plan if q['confidence'] == 'low')
     print(f'Query plan:   {len(query_plan)} queries (high={high_q}, low={low_q})')
