@@ -90,6 +90,16 @@ EOF
   - v3.1 兼容：`05-routing.yaml`、`06-glossary.yaml`、`07-business-context.yaml`。
   - 旧版兼容：`05-mapping.yaml`。
 
+### 团队公共 reference 消费（可选）
+
+如果当前仓 `_prd-tools/reference/project-profile.yaml` 的 `team_reference.upstream_local_path` 存在：
+
+1. Read `<upstream_local_path>/reference/05-domain.yaml` 作为全团队业务术语
+2. Read `<upstream_local_path>/reference/03-contracts.yaml` 获取跨仓契约基线
+3. Read `<upstream_local_path>/reference/04-routing-playbooks.yaml` 的跨仓 playbook
+
+这些信息在 report/plan 中允许高于本仓 reference 的权威性——它们是"全团队已 checked_by 的共识"。
+
 ## 执行
 
 1. 读取文件或接受粘贴文本：

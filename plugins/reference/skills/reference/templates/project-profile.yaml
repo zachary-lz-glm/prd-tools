@@ -20,6 +20,15 @@ reference_scope:
     - "team-level taxonomy that has not been accepted by platform governance"
   team_reference_ready: false
 
+team_reference:
+  upstream_repo: ""                                      # e.g. "git@git.xxx:dive-team-reference.git"
+  upstream_local_path: ""                                # local clone path, e.g. "../dive-team-reference"
+  inherit_scopes:
+    - domain_terms                                       # inherit 05-domain terms
+    - contracts_cross_repo                               # inherit team_reference_candidate contracts
+    - coding_rules_fatal                                 # inherit fatal rules
+  last_synced: ""
+
 related_repositories:
   - repo: ""
     role: "<frontend|bff|backend|external>"
