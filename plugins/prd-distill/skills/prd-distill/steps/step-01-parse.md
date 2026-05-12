@@ -104,7 +104,11 @@ requirements:
     target_layers: ["frontend", "bff", "backend"]
     rules: []
     acceptance_criteria: []
-    evidence: ["EV-001"]
+    evidence:
+      summary: ""
+      source_blocks: ["document.md:L10-16"]
+      source_block_ids: ["B-001"]
+      evidence_ids: ["EV-001"]
     confidence: "medium"
 open_questions: []
 ```
