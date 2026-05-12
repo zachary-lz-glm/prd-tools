@@ -493,6 +493,47 @@ ADD/MODIFY/DELETE/NO_CHANGE 必须由源码或负向搜索支撑。
 - `planning.eligibility != ready` 的 requirement 不得生成确定性实现任务。
 - report/plan 不得绕过 layer-impact 直接编造目标文件。
 
+## 步骤 3.6：Critique Pass（Two-Pass Critic）
+
+> 在高风险步骤完成后立即执行，对产物做二次审查。详细模板见 `steps/critique-template.md`。
+
+### 何时触发
+
+以下步骤完成后，**必须**执行 critique pass：
+
+- Step 1.5: AI-friendly PRD 生成后
+- Step 2: Requirement IR 生成后
+- Step 3.2: Layer Impact 生成后
+- Step 4: Contract Delta 生成后
+
+### 执行方式
+
+1. **只读本步骤产物 + 上一步产物 + 对应 contract**。不扩大上下文。
+2. 按 `steps/critique-template.md` 的检查维度逐项审查。
+3. **输出 `context/critique/<step_id>.yaml`**，格式如下：
+
+```yaml
+schema_version: "1.0"
+step: "<step_id>"
+artifact: "<被检查的产物路径>"
+status: "pass | warning | fail"
+findings:
+  - id: "F-001"
+    severity: "fatal | warning"
+    rule: "<对应 contract rule_id 或自由描述>"
+    issue: "<具体问题>"
+    fix: "<建议修正方式>"
+```
+
+### 结果处理
+
+- **`status: fail`**：退回上一步修正产物，`distill-workflow-gate.py` 会阻断后续步骤。
+- **`status: warning`**：不阻断流程，但必须进入 `readiness-report.yaml` 的 risks 部分。
+- **`status: pass`**：继续下一步。
+
+**输入**：当前步骤产物、上一步产物、对应 contract 文件
+**输出**：`context/critique/<step_id>.yaml`
+
 ## 步骤 4：Contract Delta
 
 多层、接口、schema、事件、外部权益/券/支付/审计等需求必须生成 `context/contract-delta.yaml`。单层且无契约变化时也创建最小文件，写明 `alignment_summary.status: not_applicable`。
