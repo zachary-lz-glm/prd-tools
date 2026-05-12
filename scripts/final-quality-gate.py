@@ -589,6 +589,70 @@ def format_output_yaml(checks, overall_status, overall_score, gaps):
     return '\n'.join(lines)
 
 
+REPORT_SECTIONS = [
+    "1. 需求摘要",
+    "2. PRD 质量摘要",
+    "3. 源码扫描命中摘要",
+    "4. 影响范围",
+    "5. 关键结论",
+    "6. 变更明细表",
+    "7. 字段清单",
+    "8. 校验规则",
+    "9. 开发 Checklist",
+    "10. 契约对齐与建议",
+    "11. Top Open Questions",
+    "12. 阻塞问题与待确认项",
+]
+
+PLAN_SECTIONS = [
+    "1. 范围与假设",
+    "2. 整体架构",
+    "3. 实现计划",
+    "4. API 设计",
+    "5. 数据存储",
+    "6. 配置与开关",
+    "7. 校验规则汇总",
+    "8. QA 矩阵",
+    "9. 契约对齐",
+    "10. 风险与回滚",
+    "11. 工作量估算",
+]
+
+
+def check_section_structure(base):
+    """Check report.md and plan.md H2 headings match schema-defined sections."""
+    results = {}
+    for name, expected in [('report.md', REPORT_SECTIONS), ('plan.md', PLAN_SECTIONS)]:
+        p = base / name
+        if not p.is_file():
+            results[name] = {'status': 'skip', 'reason': 'file missing'}
+            continue
+        text = _read_safe(p)
+        got = re.findall(r'^## (.+)$', text, re.MULTILINE)
+        got = [g.lstrip('§').strip() for g in got]
+        errors = []
+        for i, exp in enumerate(expected):
+            if i >= len(got):
+                errors.append(f"missing section {i+1}: '{exp}'")
+            else:
+                exp_num = exp.split('.')[0]
+                got_num = got[i].split('.')[0] if '.' in got[i] else ''
+                if got_num != exp_num:
+                    errors.append(f"section {i+1} mismatch: expected '{exp}', got '{got[i]}'")
+        extra = got[len(expected):]
+        if extra:
+            errors.append(f"unexpected extra sections: {extra[:3]}")
+        status = 'pass' if not errors else 'fail'
+        results[name] = {'status': status, 'errors': errors}
+    overall = 'pass' if all(r['status'] != 'fail' for r in results.values()) else 'fail'
+    return {
+        'status': overall,
+        'score': 100 if overall == 'pass' else 0,
+        'report': results.get('report.md', {}),
+        'plan': results.get('plan.md', {}),
+    }
+
+
 # ──────────────────────────────────────────
 # Main
 # ──────────────────────────────────────────
@@ -632,8 +696,11 @@ def main():
     print('  4/5 plan_actionability')
     checks['plan_actionability'] = check_plan_actionability(plan_text)
 
-    print('  5/5 blocker_quality')
+    print('  5/6 blocker_quality')
     checks['blocker_quality'] = check_blocker_quality(report_text)
+
+    print('  6/6 section_structure')
+    checks['section_structure'] = check_section_structure(base)
 
     # Compute overall
     overall_status, overall_score = compute_overall(checks)
