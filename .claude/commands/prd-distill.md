@@ -37,6 +37,7 @@ Step IDs: `0`, `1`, `1.5-afprd`, `1.5-quality`, `2`, `2.5`, `3.1`, `3.2`, `4`, `
 If the step gate exits with code 2 (FAIL):
 - **STOP immediately** — do not proceed with the step.
 - Read the error message — it tells you exactly which prerequisite is missing.
+- If the error is "ORDERING ERROR" and you need to re-run a step, add `--allow-rerun`.
 - Complete the missing prerequisite step first, then re-run the step gate.
 - Only proceed after the step gate exits with code 0 (PASS).
 
@@ -101,13 +102,13 @@ Steps are strictly ordered — each step depends on the previous step's output.
 
 ### spec 阶段
 
-1. Step 0: PRD Ingestion → `_ingest/document.md`
+1. Step 0: PRD Ingestion → `_ingest/` (document.md, source-manifest.yaml, document-structure.json, evidence-map.yaml, extraction-quality.yaml, media/, media-analysis.yaml)
    ⚙ Gate: `distill-step-gate.py --step 0`
 2. Step 1: Evidence Ledger → `context/evidence.yaml`
    ⚙ Gate: `distill-step-gate.py --step 1`
 3. Step 1.5: AI-friendly PRD → `spec/ai-friendly-prd.md` + `context/prd-quality-report.yaml`
    ⚙ Gate: `distill-step-gate.py --step 1.5-afprd` then `--step 1.5-quality`
-4. Step 2: Requirement IR → `context/requirement-ir.yaml`
+4. Step 2: Requirement IR → `context/requirement-ir.yaml` (must include meta.primary_source and evidence.source_blocks)
    ⚙ Gate: `distill-step-gate.py --step 2`
 
 ### report 阶段

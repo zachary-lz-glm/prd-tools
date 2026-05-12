@@ -40,14 +40,20 @@ Rules:
 - If `_prd-tools/reference/` does not exist, recommend option 1 but do not auto-run it.
 - If `_prd-tools/reference/` exists, summarize current files and ask whether to run B2 health check, B incremental update, A rebuild, or E feedback ingest.
 - Do not proceed from mode selection to artifact generation until the user confirms a mode.
-- Once the user confirms a mode, record it in `_prd-tools/build/reference-workflow-state.yaml`.
+- Once the user confirms a mode, record it by running:
+
+```bash
+python3 .prd-tools/scripts/reference-step-gate.py --confirm-mode <MODE> --root .
+```
+
+Valid modes: `F_then_A`, `F_only`, `A_only`, `B`, `B2`, `C`, `E`
 
 ## Step Gate (硬约束 — 每步执行前必须通过)
 
 Before executing any phase/stage, you MUST run the step gate script:
 
 ```bash
-python3 .prd-tools/scripts/reference-step-gate.py --step <step_id> --root .
+python3 .prd-tools/scripts/reference-step-gate.py --step <step_id> --root . --write-state
 ```
 
 Step IDs: `0`, `1`, `2a`, `2b`, `2c`, `2d`, `2e`, `3`, `3.5`, `3.6`, `4`
@@ -55,6 +61,8 @@ Step IDs: `0`, `1`, `2a`, `2b`, `2c`, `2d`, `2e`, `3`, `3.5`, `3.6`, `4`
 If the step gate exits with code 2 (FAIL):
 - **STOP immediately** — do not proceed.
 - Read the error message — it tells you exactly which prerequisite is missing.
+- If the error is "MODE SELECTION REQUIRED", run `--confirm-mode <mode>` first.
+- If the error is "ORDERING ERROR" and you need to re-run a step, add `--allow-rerun`.
 - Complete the missing prerequisite first, then re-run the step gate.
 - Only proceed after exit code 0 (PASS).
 

@@ -45,7 +45,13 @@ STEP_TABLE = {
         "label": "Step 0: PRD Ingestion",
         "stage": "spec",
         "prerequisites": [],
-        "output": ["_ingest/document.md", "_ingest/source-manifest.yaml"],
+        "output": [
+            "_ingest/document.md",
+            "_ingest/source-manifest.yaml",
+            "_ingest/document-structure.json",
+            "_ingest/evidence-map.yaml",
+            "_ingest/extraction-quality.yaml",
+        ],
         "forbidden_outputs": ["report.md", "plan.md"],
     },
     "1": {
@@ -84,8 +90,8 @@ STEP_TABLE = {
             ("spec/ai-friendly-prd.md", "Step 1.5"),
             ("context/prd-quality-report.yaml", "Step 1.5"),
             ("_ingest/document.md", "Step 0"),
-            ("_ingest/document-structure.json", "Step 1"),
-            ("_ingest/evidence-map.yaml", "Step 1"),
+            ("_ingest/document-structure.json", "Step 0"),
+            ("_ingest/evidence-map.yaml", "Step 0"),
         ],
         "output": ["context/requirement-ir.yaml"],
         "forbidden_outputs": ["report.md", "plan.md"],
@@ -96,10 +102,6 @@ STEP_TABLE = {
         "stage": "report",
         "prerequisites": [
             ("context/requirement-ir.yaml", "Step 2"),
-        ],
-        "conditional_prerequisites": [
-            ("_prd-tools/reference/index/entities.json", "reference index",
-             ["context/query-plan.yaml", "Step 2.5"]),
         ],
         "output": ["context/query-plan.yaml"],
         "forbidden_outputs": ["plan.md"],

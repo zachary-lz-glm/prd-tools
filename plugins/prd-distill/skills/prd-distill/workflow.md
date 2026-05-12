@@ -326,7 +326,7 @@ requirement-ir 中每条 requirement 的 `source` 和 `planning.eligibility` 必
 - `rules`
 - `acceptance_criteria`：每条 AC 包含 `id`、`statement`、`source`、`testability`
 - `target_layers`
-- `evidence`：包含 `summary`、`location`、`source_block_ids`、`evidence_ids`
+- `evidence`：包含 `summary`、`location`、`source_blocks`（原始 PRD block_id 列表，必填）、`source_block_ids`（兼容旧格式）、`evidence_ids`
 - `open_question_refs`：关联 ai-friendly-prd §13 的问题 ID
 - `confirmation`：包含 `status`、`reason`、`suggested_owner`
 - `planning`：包含 `eligibility`、`rule`
@@ -335,6 +335,7 @@ requirement-ir 中每条 requirement 的 `source` 和 `planning.eligibility` 必
 
 ### 输出要求
 
+- `meta.primary_source` 必须设为 `"_ingest/document.md"`。
 - `meta.ai_prd_source` 必须设为 `"spec/ai-friendly-prd.md"`。
 - `schema_version` 必须为 `"5.0"`。
 - 所有 `missing_confirmation` requirement 必须同时出现在 `open_questions` 中。
