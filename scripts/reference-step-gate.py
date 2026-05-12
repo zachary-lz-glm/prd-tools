@@ -1,24 +1,36 @@
 #!/usr/bin/env python3
 """Reference Step Gate — 前置条件检查脚本
 
-在每个阶段/步骤开始前调用，检查前置产出是否存在。
+在每个步骤开始前调用，检查前置产出是否存在。
 退出码: 0 = 通过, 2 = 前置条件缺失, 1 = 参数错误
+
+新增 --write-state: 通过/失败时写入 workflow-state.yaml v2
 """
 
 import argparse
 import os
 import sys
+
 import yaml
+
+# Import shared workflow state module
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from workflow_state import WorkflowState
 
 
 STEP_TABLE = {
     "0": {
         "label": "Phase 0: Context Enrichment",
         "prerequisites": [],
+        "output": ["_prd-tools/build/context-enrichment.yaml"],
     },
     "1": {
         "label": "Phase 1: Structure Scan",
         "prerequisites": [],
+        "output": [
+            "_prd-tools/build/modules-index.yaml",
+            "_prd-tools/reference/project-profile.yaml",
+        ],
     },
     "2a": {
         "label": "Phase 2 Stage 1: codebase",
@@ -28,13 +40,15 @@ STEP_TABLE = {
         "alt_prerequisites": [
             ("_prd-tools/build/modules-index.yaml", "Phase 1"),
         ],
-        "alt_logic": "any",  # Either project-profile.yaml OR modules-index.yaml
+        "alt_logic": "any",
+        "output": ["_prd-tools/reference/01-codebase.yaml"],
     },
     "2b": {
         "label": "Phase 2 Stage 2: coding-rules",
         "prerequisites": [
             ("_prd-tools/reference/01-codebase.yaml", "Stage 1"),
         ],
+        "output": ["_prd-tools/reference/02-coding-rules.yaml"],
     },
     "2c": {
         "label": "Phase 2 Stage 3: contracts",
@@ -42,6 +56,7 @@ STEP_TABLE = {
             ("_prd-tools/reference/01-codebase.yaml", "Stage 1"),
             ("_prd-tools/reference/02-coding-rules.yaml", "Stage 2"),
         ],
+        "output": ["_prd-tools/reference/03-contracts.yaml"],
     },
     "2d": {
         "label": "Phase 2 Stage 4: routing",
@@ -49,11 +64,16 @@ STEP_TABLE = {
             ("_prd-tools/reference/01-codebase.yaml", "Stage 1"),
             ("_prd-tools/reference/03-contracts.yaml", "Stage 3"),
         ],
+        "output": ["_prd-tools/reference/04-routing-playbooks.yaml"],
     },
     "2e": {
         "label": "Phase 2 Stage 5: domain",
         "prerequisites": [
             ("_prd-tools/reference/04-routing-playbooks.yaml", "Stage 4"),
+        ],
+        "output": [
+            "_prd-tools/reference/05-domain.yaml",
+            "_prd-tools/reference/00-portal.md",
         ],
     },
     "3": {
@@ -62,11 +82,18 @@ STEP_TABLE = {
             ("_prd-tools/reference/05-domain.yaml", "Stage 5"),
             ("_prd-tools/reference/00-portal.md", "Stage 5"),
         ],
+        "output": ["_prd-tools/reference/portal.html"],
     },
     "3.5": {
         "label": "Phase 3.5: Evidence Index",
         "prerequisites": [
             ("_prd-tools/reference/01-codebase.yaml", "Stage 1"),
+        ],
+        "output": [
+            "_prd-tools/reference/index/entities.json",
+            "_prd-tools/reference/index/edges.json",
+            "_prd-tools/reference/index/inverted-index.json",
+            "_prd-tools/reference/index/manifest.yaml",
         ],
     },
     "3.6": {
@@ -75,14 +102,19 @@ STEP_TABLE = {
             ("_prd-tools/reference/index/manifest.yaml", "Phase 3.5"),
             ("_prd-tools/reference/portal.html", "Phase 3"),
         ],
+        "output": [],
     },
     "4": {
         "label": "Phase 4: Feedback Ingest",
         "prerequisites": [
             ("_prd-tools/reference/00-portal.md", "Stage 5"),
         ],
+        "output": ["_prd-tools/build/feedback-report.yaml"],
     },
 }
+
+# Ordered step sequence for resume pointer
+REFERENCE_STEP_ORDER = ["0", "1", "2a", "2b", "2c", "2d", "2e", "3", "3.5", "3.6", "4"]
 
 
 def file_exists_nonempty(root_dir, rel_path):
@@ -94,29 +126,25 @@ def file_exists_nonempty(root_dir, rel_path):
     return size > 0, size
 
 
-def check_workflow_state(root_dir, requested_step):
-    """Check reference-workflow-state.yaml for step ordering violations."""
-    state_path = os.path.join(root_dir, "_prd-tools", "reference-workflow-state.yaml")
-    if not os.path.isfile(state_path):
-        return None
-
+def _get_next_step(current_step: str) -> str:
+    """Return the next step ID after current_step, or 'completed'."""
     try:
-        with open(state_path, "r", encoding="utf-8") as f:
-            state = yaml.safe_load(f) or {}
-    except Exception:
-        return None
-
-    completed = state.get("completed_steps", [])
-    if isinstance(completed, list) and requested_step in completed:
-        return f"Step {requested_step} already completed (in workflow-state). Re-running is allowed but unusual."
-
-    return None
+        idx = REFERENCE_STEP_ORDER.index(current_step)
+        if idx + 1 < len(REFERENCE_STEP_ORDER):
+            return REFERENCE_STEP_ORDER[idx + 1]
+        return "completed"
+    except ValueError:
+        return current_step
 
 
 def run_gate(root_dir, step_id):
-    """Run the step gate check. Returns (passed, message)."""
+    """Run the step gate check. Returns (passed, message, missing_files)."""
     if step_id not in STEP_TABLE:
-        return False, f"Unknown step ID: {step_id}. Valid: {', '.join(sorted(STEP_TABLE.keys()))}"
+        return (
+            False,
+            f"Unknown step ID: {step_id}. Valid: {', '.join(sorted(STEP_TABLE.keys()))}",
+            [],
+        )
 
     step_info = STEP_TABLE[step_id]
     label = step_info["label"]
@@ -132,43 +160,62 @@ def run_gate(root_dir, step_id):
         if exists:
             print(f"  [+] {rel_path} ({source_step}) — exists, {size} bytes")
         else:
-            # Check if there are alt_prerequisites that satisfy this
-            if alt_prerequisites and alt_logic == "any":
-                alt_ok = False
-                for alt_path, alt_step in alt_prerequisites:
-                    alt_exists, alt_size = file_exists_nonempty(root_dir, alt_path)
-                    if alt_exists:
-                        print(f"  [+] {alt_path} ({alt_step}) — exists, {alt_size} bytes (alternative for {rel_path})")
-                        alt_ok = True
-                        break
-                if alt_ok:
-                    print(f"  [~] {rel_path} ({source_step}) — MISSING but alternative satisfied")
-                    continue
-
             print(f"  [x] {rel_path} ({source_step}) — MISSING")
             missing.append((rel_path, source_step))
 
-    # Workflow state check
-    state_msg = check_workflow_state(root_dir, step_id)
-    if state_msg:
-        print(f"  [!] workflow-state: {state_msg}")
+    # Alternative prerequisites (e.g., "any" = at least one must exist)
+    if alt_prerequisites and alt_logic == "any":
+        alt_ok = False
+        for rel_path, source_step in alt_prerequisites:
+            exists, size = file_exists_nonempty(root_dir, rel_path)
+            if exists:
+                print(f"  [+] {rel_path} ({source_step}) — exists (alt), {size} bytes")
+                alt_ok = True
+                break
+            else:
+                print(f"  [~] {rel_path} ({source_step}) — missing (alt)")
+        if not alt_ok and missing:
+            # All primary AND all alt missing → add alt to missing list
+            for rel_path, source_step in alt_prerequisites:
+                missing.append((rel_path, f"{source_step} (alt)"))
+
+    missing_files = [m[0] for m in missing]
 
     if missing:
-        missing_files = [m[0] for m in missing]
         missing_steps = [m[1] for m in missing]
         print(f"RESULT: FAIL — {len(missing)} prerequisite(s) missing.")
         print(f"  请先完成 {', '.join(missing_steps)}，生成缺失文件后再继续 {label}。")
         print(f"  缺失文件: {', '.join(missing_files)}")
-        return False, "prerequisites missing"
+        return False, "prerequisites missing", missing_files
     else:
         print(f"RESULT: PASS — all prerequisites satisfied. Proceed with {label}.")
-        return True, "ok"
+        return True, "ok", []
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Reference Step Gate — check prerequisites before each phase/stage")
-    parser.add_argument("--step", required=True, help="Step ID (e.g., 0, 1, 2a, 2b, 2c, 2d, 2e, 3, 3.5, 3.6, 4)")
-    parser.add_argument("--root", required=True, help="Path to project root directory")
+    parser = argparse.ArgumentParser(
+        description="Reference Step Gate — check prerequisites before each step"
+    )
+    parser.add_argument(
+        "--step",
+        required=True,
+        help="Step ID (0, 1, 2a, 2b, 2c, 2d, 2e, 3, 3.5, 3.6, 4)",
+    )
+    parser.add_argument(
+        "--root",
+        required=True,
+        help="Path to project root directory",
+    )
+    parser.add_argument(
+        "--write-state",
+        action="store_true",
+        help="Write/update workflow-state.yaml on pass or fail",
+    )
+    parser.add_argument(
+        "--tool-version",
+        default="2.17.0",
+        help="Tool version for workflow state file",
+    )
     args = parser.parse_args()
 
     root_dir = os.path.abspath(args.root)
@@ -177,7 +224,33 @@ def main():
         print(f"ERROR: root directory does not exist: {root_dir}")
         sys.exit(1)
 
-    passed, _ = run_gate(root_dir, args.step)
+    passed, message, missing_files = run_gate(root_dir, args.step)
+
+    # Write workflow state if requested
+    if args.write_state:
+        state_path = os.path.join(root_dir, "_prd-tools", "build", "reference-workflow-state.yaml")
+        state = WorkflowState(state_path, "reference", args.tool_version)
+
+        step_info = STEP_TABLE[args.step]
+        label = step_info["label"]
+        output_files = step_info.get("output", [])
+
+        if passed:
+            # Check if step was already completed (rerun warning)
+            if state.is_step_completed(args.step):
+                print(f"  [WARNING] Step {args.step} ({label}) already completed — unusual rerun")
+
+            state.mark_step_passed(args.step, label, output_files, root_dir)
+            next_step = _get_next_step(args.step)
+            next_label = STEP_TABLE.get(next_step, {}).get("label", "completed")
+            state.set_resume(next_step, next_label)
+        else:
+            state.mark_step_blocked(args.step, label, missing_files)
+            state.set_resume(args.step, f"Retry {label} after completing prerequisites")
+
+        state.save()
+        print(f"  [state] Written to {state_path}")
+
     sys.exit(0 if passed else 2)
 
 

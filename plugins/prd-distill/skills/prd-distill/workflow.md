@@ -2,24 +2,36 @@
 
 ## 目标
 
-把 PRD 蒸馏为工程可执行的结论、计划和证据链：
+把 PRD 蒸馏为工程可执行的结论、计划和证据链。采用**三段式工作流**：
 
 ```text
 PRD raw file/text
-  -> _ingest/*
-  -> tech docs + reference + code + graph-context
-  -> report.md（精准影响报告 + 阻塞问题）
-  -> plan.md（函数级技术方案）
-  -> readiness-report.yaml（能不能开工的红绿灯）
-  -> context/*
-  -> [辅助层] query-plan.yaml + context-pack.md + final-quality-gate.yaml
+  → /prd-distill spec      (Steps 0→1→1.5→2)
+  → /prd-distill report    (Steps 2.5→3.1→3.2→4→8→8.1)
+  → user confirmation      (report-confirmation.yaml)
+  → /prd-distill plan      (Steps 5→6→8.5→8.6→9)
 ```
+
+每个阶段的核心问题：
+
+| 阶段 | 核心问题 | 是否读源码 | 是否需要用户确认 |
+|------|----------|------------|------------------|
+| spec | PRD 本身到底说了什么 | 默认不读源码 | 不强制，但输出 open questions |
+| report | 这个 PRD 放到当前项目会影响什么 | 必须读 reference / index / 源码 | 必须确认 |
+| plan | 在确认后的影响分析基础上怎么实施 | 只消费确认后的 report 和 context | 不再重新解释 PRD |
 
 主流程对前端、BFF、后端通用；层差异通过 `references/layer-adapters.md` 的能力面适配器生效。默认给人看轻量输出，机器可读细节放入 `context/`。
 
 短入口：
 
-- `/prd-distill`：日常使用入口，执行本 workflow 的完整流程。
+- `/prd-distill spec <PRD>`：只运行 spec 阶段，不生成 report.md 和 plan.md。
+- `/prd-distill report <slug>`：运行 report 阶段，生成 report.md 后暂停等待用户确认。
+- `/prd-distill plan <slug>`：运行 plan 阶段，需 report-confirmation.yaml status: approved。
+- `/prd-distill <PRD>`：引导式入口，不自动生成 plan。
+
+---
+
+# ── spec 阶段 ──
 
 ## 步骤 0：PRD Ingestion
 
@@ -533,6 +545,12 @@ ADD/MODIFY/DELETE/NO_CHANGE 必须由源码或负向搜索支撑。
 - `blocked`：字段、枚举、required、时序或责任归属冲突。
 - `not_applicable`：确认为单层内部变化。
 
+# ── plan 阶段 ──
+
+> **前置条件**：`context/report-confirmation.yaml` 必须为 `status: approved`。
+> 未 approved 时不得生成 plan.md。
+> plan 阶段不重新解释原始 PRD，只消费 approved report 和 context。
+
 ## 步骤 5：计划
 
 生成 `plan.md`（函数级技术方案文档 + 开发计划）：
@@ -751,6 +769,20 @@ python3 .prd-tools/scripts/distill-quality-gate.py \
 - exit code 2（fail）：必须补缺失文件，不得宣称 /prd-distill 完成。
 - exit code 0（pass 或 warning）：可以完成，但 warning 必须写入 report 或最终回复。
 
+## 步骤 8.6：Distill Completion Gate
+
+> 条件步骤：运行 `distill-quality-gate.py` 和 `distill-workflow-gate.py`，确认所有 gate 通过。
+
+**输入**：所有 context 文件、report.md、plan.md
+
+**输出**：无文件产出（gate 检查结果）
+
+**检查项**：
+
+1. 运行 `python3 .prd-tools/scripts/distill-quality-gate.py --distill-dir _prd-tools/distill/<slug> --repo-root .`，exit code 不为 2。
+2. 运行 `python3 .prd-tools/scripts/distill-workflow-gate.py --distill-dir _prd-tools/distill/<slug> --repo-root .`，exit code 不为 2。
+3. 两个 gate 都通过才允许继续 Step 9。
+
 ## 步骤 9：Portal HTML 生成
 
 运行脚本生成 `_prd-tools/distill/<slug>/portal.html`，将所有蒸馏产物内联为一个自包含的可视化页面：
@@ -793,3 +825,8 @@ python3 .prd-tools/scripts/render-distill-portal.py \
 6. 完成后简要告知输出路径、最重要的阻塞/风险，并优先引导用户阅读 `report.md`。同时告知 `portal.html` 可在浏览器中打开查看完整可视化报告。
 7. **report.md 和 plan.md 是主产物**；query-plan、context-pack、final-quality-gate 是辅助层，不替代主产物的阅读优先级。
 8. **⚠ Reference 强制消费**：`_prd-tools/reference/` 存在时，必须消费。Step 0 消费门禁（路由/规则/契约/术语）→ Step 2.5 桥接 index → Step 3.1 reference-first 扫描。禁止跳过 reference 直接 grep 源码。reference 不存在时，所有涉及 reference 的步骤必须标记缺失并降低置信度。
+9. **三段式硬约束**：
+   - spec 阶段不得生成 `report.md` 或 `plan.md`。
+   - report 阶段不得生成 `plan.md`。
+   - plan 阶段必须检查 `context/report-confirmation.yaml` 为 `status: approved`。
+   - plan 阶段不得重新解释原始 PRD，只消费 approved report 和 context。

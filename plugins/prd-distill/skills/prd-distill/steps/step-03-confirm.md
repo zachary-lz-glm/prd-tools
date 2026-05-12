@@ -1,3 +1,18 @@
+<workflow_state>
+  <workflow>prd-distill</workflow>
+  <current_step>3</current_step>
+  <allowed_inputs>context/evidence.yaml, context/requirement-ir.yaml, context/graph-context.md, context/layer-impact.yaml, context/contract-delta.yaml, references/schemas/</allowed_inputs>
+  <must_not_read_by_default>original long PRD (use requirement-ir instead)</must_not_read_by_default>
+  <must_not_produce>context/requirement-ir.yaml (already produced)</must_not_produce>
+</workflow_state>
+
+## MUST NOT
+
+- MUST NOT skip running step gate before starting this step
+- MUST NOT produce files listed in `<must_not_produce>`
+- MUST NOT read files listed in `<must_not_read_by_default>` unless explicitly needed
+- MUST NOT proceed if step gate exits with code 2
+
 # 步骤 3：计划、报告与反馈
 
 ## 目标

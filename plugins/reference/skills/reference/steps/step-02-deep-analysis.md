@@ -1,3 +1,18 @@
+<workflow_state>
+  <workflow>reference</workflow>
+  <current_step>2</current_step>
+  <allowed_inputs>_prd-tools/build/modules-index.yaml, references/reference-v4.md, references/layer-adapters.md, templates/, references/output-contracts.md</allowed_inputs>
+  <must_not_read_by_default>prd-distill schemas, _prd-tools/distill/</must_not_read_by_default>
+  <must_not_produce>report.md, plan.md</must_not_produce>
+</workflow_state>
+
+## MUST NOT
+
+- MUST NOT skip running step gate before starting this step
+- MUST NOT produce files listed in `<must_not_produce>`
+- MUST NOT read files listed in `<must_not_read_by_default>` unless explicitly needed
+- MUST NOT proceed if step gate exits with code 2
+
 # 步骤 2：深度分析
 
 ## 目标

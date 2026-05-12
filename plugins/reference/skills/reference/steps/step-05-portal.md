@@ -1,3 +1,18 @@
+<workflow_state>
+  <workflow>reference</workflow>
+  <current_step>5</current_step>
+  <allowed_inputs>_prd-tools/reference/00-portal.md, _prd-tools/reference/project-profile.yaml, _prd-tools/reference/01-05, _prd-tools/reference/index/</allowed_inputs>
+  <must_not_read_by_default>source code (not needed for portal rendering)</must_not_read_by_default>
+  <must_not_produce>any reference YAML files</must_not_produce>
+</workflow_state>
+
+## MUST NOT
+
+- MUST NOT skip running step gate before starting this step
+- MUST NOT produce files listed in `<must_not_produce>`
+- MUST NOT read files listed in `<must_not_read_by_default>` unless explicitly needed
+- MUST NOT proceed if step gate exits with code 2
+
 # 步骤 5：Portal HTML 生成
 
 > **硬约束**：AI 不得手写 portal.html。portal.html 必须由 `render-reference-portal.py` 使用固定模板生成。

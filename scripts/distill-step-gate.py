@@ -3,59 +3,101 @@
 
 在每个步骤开始前调用，检查前置产出是否存在。
 退出码: 0 = 通过, 2 = 前置条件缺失, 1 = 参数错误
+
+新增 --write-state: 通过/失败时写入 workflow-state.yaml v2
+新增 stage 概念: spec / report / plan（三段式工作流）
 """
 
 import argparse
 import os
 import sys
+
 import yaml
 
+# Import shared workflow state module
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from workflow_state import WorkflowState
+
+
+# Stage mapping: each step belongs to a stage
+STEP_STAGES = {
+    "0": "spec",
+    "1": "spec",
+    "1.5-afprd": "spec",
+    "1.5-quality": "spec",
+    "2": "spec",
+    "2.5": "report",
+    "3.1": "report",
+    "3.2": "report",
+    "4": "report",
+    "8": "report",
+    "8.1-confirm": "report",
+    "5": "plan",
+    "6": "plan",
+    "8.5": "plan",
+    "8.6": "plan",
+    "9": "plan",
+}
 
 STEP_TABLE = {
+    # ── spec 阶段 ──
     "0": {
         "label": "Step 0: PRD Ingestion",
+        "stage": "spec",
         "prerequisites": [],
+        "output": ["_ingest/document.md", "_ingest/source-manifest.yaml"],
     },
     "1": {
         "label": "Step 1: Evidence Ledger",
+        "stage": "spec",
         "prerequisites": [
             ("_ingest/document.md", "Step 0"),
         ],
+        "output": ["context/evidence.yaml"],
     },
     "1.5-afprd": {
         "label": "Step 1.5: AI-friendly PRD",
+        "stage": "spec",
         "prerequisites": [
             ("_ingest/document.md", "Step 0"),
             ("context/evidence.yaml", "Step 1"),
         ],
+        "output": ["spec/ai-friendly-prd.md"],
     },
     "1.5-quality": {
         "label": "Step 1.5: PRD Quality Report",
+        "stage": "spec",
         "prerequisites": [
             ("spec/ai-friendly-prd.md", "Step 1.5"),
             ("context/evidence.yaml", "Step 1"),
         ],
+        "output": ["context/prd-quality-report.yaml"],
     },
     "2": {
         "label": "Step 2: Requirement IR",
+        "stage": "spec",
         "prerequisites": [
             ("spec/ai-friendly-prd.md", "Step 1.5"),
             ("context/prd-quality-report.yaml", "Step 1.5"),
         ],
+        "output": ["context/requirement-ir.yaml"],
     },
+    # ── report 阶段 ──
     "2.5": {
         "label": "Step 2.5: Query Plan",
+        "stage": "report",
         "prerequisites": [
             ("context/requirement-ir.yaml", "Step 2"),
         ],
         "conditional_prerequisites": [
-            # Only when reference index exists
             ("_prd-tools/reference/index/entities.json", "reference index",
              ["context/query-plan.yaml", "Step 2.5"]),
         ],
+        "output": ["context/query-plan.yaml"],
     },
     "3.1": {
         "label": "Step 3.1: Graph Context",
+        "stage": "report",
         "prerequisites": [
             ("context/requirement-ir.yaml", "Step 2"),
         ],
@@ -63,23 +105,49 @@ STEP_TABLE = {
             ("_prd-tools/reference/index/entities.json", "reference index",
              ["context/query-plan.yaml", "Step 2.5"]),
         ],
+        "output": ["context/graph-context.md"],
     },
     "3.2": {
         "label": "Step 3.2: Layer Impact",
+        "stage": "report",
         "prerequisites": [
             ("context/requirement-ir.yaml", "Step 2"),
             ("context/graph-context.md", "Step 3.1"),
         ],
+        "output": ["context/layer-impact.yaml"],
     },
     "4": {
         "label": "Step 4: Contract Delta",
+        "stage": "report",
         "prerequisites": [
             ("context/requirement-ir.yaml", "Step 2"),
             ("context/layer-impact.yaml", "Step 3.2"),
         ],
+        "output": ["context/contract-delta.yaml"],
     },
+    "8": {
+        "label": "Step 8: Report",
+        "stage": "report",
+        "prerequisites": [
+            ("context/requirement-ir.yaml", "Step 2"),
+            ("context/graph-context.md", "Step 3.1"),
+            ("context/layer-impact.yaml", "Step 3.2"),
+            ("context/contract-delta.yaml", "Step 4"),
+        ],
+        "output": ["report.md"],
+    },
+    "8.1-confirm": {
+        "label": "Step 8.1: Report Review Gate",
+        "stage": "report",
+        "prerequisites": [
+            ("report.md", "Step 8"),
+        ],
+        "output": ["context/report-confirmation.yaml"],
+    },
+    # ── plan 阶段 ──
     "5": {
         "label": "Step 5: Plan",
+        "stage": "plan",
         "prerequisites": [
             ("context/requirement-ir.yaml", "Step 2"),
             ("context/graph-context.md", "Step 3.1"),
@@ -88,49 +156,51 @@ STEP_TABLE = {
             ("report.md", "Step 8"),
             ("context/report-confirmation.yaml", "Step 8.1"),
         ],
+        "output": ["plan.md"],
     },
     "6": {
         "label": "Step 6: Readiness",
+        "stage": "plan",
         "prerequisites": [
             ("plan.md", "Step 5"),
             ("context/contract-delta.yaml", "Step 4"),
         ],
-    },
-    "8": {
-        "label": "Step 8: Report",
-        "prerequisites": [
-            ("context/requirement-ir.yaml", "Step 2"),
-            ("context/graph-context.md", "Step 3.1"),
-            ("context/layer-impact.yaml", "Step 3.2"),
-            ("context/contract-delta.yaml", "Step 4"),
-        ],
-    },
-    "8.1-confirm": {
-        "label": "Step 8.1: Report Review Gate",
-        "prerequisites": [
-            ("report.md", "Step 8"),
-        ],
+        "output": ["context/readiness-report.yaml"],
     },
     "8.5": {
         "label": "Step 8.5: Final Quality Gate",
+        "stage": "plan",
         "prerequisites": [
             ("report.md", "Step 8"),
             ("plan.md", "Step 5"),
         ],
+        "output": ["context/final-quality-gate.yaml"],
     },
     "8.6": {
         "label": "Step 8.6: Distill Completion Gate",
+        "stage": "plan",
         "prerequisites": [
             ("context/final-quality-gate.yaml", "Step 8.5"),
         ],
+        "output": [],
     },
     "9": {
         "label": "Step 9: Portal HTML",
+        "stage": "plan",
         "prerequisites": [
             ("context/final-quality-gate.yaml", "Step 8.5"),
         ],
+        "output": ["portal.html"],
     },
 }
+
+# Ordered step sequence for resume pointer
+# Key fix: report(8) and report_confirmation(8.1) BEFORE plan(5)
+DISTILL_STEP_ORDER = [
+    "0", "1", "1.5-afprd", "1.5-quality", "2",       # spec
+    "2.5", "3.1", "3.2", "4", "8", "8.1-confirm",    # report
+    "5", "6", "8.5", "8.6", "9",                       # plan
+]
 
 
 def file_exists_nonempty(base_dir, rel_path):
@@ -155,35 +225,29 @@ def report_confirmation_approved(distill_dir):
         return False, f"context/report-confirmation.yaml is unreadable: {exc}"
 
     status = data.get("status")
+    if not status:
+        return False, "context/report-confirmation.yaml has no status field"
     if status != "approved":
         return False, f"context/report-confirmation.yaml status is {status!r}, expected 'approved'"
 
     return True, "approved"
 
 
-def check_workflow_state(distill_dir, requested_step):
-    """Check workflow-state.yaml for step ordering violations."""
-    state_path = os.path.join(distill_dir, "workflow-state.yaml")
-    if not os.path.isfile(state_path):
-        return None  # No state file — first run, OK
-
+def _get_next_step(current_step: str) -> str:
+    """Return the next step ID after current_step, or 'completed'."""
     try:
-        with open(state_path, "r", encoding="utf-8") as f:
-            state = yaml.safe_load(f) or {}
-    except Exception:
-        return None  # Can't read — skip check
-
-    completed = state.get("completed_steps", [])
-    if isinstance(completed, list) and requested_step in completed:
-        return f"Step {requested_step} already completed (in workflow-state.yaml). Re-running completed steps is allowed but unusual."
-
-    return None
+        idx = DISTILL_STEP_ORDER.index(current_step)
+        if idx + 1 < len(DISTILL_STEP_ORDER):
+            return DISTILL_STEP_ORDER[idx + 1]
+        return "completed"
+    except ValueError:
+        return current_step
 
 
 def run_gate(distill_dir, repo_root, step_id):
-    """Run the step gate check. Returns (passed, message)."""
+    """Run the step gate check. Returns (passed, message, missing_files)."""
     if step_id not in STEP_TABLE:
-        return False, f"Unknown step ID: {step_id}. Valid: {', '.join(sorted(STEP_TABLE.keys()))}"
+        return False, f"Unknown step ID: {step_id}. Valid: {', '.join(sorted(STEP_TABLE.keys()))}", []
 
     step_info = STEP_TABLE[step_id]
     label = step_info["label"]
@@ -215,12 +279,8 @@ def run_gate(distill_dir, repo_root, step_id):
         else:
             print(f"  [~] {req_path} ({req_step}) — SKIPPED ({trigger_label} not present)")
 
-    # Workflow state check
-    state_msg = check_workflow_state(distill_dir, step_id)
-    if state_msg:
-        print(f"  [!] workflow-state.yaml: {state_msg}")
-
-    # Human confirmation check before final plan generation.
+    # Human confirmation check before plan generation.
+    # This is the core of the three-stage workflow: plan requires approved report.
     if step_id == "5":
         approved, approval_msg = report_confirmation_approved(distill_dir)
         if approved:
@@ -229,16 +289,17 @@ def run_gate(distill_dir, repo_root, step_id):
             print(f"  [x] Report Review Gate — {approval_msg}")
             missing.append(("context/report-confirmation.yaml: status approved", "Step 8.1"))
 
+    missing_files = [m[0] for m in missing]
+
     if missing:
-        missing_files = [m[0] for m in missing]
         missing_steps = [m[1] for m in missing]
         print(f"RESULT: FAIL — {len(missing)} prerequisite(s) missing.")
         print(f"  请先完成 {', '.join(missing_steps)}，生成缺失文件后再继续 {label}。")
         print(f"  缺失文件: {', '.join(missing_files)}")
-        return False, "prerequisites missing"
+        return False, "prerequisites missing", missing_files
     else:
         print(f"RESULT: PASS — all prerequisites satisfied. Proceed with {label}.")
-        return True, "ok"
+        return True, "ok", []
 
 
 def main():
@@ -246,6 +307,10 @@ def main():
     parser.add_argument("--step", required=True, help="Step ID (e.g., 0, 1, 1.5-afprd, 2, 2.5, 3.1, 3.2, 4, 8, 8.1-confirm, 5, 6, 8.5, 8.6, 9)")
     parser.add_argument("--distill-dir", required=True, help="Path to distill output directory")
     parser.add_argument("--repo-root", required=True, help="Path to project root directory")
+    parser.add_argument("--write-state", action="store_true",
+                        help="Write/update workflow-state.yaml on pass or fail")
+    parser.add_argument("--tool-version", default="2.17.0",
+                        help="Tool version for workflow state file")
     args = parser.parse_args()
 
     distill_dir = os.path.abspath(args.distill_dir)
@@ -255,7 +320,29 @@ def main():
         print(f"ERROR: distill-dir does not exist: {distill_dir}")
         sys.exit(1)
 
-    passed, _ = run_gate(distill_dir, repo_root, args.step)
+    passed, message, missing_files = run_gate(distill_dir, repo_root, args.step)
+
+    # Write workflow state if requested
+    if args.write_state:
+        state_path = os.path.join(distill_dir, "workflow-state.yaml")
+        state = WorkflowState(state_path, "prd-distill", args.tool_version)
+
+        step_info = STEP_TABLE[args.step]
+        label = step_info["label"]
+        output_files = step_info.get("output", [])
+
+        if passed:
+            state.mark_step_passed(args.step, label, output_files, distill_dir)
+            next_step = _get_next_step(args.step)
+            next_label = STEP_TABLE.get(next_step, {}).get("label", "completed")
+            state.set_resume(next_step, next_label)
+        else:
+            state.mark_step_blocked(args.step, label, missing_files)
+            state.set_resume(args.step, f"Retry {label} after completing prerequisites")
+
+        state.save()
+        print(f"  [state] Written to {state_path}")
+
     sys.exit(0 if passed else 2)
 
 

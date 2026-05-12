@@ -360,6 +360,7 @@ def print_summary(results):
         ('index_bridge', 'Index bridge'),
         ('final_quality_gate', 'Final quality gate'),
         ('report_quality', 'Report quality'),
+        ('report_confirmation', 'Report confirmation'),
         ('plan_missing_confirmation', 'Plan missing_confirmation'),
         ('portal_html', 'Portal HTML'),
     ]

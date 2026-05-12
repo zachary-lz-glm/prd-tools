@@ -5,9 +5,99 @@ description: 将 PRD、需求文本、技术方案或变更说明先做稳定读
 
 # prd-distill
 
-Claude Code 中通过 `/prd-distill <PRD 文件或需求文本>` 触发。
+Claude Code 中通过以下命令触发：
+
+```text
+/prd-distill spec <prd-file-or-text>   → PRD 解析 + 结构化需求
+/prd-distill report <slug>             → 影响分析报告（需用户确认）
+/prd-distill plan <slug>               → 技术方案（需 approved report）
+/prd-distill <PRD 文件或需求文本>       → 引导式入口（不自动生成 plan）
+```
 
 人类可读文档见插件根目录 `README.md`。
+
+## 三段式工作流（硬约束）
+
+`/prd-distill` 采用三段式工作流：**spec → report(confirm) → plan**
+
+| 阶段 | 核心问题 | 是否读源码 | 是否需要用户确认 |
+|------|----------|------------|------------------|
+| spec | PRD 本身到底说了什么 | 默认不读源码 | 不强制，但输出 open questions |
+| report | 这个 PRD 放到当前项目会影响什么 | 必须读 reference / index / 源码 | 必须确认 |
+| plan | 在确认后的影响分析基础上怎么实施 | 只消费确认后的 report 和 context | 不再重新解释 PRD |
+
+### Stage 1: spec
+
+Steps: 0 → 1 → 1.5-afprd → 1.5-quality → 2
+
+允许产物：
+- `_ingest/*`
+- `spec/ai-friendly-prd.md`
+- `context/evidence.yaml`
+- `context/prd-quality-report.yaml`
+- `context/requirement-ir.yaml`
+
+**禁止产物**：`report.md`、`plan.md`、`portal.html`、`context/readiness-report.yaml`、`context/final-quality-gate.yaml`
+
+### Stage 2: report
+
+Steps: 2.5 → 3.1 → 3.2 → 4 → 8 → 8.1-confirm
+
+允许产物：
+- `context/query-plan.yaml`（如 index 存在）
+- `context/graph-context.md`
+- `context/layer-impact.yaml`
+- `context/contract-delta.yaml`
+- `report.md`
+- `context/report-confirmation.yaml`
+
+**禁止产物**：`plan.md`、`portal.html`、`context/readiness-report.yaml`、`context/final-quality-gate.yaml`
+
+**Step 8.1 后必须暂停**：向用户展示 report 摘要和确认选项，写入 `context/report-confirmation.yaml`。
+
+### Stage 3: plan
+
+Steps: 5 → 6 → 8.5 → 8.6 → 9
+
+**前置条件**：`context/report-confirmation.yaml` 必须为 `status: approved`。
+
+- `needs_revision`：不得生成 plan，必须修正 report 或上游 context。
+- `blocked`：停止蒸馏。
+
+允许产物：
+- `plan.md`
+- `context/readiness-report.yaml`
+- `context/final-quality-gate.yaml`
+- `portal.html`
+
+**plan 阶段不得重新解释原始 PRD**，只消费 approved report 和 context。
+
+## Step Gate Enforcement（硬约束）
+
+**每步执行前必须运行 step gate，并传入 `--write-state`：**
+
+```bash
+python3 .prd-tools/scripts/distill-step-gate.py --step <step_id> --distill-dir _prd-tools/distill/<slug> --repo-root . --write-state
+```
+
+Step IDs: `0`, `1`, `1.5-afprd`, `1.5-quality`, `2`, `2.5`, `3.1`, `3.2`, `4`, `5`, `6`, `8`, `8.1-confirm`, `8.5`, `8.6`, `9`
+
+If the step gate exits with code 2 (FAIL):
+- **STOP immediately** — do not proceed with the step.
+- Read the error message — it tells you which prerequisite is missing.
+- Complete the missing prerequisite step first, then re-run the step gate.
+- Only proceed after the step gate exits with code 0 (PASS).
+
+**Workflow State File**: `_prd-tools/distill/<slug>/workflow-state.yaml`
+
+- Before each step, read this file. If it does not exist, the step gate with `--write-state` will create it.
+- After each step, the gate updates it with output files and hashes.
+- The next step MUST read this state file before proceeding — do not rely on conversation memory.
+
+**禁止行为：**
+- 不得跳过 step gate 直接执行步骤
+- 不得在 gate 失败后手动创建缺失文件绕过检查
+- 不得合并多个步骤为一次执行
 
 ## Final Completion Gate（硬约束）
 
@@ -223,6 +313,8 @@ blocked_reason: ""
 
 ## 执行步骤
 
+### spec 阶段
+
 1. 确认 PRD 来源和目标项目路径。
 2. PRD ingestion：
    - `.md`/`.txt`：直接读取。
@@ -239,6 +331,9 @@ blocked_reason: ""
    - **⚠ reference 不存在时**：所有涉及 reference 的步骤标记缺失，layer-impact/contract-delta confidence 强制降为 `low`，report.md §11 必须暴露。
 4. 建立 `context/evidence.yaml`，映射 ingestion 证据后补充源码证据和 reference 消费证据。
 5. 拆 `context/requirement-ir.yaml`。
+
+### report 阶段
+
 6. **Index 桥接**：如果 `_prd-tools/reference/index/` 存在，**必须**运行 `python3 .prd-tools/scripts/context-pack.py` 生成 `context/query-plan.yaml`（查询计划）。步骤 7 源码扫描**必须消费** query-plan.yaml 的 matched_entities，不能跳过。
 7. **Reference-First 源码扫描**：构建 `context/graph-context.md`。
    - **阶段 1（Reference 路由）**：先查 `04-routing-playbooks.yaml` 路由表确定 target_surfaces，再查 `01-codebase.yaml` 获得精确文件路径和符号。禁止跳过直接 grep。
@@ -252,6 +347,9 @@ blocked_reason: ""
 10. 生成 `context/contract-delta.yaml`。
 11. 生成 `report.md`（渐进式披露 + 源码扫描命中摘要 + §11）。
 12. **Report Review Gate**：暂停，要求用户确认 report 是否符合预期，写入 `context/report-confirmation.yaml`。
+
+### plan 阶段（requires approved report）
+
 13. 用户确认 `approved` 后，生成 `plan.md`（消费 `graph-context.md` 函数级上下文）。
 14. 生成 `context/readiness-report.yaml`。
 15. （辅助层）运行 `python3 .prd-tools/scripts/final-quality-gate.py` 生成 `context/final-quality-gate.yaml`（5 项确定性检查评分）。
@@ -272,6 +370,7 @@ blocked_reason: ""
 ## 完成标准
 
 完成后必须说明：
+- 当前完成的阶段（spec / report / plan）。
 - 输出目录路径。
 - `report.md` 最重要结论。
 - `report.md` §11 最重要阻塞项。
@@ -279,3 +378,8 @@ blocked_reason: ""
 - 是否生成 reference 回流建议。
 - `readiness-report.yaml` 的 status、score、decision。
 - `portal.html` 已生成，可在浏览器中打开查看完整可视化报告。
+
+**三段式完成标准**：
+- spec 阶段完成：`spec/ai-friendly-prd.md` + `context/requirement-ir.yaml` 存在，提示用户继续 `/prd-distill report <slug>`。
+- report 阶段完成：`report.md` 存在，已写入 `context/report-confirmation.yaml`，等待用户确认。
+- plan 阶段完成：`plan.md` + `portal.html` 存在，所有 gate 通过。

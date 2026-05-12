@@ -29,71 +29,106 @@ from pathlib import Path
 # ──────────────────────────────────────────
 
 # Ordered steps: each step requires the previous step's output to exist
+# Three-stage workflow: spec -> report(confirm) -> plan
 WORKFLOW_STEPS = [
+    # ── spec 阶段 ──
     {
         'step': 'ingest',
         'output': '_ingest/document.md',
         'label': 'Step 0: PRD Ingestion',
+        'stage': 'spec',
     },
     {
         'step': 'evidence',
         'output': 'context/evidence.yaml',
         'label': 'Step 1: Evidence Ledger',
+        'stage': 'spec',
     },
     {
         'step': 'afprd',
         'output': 'spec/ai-friendly-prd.md',
         'label': 'Step 1.5: AI-friendly PRD',
+        'stage': 'spec',
     },
     {
         'step': 'prd_quality',
         'output': 'context/prd-quality-report.yaml',
         'label': 'Step 1.5: PRD Quality Report',
+        'stage': 'spec',
     },
     {
         'step': 'requirement_ir',
         'output': 'context/requirement-ir.yaml',
         'label': 'Step 2: Requirement IR',
+        'stage': 'spec',
+    },
+    # ── report 阶段 ──
+    {
+        'step': 'query_plan',
+        'output': 'context/query-plan.yaml',
+        'label': 'Step 2.5: Query Plan',
+        'stage': 'report',
     },
     {
         'step': 'graph_context',
         'output': 'context/graph-context.md',
         'label': 'Step 3.1: Graph Context',
+        'stage': 'report',
     },
     {
         'step': 'layer_impact',
         'output': 'context/layer-impact.yaml',
         'label': 'Step 3.2: Layer Impact',
+        'stage': 'report',
     },
     {
         'step': 'contract_delta',
         'output': 'context/contract-delta.yaml',
         'label': 'Step 4: Contract Delta',
+        'stage': 'report',
     },
     {
         'step': 'report',
         'output': 'report.md',
         'label': 'Step 8: Report',
+        'stage': 'report',
     },
     {
         'step': 'report_confirmation',
         'output': 'context/report-confirmation.yaml',
         'label': 'Step 8.1: Report Review Gate',
+        'stage': 'report',
     },
+    # ── plan 阶段 ──
     {
         'step': 'plan',
         'output': 'plan.md',
         'label': 'Step 5: Plan',
+        'stage': 'plan',
     },
     {
         'step': 'readiness',
         'output': 'context/readiness-report.yaml',
         'label': 'Step 6: Readiness Report',
+        'stage': 'plan',
     },
     {
         'step': 'final_quality_gate',
         'output': 'context/final-quality-gate.yaml',
         'label': 'Step 8.5: Final Quality Gate',
+        'stage': 'plan',
+    },
+    {
+        'step': 'distill_completion_gate',
+        'output': None,
+        'label': 'Step 8.6: Distill Completion Gate',
+        'stage': 'plan',
+    },
+    {
+        'step': 'portal',
+        'output': 'portal.html',
+        'label': 'Step 9: Portal HTML',
+        'stage': 'plan',
     },
 ]
 
@@ -115,17 +150,24 @@ def _check_workflow_order(distill_dir):
 
     For each step N, if step N's output exists but step N-1's output
     does not, that's an ordering violation.
+    Steps with output=None are skipped for file existence checks.
     """
     violations = []
     completed = []
 
     for i, step in enumerate(WORKFLOW_STEPS):
+        # Skip steps with no output file (e.g. distill_completion_gate)
+        if step.get('output') is None:
+            continue
+
         output_path = distill_dir / step['output']
         exists = _file_exists_nonempty(output_path)
 
         if exists:
             for j in range(i):
                 prev = WORKFLOW_STEPS[j]
+                if prev.get('output') is None:
+                    continue
                 prev_path = distill_dir / prev['output']
                 if not _file_exists_nonempty(prev_path):
                     violations.append({
@@ -240,6 +282,51 @@ def _check_report_confirmation(distill_dir):
     }
 
 
+def _check_plan_confirmation(distill_dir):
+    """Check that plan-stage files only exist when report is approved.
+
+    If any plan-stage file exists (plan.md, readiness-report.yaml,
+    final-quality-gate.yaml, portal.html) but report-confirmation.yaml
+    is not approved, that's a violation of the three-stage workflow.
+    """
+    plan_files = [
+        ('plan.md', 'Step 5: Plan'),
+        ('context/readiness-report.yaml', 'Step 6: Readiness'),
+        ('context/final-quality-gate.yaml', 'Step 8.5: Final Quality Gate'),
+        ('portal.html', 'Step 9: Portal HTML'),
+    ]
+
+    existing_plan_files = []
+    for rel_path, label in plan_files:
+        if _file_exists_nonempty(distill_dir / rel_path):
+            existing_plan_files.append(label)
+
+    if not existing_plan_files:
+        # No plan files exist yet — nothing to check
+        return {
+            'status': 'pass',
+            'plan_files_exist': False,
+            'message': 'No plan-stage files found, confirmation check not applicable',
+        }
+
+    # Plan files exist — report must be approved
+    rc = _check_report_confirmation(distill_dir)
+    if rc.get('approved'):
+        return {
+            'status': 'pass',
+            'plan_files_exist': True,
+            'report_approved': True,
+            'message': f'Plan files exist ({len(existing_plan_files)}) and report is approved',
+        }
+
+    return {
+        'status': 'fail',
+        'plan_files_exist': True,
+        'report_approved': False,
+        'message': f'Plan-stage files exist ({", ".join(existing_plan_files)}) but report is NOT approved — violates three-stage workflow',
+    }
+
+
 def _check_quality_gate(distill_dir, repo_root):
     """Run distill-quality-gate.py and capture result."""
     candidates = [
@@ -302,6 +389,7 @@ def run_checks(distill_dir, repo_root):
     results['requirement_ir_source'] = _check_requirement_ir_source(base)
     results['layer_impact_anchors'] = _check_layer_impact_anchors(base)
     results['report_confirmation'] = _check_report_confirmation(base)
+    results['plan_confirmation'] = _check_plan_confirmation(base)
     results['portal_html'] = _check_portal_script_rendered(base)
     results['quality_gate'] = _check_quality_gate(base, repo_root)
 
@@ -352,13 +440,23 @@ def print_summary(results):
     else:
         print(f'  [{sym}] layer-impact anchors: MISSING (no code_anchors or fallback)')
 
-    # Portal html
+    # Report confirmation
     rc = results['report_confirmation']
     sym = '+' if rc['status'] == 'pass' else 'x'
     if rc.get('approved'):
         print(f'  [{sym}] report confirmation: approved')
     else:
         print(f'  [{sym}] report confirmation: {rc.get("message", "not approved")}')
+
+    # Plan confirmation (three-stage gate)
+    pc = results['plan_confirmation']
+    sym = '+' if pc['status'] == 'pass' else 'x'
+    if pc.get('plan_files_exist') and pc.get('report_approved'):
+        print(f'  [{sym}] plan confirmation: plan files exist with approved report')
+    elif not pc.get('plan_files_exist'):
+        print(f'  [{sym}] plan confirmation: no plan files yet (not applicable)')
+    else:
+        print(f'  [{sym}] plan confirmation: {pc.get("message", "report not approved")}')
 
     # Portal html
     ph = results['portal_html']

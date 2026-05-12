@@ -9,6 +9,33 @@ Claude Code 中通过 `/reference` 触发。
 
 人类可读文档见插件根目录 `README.md`。
 
+## Step Gate Enforcement（硬约束）
+
+**每步执行前必须运行 step gate，并传入 `--write-state`：**
+
+```bash
+python3 .prd-tools/scripts/reference-step-gate.py --step <step_id> --root . --write-state
+```
+
+Step IDs: `0`, `1`, `2a`, `2b`, `2c`, `2d`, `2e`, `3`, `3.5`, `3.6`, `4`
+
+If the step gate exits with code 2 (FAIL):
+- **STOP immediately** — do not proceed with the step.
+- Read the error message — it tells you which prerequisite is missing.
+- Complete the missing prerequisite step first, then re-run the step gate.
+- Only proceed after the step gate exits with code 0 (PASS).
+
+**Workflow State File**: `_prd-tools/build/reference-workflow-state.yaml`
+
+- Before each step, read this file. If it does not exist, the step gate with `--write-state` will create it.
+- After each step, the gate updates it with output files and hashes.
+- The next step MUST read this state file before proceeding — do not rely on conversation memory.
+
+**禁止行为：**
+- 不得跳过 step gate 直接执行步骤
+- 不得在 gate 失败后手动创建缺失文件绕过检查
+- 不得合并多个步骤为一次执行
+
 ## Final Completion Gate（硬约束）
 
 /reference 全量构建完成必须满足以下条件，缺一不可：

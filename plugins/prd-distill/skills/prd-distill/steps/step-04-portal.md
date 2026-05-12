@@ -1,3 +1,18 @@
+<workflow_state>
+  <workflow>prd-distill</workflow>
+  <current_step>4</current_step>
+  <allowed_inputs>report.md, plan.md, spec/ai-friendly-prd.md, context/*</allowed_inputs>
+  <must_not_read_by_default>source code (not needed for portal rendering)</must_not_read_by_default>
+  <must_not_produce>any context/ YAML files</must_not_produce>
+</workflow_state>
+
+## MUST NOT
+
+- MUST NOT skip running step gate before starting this step
+- MUST NOT produce files listed in `<must_not_produce>`
+- MUST NOT read files listed in `<must_not_read_by_default>` unless explicitly needed
+- MUST NOT proceed if step gate exits with code 2
+
 # 步骤 4：Portal HTML 生成
 
 > **硬约束**：AI 不得手写 portal.html。portal.html 必须由 `render-distill-portal.py` 使用固定模板生成。

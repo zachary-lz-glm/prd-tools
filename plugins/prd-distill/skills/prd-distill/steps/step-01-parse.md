@@ -1,3 +1,18 @@
+<workflow_state>
+  <workflow>prd-distill</workflow>
+  <current_step>1</current_step>
+  <allowed_inputs>PRD file (.md/.txt/.docx), _prd-tools/reference/ (if exists), references/layer-adapters.md</allowed_inputs>
+  <must_not_read_by_default>source code (beyond reference routing), report.md, plan.md</must_not_read_by_default>
+  <must_not_produce>context/requirement-ir.yaml, context/layer-impact.yaml</must_not_produce>
+</workflow_state>
+
+## MUST NOT
+
+- MUST NOT skip running step gate before starting this step
+- MUST NOT produce files listed in `<must_not_produce>`
+- MUST NOT read files listed in `<must_not_read_by_default>` unless explicitly needed
+- MUST NOT proceed if step gate exits with code 2
+
 # 步骤 1：证据与 Requirement IR
 
 ## Pre-flight
