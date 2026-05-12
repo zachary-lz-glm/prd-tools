@@ -57,7 +57,9 @@ For the target plugin, verify all expected output files exist:
 
 ### C-2: Contract Compliance
 
-For each artifact that has a corresponding `.contract.yaml` in `plugins/prd-distill/skills/prd-distill/references/contracts/`:
+Only `prd-distill` has `.contract.yaml` files (4 contracts: ai-friendly-prd, contract-delta, layer-impact, requirement-ir) in `plugins/prd-distill/skills/prd-distill/references/contracts/`. The `reference` plugin has no contracts — skip C-2 entirely when `PLUGIN_SCOPE == reference`.
+
+For each artifact that has a corresponding `.contract.yaml`:
 
 1. Run: `python3 scripts/validate-artifact.py --contract <contract_path> --artifact <artifact_path>`
 2. Report pass/fail and any rule violations.

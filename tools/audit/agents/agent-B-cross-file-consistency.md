@@ -92,10 +92,11 @@ For each `contract.yaml`:
 
 ### B-8: Shared File Consistency (when PLUGIN_SCOPE is both)
 
-For files shared between plugins:
-- `references/output-contracts.md` — verify both plugins' copies are consistent.
-- `references/layer-adapters.md` — verify referenced in both plugins.
-- Gate scripts — verify both use the same version loading mechanism (`_default_tool_version()`).
+Both plugins keep **independent copies** of shared documents (not symlinks). During iteration one copy often drifts. Check:
+
+- `plugins/prd-distill/skills/prd-distill/references/output-contracts.md` vs `plugins/reference/skills/reference/references/output-contracts.md` — run `diff` on the two files, report any divergence line-by-line. Historical audits (P0R2-12) had to edit both copies, so drift here is a recurring risk.
+- `references/layer-adapters.md` — verify both plugins reference it from their docs (if applicable).
+- Gate scripts — verify both `distill-step-gate.py` and `reference-step-gate.py` use the same version loading mechanism (`_default_tool_version()` reading VERSION file).
 
 ## Output Format
 
