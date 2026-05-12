@@ -10,8 +10,19 @@
 import argparse
 import os
 import sys
+from pathlib import Path
 
 import yaml
+
+
+def _default_tool_version():
+    try:
+        version_file = Path(__file__).resolve().parent.parent / "VERSION"
+        if version_file.exists():
+            return version_file.read_text().strip()
+    except Exception:
+        pass
+    return "unknown"
 
 from _gate_fixhint import fix_hint
 
@@ -233,7 +244,7 @@ def main():
     )
     parser.add_argument(
         "--tool-version",
-        default="2.17.0",
+        default=_default_tool_version(),
         help="Tool version for workflow state file",
     )
     args = parser.parse_args()

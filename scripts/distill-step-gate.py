@@ -11,8 +11,19 @@
 import argparse
 import os
 import sys
+from pathlib import Path
 
 import yaml
+
+
+def _default_tool_version():
+    try:
+        version_file = Path(__file__).resolve().parent.parent / "VERSION"
+        if version_file.exists():
+            return version_file.read_text().strip()
+    except Exception:
+        pass
+    return "unknown"
 
 # Import shared workflow state module
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -332,7 +343,7 @@ def main():
                         help="Write/update workflow-state.yaml on pass or fail")
     parser.add_argument("--allow-rerun", action="store_true",
                         help="Skip ordering check (allow running a step out of sequence)")
-    parser.add_argument("--tool-version", default="2.17.0",
+    parser.add_argument("--tool-version", default=_default_tool_version(),
                         help="Tool version for workflow state file")
     args = parser.parse_args()
 
