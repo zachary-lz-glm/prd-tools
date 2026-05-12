@@ -223,7 +223,34 @@ report.md 生成后、plan.md 生成前，必须暂停：
 - reference 与代码的矛盾
 - 跨仓契约、owner、handoff 或团队级知识库候选
 
-每条建议必须按 `references/schemas/03-context.md` 中 reference-update-suggestions schema 标注 `current_repo_scope`。当前仓可验证的事实才能标记为 `apply_to_current_repo`；其他仓实现细节、跨仓 owner、团队级 taxonomy 必须标记为 `record_as_signal` 或 `needs_owner_confirmation`，并填写 `owner_to_confirm`。`team_reference_candidate: true` 只表示未来团队知识库候选。
+每条 suggestion **必须填满以下字段**（按 schema v2.0）：
+
+```yaml
+- id: REF-UPD-XXX
+  type: "<枚举>"                      # 6 选 1: new_term/new_route/new_contract/new_playbook/contradiction/golden_sample_candidate
+  target_file: "_prd-tools/reference/<xxx>.yaml"
+  summary: "一句话说明这条建议做什么"
+  current_repo_scope:
+    authority: "single_repo"
+    action: "<枚举>"                   # 3 选 1: apply_to_current_repo/record_as_signal/needs_owner_confirmation
+  owner_to_confirm: ["<owner>"]
+  team_reference_candidate: true|false
+  team_scope:                         # 当 team_reference_candidate=true 时必填
+    type: "<枚举>"
+    related_repos: []
+    aggregation_status: "candidate"
+  priority: "high|medium|low"
+  confidence: "high|medium|low"
+  evidence: ["EV-001"]
+  proposed_patch: ""
+```
+
+**禁止简化为 `{id, target_file, section, action, description, reason}` 6 字段**。
+
+**团队公共库候选判定**：
+- 契约影响 2+ 个仓 → `type=contract, team_reference_candidate=true`
+- 术语首次出现且为全团队业务概念 → `type=domain_term, team_reference_candidate=true`
+- 否则 → `team_reference_candidate=false`
 
 `/prd-distill` 不直接编辑 `_prd-tools/reference/`；实际修改交给 `/reference` 的反馈回流。
 
