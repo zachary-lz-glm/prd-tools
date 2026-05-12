@@ -39,6 +39,7 @@ REQUIRED_DISTILL_FILES = {
         'context/layer-impact.yaml',
         'context/contract-delta.yaml',
         'context/graph-context.md',
+        'context/report-confirmation.yaml',
         'context/readiness-report.yaml',
         'context/final-quality-gate.yaml',
     ],
@@ -247,6 +248,26 @@ def _check_report_quality(base):
     }
 
 
+def _check_report_confirmation(base):
+    """Check report-confirmation.yaml approves plan generation."""
+    text = _read_safe(base / 'context' / 'report-confirmation.yaml')
+    if not text.strip():
+        return {
+            'status': 'fail',
+            'exists': False,
+            'approved': False,
+            'message': 'report-confirmation.yaml 不存在或为空，不能确认 plan 已基于用户认可的 report 生成',
+        }
+
+    approved = bool(re.search(r'^status:\s*["\']?approved["\']?\s*$', text, re.M))
+    return {
+        'status': 'pass' if approved else 'fail',
+        'exists': True,
+        'approved': approved,
+        'message': '' if approved else 'report-confirmation.yaml status 不是 approved，不能宣称 /prd-distill 完成',
+    }
+
+
 def _check_plan_missing_confirmation(base):
     """Check plan.md doesn't treat missing_confirmation as confirmed tasks."""
     text = _read_safe(base / 'plan.md')
@@ -309,6 +330,7 @@ def run_checks(distill_dir, repo_root):
     results['index_bridge'] = _check_index_bridge(base, repo_root)
     results['final_quality_gate'] = _check_final_quality_gate(base)
     results['report_quality'] = _check_report_quality(base)
+    results['report_confirmation'] = _check_report_confirmation(base)
     results['plan_missing_confirmation'] = _check_plan_missing_confirmation(base)
     results['portal_html'] = _check_portal_html(base)
 

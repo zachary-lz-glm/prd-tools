@@ -85,6 +85,8 @@ STEP_TABLE = {
             ("context/graph-context.md", "Step 3.1"),
             ("context/layer-impact.yaml", "Step 3.2"),
             ("context/contract-delta.yaml", "Step 4"),
+            ("report.md", "Step 8"),
+            ("context/report-confirmation.yaml", "Step 8.1"),
         ],
     },
     "6": {
@@ -101,6 +103,12 @@ STEP_TABLE = {
             ("context/graph-context.md", "Step 3.1"),
             ("context/layer-impact.yaml", "Step 3.2"),
             ("context/contract-delta.yaml", "Step 4"),
+        ],
+    },
+    "8.1-confirm": {
+        "label": "Step 8.1: Report Review Gate",
+        "prerequisites": [
+            ("report.md", "Step 8"),
         ],
     },
     "8.5": {
@@ -132,6 +140,25 @@ def file_exists_nonempty(base_dir, rel_path):
         return False, 0
     size = os.path.getsize(full_path)
     return size > 0, size
+
+
+def report_confirmation_approved(distill_dir):
+    """Check report-confirmation.yaml explicitly approves plan generation."""
+    path = os.path.join(distill_dir, "context", "report-confirmation.yaml")
+    if not os.path.isfile(path):
+        return False, "context/report-confirmation.yaml is missing"
+
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            data = yaml.safe_load(f) or {}
+    except Exception as exc:
+        return False, f"context/report-confirmation.yaml is unreadable: {exc}"
+
+    status = data.get("status")
+    if status != "approved":
+        return False, f"context/report-confirmation.yaml status is {status!r}, expected 'approved'"
+
+    return True, "approved"
 
 
 def check_workflow_state(distill_dir, requested_step):
@@ -193,6 +220,15 @@ def run_gate(distill_dir, repo_root, step_id):
     if state_msg:
         print(f"  [!] workflow-state.yaml: {state_msg}")
 
+    # Human confirmation check before final plan generation.
+    if step_id == "5":
+        approved, approval_msg = report_confirmation_approved(distill_dir)
+        if approved:
+            print("  [+] context/report-confirmation.yaml — approved")
+        else:
+            print(f"  [x] Report Review Gate — {approval_msg}")
+            missing.append(("context/report-confirmation.yaml: status approved", "Step 8.1"))
+
     if missing:
         missing_files = [m[0] for m in missing]
         missing_steps = [m[1] for m in missing]
@@ -207,7 +243,7 @@ def run_gate(distill_dir, repo_root, step_id):
 
 def main():
     parser = argparse.ArgumentParser(description="Distill Step Gate — check prerequisites before each step")
-    parser.add_argument("--step", required=True, help="Step ID (e.g., 0, 1, 1.5-afprd, 2, 2.5, 3.1, 3.2, 4, 5, 6, 8, 8.5, 8.6, 9)")
+    parser.add_argument("--step", required=True, help="Step ID (e.g., 0, 1, 1.5-afprd, 2, 2.5, 3.1, 3.2, 4, 8, 8.1-confirm, 5, 6, 8.5, 8.6, 9)")
     parser.add_argument("--distill-dir", required=True, help="Path to distill output directory")
     parser.add_argument("--repo-root", required=True, help="Path to project root directory")
     args = parser.parse_args()

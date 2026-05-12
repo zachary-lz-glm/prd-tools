@@ -33,6 +33,8 @@ Claude Code 中通过 `/reference` 触发。
 
 ## 工作模式选择
 
+`/reference` 必须先进入人机模式选择，不得默认一路全自动构建。
+
 先检查 `_prd-tools/reference/` 是否存在：
 - 不存在 → 建议 Mode F（上下文收集）→ Mode A（全量构建）。
 - 已存在 → 按用户目标执行 B/B2/C/E。
@@ -45,6 +47,34 @@ Claude Code 中通过 `/reference` 触发。
 | B2 健康检查 | 是否过期/缺证据 | `_prd-tools/build/health-check.yaml` |
 | C 质量门控 | 证据/契约闭环/幻觉 | `_prd-tools/build/quality-report.yaml` |
 | E 反馈回流 | prd-distill 输出回收 | `_prd-tools/build/feedback-report.yaml` |
+
+### Mode Selection Gate
+
+执行任何会写 `_prd-tools/reference/` 的动作前，必须先向用户展示当前状态和模式选项，并等待确认。
+
+展示内容：
+
+- 当前 `_prd-tools/reference/` 是否存在。
+- 当前 `_prd-tools/build/` 是否存在历史上下文或质量报告。
+- 推荐模式和原因。
+- 可选模式：F→A、F only、A only、B、B2、C、E、Chat。
+
+默认推荐：
+
+- 首次建设：推荐 `F→A`，但必须等用户确认。
+- 已有 reference：推荐 `B2` 健康检查或 `B` 增量更新，除非用户明确要求重建。
+
+用户确认后，将选择写入 `_prd-tools/build/reference-workflow-state.yaml`：
+
+```yaml
+human_checkpoint:
+  mode_selection:
+    status: "approved"
+    selected_mode: "F_then_A | F_only | A_only | B | B2 | C | E"
+    confirmed_by: "user"
+```
+
+如果用户选择 Chat，只讨论方案，不生成或修改 reference 产物。
 
 ## 输入
 

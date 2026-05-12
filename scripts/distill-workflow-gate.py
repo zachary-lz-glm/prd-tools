@@ -71,6 +71,16 @@ WORKFLOW_STEPS = [
         'label': 'Step 4: Contract Delta',
     },
     {
+        'step': 'report',
+        'output': 'report.md',
+        'label': 'Step 8: Report',
+    },
+    {
+        'step': 'report_confirmation',
+        'output': 'context/report-confirmation.yaml',
+        'label': 'Step 8.1: Report Review Gate',
+    },
+    {
         'step': 'plan',
         'output': 'plan.md',
         'label': 'Step 5: Plan',
@@ -79,11 +89,6 @@ WORKFLOW_STEPS = [
         'step': 'readiness',
         'output': 'context/readiness-report.yaml',
         'label': 'Step 6: Readiness Report',
-    },
-    {
-        'step': 'report',
-        'output': 'report.md',
-        'label': 'Step 8: Report',
     },
     {
         'step': 'final_quality_gate',
@@ -215,6 +220,26 @@ def _check_layer_impact_anchors(distill_dir):
     }
 
 
+def _check_report_confirmation(distill_dir):
+    """Check report-confirmation.yaml approves downstream plan/readiness."""
+    text = _read_safe(distill_dir / 'context' / 'report-confirmation.yaml')
+    if not text.strip():
+        return {
+            'status': 'fail',
+            'exists': False,
+            'approved': False,
+            'message': 'report-confirmation.yaml 不存在或为空',
+        }
+
+    approved = bool(re.search(r'^status:\s*["\']?approved["\']?\s*$', text, re.M))
+    return {
+        'status': 'pass' if approved else 'fail',
+        'exists': True,
+        'approved': approved,
+        'message': '' if approved else 'report-confirmation.yaml status 不是 approved',
+    }
+
+
 def _check_quality_gate(distill_dir, repo_root):
     """Run distill-quality-gate.py and capture result."""
     candidates = [
@@ -276,6 +301,7 @@ def run_checks(distill_dir, repo_root):
     results['workflow_order'] = _check_workflow_order(base)
     results['requirement_ir_source'] = _check_requirement_ir_source(base)
     results['layer_impact_anchors'] = _check_layer_impact_anchors(base)
+    results['report_confirmation'] = _check_report_confirmation(base)
     results['portal_html'] = _check_portal_script_rendered(base)
     results['quality_gate'] = _check_quality_gate(base, repo_root)
 
@@ -325,6 +351,14 @@ def print_summary(results):
         print(f'  [{sym}] layer-impact anchors: fallback only')
     else:
         print(f'  [{sym}] layer-impact anchors: MISSING (no code_anchors or fallback)')
+
+    # Portal html
+    rc = results['report_confirmation']
+    sym = '+' if rc['status'] == 'pass' else 'x'
+    if rc.get('approved'):
+        print(f'  [{sym}] report confirmation: approved')
+    else:
+        print(f'  [{sym}] report confirmation: {rc.get("message", "not approved")}')
 
     # Portal html
     ph = results['portal_html']

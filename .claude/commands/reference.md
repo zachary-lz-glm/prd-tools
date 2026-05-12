@@ -7,6 +7,41 @@ Before doing any project analysis, you MUST read and follow:
 1. `.claude/skills/reference/SKILL.md`
 2. `.claude/skills/reference/workflow.md`
 
+## Human Mode Selection Gate（硬约束 — 先选模式再构建）
+
+Before running the full workflow, you MUST inspect the current `_prd-tools/`
+state and ask the user to choose a Reference mode, unless the user explicitly
+specified the mode in the prompt.
+
+First inspect:
+
+```bash
+ls -la _prd-tools _prd-tools/reference _prd-tools/build 2>/dev/null
+```
+
+Then present this mode selection and WAIT for the user's choice:
+
+1. **全量构建（Recommended when no reference exists）**
+   - 先执行 Mode F 上下文收集，再执行 Mode A 全量构建。
+   - 适合首次建设或希望尽量提升业务语义质量。
+2. **仅上下文收集**
+   - 只执行 Mode F，产出 `_prd-tools/build/context-enrichment.yaml`。
+   - 不立即构建完整 reference。
+3. **直接全量构建**
+   - 跳过 Mode F，直接执行 Mode A。
+   - 适合用户已经熟悉项目结构，或想快速重建。
+4. **健康检查 / 增量更新 / 反馈回流**
+   - 已有 reference 时可选择 B2 / B / E。
+5. **Chat about this**
+   - 仅讨论，不执行构建。
+
+Rules:
+
+- If `_prd-tools/reference/` does not exist, recommend option 1 but do not auto-run it.
+- If `_prd-tools/reference/` exists, summarize current files and ask whether to run B2 health check, B incremental update, A rebuild, or E feedback ingest.
+- Do not proceed from mode selection to artifact generation until the user confirms a mode.
+- Once the user confirms a mode, record it in `_prd-tools/build/reference-workflow-state.yaml`.
+
 ## Step Gate (硬约束 — 每步执行前必须通过)
 
 Before executing any phase/stage, you MUST run the step gate script:

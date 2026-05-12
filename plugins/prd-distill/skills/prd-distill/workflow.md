@@ -537,6 +537,8 @@ ADD/MODIFY/DELETE/NO_CHANGE 必须由源码或负向搜索支撑。
 
 生成 `plan.md`（函数级技术方案文档 + 开发计划）：
 
+- 前置条件：`context/report-confirmation.yaml` 存在且 `status: approved`。
+- 如果 report 尚未确认，只能停止并请求用户确认，不得生成最终 `plan.md`。
 - 精确到文件路径和行号。
 - 包含 10 个章节：范围与假设、源码扫描命中与代码坐标、整体架构、实现计划、API 设计、数据存储、校验规则汇总、QA 矩阵、契约对齐、风险与回滚。
 - 用 `- [ ]` checklist 格式，可直接勾选。
@@ -629,6 +631,52 @@ suggestions:
 格式详见 `references/schemas/04-report-plan.md` 中 report.md 模板。
 
 报告里不要隐藏低置信度项；低置信度是价值，不是瑕疵。**线索式证据不能省略**：代码注释、已有结构体名、文件路径等线索必须保留。
+
+## 步骤 8.1：Report Review Gate（人类确认）
+
+`report.md` 是最终 `plan.md` 的理解基础。生成 report 后必须暂停，让用户确认 AI 对 PRD、影响范围、契约风险和阻塞项的理解是否符合预期。
+
+### 确认流程
+
+1. 生成 `report.md`。
+2. 向用户展示 report 摘要：
+   - 需求摘要
+   - 影响层和关键文件
+   - 契约风险
+   - Top Open Questions / 阻塞项
+3. 询问用户：
+   - `approved`：report 符合预期，可以生成最终 plan。
+   - `needs_revision`：report 有偏差，需要说明要改哪里。
+   - `blocked`：信息不足，暂停。
+4. 将确认结果写入 `context/report-confirmation.yaml`。
+5. 只有 `status: approved` 时，才允许进入步骤 5 生成最终 `plan.md`。
+
+```yaml
+schema_version: "1.0"
+status: "approved | needs_revision | blocked"
+confirmed_by: "user"
+confirmed_at: ""
+approved_sections:
+  - "requirements"
+  - "layer_impact"
+  - "contract_delta"
+  - "open_questions"
+revision_requests:
+  - section: ""
+    issue: ""
+    expected_change: ""
+blocked_reason: ""
+```
+
+### 修正规则
+
+- `needs_revision` 时，不要直接改 plan。必须回到对应上游产物修正：
+  - 需求理解错 → 修 `spec/ai-friendly-prd.md` 和 `context/requirement-ir.yaml`
+  - 影响范围错 → 修 `context/graph-context.md` 和 `context/layer-impact.yaml`
+  - 契约判断错 → 修 `context/contract-delta.yaml`
+  - 阻塞项错 → 修 `report.md` §11 和 readiness 输入
+- `blocked` 时，不生成 plan、readiness、final-quality-gate 或 portal。
+- 如果用户明确说“跳过确认，直接生成 plan”，也必须写入 `report-confirmation.yaml`，`status: approved`，并在 `approved_sections` 中记录 `user_explicit_skip_review`。
 
 ### Report 质量门禁
 

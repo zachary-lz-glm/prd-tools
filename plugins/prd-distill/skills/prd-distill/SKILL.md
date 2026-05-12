@@ -21,9 +21,11 @@ Claude Code 中通过 `/prd-distill <PRD 文件或需求文本>` 触发。
 6. 必须运行 `python3 .prd-tools/scripts/distill-quality-gate.py --distill-dir _prd-tools/distill/<slug> --repo-root .`，且 exit code 不为 2。
 7. completion gate 不通过，不得宣称 /prd-distill 完成。
 8. `report.md` 必须包含 PRD 质量摘要。
-9. `plan.md` 不得包含把 `missing_confirmation` 当确定任务的内容。
-10. 必须运行 `python3 .prd-tools/scripts/render-distill-portal.py --distill-dir _prd-tools/distill/<slug> --template .prd-tools/assets/distill-portal-template.html --out _prd-tools/distill/<slug>/portal.html` 生成 `portal.html`。AI 不得手写 portal.html。
-11. portal.html 是脚本渲染产物，风格由固定模板决定，AI 不得手写或修改其内容。
+9. 生成最终 `plan.md` 前，必须获得用户对 `report.md` 的确认，并写入 `context/report-confirmation.yaml`。
+10. `context/report-confirmation.yaml` 的 `status` 必须为 `approved`，否则不得生成最终 `plan.md`。
+11. `plan.md` 不得包含把 `missing_confirmation` 当确定任务的内容。
+12. 必须运行 `python3 .prd-tools/scripts/render-distill-portal.py --distill-dir _prd-tools/distill/<slug> --template .prd-tools/assets/distill-portal-template.html --out _prd-tools/distill/<slug>/portal.html` 生成 `portal.html`。AI 不得手写 portal.html。
+13. portal.html 是脚本渲染产物，风格由固定模板决定，AI 不得手写或修改其内容。
 
 ## 触发条件
 
@@ -85,6 +87,7 @@ _prd-tools/distill/<slug>/
     ├── graph-context.md           # 源码扫描的函数级上下文
     ├── layer-impact.yaml          # 分层影响
     ├── contract-delta.yaml        # 契约差异
+    ├── report-confirmation.yaml   # 用户确认 report 后才允许生成最终 plan
     ├── reference-update-suggestions.yaml  # 回流建议
     ├── query-plan.yaml              # 查询计划（辅助层）
     ├── context-pack.md              # 上下文包（辅助层）
@@ -104,6 +107,7 @@ _prd-tools/distill/<slug>/
 | `context/graph-context.md` | 函数级技术上下文：源码扫描发现的符号、调用链和业务约束 | 不替代源码确认 |
 | `context/layer-impact.yaml` | 分层影响：目标层、能力面、计划变化、风险 | 不写字段级契约详情 |
 | `context/contract-delta.yaml` | 契约差异：字段、producer、consumer、alignment_status | 不写开发顺序 |
+| `context/report-confirmation.yaml` | 用户对 report 理解的确认状态，决定是否允许生成最终 plan | 不存放新的需求分析结论 |
 | `context/reference-update-suggestions.yaml` | 回流建议 | 不直接改 `_prd-tools/reference/` |
 | `context/query-plan.yaml` | 查询计划：种子锚点、影响提示、P0 术语（辅助层） | 不替代 graph-context.md |
 | `context/context-pack.md` | 上下文包：模型可消费的精简代码上下文（辅助层） | 不替代 graph-context.md |
@@ -160,6 +164,40 @@ _prd-tools/distill/<slug>/
 4. `inferred` 默认 `planning.eligibility=assumption_only`，不得直接进入确定开发 checklist。
 5. report.md 和 plan.md 不得绕过 requirement-ir 直接从原始 PRD 推导确定任务。
 
+### Report Review Gate 规则
+
+`report.md` 是用户确认 AI 是否读懂 PRD、reference、源码影响和契约风险的 checkpoint。最终 `plan.md` 必须在 report 被确认后生成。
+
+流程：
+
+1. 先生成 `report.md`，覆盖需求理解、影响范围、关键代码锚点、契约风险和 Top Open Questions。
+2. 停止继续生成 `plan.md`，向用户展示 report 摘要和确认选项。
+3. 用户确认后写入 `context/report-confirmation.yaml`。
+4. 只有 `status: approved` 时，才允许生成最终 `plan.md`。
+5. 如果用户指出 report 不符合预期，必须回到对应上游产物修正：AI-friendly PRD、Requirement IR、Layer Impact 或 Contract Delta，而不是直接在 plan 里补丁式修正。
+
+确认文件格式：
+
+```yaml
+schema_version: "1.0"
+status: "approved | needs_revision | blocked"
+confirmed_by: "user"
+confirmed_at: ""
+approved_sections:
+  - "requirements"
+  - "layer_impact"
+  - "contract_delta"
+  - "open_questions"
+revision_requests: []
+blocked_reason: ""
+```
+
+状态含义：
+
+- `approved`：可以进入最终 `plan.md`。
+- `needs_revision`：不得生成最终 plan，必须修正 report 或上游 context。
+- `blocked`：停止蒸馏，等待用户补充 PRD、owner 确认或技术方案。
+
 ### REQ → Code Anchor 强绑定规则
 
 1. 每个确定性实现任务必须能回溯到 requirement-ir 的 REQ-ID，并经由 IMP-ID 关联到代码锚点。
@@ -210,14 +248,15 @@ _prd-tools/distill/<slug>/
 - [ ] ⚠ graph-context.md 存在性检查：`context/graph-context.md` 必须存在。如不存在，必须先生成再继续 plan.md。
 - [ ] ⚠ reference 消费检查：如果 reference 存在，graph-context.md 中至少 30% 线索应来自 reference/index（阶段 1-2）。未达标时在 readiness-report 标记 `reference_underconsumed`。
 8. **Index 融合**：如果索引存在，**必须**运行 `python3 .prd-tools/scripts/context-pack.py` 生成 `context/context-pack.md`（上下文包）。index 不存在则跳过，但必须在 readiness-report 记录缺失。
-9. 生成 `plan.md`（消费 `graph-context.md` 函数级上下文）。
-10. 生成 `context/layer-impact.yaml`。
-11. 生成 `context/contract-delta.yaml`。
-12. 生成 `report.md`（渐进式披露 + 源码扫描命中摘要 + §11）。
-13. （辅助层）运行 `python3 .prd-tools/scripts/final-quality-gate.py` 生成 `context/final-quality-gate.yaml`（5 项确定性检查评分）。
-14. 生成 `context/reference-update-suggestions.yaml`。
-15. 生成 `context/readiness-report.yaml`。
-16. 生成 `portal.html`（自包含可视化页面，详见 `steps/step-04-portal.md`）。
+9. 生成 `context/layer-impact.yaml`。
+10. 生成 `context/contract-delta.yaml`。
+11. 生成 `report.md`（渐进式披露 + 源码扫描命中摘要 + §11）。
+12. **Report Review Gate**：暂停，要求用户确认 report 是否符合预期，写入 `context/report-confirmation.yaml`。
+13. 用户确认 `approved` 后，生成 `plan.md`（消费 `graph-context.md` 函数级上下文）。
+14. 生成 `context/readiness-report.yaml`。
+15. （辅助层）运行 `python3 .prd-tools/scripts/final-quality-gate.py` 生成 `context/final-quality-gate.yaml`（5 项确定性检查评分）。
+16. 生成 `context/reference-update-suggestions.yaml`。
+17. 生成 `portal.html`（自包含可视化页面，详见 `steps/step-04-portal.md`）。
 
 ## 参考文件
 
