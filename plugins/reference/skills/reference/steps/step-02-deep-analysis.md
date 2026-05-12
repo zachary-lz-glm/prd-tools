@@ -111,10 +111,28 @@ _prd-tools/reference/05-domain.yaml
 
 ---
 
-### 阶段 4：路由与打法
+### 阶段 4：路由与打法（全栈路由 + 跨仓 handoff）
 
 14. 通过 `rg` / glob 在 PRD、技术方案中提取关键词，映射到代码模块。
 15. 生成 `04-routing-playbooks.yaml`：PRD 路由信号（只到能力面级别）、字段映射（prd_field → code_field → contract_ref）、场景打法（步骤只在这里）。
+
+每个 `prd_routing` 条目**必须**填：
+
+- `target_surfaces`: 本仓负责的 surface 列表
+- `handoff_surfaces`: 非本仓层的建议 handoff 列表（数组）
+  ```yaml
+  handoff_surfaces:
+    - repo: "<best guess repo name>"
+      layer: "frontend | backend | external"
+      reason: "为什么需要这层配合"
+      expected_owner: "前端 owner / 后端 owner"
+      verification: "confirmed | needs_confirmation | unknown"
+  ```
+
+每个 `playbook` 条目**必须**填：
+
+- `layer_steps.frontend`, `layer_steps.bff`, `layer_steps.backend` 三个 key 都要存在（空列表也要写）
+- `cross_repo_handoffs`: 跨仓协作清单（非本仓层有动作时必填）
 16. 检查 02-coding-rules 中是否有场景驱动的开发步骤，如有，移到 04 的 playbook 中，02 中改为 `ref_rule` 引用。
 17. routing 条目必须有 `playbook_ref` 指向对应的 playbook。
 18. field_mappings 中不放字段 type/required，只用 `contract_ref` 引用 03。

@@ -44,6 +44,9 @@
 - 存在旧版 v3.1 文件（00~09），但没有 v4 迁移建议。
 - 使用了 `direction:` 字段的契约需重写为 producer/consumers[]
 - 跨仓契约（consumers 含非当前仓角色）未填 consumer_repos
+- 每个 prd_routing[] 条目缺少 handoff_surfaces 字段 → warn
+- 跨层 PRD 但 handoff_surfaces 为空 → warn（必须填）
+- 每个 playbook[].layer_steps 缺少 frontend/bff/backend 三个 key → fail
 
 ## 边界检查
 
