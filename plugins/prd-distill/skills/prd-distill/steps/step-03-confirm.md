@@ -265,6 +265,9 @@ report.md 生成后、plan.md 生成前，必须暂停：
 - [ ] [M] report.md §10 含至少 4 个小段（前端/BFF/后端/外部），即使某层无变更也要显式写"无"
 - [ ] [M] plan.md §9 全栈表包含 Producer/Consumers/Checked By 三列
 - [ ] [M] plan.md §7 含 7.1/7.2/7.3 三个小节，每节至少 1 行或显式"无"
+- [ ] [M] plan.md 含 Implementation Checklist 段（至少 5 个 `- [ ]` 任务）
+- [ ] [M] plan.md 含 Verification Commands 段（至少 3 条命令）
+- [ ] [M] report.md §12 每个 blocker 含 owner + suggestion + risk + mitigation 中至少 3 项
 - [ ] [M] 每个 IMP 在 report.md §5 变更明细表中有对应行
 - [ ] [M] 每个 Phase 在 plan.md §3 中有 checklist 格式的任务
 - [ ] [M] 每个 MODIFY/DELETE 任务引用了至少一个 GCTX ID

@@ -256,6 +256,23 @@ assumption_only / blocked 项不得进入确定实现行。
 ## 11. 工作量估算
 | 模块 | 估算 | 说明 |
 按模块估算人天，标注关键路径。
+
+### Implementation Checklist
+按 Phase 分组，每项标注关联 REQ-ID/IMP-ID：
+- [ ] Task 1.1: <具体操作>（<目标文件>）— REQ-001, IMP-001
+
+### Verification Commands
+```bash
+# 每个关键改动配一个验证命令
+rg 'SymbolName' src/path/to/file.ts
+npm run build
+npm test
+```
+
+### Blockers (with owner/suggestion)
+| # | Blocker | Owner | Suggestion | Status |
+|---|---------|-------|-----------|--------|
+| 1 | ... | PM / FE / BE | ... | needs_confirmation |
 ```
 
 ### 写作规则
