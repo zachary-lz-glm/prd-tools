@@ -1,14 +1,21 @@
-"""D4: SKILL.md / workflow.md / commands/*.md 声明的 gate 脚本列表一致"""
+"""D4: gate script mentions are consistent within each skill's own scope.
+Only checks that a skill's SKILL.md / workflow.md mention gates whose
+prefix matches that skill (e.g. prd-distill only needs distill-*-gate.py)."""
 import re
 from pathlib import Path
 
 META = {
     "id": "D4",
     "category": "docs",
-    "description": "gate script mentions are consistent across SKILL / workflow / command",
+    "description": "gate script mentions are consistent per-skill",
 }
 
 GATE_RE = re.compile(r"[\w\-]+-(?:step|workflow|quality|coverage)-gate\.py")
+
+SKILL_GATE_PREFIX = {
+    "prd-distill": ("distill-",),
+    "reference": ("reference-",),
+}
 
 
 def _collect(path):
@@ -20,16 +27,17 @@ def _collect(path):
 def check(repo_root):
     issues = []
     for skill in sorted(repo_root.glob("plugins/*/skills/*/SKILL.md")):
+        skill_name = skill.parent.name  # e.g. "prd-distill"
+        allowed_prefixes = SKILL_GATE_PREFIX.get(skill_name, ())
         skill_dir = skill.parent
         plugin_dir = skill_dir.parent.parent
         workflow = skill_dir / "workflow.md"
-        # commands can live in plugin root commands/ or .claude/commands/
-        cmd_candidates = list(plugin_dir.glob("commands/*.md")) + list(
-            (plugin_dir / ".claude" / "commands").glob("*.md")
-            if (plugin_dir / ".claude" / "commands").exists() else []
-        )
-        # also check root-level .claude/commands
-        cmd_candidates += list((repo_root / ".claude" / "commands").glob("*.md")) if (repo_root / ".claude" / "commands").exists() else []
+
+        cmd_candidates = list(plugin_dir.glob("commands/*.md")) + \
+            list((plugin_dir / ".claude" / "commands").glob("*.md")
+                 if (plugin_dir / ".claude" / "commands").exists() else []) + \
+            list((repo_root / ".claude" / "commands").glob("*.md")
+                 if (repo_root / ".claude" / "commands").exists() else [])
 
         skill_set = _collect(skill)
         workflow_set = _collect(workflow)
@@ -37,19 +45,20 @@ def check(repo_root):
         for c in cmd_candidates:
             cmd_set |= _collect(c)
 
-        # commands are authoritative; SKILL+workflow should mention every command-mentioned gate
-        missing_in_skill = cmd_set - skill_set
-        missing_in_workflow = cmd_set - workflow_set
-        for g in missing_in_skill:
+        # Only consider gates whose prefix matches this skill
+        cmd_set_filtered = {g for g in cmd_set
+                            if any(g.startswith(p) for p in allowed_prefixes)}
+
+        for g in cmd_set_filtered - skill_set:
             issues.append(f"{skill.relative_to(repo_root)} missing mention of {g}")
-        for g in missing_in_workflow:
+        for g in cmd_set_filtered - workflow_set:
             issues.append(f"{workflow.relative_to(repo_root)} missing mention of {g}")
 
     if issues:
         return {
             "status": "warn",
-            "message": f"{len(issues)} gate reference gap(s)",
+            "message": f"{len(issues)} within-skill gate gap(s)",
             "details": issues,
-            "fix_hint": "add the missing gate script to SKILL.md Final Completion Gate / workflow.md Phase list",
+            "fix_hint": "add the missing gate script to the SAME skill's SKILL.md / workflow.md",
         }
-    return {"status": "pass", "message": "gate references consistent"}
+    return {"status": "pass", "message": "gate references consistent per-skill"}
