@@ -144,6 +144,101 @@ def load_index(index_dir):
     return entities, edges, inv, by_id
 
 
+# ──────────────────────────────────────────
+# Domain terminology bridge
+# ──────────────────────────────────────────
+
+
+def _load_domain_terms(ref_dir):
+    """Load terms from 05-domain.yaml for vocabulary bridging. Returns [] if unavailable."""
+    domain_path = Path(ref_dir) / '05-domain.yaml'
+    if not domain_path.exists():
+        return []
+    try:
+        text = domain_path.read_text(encoding='utf-8')
+    except Exception:
+        return []
+
+    terms = []
+    blocks = re.split(r'^\s{2}-\s+term:', text, flags=re.MULTILINE)
+    for block in blocks[1:]:
+        term_data = {}
+        m = re.match(r'\s*"?([^"\n]+)"?\s*$', block, re.MULTILINE)
+        if m:
+            term_data['term'] = m.group(1).strip().strip('"').strip("'")
+
+        # prd_keywords
+        kw_match = re.search(r'prd_keywords:\s*\[([^\]]*)\]', block)
+        if kw_match:
+            term_data['prd_keywords'] = [
+                k.strip().strip('"').strip("'")
+                for k in kw_match.group(1).split(',') if k.strip()
+            ]
+        else:
+            kw_section = re.search(r'prd_keywords:\s*\n((?:\s+-\s+.+\n?)*)', block)
+            if kw_section:
+                term_data['prd_keywords'] = [
+                    v.strip().strip('"').strip("'")
+                    for v in re.findall(r'^\s+-\s+(.+)$', kw_section.group(1), re.MULTILINE)
+                ]
+            else:
+                term_data['prd_keywords'] = []
+
+        # synonyms
+        syn_match = re.search(r'synonyms:\s*\[([^\]]*)\]', block)
+        if syn_match:
+            term_data['synonyms'] = [
+                s.strip().strip('"').strip("'")
+                for s in syn_match.group(1).split(',') if s.strip()
+            ]
+        else:
+            syn_section = re.search(r'synonyms:\s*\n((?:\s+-\s+.+\n?)*)', block)
+            if syn_section:
+                term_data['synonyms'] = [
+                    v.strip().strip('"').strip("'")
+                    for v in re.findall(r'^\s+-\s+(.+)$', syn_section.group(1), re.MULTILINE)
+                ]
+            else:
+                term_data['synonyms'] = []
+
+        # related_enum
+        enum_match = re.search(r'related_enum:\s*"?([^"\n]+)"?', block)
+        if enum_match:
+            val = enum_match.group(1).strip().strip('"').strip("'")
+            term_data['related_enum'] = val if val else ''
+        else:
+            term_data['related_enum'] = ''
+
+        if term_data.get('term'):
+            terms.append(term_data)
+
+    return terms
+
+
+def _expand_with_domain(query_term, domain_terms):
+    """Expand a query term using domain vocabulary. Returns list of code identifiers."""
+    q_lower = query_term.lower()
+    expansions = []
+    for dt in domain_terms:
+        all_keywords = [k.lower() for k in dt.get('prd_keywords', [])]
+        all_synonyms = [s.lower() for s in dt.get('synonyms', [])]
+        term_lower = dt.get('term', '').lower()
+
+        matched = (
+            q_lower == term_lower
+            or q_lower in all_keywords
+            or q_lower in all_synonyms
+            or any(q_lower in kw for kw in all_keywords if len(q_lower) >= 2)
+        )
+        if matched:
+            if dt.get('related_enum'):
+                expansions.append(dt['related_enum'])
+            term_val = dt.get('term', '')
+            if term_val and term_val != query_term:
+                expansions.append(term_val)
+    return expansions
+
+
 def name_to_terms(name, extra=()):
     """Decompose an identifier into searchable terms (mirrors build-index.py)."""
     terms = {name}
@@ -275,7 +370,7 @@ def _codeish_terms(text):
     return terms
 
 
-def build_query_plan(requirements, impacts, inv, by_id):
+def build_query_plan(requirements, impacts, inv, by_id, domain_terms=None):
     """Build query plan from requirements + impacts + index."""
     queries = []
     qid = 0
@@ -293,6 +388,40 @@ def build_query_plan(requirements, impacts, inv, by_id):
         for q in req.get('open_questions', []):
             req_terms.extend(_codeish_terms(q))
 
+    # Domain expansion: expand PRD terms to code identifiers
+    domain_expanded = set()
+    if domain_terms:
+        extra_terms = []
+        # Check existing code-ish terms against domain vocabulary
+        for t in req_terms:
+            expansions = _expand_with_domain(t, domain_terms)
+            for exp in expansions:
+                if exp.lower() not in {rt.lower() for rt in req_terms}:
+                    extra_terms.append(exp)
+                    domain_expanded.add(exp.lower())
+        # Also check raw requirement text for domain prd_keywords (handles Chinese/non-ASCII)
+        raw_texts = []
+        for req in requirements:
+            raw_texts.append(req.get('title', ''))
+            raw_texts.append(req.get('intent', ''))
+            raw_texts.extend(req.get('business_entities', []))
+            raw_texts.extend(req.get('rules', []))
+        combined_text = ' '.join(raw_texts)
+        for dt in domain_terms:
+            for kw in dt.get('prd_keywords', []) + dt.get('synonyms', []):
+                if kw and kw in combined_text:
+                    if dt.get('related_enum'):
+                        exp = dt['related_enum']
+                        if exp.lower() not in {rt.lower() for rt in req_terms} and exp.lower() not in domain_expanded:
+                            extra_terms.append(exp)
+                            domain_expanded.add(exp.lower())
+                    term_val = dt.get('term', '')
+                    if term_val and term_val.lower() not in {rt.lower() for rt in req_terms} and term_val.lower() not in domain_expanded:
+                        extra_terms.append(term_val)
+                        domain_expanded.add(term_val.lower())
+                    break
+        req_terms.extend(extra_terms)
+
     for t in sorted({term for term in req_terms if len(term) > 2}, key=str.lower):
         if t.lower() in seen_terms:
             continue
@@ -304,9 +433,13 @@ def build_query_plan(requirements, impacts, inv, by_id):
         qid += 1
         expected = _KEYWORD_TYPE_MAP.get(t, [])
         conf = 'high' if any(e['type'] in ('enum', 'template', 'registry', 'class') for _, e in hits) else 'medium'
+        # Domain-expanded terms cap at medium confidence
+        if t.lower() in domain_expanded and conf == 'high':
+            conf = 'medium'
+        hint = 'domain-bridge: ' + t if t.lower() in domain_expanded else 'req-term: ' + t
         queries.append({
             'id': f'QP-{qid:03d}',
-            'requirement_hint': 'req-term: ' + t,
+            'requirement_hint': hint,
             'query_terms': sorted(name_to_terms(t)),
             'expected_anchor_types': expected,
             'matched_entities': matched,
@@ -685,12 +818,19 @@ def main():
     impacts = parse_layer_impact(impact_path) if impact_path.exists() else []
     entities, edges, inv, by_id = load_index(index_dir)
 
+    # Load domain terms for vocabulary bridging
+    ref_dir = index_dir.parent  # index is at _prd-tools/reference/index/, parent is reference/
+    domain_terms = _load_domain_terms(ref_dir)
+
     print(f'Requirements: {len(requirements)}')
     print(f'BFF impacts:  {len(impacts)}')
     print(f'Index:        {len(entities)} entities, {len(inv)} terms')
+    if domain_terms:
+        print(f'Domain terms: {len(domain_terms)} loaded')
 
     # Build query plan
-    query_plan = build_query_plan(requirements, impacts, inv, by_id)
+    query_plan = build_query_plan(requirements, impacts, inv, by_id,
+                                  domain_terms=domain_terms)
     high_q = sum(1 for q in query_plan if q['confidence'] == 'high')
     low_q = sum(1 for q in query_plan if q['confidence'] == 'low')
     print(f'Query plan:   {len(query_plan)} queries (high={high_q}, low={low_q})')

@@ -214,7 +214,7 @@ python3 .prd-tools/scripts/build-index.py --repo <项目路径> --out _prd-tools
 ```text
 _prd-tools/reference/index/
 ├── entities.json          # 代码实体（函数、类、枚举、接口等）
-├── edges.json             # 实体关系（DEFINES、IMPORTS、REFERENCES 等）
+├── edges.json             # 实体关系（DEFINES、IMPORTS、RESOLVED_IMPORT、REFERENCES 等）
 ├── inverted-index.json    # term→entity 倒排索引
 └── manifest.yaml          # 索引元数据（实体数、边数、term 数、构建时间）
 ```
@@ -222,7 +222,8 @@ _prd-tools/reference/index/
 索引能力：
 
 - 实体类型：file、function、class、interface、enum、const、import、switch_case、template、registry
-- 关系类型：DEFINES、IMPORTS、REGISTERS、REFERENCES
+- 关系类型：DEFINES、IMPORTS、RESOLVED_IMPORT、REGISTERS、REFERENCES
+- 构建模式：增量（默认，基于文件 hash 差异）或全量（`--full`）
 - 查询模式：`--query <关键词> --index _prd-tools/reference/index` 确定性评分检索
 - 支持语言：TypeScript/JavaScript、Go
 

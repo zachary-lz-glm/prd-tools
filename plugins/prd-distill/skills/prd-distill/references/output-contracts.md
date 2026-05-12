@@ -898,7 +898,7 @@ Evidence Index（辅助层）：基于正则扫描的代码实体索引，为下
 | 文件 | 用途 | 边界 |
 |---|---|---|
 | `entities.json` | 代码实体：函数、类、枚举、接口、常量等 | 不替代 reference 的业务语义 |
-| `edges.json` | 实体关系：DEFINES、IMPORTS、REGISTERS、REFERENCES | 不记录跨仓关系 |
+| `edges.json` | 实体关系：DEFINES、IMPORTS、RESOLVED_IMPORT、REGISTERS、REFERENCES | 不记录跨仓关系 |
 | `inverted-index.json` | term→entity 倒排索引 | 不含业务术语（仅代码符号） |
 | `manifest.yaml` | 索引元数据：实体数、边数、term 数、构建时间 | 不含质量评分 |
 
