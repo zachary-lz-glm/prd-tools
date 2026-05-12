@@ -23,7 +23,7 @@
 | [0008-安装脚本职责拆分](0008-安装脚本职责拆分.md) | install.sh 拆为 install / doctor / 运行时自检三层 |
 | [0009-PRD Tools 产品化 MVP 落地计划](0009-PRD-Tools-3.0产品化落地计划.md) | 原 3.0 计划收敛到 v2.0：readiness、status dashboard、评测和后续 MCP 路线 |
 | [0010-PRD-to-Code质量闭环实施计划](0010-PRD-to-Code质量闭环实施计划.md) | AI-friendly PRD 后续阶段：reference 事实优先修复、Agent Pack、Benchmark 闭环 |
-| [0011-Agent工作流顺序与防降智实施计划](0011-Agent工作流顺序与防降智实施计划.md) | 工作流状态机、产物契约、上下文预算、Two-Pass Critic 和 benchmark 化跳步治理 |
+| [0011-Agent工作流可靠性与保真度建设计划](0011-Agent工作流可靠性与保真度建设计划.md) | v2.16.1 起大型迭代：保真度优先 + 三段式工作流 + Workflow State + 产物契约 + 上下文预算 + Benchmark |
 
 ## ADR 格式
 
