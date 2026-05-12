@@ -99,7 +99,9 @@ class WorkflowState:
         return self.data.get("current_stage")
 
     def get_human_checkpoint(self, name: str) -> dict:
-        return self.data.get("human_checkpoints", {}).get(name, {})
+        # Support both plural (code standard) and singular (legacy/docs)
+        checkpoints = self.data.get("human_checkpoints") or self.data.get("human_checkpoint") or {}
+        return checkpoints.get(name, {})
 
     # --- Writing ---
 

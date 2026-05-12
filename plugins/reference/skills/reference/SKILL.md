@@ -94,7 +94,7 @@ If the step gate exits with code 2 (FAIL):
 用户确认后，将选择写入 `_prd-tools/build/reference-workflow-state.yaml`：
 
 ```yaml
-human_checkpoint:
+human_checkpoints:
   mode_selection:
     status: "approved"
     selected_mode: "F_then_A | F_only | A_only | B | B2 | C | E"
