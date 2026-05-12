@@ -1,9 +1,9 @@
 <workflow_state>
   <workflow>prd-distill</workflow>
-  <current_step>1</current_step>
+  <current_step>0, 1, 1.5-afprd, 1.5-quality, 2</current_step>
   <allowed_inputs>PRD file (.md/.txt/.docx), _prd-tools/reference/ (if exists), references/layer-adapters.md</allowed_inputs>
   <must_not_read_by_default>source code (beyond reference routing), report.md, plan.md</must_not_read_by_default>
-  <must_not_produce>context/requirement-ir.yaml, context/layer-impact.yaml</must_not_produce>
+  <must_not_produce>context/layer-impact.yaml</must_not_produce>
 </workflow_state>
 
 ## MUST NOT
@@ -129,7 +129,9 @@ requirements:
     acceptance_criteria: []
     evidence:
       summary: ""
-      source_blocks: ["document.md:L10-16"]
+      source_blocks:
+        - block_id: "document.md:L10-16"
+          type: "text"
       source_block_ids: ["B-001"]
       evidence_ids: ["EV-001"]
     confidence: "medium"
@@ -141,4 +143,8 @@ open_questions: []
 生成 IR 前后，必须跑以下两条自检：
 
 1. **每条 IR 的 `ai_prd_req_id` 必须在 `spec/ai-friendly-prd.md` 里 `rg -F "REQ-" | rg "{ai_prd_req_id}"` 能命中**。未命中 → 当前 IR 生成失败，不得提交。
+   - verify: `grep -c "ai_prd_req_id" context/requirement-ir.yaml`
+   - expect: 数量与 requirements 条目数一致
 2. **ai-friendly-prd.md 里每个 `REQ-xxx` heading 必须在 IR 列表里至少出现一次**（哪怕 `type: NO_CHANGE`）。缺失 → 补一条 IR 占位，type=NO_CHANGE，summary 写 "no BFF-layer change, reviewed"。
+   - verify: `grep -oE 'REQ-[0-9]+' spec/ai-friendly-prd.md | sort -u | while read rid; do grep -q "$rid" context/requirement-ir.yaml || echo "MISSING: $rid"; done`
+   - expect: 无输出（所有 REQ-ID 均已覆盖）

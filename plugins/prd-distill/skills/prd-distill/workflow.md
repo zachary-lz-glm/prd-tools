@@ -1,5 +1,7 @@
 # prd-distill 工作流
 
+> **加载指引**：每个 step 只需加载 workflow.md 对应段落 + step 文件 + output-contracts.md 对应 schema 段，不需要全文加载。按需读取可显著降低 attention decay。
+
 ## 目标
 
 把 PRD 蒸馏为工程可执行的结论、计划和证据链。采用**三段式工作流**：
@@ -11,6 +13,17 @@ PRD raw file/text
   → user confirmation      (report-confirmation.yaml)
   → /prd-distill plan      (Steps 5→6→8.5→8.6→9)
 ```
+
+## Step 文件 ↔ Gate Step ID 映射
+
+> Step numbers are logical IDs, NOT execution order. Follow the three-stage execution sequence from command.md.
+
+| Step 文件 | 覆盖的 Gate Step IDs | 所属 Stage |
+|---|---|---|
+| step-01-parse.md | 0, 1, 1.5-afprd, 1.5-quality, 2 | spec |
+| step-02-classify.md | 2.5, 3.1, 3.2, 3.5, 3.6, 4 | report |
+| step-03-confirm.md | 8, 8.1-confirm, 5, 6, 7, 8.5, 8.6 | report + plan |
+| step-04-portal.md | 9 | plan |
 
 每个阶段的核心问题：
 
@@ -68,7 +81,7 @@ PRD raw file/text
 如果 `_prd-tools/reference/` **不存在**：
 - 所有 layer-impact、contract-delta 的 confidence 强制降为 `low`。
 - readiness-report.yaml 必须在 `next_actions` 首位写入："建议运行 `/reference` 生成项目知识库后再蒸馏"。
-- report.md §11 必须暴露："本次蒸馏未消费 reference，影响分析和契约检查可能不完整"。
+- report.md §12 必须暴露："本次蒸馏未消费 reference，影响分析和契约检查可能不完整"。
 
 创建输出目录：
 
@@ -99,7 +112,7 @@ _ingest/
 读取 `extraction-quality.yaml`：
 
 - `pass`：可进入后续蒸馏。
-- `warn`：可继续，但必须把图片未分析、复杂表格风险写入 `report.md` §11。
+- `warn`：可继续，但必须把图片未分析、复杂表格风险写入 `report.md` §12。
 - `block`：暂停，要求用户提供 markdown/text。
 
 如果用户只粘贴文本，手工创建等价的 source、document、evidence-map 和 quality 记录，保证后续 evidence 仍可追溯。
@@ -234,6 +247,7 @@ AI-friendly PRD 必须使用 13 个固定章节：
 3. `requirement-ir.yaml` 中每条 requirement 应能追溯到 ai-friendly-prd.md 的 REQ-ID。
 4. `report.md` 中必须说明 AI-friendly PRD 的质量状态。
 5. `plan.md` 不得把 `missing_confirmation` 当确定实现任务。
+6. 每个 REQ-ID 必须在 ai-friendly-prd.md §6 中有对应的 `### REQ-XXX` 标题锚点，确保 requirement-ir.yaml 到 ai-friendly-prd.md 的追溯链完整。缺失的 REQ-ID 标题必须在 prd-quality-report.yaml 中标记为 warning。
 
 ### Self-Check（afprd 生成后）
 
@@ -269,7 +283,7 @@ AI-friendly PRD 必须使用 13 个固定章节：
 
 ### 后续步骤约束
 
-- **Step 2 Requirement IR** 必须读取 `spec/ai-friendly-prd.md` 作为主输入，替代直接读取 `_ingest/document.md`。
+- **Step 2 Requirement IR** 以 `_ingest/document.md` 为主输入，`spec/ai-friendly-prd.md` 为 REQ-ID 索引辅助（不替代原始内容）。
 - requirement-ir 中每条 requirement 应尽量引用 ai-friendly-prd 的 REQ-ID。
 - **Step 8 Report** 必须包含 PRD quality 摘要（从 prd-quality-report.yaml 提取）。
 - **Questions** 必须吸收 ai-friendly-prd §13 的 Open Questions。
@@ -371,6 +385,8 @@ python3 .prd-tools/scripts/context-pack.py \
 
 产出 `context/query-plan.yaml`：
 
+> query-plan.yaml 由 `context-pack.py` 脚本自动生成，LLM 不需要手写。每个 phase 条目为 string 类型。
+
 ```yaml
 schema_version: "1.0"
 phases:
@@ -379,13 +395,13 @@ phases:
   p0_requirements: []     # P0 需求的关键实体和术语
 ```
 
-## 步骤 2.6：Context Pack（Reference Index 融合层）
+## 步骤 3.5：Context Pack（Reference Index 融合层）
 
 > **定位**：Context Pack 融合 Evidence Index 与 distill 上下文，为 report/plan 提供精简代码坐标。当 index 存在时**必须运行**。
 
-在步骤 3（Layer Impact）完成后，**必须**运行 `python3 .prd-tools/scripts/context-pack.py`（此时 layer-impact.yaml 已存在），生成 `context/context-pack.md`，将 Evidence Index 中的代码实体与 distill 上下文融合，形成模型可直接消费的精简上下文（建议 ≤800 行）。
+在步骤 3.2（Layer Impact）完成后、步骤 4（Contract Delta）之前，**必须**运行 `python3 .prd-tools/scripts/context-pack.py`（此时 layer-impact.yaml 已存在），生成 `context/context-pack.md`，将 Evidence Index 中的代码实体与 distill 上下文融合，形成模型可直接消费的精简上下文（建议 ≤800 行）。
 
-触发时机：步骤 3 完成后、步骤 4（Contract Delta）之前。如果索引不存在则跳过，但必须在 readiness-report 中记录缺失。
+触发时机：步骤 3.2 完成后、步骤 4 之前。如果索引不存在则跳过，但必须在 readiness-report 中记录缺失。
 
 ## 步骤 3：Layer Impact
 
@@ -712,18 +728,18 @@ blocked_reason: ""
   - 需求理解错 → 修 `spec/ai-friendly-prd.md` 和 `context/requirement-ir.yaml`
   - 影响范围错 → 修 `context/graph-context.md` 和 `context/layer-impact.yaml`
   - 契约判断错 → 修 `context/contract-delta.yaml`
-  - 阻塞项错 → 修 `report.md` §11 和 readiness 输入
+  - 阻塞项错 → 修 `report.md` §12 和 readiness 输入
 - `blocked` 时，不生成 plan、readiness、final-quality-gate 或 portal。
 - 如果用户明确说“跳过确认，直接生成 plan”，也必须写入 `report-confirmation.yaml`，`status: approved`，并在 `approved_sections` 中记录 `user_explicit_skip_review`。
 
 ### Report 质量门禁
 
-生成 `report.md` 前必须重新读取 `context/requirement-ir.yaml`、`context/graph-context.md`、`context/contract-delta.yaml` 和 `context/context-pack.md`，核对报告已覆盖下列高收益信息。缺任一项时，不要用泛化总结替代，必须补进对应章节或 §11：
+生成 `report.md` 前必须重新读取 `context/requirement-ir.yaml`、`context/graph-context.md`、`context/contract-delta.yaml` 和 `context/context-pack.md`，核对报告已覆盖下列高收益信息。缺任一项时，不要用泛化总结替代，必须补进对应章节或 §12：
 
 - P0/P1 需求中的配置细节：券批次/券张数/互斥、折扣卡 Card ID/数量/有效期/城市校验、EventRule 格式、Budget/GMV 范围、Push 占位符。
-- PRD 内部矛盾或疑似 typo：例如同一字段同时出现 `1-10` 与 `1-99`、报错文案 `1-0` 与规则 `1-9` 不一致。此类内容必须进入 §11 阻塞问题或低置信度假设。
+- PRD 内部矛盾或疑似 typo：例如同一字段同时出现 `1-10` 与 `1-99`、报错文案 `1-0` 与规则 `1-9` 不一致。此类内容必须进入 §12 阻塞问题或低置信度假设。
 - 关键代码锚点：`rewardCondition.ts`、`basic.ts`、`message.ts` 等如果已在 graph-context 中出现，report/plan 不得遗漏其风险说明。
-- reference 只作为候选事实和路由依据；任何 reference 结论必须被源码、PRD、技术文档或负向搜索二次确认。未确认时降为 `confidence: low|medium` 并进入 §11。
+- reference 只作为候选事实和路由依据；任何 reference 结论必须被源码、PRD、技术文档或负向搜索二次确认。未确认时降为 `confidence: low|medium` 并进入 §12。
 
 ## 步骤 8.5：Final Quality Gate（辅助层）
 

@@ -1,6 +1,6 @@
 <workflow_state>
   <workflow>prd-distill</workflow>
-  <current_step>3</current_step>
+  <current_step>8, 8.1-confirm, 5, 6, 7, 8.5, 8.6</current_step>
   <allowed_inputs>context/evidence.yaml, context/requirement-ir.yaml, context/graph-context.md, context/layer-impact.yaml, context/contract-delta.yaml, references/schemas/</allowed_inputs>
   <must_not_read_by_default>original long PRD (use requirement-ir instead)</must_not_read_by_default>
   <must_not_produce>context/requirement-ir.yaml (already produced)</must_not_produce>
@@ -17,9 +17,14 @@
 
 ## 目标
 
-生成：
+**Phase 1 — Report 生成：**
 
 - `_prd-tools/distill/<slug>/report.md`（决策报告 + 阻塞问题）
+
+**⏸ HARD STOP：生成 `context/report-confirmation.yaml`，暂停等用户确认。仅当 `status: approved` 时才继续 Phase 2。**
+
+**Phase 2 — Plan 生成（仅当 report approved）：**
+
 - `_prd-tools/distill/<slug>/plan.md`（技术方案 + 开发计划）
 - `_prd-tools/distill/<slug>/context/reference-update-suggestions.yaml`
 
@@ -37,50 +42,56 @@
 
 `report.md` 是**给人看的完整分析文档**，采用渐进式披露结构，从结论到细节逐层展开，最后以阻塞问题收尾。不需要跳到其他文件就能获取核心信息。
 
-必须包含以下章节：
+必须包含以下 12 个章节：
 
 ### 1. 需求摘要（30秒决策）
 - 一句话摘要
 - 变更类型统计：ADD/MODIFY/DELETE/NO_CHANGE 各几项
 
-### 2. 影响范围
-- 命中的层、能力面、关键文件/模块（表格形式）
+### 2. PRD 质量摘要
+来自 `context/prd-quality-report.yaml`：
+- AI-friendly PRD 总分和状态（pass / warning / fail）
+- source 分布：explicit / inferred / missing_confirmation 各多少条
+- 关键缺失项和风险摘要
 
-### 3. 代码命中摘要
+### 3. 源码扫描命中摘要
 - 列出代码搜索命中的关键函数/调用链/API consumer
 - 每条命中引用 GCTX/EV ID，并说明用于哪些 REQ/IMP/CONTRACT
 
-### 4. 关键结论
+### 4. 影响范围
+- 命中的层、能力面、关键文件/模块（表格形式）
+
+### 5. 关键结论
 - 新增/修改/不改什么，每个结论带 REQ-ID、代码路径和证据引用
 
-### 5. 变更明细表（核心可操作内容）
+### 6. 变更明细表（核心可操作内容）
 - 列出所有 IMP-* 项
 - 格式：`| ID | 变更描述 | 类型 | 目标文件 | 关键函数/符号 | 验证来源 |`
 - 精确到文件路径和关键 symbol，标注 code_verified / graph_verified / reference_only
 
-### 6. 字段清单（按功能模块分组）
+### 7. 字段清单（按功能模块分组）
 - 从 requirement-ir 和 contract-delta 中提取
 - 格式：`| 字段 | 类型 | 必填 | 来源 | 契约ID |`
 - 按业务模块分组
 
-### 7. 校验规则
+### 8. 校验规则
 - 从 requirement-ir.rules 中提取可验证的校验规则
 - 格式：`| ID | 规则描述 | 错误文案/提示 | 目标文件 |`
 
-### 8. 开发 Checklist（可直接执行）
+### 9. 开发 Checklist（可直接执行）
 - 用 `- [ ]` 格式
 - 按建议实现顺序排列
 - 每项标注具体操作 + 目标文件 + 关联 REQ/IMP/CONTRACT
 
-### 9. 契约风险
+### 10. 契约风险
 - 只列 alignment_status 为 needs_confirmation 或 blocked 的契约
 
-### 10. Top Open Questions
+### 11. Top Open Questions
 - 最多5个最关键的阻塞问题，带 Q-ID
 
-### 11. 阻塞问题与待确认项
+### 12. 阻塞问题与待确认项
 
-#### 11.1 阻塞问题
+#### 12.1 阻塞问题
 每个阻塞问题必须包含 6 要素：
 - **问题**：阻塞项的具体描述
 - **线索**：代码/文档线索（如 `proxy/bpm.go:311 注释暗示冲单挑战系统已存在`）
@@ -89,10 +100,10 @@
 - **需要证据**：确认人需要提供什么
 - **默认策略**：如果不确认，默认采取什么行动
 
-#### 11.2 低置信度假设
+#### 12.2 低置信度假设
 ⚠ 标注的低置信度结论，说明为什么置信度低、需要什么才能提升。
 
-#### 11.3 Owner 确认项
+#### 12.3 Owner 确认项
 需要特定角色确认的契约字段、枚举值、外部接口行为等。
 
 如无阻塞问题，显式写"当前无阻塞问题"。
@@ -101,7 +112,7 @@
 - 自然语言为主，用 Markdown 表格提高可扫描性
 - 每个变更项都带目标文件路径
 - 关联 ID（REQ-*/IMP-*/CONTRACT-*）方便跳到 context/ 查证
-- 低置信度项用 ⚠ 标注，进入 §11.2
+- 低置信度项用 ⚠ 标注，进入 §12.2
 - **线索式证据不能省略**：代码注释、已有结构体名、文件路径等线索必须保留，这些对开发定位问题有极高价值
 
 职责边界：
@@ -109,6 +120,22 @@
 - 不要把完整 YAML 证据链展开到 report 里，那是 artifacts 的职责
 - 不要复制 PRD 原文，只引用 REQ-ID
 - 建议总长度控制在 300-650 行（Markdown 源码）。超限时精简优先级：字段清单 > 校验规则（先精简）；代码命中摘要 > 变更明细表 > 阻塞问题与线索 > 契约风险 > 影响范围（不精简）
+
+---
+
+## ⏸ Report Review Gate（HARD STOP）
+
+report.md 生成后、plan.md 生成前，必须暂停：
+
+1. 生成 `context/report-confirmation.yaml`（按 workflow.md 步骤 8.1 的格式）
+2. 向用户展示 report.md 摘要，等待确认
+3. 仅当用户确认 `status: approved` 时继续 Phase 2
+4. 如果 `status: needs_revision`：回到上游修复对应 artifacts，重新生成 report.md
+5. 如果 `status: blocked`：终止工作流
+
+**不得在 report 未获批准时生成 plan.md。**
+
+---
 
 ## plan.md（技术方案 + 开发计划）
 
@@ -183,7 +210,7 @@
 - **plan.md 是可 review 的技术方案，不是二次报告**
 - 不要重复 report.md 的分析结论，只写"做什么、怎么做、为什么这样做"
 - 不要复制 PRD 原文
-- 建议总长度控制在 300-600 行（Markdown 源码）。超限时精简优先级：工作量估算 > 配置与开关 > 数据存储细节（先精简）；实现计划 > QA 矩阵 > 风险与回滚（不精简）
+- 建议总长度控制在 300-700 行（Markdown 源码）。超限时精简优先级：工作量估算 > 配置与开关 > 数据存储细节（先精简）；实现计划 > QA 矩阵 > 风险与回滚（不精简）
 
 ## Reference 回流
 
@@ -204,7 +231,7 @@
 > - `[M]` 条目必须逐条列出 `verify: <命令>` 与 `expect: <结果>`，未通过不得进下一步。
 > - `[H]` 条目作为判读提示，LLM 自检后必须写入 workflow-state.yaml 的 `self_check_notes[step_id]` 数组，内容为"我为什么认为这条满足"的简短解释。
 
-- [ ] [M] report.md 包含全部 11 个章节（§1-§11）
+- [ ] [M] report.md 包含全部 12 个章节（§1-§12）
 - [ ] [M] plan.md 包含全部 11 个章节（§1-§11，§11 工作量估算可选）
 - [ ] [M] 每个 IMP 在 report.md §5 变更明细表中有对应行
 - [ ] [M] 每个 Phase 在 plan.md §3 中有 checklist 格式的任务

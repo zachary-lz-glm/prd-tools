@@ -47,7 +47,7 @@ next_actions: []
 | `evidence_coverage` | 25 | `_ingest/extraction-quality.yaml` coverage + `context/evidence.yaml` | `coverage_ratio * 100`（来自 extraction-quality.yaml 的 coverage.coverage_ratio） |
 | `code_search` | 15 | `context/graph-context.md` | 命中符号数 / REQ 需要搜索的符号数 |
 | `contract_alignment` | 25 | `context/contract-delta.yaml` | aligned 契约数 / 总契约数 |
-| `plan_quality` | 15 | `plan.md`（文件路径精确度、验证命令覆盖） | 有 file:line 的任务数 / 总任务数 |
+| `task_executability` | 15 | `plan.md`（文件路径精确度、验证命令覆盖） | 有 file:line 的任务数 / 总任务数 |
 
 状态阈值：
 

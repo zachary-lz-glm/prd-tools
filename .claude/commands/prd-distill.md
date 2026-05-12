@@ -20,7 +20,7 @@ Identify which stage the user wants:
 | Input | Stage | Behavior |
 |-------|-------|----------|
 | `/prd-distill spec foo.docx` | spec | Run Steps 0→1→1.5→2 only. Do NOT generate `report.md` or `plan.md`. |
-| `/prd-distill report <slug>` | report | Run Steps 2.5→3.1→3.2→4→8→8.1. Generate `report.md` but NOT `plan.md`. Stop and ask user to confirm. |
+| `/prd-distill report <slug>` | report | Run Steps 2.5→3.1→3.2→3.5→4→8→8.1. Generate `report.md` but NOT `plan.md`. Stop and ask user to confirm. |
 | `/prd-distill plan <slug>` | plan | Run Steps 5→6→8.5→8.6→9. Must check `context/report-confirmation.yaml` has `status: approved`. |
 | `/prd-distill <PRD>` (no subcommand) | guided entry | Start with spec, then prompt user to continue with report, then confirm, then plan. Do NOT auto-generate plan. |
 
@@ -32,7 +32,7 @@ Before executing any step, you MUST run the step gate script:
 python3 .prd-tools/scripts/distill-step-gate.py --step <step_id> --distill-dir _prd-tools/distill/<slug> --repo-root . --write-state
 ```
 
-Step IDs: `0`, `1`, `1.5-afprd`, `1.5-quality`, `2`, `2.5`, `3.1`, `3.2`, `4`, `8`, `8.1-confirm`, `5`, `6`, `8.5`, `8.6`, `9`
+Step IDs: `0`, `1`, `1.5-afprd`, `1.5-quality`, `2`, `2.5`, `3.1`, `3.2`, `3.5`, `3.6`, `4`, `8`, `8.1-confirm`, `5`, `6`, `7`, `8.5`, `8.6`, `9`
 
 If the step gate exits with code 2 (FAIL):
 - **STOP immediately** — do not proceed with the step.
@@ -62,7 +62,7 @@ Allowed outputs:
 
 ### Stage 2: report
 
-Steps: 2.5 → 3.1 → 3.2 → 4 → 8 → 8.1-confirm
+Steps: 2.5 → 3.1 → 3.2 → 3.5 → 4 → 8 → 8.1-confirm
 
 Allowed outputs:
 - `context/query-plan.yaml` (if index exists)
@@ -78,7 +78,7 @@ Allowed outputs:
 
 ### Stage 3: plan
 
-Steps: 5 → 6 → 8.5 → 8.6 → 9
+Steps: 5 → 6 → 7 → 8.5 → 8.6 → 9
 
 **Prerequisite**: `context/report-confirmation.yaml` must exist with `status: approved`.
 
@@ -119,7 +119,9 @@ Steps are strictly ordered — each step depends on the previous step's output.
    ⚙ Gate: `distill-step-gate.py --step 3.1`
 7. Step 3.2: Layer Impact → `context/layer-impact.yaml`
    ⚙ Gate: `distill-step-gate.py --step 3.2`
-8. Step 4: Contract Delta → `context/contract-delta.yaml`
+8. Step 3.5: Context Pack → `context/context-pack.md`
+   ⚙ Gate: `distill-step-gate.py --step 3.5`
+9. Step 4: Contract Delta → `context/contract-delta.yaml`
    ⚙ Gate: `distill-step-gate.py --step 4`
 9. Step 8: Report → `report.md`
    ⚙ Gate: `distill-step-gate.py --step 8`
@@ -133,11 +135,13 @@ Steps are strictly ordered — each step depends on the previous step's output.
    ⚙ Gate: `distill-step-gate.py --step 5`
 12. Step 6: Readiness → `context/readiness-report.yaml`
    ⚙ Gate: `distill-step-gate.py --step 6`
-13. Step 8.5: Final Quality Gate → `context/final-quality-gate.yaml`
+13. Step 7: Reference 回流 → `context/reference-update-suggestions.yaml`
+   ⚙ Gate: `distill-step-gate.py --step 7`
+14. Step 8.5: Final Quality Gate → `context/final-quality-gate.yaml`
    ⚙ Gate: `distill-step-gate.py --step 8.5`
-14. Step 8.6: Distill Completion Gate → run `distill-quality-gate.py`
+15. Step 8.6: Distill Completion Gate → run `distill-quality-gate.py`
    ⚙ Gate: `distill-step-gate.py --step 8.6`
-15. Step 9: Portal HTML → render with `render-distill-portal.py`
+16. Step 9: Portal HTML → render with `render-distill-portal.py`
    ⚙ Gate: `distill-step-gate.py --step 9`
 
 **Do NOT use background agents for artifact generation.** Only source code reading may be parallelized.

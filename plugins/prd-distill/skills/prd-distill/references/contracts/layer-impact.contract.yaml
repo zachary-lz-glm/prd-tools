@@ -4,12 +4,12 @@ required_top_level:
   - layers
 rules:
   - id: "impact_has_req_id"
-    each: "layers.*.impacts"
+    each: "layers.*.capability_areas"
     required:
       - id
       - requirement_id
       - change_type
       - code_anchors
   - id: "code_anchors_or_fallback"
-    each: "layers.*.impacts"
+    each: "layers.*.capability_areas"
     require: "len(code_anchors) > 0 or fallback_reason exists"

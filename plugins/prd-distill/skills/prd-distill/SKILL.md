@@ -80,7 +80,7 @@ Steps: 5 → 6 → 8.5 → 8.6 → 9
 python3 .prd-tools/scripts/distill-step-gate.py --step <step_id> --distill-dir _prd-tools/distill/<slug> --repo-root . --write-state
 ```
 
-Step IDs: `0`, `1`, `1.5-afprd`, `1.5-quality`, `2`, `2.5`, `3.1`, `3.2`, `4`, `5`, `6`, `8`, `8.1-confirm`, `8.5`, `8.6`, `9`
+Step IDs: `0`, `1`, `1.5-afprd`, `1.5-quality`, `2`, `2.5`, `3.1`, `3.2`, `3.5`, `3.6`, `4`, `5`, `6`, `7`, `8`, `8.1-confirm`, `8.5`, `8.6`, `9`
 
 If the step gate exits with code 2 (FAIL):
 - **STOP immediately** — do not proceed with the step.
@@ -94,7 +94,22 @@ If the step gate exits with code 2 (FAIL):
 - After each step, the gate updates it with output files and hashes.
 - The next step MUST read this state file before proceeding — do not rely on conversation memory.
 
-**禁止行为：**
+**Hard Constraints Reference（关键禁止项，<10 条）：**
+
+| # | 约束 | 原因 |
+|---|------|------|
+| 1 | 不得跳过 step gate 直接执行步骤 | 步骤依赖链断裂 |
+| 2 | report 未 approved 时不得生成 plan | 用户未确认影响分析 |
+| 3 | spec 阶段不得产出 report/plan | 三段式工作流隔离 |
+| 4 | plan 阶段不得重新解释原始 PRD | 只消费 approved report |
+| 5 | 不得编造行号或 grep 命令结果 | 证据链真实性 |
+| 6 | `inferred` 不得伪装为 `explicit` | 置信度诚实 |
+| 7 | 不得手写 portal.html | 必须用脚本渲染 |
+| 8 | 每个 REQ-ID 必须在 ai-friendly-prd.md 有标题锚点 | 追溯链完整性 |
+
+其余禁止项详见 workflow.md 对应步骤。
+
+**禁止行为（详细列表）：**
 - 不得跳过 step gate 直接执行步骤
 - 不得在 gate 失败后手动创建缺失文件绕过检查
 - 不得合并多个步骤为一次执行
@@ -279,7 +294,11 @@ approved_sections:
   - "layer_impact"
   - "contract_delta"
   - "open_questions"
-revision_requests: []
+revision_requests:
+  - section: "§5"
+    issue: "变更描述不够具体"
+    expected_change: "补充文件路径和函数名"
+blocked_reason: ""
 blocked_reason: ""
 ```
 
@@ -310,11 +329,11 @@ blocked_reason: ""
 
 ## 降级条件（不暂停但必须标记）
 
-- `_prd-tools/reference/` 不存在：layer-impact/contract-delta confidence 强制降为 `low`，report.md §11 暴露缺失，readiness-report next_actions 首位建议运行 `/reference`。
+- `_prd-tools/reference/` 不存在：layer-impact/contract-delta confidence 强制降为 `low`，report.md §12 暴露缺失，readiness-report next_actions 首位建议运行 `/reference`。
 
 ## 执行步骤
 
-### spec 阶段
+> 以下编号为逻辑描述顺序，对应 gate step IDs 见 command.md。
 
 1. 确认 PRD 来源和目标项目路径。
 2. PRD ingestion：

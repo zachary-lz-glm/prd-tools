@@ -2,6 +2,8 @@
 
 这些契约由 `/reference` 和 `/prd-distill` 共用。字段名保持英文，方便机器稳定解析；说明文字使用中文，方便团队阅读。
 
+**辅助层产出**：必须存在且通过 gate 校验，但不是用户的首要阅读目标（如 query-plan、context-pack、final-quality-gate、prd-quality-report）。
+
 ## 统一产出目录
 
 两个插件共用 `_prd-tools/` 作为产出目录根：
@@ -341,43 +343,50 @@ coverage:
 ## 1. 需求摘要（30秒决策）
 一句话摘要 + 变更类型统计（ADD/MODIFY/DELETE/NO_CHANGE 各几项）。
 
-## 2. 影响范围
-命中的层、能力面、关键文件/模块（表格形式）。
+## 2. PRD 质量摘要
+来自 `context/prd-quality-report.yaml`：
+- AI-friendly PRD 总分和状态（pass / warning / fail）
+- source 分布：explicit / inferred / missing_confirmation 各多少条
+- 关键缺失项、硬降级原因、风险摘要
+- 如果 `prd-quality-report.yaml` 状态为 fail 或 warning，必须在此说明对后续蒸馏的影响
 
-## 3. 代码命中摘要
+## 3. 源码扫描命中摘要
 | 来源 | 命中内容 | 用于哪些结论 | 缺口 |
 列出代码搜索命中的关键函数/调用链/API consumer。
 
-## 4. 关键结论
+## 4. 影响范围
+命中的层、能力面、关键文件/模块（表格形式）。
+
+## 5. 关键结论
 新增/修改/不改什么，每个结论带 REQ-ID 和代码路径引用。
 
-## 5. 变更明细表（核心可操作内容）
+## 6. 变更明细表（核心可操作内容）
 | ID | 变更描述 | 类型 | 目标文件 | 关键函数/符号 | 验证来源 |
 列出所有 IMP-* 项，精确到文件路径和关键 symbol，标注 code_verified / graph_verified / reference_only。
 
-## 6. 字段清单（按功能模块分组）
+## 7. 字段清单（按功能模块分组）
 | 字段 | 类型 | 必填 | 来源 | 契约ID |
 从 requirement-ir 和 contract-delta 中提取，按业务模块分组。
 
-## 7. 校验规则
+## 8. 校验规则
 | ID | 规则描述 | 错误文案/提示 | 目标文件 |
 从 requirement-ir.rules 中提取可验证的校验规则。
 
-## 8. 开发 Checklist（可直接执行）
+## 9. 开发 Checklist（可直接执行）
 - [ ] 1. <具体操作>（<目标文件>）— REQ-001, IMP-001
 - [ ] 2. <具体操作>（<目标文件>）— REQ-002, IMP-002
 ...
 按建议实现顺序排列，每项标注关联的 REQ/IMP/CONTRACT。
 
-## 9. 契约风险
+## 10. 契约风险
 只列 alignment_status 为 needs_confirmation 或 blocked 的契约。
 
-## 10. Top Open Questions
+## 11. Top Open Questions
 最多5个最关键的阻塞问题，带 Q-ID。
 
-## 11. 阻塞问题与待确认项
+## 12. 阻塞问题与待确认项
 
-### 11.1 阻塞问题
+### 12.1 阻塞问题
 每个阻塞问题必须包含 6 要素：
 - **问题**：阻塞项的具体描述
 - **线索**：代码/文档线索（如 `proxy/bpm.go:311 注释暗示冲单挑战系统已存在`）
@@ -386,10 +395,10 @@ coverage:
 - **需要证据**：确认人需要提供什么
 - **默认策略**：如果不确认，默认采取什么行动
 
-### 11.2 低置信度假设
+### 12.2 低置信度假设
 ⚠ 标注的低置信度结论，说明为什么置信度低、需要什么才能提升。
 
-### 11.3 Owner 确认项
+### 12.3 Owner 确认项
 需要特定角色确认的契约字段、枚举值、外部接口行为等。
 
 如无阻塞问题，显式写"当前无阻塞问题"。
@@ -407,7 +416,8 @@ coverage:
 - **Checklist 可直接执行**：开发人员拿到就能按步骤干活。
 - **线索式证据不能省略**：代码注释、已有结构体名、文件路径等线索必须保留（如 `proxy/bpm.go:311 注释暗示冲单挑战系统已存在`）。这些线索对开发定位问题有极高价值。
 - **P0/P1 需求细节必须显性披露**：券批次/券张数/互斥、折扣卡 Card ID/数量/有效期/城市校验、EventRule、Budget/GMV、Push 占位符不能只存在于 `context/`，必须在 report 的字段、校验、阻塞或 open question 中出现。
-- **冲突比结论更重要**：PRD 内部范围矛盾、报错文案 typo、owner 职责不清必须进入 §11；不要被 reference 的既有打法掩盖。
+- **冲突比结论更重要**：PRD 内部范围矛盾、报错文案 typo、owner 职责不清必须进入 §12；不要被 reference 的既有打法掩盖。
+- **OQ 质量约束**：Open Questions 必须是真正的未解决问题。如果 report 正文已给出推断结论（如 typo 已识别为 "应为 X"），应列为 Assumption 而非 OQ。
 - **Reference 不可盲信**：reference/index 命中的事实必须被 PRD、源码、技术文档、接口文档或负向搜索确认。无法确认时写成低/中置信度假设。
 
 ### 职责边界
@@ -616,7 +626,7 @@ items:
 
 ## context/requirement-ir.yaml
 
-Requirement IR 是 AI-friendly PRD 的结构化 IR。每条 requirement 必须能追溯到 `spec/ai-friendly-prd.md` 的 REQ-ID 和 source 状态。
+Requirement IR 是原始 PRD 的结构化 IR。每条 requirement 必须能追溯到 `_ingest/document.md` 的 source_blocks 和 `spec/ai-friendly-prd.md` 的 REQ-ID。
 
 ```yaml
 schema_version: "5.0"
@@ -882,7 +892,7 @@ next_actions: []
 | `evidence_coverage` | 25 | `context/evidence.yaml`、`context/requirement-ir.yaml` |
 | `code_search` | 15 | 代码搜索覆盖率 |
 | `contract_alignment` | 25 | `context/contract-delta.yaml` |
-| `plan_quality` | 15 | `plan.md`（文件路径精确度、验证命令覆盖） |
+| `task_executability` | 15 | `plan.md`（文件路径精确度、验证命令覆盖） |
 
 状态阈值：
 

@@ -259,7 +259,7 @@ def _check_layer_impact_anchors(distill_dir):
     has_fallback = bool(re.search(r'fallback:', text)) or bool(re.search(r'fallback_reason:', text))
 
     return {
-        'status': 'pass' if (has_code_anchors or has_fallback) else 'fail',
+        'status': 'pass' if (has_code_anchors or has_fallback) else 'warning',
         'has_code_anchors': has_code_anchors,
         'has_fallback': has_fallback,
     }

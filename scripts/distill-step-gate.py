@@ -120,10 +120,11 @@ STEP_TABLE = {
         "output": ["context/query-plan.yaml"],
         "forbidden_outputs": ["plan.md"],
     },
-    "2.6": {
-        "label": "Step 2.6: Context Pack",
+    "3.5": {
+        "label": "Step 3.5: Context Pack",
         "stage": "report",
         "prerequisites": [
+            ("context/layer-impact.yaml", "Step 3.2"),
             ("context/query-plan.yaml", "Step 2.5"),
         ],
         "output": ["context/context-pack.md"],
@@ -258,7 +259,7 @@ STEP_TABLE = {
 # Key fix: report(8) and report_confirmation(8.1) BEFORE plan(5)
 DISTILL_STEP_ORDER = [
     "0", "1", "1.5-afprd", "1.5-quality", "2",       # spec
-    "2.5", "3.1", "3.2", "4", "8", "8.1-confirm",    # report
+    "2.5", "3.1", "3.2", "3.5", "4", "8", "8.1-confirm",    # report
     "5", "6", "8.5", "8.6", "9",                       # plan
 ]
 

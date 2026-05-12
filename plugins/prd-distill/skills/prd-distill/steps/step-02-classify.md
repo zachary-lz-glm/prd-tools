@@ -1,6 +1,6 @@
 <workflow_state>
   <workflow>prd-distill</workflow>
-  <current_step>2</current_step>
+  <current_step>2.5, 3.1, 3.2, 3.5, 3.6, 4</current_step>
   <allowed_inputs>context/evidence.yaml, context/requirement-ir.yaml, _prd-tools/reference/, context/query-plan.yaml</allowed_inputs>
   <must_not_read_by_default>report.md, plan.md, original long PRD</must_not_read_by_default>
   <must_not_produce>report.md, plan.md</must_not_produce>
@@ -63,7 +63,7 @@
 
 #### 扫描范围兜底：build/ 和 dist/
 
-除 `src/` 外，必须额外扫描仓库的已编译产物目录（`build/`、`dist/`、`lib/` — 按项目实际 `project-profile.yaml` 的 build_output_dirs 决定）。目的：发现历史上实现过但已从 `src/` 移除的 registry 型改动（CampaignType 枚举、switch case、previewRewardType 映射等）。
+除 `src/` 外，必须额外扫描仓库的已编译产物目录（`build/`、`dist/`、`lib/` — 按项目实际 `project-profile.yaml` 的 build_output_dirs 决定；如果 `project-profile.yaml` 不存在或缺少 `build_output_dirs`，默认扫描 `build/` 和 `dist/`（如存在））。目的：发现历史上实现过但已从 `src/` 移除的 registry 型改动（CampaignType 枚举、switch case、previewRewardType 映射等）。
 
 **强制规则**：
 - 对 registry 型改动（枚举、switch 新增 case、映射表新增 key），`code_scan` 必须在 `build/` 和 `src/` 各跑一遍。

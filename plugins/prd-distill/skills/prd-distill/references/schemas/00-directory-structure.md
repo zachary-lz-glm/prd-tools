@@ -48,10 +48,12 @@ _prd-tools/
             ├── document-structure.json
             ├── evidence-map.yaml
             ├── media/
-            ├── tables/
+            ├── tables/                        # （可选，PRD 含表格时生成）
             ├── extraction-quality.yaml
-            └── conversion-warnings.md
+            └── conversion-warnings.md        # （可选，转换无警告时不生成）
 ```
+
+> 完整文件列表以 output-contracts.md 为准。
 
 用户默认只需要读：
 - `_prd-tools/distill/<slug>/report.md`（决策+阻塞问题）

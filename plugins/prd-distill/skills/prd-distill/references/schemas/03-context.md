@@ -53,10 +53,9 @@ schema_version: "4.0"
 tool_version: "<tool-version>"
 items:
   - id: "EV-001"
-    kind: "prd | tech_doc | code | git_diff | negative_code_search | human | api_doc | reference"
+    type: "prd | tech_doc | code | git_diff | negative_code_search | human | api_doc | reference"
     source: "/abs/path/or/url"
-    locator: "page/section/line/symbol/query"
-    summary: ""
+    desc: ""
     confidence: "high | medium | low"
 ```
 
@@ -192,14 +191,18 @@ quality_gates: []
 ## context/contract-delta.yaml
 
 ```yaml
-schema_version: "4.0"
+schema_version: "2.0"
 tool_version: "<tool-version>"
-contracts:
+meta:
+  primary_source: "<原始 PRD 路径>"
+  ai_prd_source: "spec/ai-friendly-prd.md"
+  requirement_ir_ref: "context/requirement-ir.yaml"
+deltas:
   - id: "CONTRACT-EXAMPLE"
-    name: ""
     producer: "frontend | bff | backend | external"
-    consumers: ["frontend", "bff", "backend", "external"]
     change_type: "ADD | MODIFY | DELETE | NO_CHANGE"
+    requirement_id: "REQ-001"
+    layer: "frontend | bff | backend | external"
     contract_surface: "endpoint | schema | event | payload | db_table | external_api"
     request_fields:
       - name: ""
