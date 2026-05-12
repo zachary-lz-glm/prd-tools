@@ -107,6 +107,11 @@
 
 ## 契约规则
 
+- 每条 delta 的 `consumers` 必须是数组，至少包含 1 个除 producer 之外的层
+- 同一契约影响多端时（如新增 endpoint 同时改前端调用 + 后端实现），**必须生成一条 delta 含 `consumers: [frontend, backend]`**，禁止拆成两条单边 delta
+- 已对齐的层放入 `checked_by`，未对齐的层差集进入 report.md §10 对应小段
+- **禁止**用 `direction: "bff -> frontend"` 单字符串替代 producer/consumers 结构
+
 以下场景生成 Contract Delta：
 
 - 影响超过一层。

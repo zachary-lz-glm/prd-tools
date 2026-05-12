@@ -194,19 +194,25 @@ quality_gates: []
 
 ## context/contract-delta.yaml
 
+> **全栈契约原则**：每条 delta 必须明确 `producer`（单一产出层）、`consumers`（受影响的所有层数组）、`checked_by`（已对齐的层数组）。`consumers - checked_by` 即为"待确认层"，必须进入 report.md §10 的"按层分组建议"。
+> **不允许** 用单一 `direction: "bff -> frontend"` 字符串替代 producer/consumers 结构——多端协作信息会丢失。
+
 ```yaml
 schema_version: "2.0"
 tool_version: "<tool-version>"
 meta:
-  primary_source: "<原始 PRD 路径>"
+  primary_source: "_ingest/document.md"
   ai_prd_source: "spec/ai-friendly-prd.md"
   requirement_ir_ref: "context/requirement-ir.yaml"
 deltas:
-  - id: "CONTRACT-EXAMPLE"
-    producer: "frontend | bff | backend | external"
-    change_type: "ADD | MODIFY | DELETE | NO_CHANGE"
+  - id: "CD-001"
+    name: "新活动类型创建接口"
     requirement_id: "REQ-001"
-    layer: "frontend | bff | backend | external"
+    layer: "bff"
+    producer: "bff"
+    consumers: ["frontend", "backend"]
+    checked_by: ["bff", "frontend"]
+    change_type: "ADD | MODIFY | DELETE | NO_CHANGE"
     contract_surface: "endpoint | schema | event | payload | db_table | external_api"
     request_fields:
       - name: ""
@@ -214,13 +220,16 @@ deltas:
         required: false
         type: ""
         source: "prd | tech_doc | code | inferred"
-        notes: ""
     response_fields: []
     alignment_status: "aligned | needs_confirmation | blocked | not_applicable"
-    checked_by: ["frontend", "bff"]
-    evidence: ["EV-001"]
+    evidence_refs: ["EV-001"]
+    cross_layer_notes: ""
 alignment_summary:
   status: "aligned | needs_confirmation | blocked | not_applicable"
+  by_layer:
+    frontend: { aligned: N, needs_confirmation: N, blocked: N }
+    bff:      { aligned: N, needs_confirmation: N, blocked: N }
+    backend:  { aligned: N, needs_confirmation: N, blocked: N }
   blockers: []
   next_actions: []
 ```

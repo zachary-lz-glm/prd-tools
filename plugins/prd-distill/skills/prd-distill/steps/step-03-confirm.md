@@ -83,8 +83,9 @@
 - 按建议实现顺序排列
 - 每项标注具体操作 + 目标文件 + 关联 REQ/IMP/CONTRACT
 
-### 10. 契约风险
-- 只列 alignment_status 为 needs_confirmation 或 blocked 的契约
+### 10. 契约对齐与建议
+- 按受影响层分组列出（10.1 前端 / 10.2 BFF / 10.3 后端 / 10.4 外部 / 10.5 跨层风险）
+- 每层都要有自己的小段，即使为空也要显式写"无变更"
 
 ### 11. Top Open Questions
 - 最多5个最关键的阻塞问题，带 Q-ID
@@ -189,8 +190,8 @@ report.md 生成后、plan.md 生成前，必须暂停：
 - `| 场景 | 关键检查点 | 关联 REQ | 优先级 |`
 - P0/P1/P2 分级
 
-### 9. 契约对齐
-- `| 契约 | 状态 | Producer | Consumer | 需确认内容 |`
+### 9. 契约对齐（全栈视图）
+- `| 契约ID | Producer | Consumers | Checked By | 状态 | 需确认内容 |`
 
 ### 10. 风险与回滚
 - 回滚方案
@@ -233,6 +234,8 @@ report.md 生成后、plan.md 生成前，必须暂停：
 
 - [ ] [M] report.md 包含全部 12 个章节（§1-§12）
 - [ ] [M] plan.md 包含全部 11 个章节（§1-§11，§11 工作量估算可选）
+- [ ] [M] report.md §10 含至少 4 个小段（前端/BFF/后端/外部），即使某层无变更也要显式写"无"
+- [ ] [M] plan.md §9 全栈表包含 Producer/Consumers/Checked By 三列
 - [ ] [M] 每个 IMP 在 report.md §5 变更明细表中有对应行
 - [ ] [M] 每个 Phase 在 plan.md §3 中有 checklist 格式的任务
 - [ ] [M] 每个 MODIFY/DELETE 任务引用了至少一个 GCTX ID

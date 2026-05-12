@@ -51,8 +51,24 @@ assumption_only / blocked 项不得进入确定实现行。
 ...
 按建议实现顺序排列，每项标注关联的 REQ/IMP/CONTRACT。
 
-## 10. 契约风险
-只列 alignment_status 为 needs_confirmation 或 blocked 的契约。
+## 10. 契约对齐与建议
+按受影响层分组列出，**每层都要有自己的小段**（即使为空也要显式写"无变更"）：
+
+### 10.1 前端契约（frontend as consumer/producer）
+| 契约ID | 类型 | 当前状态 | 需前端确认 | 建议 Owner |
+
+### 10.2 BFF 契约（bff as producer or middleware）
+| 契约ID | 类型 | 当前状态 | 需BFF对齐项 | 建议 Owner |
+
+### 10.3 后端契约（backend as producer/consumer）
+| 契约ID | 类型 | 当前状态 | 需后端确认 | 建议 Owner |
+
+### 10.4 外部系统契约（external，可选）
+仅当 `consumers` 含 `external` 时出现。
+
+### 10.5 跨层对齐风险
+- `consumers - checked_by` 不为空的契约必须出现在以上分组的"需确认"列
+- `alignment_status: blocked` 的契约必须同时进入 §12 阻塞问题
 
 ## 11. Top Open Questions
 最多5个最关键的阻塞问题，带 Q-ID。
@@ -208,8 +224,8 @@ assumption_only / blocked 项不得进入确定实现行。
 | 场景 | 关键检查点 | 关联 REQ | 优先级 |
 覆盖正常流 + 边界情况 + 异常流，P0/P1/P2 分级。
 
-## 9. 契约对齐
-| 契约 | 状态 | Producer | Consumer | 需确认内容 |
+## 9. 契约对齐（全栈视图）
+| 契约ID | Producer | Consumers | Checked By | 状态 | 需确认内容 |
 只列 needs_confirmation 和 blocked。
 
 ## 10. 风险与回滚

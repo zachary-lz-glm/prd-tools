@@ -8,12 +8,27 @@ required_top_level:
   - schema_version
   - deltas
 rules:
-  - id: "delta_has_identity"
+  - id: "delta_has_full_stack"
     each: "deltas"
     required:
       - id
       - producer
+      - consumers
       - change_type
       - alignment_status
       - requirement_id
       - layer
+      - contract_surface
+
+  - id: "consumers_is_array_of_layers"
+    each: "deltas"
+    require: "isinstance(consumers, list) and all(c in ['frontend','bff','backend','external'] for c in consumers)"
+    note: "consumers must be an array of layer names, not a direction string"
+
+  - id: "checked_by_optional_array"
+    each: "deltas"
+    when:
+      field: "checked_by"
+      exists: true
+    require: "isinstance(checked_by, list)"
+    note: "checked_by must be an array when present"
