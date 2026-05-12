@@ -108,3 +108,10 @@ requirements:
     confidence: "medium"
 open_questions: []
 ```
+
+## IR ↔ AI-friendly PRD 编号一致性（硬约束）
+
+生成 IR 前后，必须跑以下两条自检：
+
+1. **每条 IR 的 `ai_prd_req_id` 必须在 `spec/ai-friendly-prd.md` 里 `rg -F "REQ-" | rg "{ai_prd_req_id}"` 能命中**。未命中 → 当前 IR 生成失败，不得提交。
+2. **ai-friendly-prd.md 里每个 `REQ-xxx` heading 必须在 IR 列表里至少出现一次**（哪怕 `type: NO_CHANGE`）。缺失 → 补一条 IR 占位，type=NO_CHANGE，summary 写 "no BFF-layer change, reviewed"。

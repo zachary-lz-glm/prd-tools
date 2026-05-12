@@ -29,3 +29,5 @@ rules:
     forbid:
       field: "planning.eligibility"
       equals: "ready"
+# TODO(audit-p1-6): cross-file check against spec/ai-friendly-prd.md REQ ids;
+# validator doesn't support cross-file rules yet, enforced via step self-check.
