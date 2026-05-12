@@ -342,8 +342,18 @@ def _check_prd_coverage(base):
 
 def _check_artifact_contracts(base):
     """Validate artifacts against their contract definitions."""
-    contracts_dir = Path(__file__).resolve().parent.parent / 'plugins' / 'prd-distill' / 'skills' / 'prd-distill' / 'references' / 'contracts'
-    if not contracts_dir.is_dir():
+    script_dir = Path(__file__).resolve().parent
+    # Support both dev layout (scripts/../plugins/...) and installed layout (.prd-tools/scripts/../../.claude/skills/...)
+    candidates = [
+        script_dir.parent / 'plugins' / 'prd-distill' / 'skills' / 'prd-distill' / 'references' / 'contracts',
+        script_dir.parent.parent / '.claude' / 'skills' / 'prd-distill' / 'references' / 'contracts',
+    ]
+    contracts_dir = None
+    for c in candidates:
+        if c.is_dir():
+            contracts_dir = c
+            break
+    if not contracts_dir:
         return {'status': 'pass', 'message': 'No contracts directory found'}
 
     contract_files = sorted(contracts_dir.glob('*.contract.yaml'))
