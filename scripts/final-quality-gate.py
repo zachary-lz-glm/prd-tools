@@ -598,7 +598,7 @@ def main():
     ap = argparse.ArgumentParser(
         description='Final Quality Gate — deterministic checks for distill deliverables'
     )
-    ap.add_argument('--distill', required=True,
+    ap.add_argument('--distill', '--distill-dir', dest='distill', required=True,
                     help='Path to distill output directory')
     args = ap.parse_args()
 
