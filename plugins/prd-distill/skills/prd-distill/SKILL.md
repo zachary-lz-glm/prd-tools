@@ -109,13 +109,14 @@ If the step gate exits with code 2 (FAIL):
 4. 如果 `_prd-tools/reference/index` 存在，必须运行 `context-pack.py` 生成 `context/query-plan.yaml` 和 `context/context-pack.md`。
 5. `context/final-quality-gate.yaml` 必须生成。
 6. 必须运行 `python3 .prd-tools/scripts/distill-quality-gate.py --distill-dir _prd-tools/distill/<slug> --repo-root .`，且 exit code 不为 2。
-7. completion gate 不通过，不得宣称 /prd-distill 完成。
-8. `report.md` 必须包含 PRD 质量摘要。
-9. 生成最终 `plan.md` 前，必须获得用户对 `report.md` 的确认，并写入 `context/report-confirmation.yaml`。
-10. `context/report-confirmation.yaml` 的 `status` 必须为 `approved`，否则不得生成最终 `plan.md`。
-11. `plan.md` 不得包含把 `missing_confirmation` 当确定任务的内容。
-12. 必须运行 `python3 .prd-tools/scripts/render-distill-portal.py --distill-dir _prd-tools/distill/<slug> --template .prd-tools/assets/distill-portal-template.html --out _prd-tools/distill/<slug>/portal.html` 生成 `portal.html`。AI 不得手写 portal.html。
-13. portal.html 是脚本渲染产物，风格由固定模板决定，AI 不得手写或修改其内容。
+7. 必须运行 `python3 .prd-tools/scripts/distill-workflow-gate.py --distill-dir _prd-tools/distill/<slug> --repo-root .`，且 exit code 不为 2（0 = 全过，1 = warning，2 = 硬失败）。
+8. completion gate 不通过，不得宣称 /prd-distill 完成。
+9. `report.md` 必须包含 PRD 质量摘要。
+10. 生成最终 `plan.md` 前，必须获得用户对 `report.md` 的确认，并写入 `context/report-confirmation.yaml`。
+11. `context/report-confirmation.yaml` 的 `status` 必须为 `approved`，否则不得生成最终 `plan.md`。
+12. `plan.md` 不得包含把 `missing_confirmation` 当确定任务的内容。
+13. 必须运行 `python3 .prd-tools/scripts/render-distill-portal.py --distill-dir _prd-tools/distill/<slug> --template .prd-tools/assets/distill-portal-template.html --out _prd-tools/distill/<slug>/portal.html` 生成 `portal.html`。AI 不得手写 portal.html。
+14. portal.html 是脚本渲染产物，风格由固定模板决定，AI 不得手写或修改其内容。
 
 ## 触发条件
 
