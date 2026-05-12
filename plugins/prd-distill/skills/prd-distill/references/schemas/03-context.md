@@ -48,6 +48,8 @@
 
 ## context/evidence.yaml
 
+> **单一权威源原则**：evidence.yaml 是所有下游产物（requirement-ir、layer-impact、contract-delta、report、plan）引用的**唯一 evidence 账本**。`_ingest/evidence-map.yaml` 仅用于 ingestion 追溯，不得被下游直接引用。
+
 ```yaml
 schema_version: "4.0"
 tool_version: "<tool-version>"

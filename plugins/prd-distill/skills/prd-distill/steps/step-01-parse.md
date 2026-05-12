@@ -109,6 +109,11 @@ EOF
 
 ## 规则
 
+- `context/evidence.yaml` 是**唯一权威 evidence 账本**。必须包含以下三类条目：
+  1. 原始 PRD block（从 `_ingest/evidence-map.yaml` 全量复制 `EV-BG-*`, `EV-CFG-*`, `EV-VIS-*` 等）
+  2. Ingestion 证据（`EV-INGEST-*`：文本提取、图片分析）
+  3. Reference 消费证据（`EV-REF-*`：消费 `_prd-tools/reference/*.yaml` 的摘要）
+- `_ingest/evidence-map.yaml` 是 ingestion 阶段的原始产物，仅用于 step-0 输出验证，**不得被 requirement-ir.yaml / layer-impact.yaml / contract-delta.yaml 引用**。
 - 每个 requirement 至少需要一个 PRD 或技术文档 evidence id。
 - PRD evidence 优先映射 `_ingest/evidence-map.yaml` 的 block/table/image 定位。
 - 图片、截图、流程图通过 Claude Read 工具（原生多模态）直接查看分析。分析结果写入 `media-analysis.yaml`。
