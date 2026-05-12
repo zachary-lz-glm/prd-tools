@@ -13,6 +13,8 @@ import sys
 
 import yaml
 
+from _gate_fixhint import fix_hint
+
 # Import shared workflow state module
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from workflow_state import WorkflowState
@@ -187,6 +189,12 @@ def run_gate(root_dir, step_id):
         print(f"RESULT: FAIL — {len(missing)} prerequisite(s) missing.")
         print(f"  请先完成 {', '.join(missing_steps)}，生成缺失文件后再继续 {label}。")
         print(f"  缺失文件: {', '.join(missing_files)}")
+        # Emit fix hints for known missing files
+        for mf in missing_files:
+            if 'coding-rules' in mf:
+                hint = fix_hint('missing_coding_rules')
+                if hint:
+                    print(f"  → fix: {hint}")
         return False, "prerequisites missing", missing_files
     else:
         print(f"RESULT: PASS — all prerequisites satisfied. Proceed with {label}.")

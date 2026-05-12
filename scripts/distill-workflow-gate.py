@@ -25,6 +25,8 @@ import sys
 import yaml
 from pathlib import Path
 
+from _gate_fixhint import fix_hint
+
 # ──────────────────────────────────────────
 # Workflow ordering config
 # ──────────────────────────────────────────
@@ -562,6 +564,13 @@ def main():
 
     results = run_checks(distill_dir, repo_root)
     print_summary(results)
+
+    # Emit fix hints for failed checks
+    for key, val in results.items():
+        if val.get('status') == 'fail':
+            hint = fix_hint(key)
+            if hint:
+                print(f'  → fix: {hint}')
 
     exit_code = compute_exit_code(results)
     if exit_code == 2:
