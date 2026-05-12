@@ -16,6 +16,7 @@
 | [P0-fixes.md](./P0-fixes.md) | 6 个 P0 修复（会让流程直接失败/上线炸） | **先做这个，全部通过再进 P1** |
 | [P1-fixes.md](./P1-fixes.md) | 10 个 P1 修复（质量下降不炸） | P0 全绿再做 |
 | [P2-fixes.md](./P2-fixes.md) | 11 个 P2 修复（可读性/可维护性） | 有余力再做，可选 |
+| [P0-round2-fixes.md](./P0-round2-fixes.md) | **12 个来自实际 /prd-distill 运行日志的 P0R2**（工作流契约 vs gate 契约断层）+ D4 selfcheck 自修 | **round1 修完再做，必须做** |
 | [verify-checklist.md](./verify-checklist.md) | 每个 FIX 的独立验证命令清单 | 做完每个 FIX 后对照这个跑 |
 | [context-for-ai.md](./context-for-ai.md) | 背景：v2.16.1 → v2.18.0 做了什么迭代、审计怎么做的、哪些是系统性根因 | 开始前读一遍 |
 
