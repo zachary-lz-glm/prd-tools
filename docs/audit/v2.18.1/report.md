@@ -4,6 +4,8 @@
 - P0 修复: 6/6
 - P1 修复: 10/10
 - P2 修复: 11/11
+- P0R2 修复: 12/12
+- D4 selfcheck 修复: 1/1
 - 未完成/跳过: 无
 
 ## Selfcheck 结果
@@ -21,6 +23,11 @@
 ### P2 修复后
 - 0 fail
 - 1 warn：D4（gate mentions 一致性，16 个 gap — 非功能性问题）
+- 14 pass
+
+### Round 2 修复后
+- 0 fail
+- 1 warn：D4（4 个真实同 skill 内缺口，从 16 降至 4）
 - 14 pass
 
 ## 每个 FIX 的验证输出
@@ -147,8 +154,117 @@ output-contracts.md: overall_score algorithm section added with weights table an
 ## 后续建议
 
 1. output-contracts.md 的 `contracts` vs `deltas` 模板需要对齐决策（P0-4 选择了保留 deltas）
-2. D4 (gate mentions 一致性, 16 个 gap) 属于低优先级文档一致性改进，可随日常维护逐步收敛
+2. D4 (gate mentions 一致性, 4 个同 skill 内 gap): 属于低优先级文档一致性改进，可随日常维护逐步收敛
 3. selfcheck-runner.py 目前是 stub，完整实现作为下个 milestone
+
+---
+
+## Round 2: P0R2 修复（基于实际 /prd-distill 运行日志）
+
+### 摘要
+- P0R2 修复: 12/12
+- D4 selfcheck 修复: 1/1
+- 未完成/跳过: 无
+
+### Selfcheck 结果
+
+#### Round 2 修复后
+- 0 fail
+- 1 warn：D4（4 个真实同 skill 内缺口，从 16 降至 4）
+- 14 pass
+
+### P0R2-1 ai-friendly-prd section format matches gate regex
+- commit: a5548c6
+- 现状已是正确格式 `## N. EnglishName`，无需修改模板。新增 Self-Check [M] 断言防漂移。
+```
+OK: no § prefix in afprd templates
+```
+
+### P0R2-2 gate accepts overall_score as score alias
+- commit: f91fbb8
+- gate 正则改为 `^(overall_score|score):\s*\d+`，output-contracts 标注 `overall_score` 为权威字段名。
+```
+P0R2-2 OK
+```
+
+### P0R2-3 evidence-map.yaml top-level key unified as `blocks`
+- commit: 1a4aa2b
+- schema 已用 `blocks:`，output-contracts 补充顶层字段说明。
+```
+P0R2-3 OK
+```
+
+### P0R2-4 media-analysis.yaml top-level key unified as `media`
+- commit: 43014d7
+- gate 兼容 `media`/`items`/`images`，schema 和 output-contracts 统一为 `media:`。
+```
+P0R2-4 OK
+```
+
+### P0R2-5 IR evidence field unified as object with source_blocks/source_block_ids
+- commit: a0bff78
+- step-01-parse.md evidence 从 `["EV-001"]` 改为 object 格式。
+```
+P0R2-5 OK
+```
+
+### P0R2-6 contract-delta requires meta + requirement_id + layer
+- commit: ba2146d
+- contract 新增 `required_top_level: [meta, schema_version, deltas]`，rules 新增 `requirement_id`/`layer`。output-contracts 模板从 `contracts:` 改为 `deltas:` 并加入 `meta`/`layer`/`requirement_id` 字段。
+```
+P0R2-6 OK
+```
+
+### P0R2-7 docx ingestion uses python zipfile standard path
+- commit: 2d2f29b
+- step-01-parse.md 替换 `unzip` 命令为 Python zipfile 标准流程，避免 macOS permission denied。
+```
+P0R2-7 OK
+```
+
+### P0R2-8 context-pack accepts --distill-dir alias + auto-derives --index/--out
+- commit: 60de8a0
+- context-pack.py `--distill` 新增 `--distill-dir` 别名，`--index`/`--out` 改为可选并自动推导。
+```
+P0R2-8 OK
+```
+
+### P0R2-9 final-quality-gate accepts --distill-dir alias
+- commit: 7a23735
+- final-quality-gate.py `--distill` 新增 `--distill-dir` 别名。
+```
+P0R2-9 OK
+```
+
+### P0R2-10 Step 0 outputs enforced as Step 1 prerequisites
+- commit: deb1d05
+- STEP_TABLE["1"].prerequisites 新增 `document-structure.json`、`evidence-map.yaml`、`source-manifest.yaml`。
+```
+P0R2-10 OK
+```
+
+### P0R2-11 gate failures suggest checking template/gate, not just artifact
+- commit: a995cfb
+- _gate_fixhint.py 改为 dict 结构含 `direction` 标签（check_template/check_both/fix_artifact）。step-01-parse.md 新增修复循环规避规则。
+```
+P0R2-11 step OK
+P0R2-11 fixhint OK
+```
+
+### P0R2-12 document-structure.json exclusion_types taught to AI
+- commit: 640a1d6
+- output-contracts.md 双插件补充 `exclusion_types` 字段说明。
+```
+P0R2-12 OK
+```
+
+### D4 selfcheck scoped to within-skill gate references
+- commit: 3050205
+- D4_gate_mentions.py 从全量交叉检查改为按 skill prefix 隔离，误报从 16 降至 4。
+```
+⚠ [D4] gate script mentions are consistent per-skill
+    4 within-skill gate gap(s)
+```
 
 ## P2 修复提交记录
 
