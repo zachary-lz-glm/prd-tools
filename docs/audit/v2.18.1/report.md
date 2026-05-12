@@ -3,8 +3,8 @@
 ## 摘要
 - P0 修复: 6/6
 - P1 修复: 10/10
-- P2 修复: 0/11（跳过，有余力再做）
-- 未完成/跳过: P2 全部 11 项（不在本次执行范围）
+- P2 修复: 11/11
+- 未完成/跳过: 无
 
 ## Selfcheck 结果
 
@@ -13,12 +13,15 @@
 - 2 warn：D4 / S3
 - 6 pass
 
-### 修复后
+### P0+P1 修复后
 - 2 fail：D5 / X1（对应 P2-7 / P2-8，不在 P0/P1 范围）
-- 2 warn：D4（gate mentions 一致性，16 个 gap）/ S3（tool-version stale，对应 P2-1）
+- 2 warn：D4 / S3
 - 11 pass
 
-> 注：README 说"P0+P1 全做完 fail 归零"，但 D5 和 X1 原始映射就是 P2-7/P2-8，不在 P0/P1 范围内。从 7 fail 降到 2 fail 是 P0+P1 的预期成果。
+### P2 修复后
+- 0 fail
+- 1 warn：D4（gate mentions 一致性，16 个 gap — 非功能性问题）
+- 14 pass
 
 ## 每个 FIX 的验证输出
 
@@ -144,5 +147,55 @@ output-contracts.md: overall_score algorithm section added with weights table an
 ## 后续建议
 
 1. output-contracts.md 的 `contracts` vs `deltas` 模板需要对齐决策（P0-4 选择了保留 deltas）
-2. D5 (step-04-portal current_step=4 vs filename implies 9) 和 X1 (workflow.md 步骤 2.6/7 不在 STEP_TABLE) 属于 P2 范围
+2. D4 (gate mentions 一致性, 16 个 gap) 属于低优先级文档一致性改进，可随日常维护逐步收敛
 3. selfcheck-runner.py 目前是 stub，完整实现作为下个 milestone
+
+## P2 修复提交记录
+
+### P2-1 step-gate default tool-version reads VERSION file
+- commit: aa7ecd7
+- distill-step-gate.py / reference-step-gate.py 新增 `_default_tool_version()` 函数
+
+### P2-2 accept --step 8.1 as alias for 8.1-confirm
+- commit: cfe292d
+- distill-step-gate.py 新增 `STEP_ALIASES` + `_resolve_step()`
+
+### P2-3 final-quality-gate reads anchors from routing-playbooks
+- commit: 8ef251c
+- final-quality-gate.py 新增 `load_key_anchors()`, 硬编码改为 fallback
+
+### P2-4 context-pack seed_queries derived from routing-playbooks
+- commit: 24699f4
+- context-pack.py 新增 `_load_seed_queries()`, 硬编码改为 fallback
+
+### P2-5 remove deprecated graph/ subtree from output-contracts
+- commit: f7a623c
+- 双插件 output-contracts.md 删除已废弃 graph/ 目录描述
+
+### P2-6 split duplicate Step 8.6 headings
+- commit: b1dcf9f
+- workflow.md 第二个 8.6 改为 8.6.1
+
+### P2-7 materialize Phase 3.6 Critique Pass in workflow.md
+- commit: 41ab9d1
+- workflow.md 新增 Step 3.6 Critique Pass 章节
+
+### P2-8 step-04-portal current_step aligns to gate --step 9
+- commit: 2fa39f3
+- step-04-portal.md `<current_step>` 从 4 改为 9
+
+### P2-9 unify plan.md section count to 11 across docs
+- commit: eca0f99
+- workflow.md 和 step-03-confirm.md 章节数统一为 11
+
+### P2-10 single canonical mode-selection schema
+- commit: 4e64b4b
+- 新增 mode-selection.schema.md, SKILL.md 改为引用
+
+### P2-11 portal EV full-set self-check + speculative tagging
+- commit: abf06e3
+- step-04-portal.md 新增 EV 全集 Self-Check, workflow.md 新增推测信息约束
+
+### 幽灵步骤注册
+- commit: 3f9475f
+- STEP_TABLE 注册 2.6/3.6/7/8.6.1, X1 fail 归零
