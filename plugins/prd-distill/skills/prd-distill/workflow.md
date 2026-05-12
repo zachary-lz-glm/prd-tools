@@ -621,6 +621,8 @@ findings:
 - `score`: 0-100。
 - `decision`: `ready_for_dev | needs_owner_confirmation | blocked`。
 - `provider_value`: 列出 source code scanning 和 reference 对 plan/report 实际贡献了什么。
+- `provider_value.reference`: 必须包含 `reused_playbooks`, `reused_contracts`, `examples` 三个字段，统计 reference 被复用的数量（团队公共库 ROI 指标）。
+- `scores`: 必须包含 `prd_ingestion`, `evidence_coverage`, `code_search`, `contract_alignment`, `task_executability` 5 个维度。
 - `next_actions`: 最多 5 条，优先处理 blocked 和 needs_confirmation。
 
 ## 步骤 7：Reference 回流

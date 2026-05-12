@@ -57,9 +57,10 @@ schema_version: "2.0"
 tool_version: "<tool-version>"
 items:
   - id: "EV-001"
-    type: "prd | tech_doc | code | git_diff | negative_code_search | human | api_doc | reference"
+    kind: "prd | tech_doc | code | git_diff | negative_code_search | human | api_doc | reference"
     source: "/abs/path/or/url"
-    desc: ""
+    locator: "page/section/line/symbol"
+    summary: ""
     confidence: "high | medium | low"
 ```
 

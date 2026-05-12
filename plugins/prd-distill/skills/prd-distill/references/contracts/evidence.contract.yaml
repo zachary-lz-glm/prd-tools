@@ -1,0 +1,18 @@
+artifact: "context/evidence.yaml"
+schema_version: "2.0"
+required_top_level:
+  - schema_version
+  - items
+rules:
+  - id: "each_has_required"
+    each: "items"
+    required:
+      - id
+      - kind
+      - source
+      - locator
+      - summary
+      - confidence
+  - id: "kind_enum_valid"
+    each: "items"
+    require: "kind in ['prd','tech_doc','code','git_diff','negative_code_search','human','api_doc','reference']"

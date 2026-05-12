@@ -1,0 +1,30 @@
+artifact: "context/readiness-report.yaml"
+schema_version: "3.0"
+required_top_level:
+  - schema_version
+  - status
+  - score
+  - decision
+  - scores
+  - risks
+  - provider_value
+rules:
+  - id: "status_enum"
+    require: "status in ['pass','warning','fail']"
+  - id: "decision_enum"
+    require: "decision in ['ready_for_dev','needs_owner_confirmation','blocked']"
+  - id: "scores_5_dims"
+    path: "scores"
+    required:
+      - prd_ingestion
+      - evidence_coverage
+      - code_search
+      - contract_alignment
+      - task_executability
+  - id: "provider_value_has_reference"
+    path: "provider_value.reference"
+    required:
+      - reused_playbooks
+      - reused_contracts
+      - examples
+    note: "provider_value.reference 是团队公共库 ROI 指标"

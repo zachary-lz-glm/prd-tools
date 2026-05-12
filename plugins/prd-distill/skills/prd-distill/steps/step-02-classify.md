@@ -93,6 +93,7 @@
 - 空数组要显式写 `capability_areas: []` 并加 comment 说明理由
 - 非当前仓层的 IMP confidence 不得 high，必须 needs_confirmation
 5. 对每个跨层/API/schema/event/downstream 契约面创建 Contract Delta。
+6. `alignment_summary` 必须用 `status:` + `blockers:[]` + `next_actions:[]` 结构，**不得**用 `aligned: N / needs_confirmation: N / blocked: N` 的计数结构。
 6. 从规范、约束、third rails、契约、playbook 和 `graph-context.md` 中补充风险。
 
 ### 代码影响分析

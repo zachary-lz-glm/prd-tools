@@ -32,3 +32,11 @@ rules:
       exists: true
     require: "isinstance(checked_by, list)"
     note: "checked_by must be an array when present"
+
+  - id: "alignment_summary_schema"
+    path: "alignment_summary"
+    required:
+      - status
+      - blockers
+      - next_actions
+    note: "alignment_summary 是'整体状态+阻塞+下一步'结构，不是各状态计数"
