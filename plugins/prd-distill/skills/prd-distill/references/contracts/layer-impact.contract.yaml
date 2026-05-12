@@ -1,0 +1,15 @@
+artifact: "context/layer-impact.yaml"
+schema_version: "2.0"
+required_top_level:
+  - layers
+rules:
+  - id: "impact_has_req_id"
+    each: "layers.*.impacts"
+    required:
+      - id
+      - requirement_id
+      - change_type
+      - code_anchors
+  - id: "code_anchors_or_fallback"
+    each: "layers.*.impacts"
+    require: "len(code_anchors) > 0 or fallback_reason exists"

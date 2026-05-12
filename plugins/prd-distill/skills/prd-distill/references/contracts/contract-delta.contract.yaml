@@ -1,0 +1,13 @@
+artifact: "context/contract-delta.yaml"
+schema_version: "2.0"
+required_top_level:
+  - meta
+  - deltas
+rules:
+  - id: "delta_has_trace"
+    each: "deltas"
+    required:
+      - id
+      - requirement_id
+      - layer
+      - change_type

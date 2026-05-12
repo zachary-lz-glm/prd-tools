@@ -22,6 +22,8 @@ import re
 import sys
 from pathlib import Path
 
+import yaml
+
 # ──────────────────────────────────────────
 # Required files config
 # ──────────────────────────────────────────
@@ -338,6 +340,81 @@ def _check_prd_coverage(base):
 
     return {'status': 'warning', 'message': 'coverage-report.yaml not found; run prd-coverage-gate.py'}
 
+def _check_artifact_contracts(base):
+    """Validate artifacts against their contract definitions."""
+    contracts_dir = Path(__file__).resolve().parent.parent / 'plugins' / 'prd-distill' / 'skills' / 'prd-distill' / 'references' / 'contracts'
+    if not contracts_dir.is_dir():
+        return {'status': 'pass', 'message': 'No contracts directory found'}
+
+    contract_files = sorted(contracts_dir.glob('*.contract.yaml'))
+    if not contract_files:
+        return {'status': 'pass', 'message': 'No contract files found'}
+
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    from importlib import import_module
+    # Import validate function from validate-artifact.py
+    import importlib.util
+    validator_path = Path(__file__).resolve().parent / 'validate-artifact.py'
+    spec = importlib.util.spec_from_file_location("validate_artifact", validator_path)
+    validator_mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(validator_mod)
+
+    results_list = []
+    has_fail = False
+    checked = 0
+    passed = 0
+
+    for cf in contract_files:
+        with open(cf, 'r', encoding='utf-8') as f:
+            contract = yaml.safe_load(f)
+        if not contract:
+            continue
+
+        artifact_rel = contract.get('artifact', '')
+        artifact_path = str(base / artifact_rel)
+
+        if not os.path.isfile(artifact_path):
+            results_list.append({
+                'contract': cf.name,
+                'artifact': artifact_rel,
+                'status': 'skip',
+                'message': 'artifact not found',
+            })
+            continue
+
+        checked += 1
+        result = validator_mod.validate(artifact_path, contract)
+        results_list.append({
+            'contract': cf.name,
+            'artifact': artifact_rel,
+            'status': result['status'],
+            'findings': result.get('findings', []),
+        })
+        if result['status'] == 'fail':
+            has_fail = True
+        elif result['status'] == 'pass':
+            passed += 1
+
+    # Write artifact-validation.yaml
+    validation_report = {
+        'schema_version': '1.0',
+        'status': 'fail' if has_fail else 'pass',
+        'contracts_checked': checked,
+        'contracts_passed': passed,
+        'results': results_list,
+    }
+    out_path = base / 'context' / 'artifact-validation.yaml'
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(out_path, 'w', encoding='utf-8') as f:
+        yaml.dump(validation_report, f, allow_unicode=True, default_flow_style=False, sort_keys=False)
+
+    if has_fail:
+        failed_names = [r['contract'] for r in results_list if r['status'] == 'fail']
+        return {'status': 'fail', 'message': f"Contract violations: {', '.join(failed_names)}"}
+    if checked == 0:
+        return {'status': 'pass', 'message': 'No artifacts to validate yet'}
+    return {'status': 'pass', 'message': f'{passed}/{checked} contracts passed'}
+
 def run_checks(distill_dir, repo_root):
     """Run all checks and return results dict."""
     base = Path(distill_dir).resolve()
@@ -355,6 +432,7 @@ def run_checks(distill_dir, repo_root):
     results['plan_missing_confirmation'] = _check_plan_missing_confirmation(base)
     results['portal_html'] = _check_portal_html(base)
     results['prd_coverage'] = _check_prd_coverage(base)
+    results['artifact_contracts'] = _check_artifact_contracts(base)
 
     return results
 
@@ -386,6 +464,7 @@ def print_summary(results):
         ('plan_missing_confirmation', 'Plan missing_confirmation'),
         ('portal_html', 'Portal HTML'),
         ('prd_coverage', 'PRD coverage (fidelity)'),
+        ('artifact_contracts', 'Artifact contracts'),
     ]
 
     for key, label in checks:

@@ -1,0 +1,31 @@
+artifact: "context/requirement-ir.yaml"
+schema_version: "2.0"
+required_top_level:
+  - meta
+  - requirements
+rules:
+  - id: "primary_source_is_raw"
+    path: "meta.primary_source"
+    equals: "_ingest/document.md"
+  - id: "ai_prd_source_exists"
+    path: "meta.ai_prd_source"
+    exists: true
+  - id: "req_has_full_trace"
+    each: "requirements"
+    required:
+      - id
+      - ai_prd_req_id
+      - source
+      - evidence
+      - acceptance_criteria
+  - id: "source_blocks_not_empty"
+    each: "requirements"
+    require: "len(evidence.source_blocks) > 0 or len(evidence.source_block_ids) > 0"
+  - id: "missing_confirmation_not_ready"
+    each: "requirements"
+    when:
+      field: "source"
+      equals: "missing_confirmation"
+    forbid:
+      field: "planning.eligibility"
+      equals: "ready"

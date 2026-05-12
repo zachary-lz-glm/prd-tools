@@ -1,0 +1,10 @@
+artifact: "spec/ai-friendly-prd.md"
+schema_version: "1.0"
+type: "markdown"
+rules:
+  - id: "has_13_sections"
+    type: "heading_count"
+    min_h2: 13
+  - id: "has_req_ids"
+    type: "pattern_present"
+    pattern: "REQ-\\d+"
