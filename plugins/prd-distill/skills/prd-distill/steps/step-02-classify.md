@@ -61,6 +61,16 @@
    f. 记录实际执行的搜索查询、命中结果和 **reference 消费记录**（从哪些 reference 文件提取了哪些路由/规则/实体）。
    g. 每条线索标注来源：`reference_routing` | `index_query` | `code_scan`。
 
+#### 扫描范围兜底：build/ 和 dist/
+
+除 `src/` 外，必须额外扫描仓库的已编译产物目录（`build/`、`dist/`、`lib/` — 按项目实际 `project-profile.yaml` 的 build_output_dirs 决定）。目的：发现历史上实现过但已从 `src/` 移除的 registry 型改动（CampaignType 枚举、switch case、previewRewardType 映射等）。
+
+**强制规则**：
+- 对 registry 型改动（枚举、switch 新增 case、映射表新增 key），`code_scan` 必须在 `build/` 和 `src/` 各跑一遍。
+- 若在 `build/` 发现**同 type_id / 同 key 但不同 name** 的既有实现，必须在 OQ 顶置一条：
+  `OQ-CODE-NAMING: "历史实现 name={build_name}（见 build/path:L），PRD 提议 name={prd_name}。是否复用历史 name？"`
+- 若 `build/` 和 `src/` 存在内容不一致（例如 `build/` 有但 `src/` 无），evidence.yaml 必须增加一条 `EV-CODE-BUILD-*` 记录此事实，并在 `graph-context.md` 的 §"历史残留" 段落说明。
+
 `graph-context.md` 必须给每条关键线索分配 GCTX ID，供 plan.md / report.md 引用。
 
 ### 基础分析（始终执行）

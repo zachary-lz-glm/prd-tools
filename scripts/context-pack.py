@@ -457,6 +457,8 @@ def build_query_plan(requirements, impacts, inv, by_id, domain_terms=None):
         'rewardCondition',
         'courierDxGy',
         'gasStation',
+        'build/**/*.d.ts',
+        'build/**/*.js',
     ]
     for sq in seed_queries:
         if sq.lower() in seen_terms:
