@@ -162,8 +162,9 @@ _prd-tools/reference/05-domain.yaml
 ### 阶段 5：业务领域
 
 20. 从 PRD、技术方案、QA 记录中提取领域概念和隐式规则。
-21. 生成 `05-domain.yaml`：业务域概览、术语（只收录非枚举概念）、隐式业务规则、历史决策。
-22. 如果 05-domain 的术语与 01-codebase 中已有定义重复，删除 05 中的重复条目，改为引用指向 01-codebase。
+21. 生成 `05-domain.yaml`：业务域概览、术语（只收录**无法归入 01-codebase 枚举 label** 的概念）、隐式业务规则、历史决策。
+22. 检查 01-codebase 中的枚举 label，如果 05-domain 的术语与枚举 label 重复，删除 05 中的重复条目，改为 `see_enum: "<EnumName>"` 引用。
+23. 为每个枚举值生成 label 时，按优先级：源码注释 > i18n/文案 > PRD 历史 > UI 映射 > 实在没有写"待 PM 补充"。label 是一句话（< 30 字）。
 
 > 你正在生成 05-domain.yaml。记住：代码路径留给 01-codebase，编码规则留给 02-coding-rules，契约字段留给 03-contracts，枚举值列表留给 01-codebase 的 enums。
 

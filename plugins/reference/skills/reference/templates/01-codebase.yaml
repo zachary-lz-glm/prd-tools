@@ -10,13 +10,16 @@ boundary: "静态清单：代码库中已存在的事实。不放字段级契约
 # 目录结构（树形文本）
 directory_tree: ""
 
-# 枚举
+# 枚举（每个值的业务含义用 label 一行说明，给人读；机器可读的结构在 _prd-tools/reference/index/）
 enums:
   <EnumName>:
     definition_file: "<path:line>"
+    description: "<整个枚举的业务作用，一段话>"
     values:
       - name: "<NAME>"
         value: "<value>"
+        label: "<一句话业务含义>"
+        notes: ""                        # 可选：复杂逻辑/踩坑说明
     evidence:
       - "EV-001"
 

@@ -56,7 +56,7 @@
 2. 02-coding-rules 中不应出现场景驱动的开发步骤（应在 04-routing-playbooks）。
 3. 03-contracts 中不应出现编码规则（应在 02-coding-rules）。
 4. 04-routing-playbooks 的路由条目不应包含实现步骤（步骤只在 playbook 中）。
-5. 05-domain 的术语不应与 01-codebase 的静态事实重复。
+5. 05-domain 的术语不应与 01-codebase 的枚举 label 重复。重复时应用 `see_enum:` 引用。
 
 ## 输出
 

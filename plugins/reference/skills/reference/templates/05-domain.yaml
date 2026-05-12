@@ -6,7 +6,7 @@ project: "<project>"
 last_verified: "<YYYY-MM-DD>"
 verify_cadence: "14d"
 owner: "<team>"
-boundary: "业务领域知识：术语、背景、隐式规则、历史决策。不放代码路径（见01-codebase）、不放编码规则（见02-coding-rules）、不放契约字段（见03-contracts）。"
+boundary: "业务领域知识：术语、背景、隐式规则、历史决策。不放代码路径（见01-codebase）、不放编码规则（见02-coding-rules）、不放契约字段（见03-contracts）。术语只收录**无法归入 01-codebase 枚举 label** 的业务概念；若已在 01 中定义，用 see_enum: 引用，不复制。"
 # 业务域概览
 domain_overview: ""
 
@@ -16,6 +16,7 @@ terms:
     definition: ""
     synonyms: []
     prd_keywords: []
+    see_enum: ""                 # 引用 01-codebase 的枚举名（避免重复）
     related_enum: ""            # 如有关联枚举，引用 01-codebase 中的枚举名
     notes: ""
     evidence:

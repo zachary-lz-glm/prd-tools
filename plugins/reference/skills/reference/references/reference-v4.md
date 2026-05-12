@@ -6,6 +6,18 @@ Reference v4 是 PRD-to-code 工作流的项目长期记忆。前端、BFF、后
 
 v4 相比 v3 的核心变化：**从 10 文件精简到 6 文件**，统一分类维度为"知识在开发生命周期中的角色"，每个事实只存在于一个文件（SSOT），通过 ID 跨文件引用。
 
+## 产物定位（人类 vs 机器）
+
+| 文件 | 读者 | 用途 |
+|---|---|---|
+| `_prd-tools/reference/*.yaml` (01-05, project-profile) | **人类** | 翻阅、review、沉淀业务知识。必须含 label、description、notes 等人类向说明 |
+| `_prd-tools/reference/00-portal.md` / `portal.html` | **人类** | 浏览入口 |
+| `_prd-tools/reference/index/entities.json` | **机器** | BM25 + 实体检索 |
+| `_prd-tools/reference/index/edges.json` | **机器** | 调用/继承/实现关系图 |
+| `_prd-tools/reference/index/inverted-index.json` | **机器** | 倒排索引 |
+
+**原则**：reference/*.yaml 应为**人类可读性多加信息**，不要为机器方便简化字段。机器需要的已在 `index/` 里。
+
 ## 默认视图
 
 ```text
@@ -70,6 +82,8 @@ _prd-tools/reference/
 **不放**：枚举值（见 01）、字段级契约（见 03）、编码规则（见 02）。
 
 ### 05-domain.yaml
+
+术语只收录**无法归入 01 枚举 label** 的概念。枚举值的业务含义已在 01-codebase.enums 的 `label` 字段中说明，05-domain 不再重复。如果术语与枚举 label 重复，使用 `see_enum: "<EnumName>"` 引用。
 **业务领域知识。**
 
 包含：业务域概览、术语、隐式业务规则、历史决策。
@@ -80,7 +94,7 @@ _prd-tools/reference/
 
 | 信息类型 | 权威文件 | 其他文件中的引用方式 |
 |---------|---------|-------------------|
-| 枚举值 | 01-codebase.enums | 其他文件用枚举名引用，不重复值 |
+| 枚举值和 **label** | 01-codebase.enums | 其他文件用枚举名引用，不重复值 |
 | 字段 type/required | 03-contracts.fields | 01 和 04 用 `contract_ref` 引用 |
 | 编码规则 | 02-coding-rules.rules | 04 的 playbook 步骤用 `ref_rule` 引用 |
 | 开发步骤 | 04-routing-playbooks.playbooks | 01 的模块不展开步骤，用 `playbook_ref` 引用 |
