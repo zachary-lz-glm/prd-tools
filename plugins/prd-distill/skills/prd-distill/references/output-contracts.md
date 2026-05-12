@@ -770,12 +770,18 @@ quality_gates: []
 ```yaml
 schema_version: "4.0"
 tool_version: "<tool-version>"
-contracts:
-  - id: "CONTRACT-EXAMPLE"
+meta:
+  primary_source: "_ingest/document.md"
+  ai_prd_source: "spec/ai-friendly-prd.md"
+  requirement_ir_ref: "context/requirement-ir.yaml"
+deltas:
+  - id: "CD-001"
     name: ""
     producer: "frontend | bff | backend | external"
     consumers: ["frontend", "bff", "backend", "external"]
     change_type: "ADD | MODIFY | DELETE | NO_CHANGE"
+    layer: "bff"
+    requirement_id: "IR-001"
     contract_surface: "endpoint | schema | event | payload | db_table | external_api"
     request_fields:
       - name: ""

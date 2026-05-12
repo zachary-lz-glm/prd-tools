@@ -3,6 +3,10 @@
 # NOTE: top-level key is `deltas` (matching actual LLM output), not `contracts`
 artifact: "context/contract-delta.yaml"
 schema_version: "2.0"
+required_top_level:
+  - meta
+  - schema_version
+  - deltas
 rules:
   - id: "delta_has_identity"
     each: "deltas"
@@ -11,3 +15,5 @@ rules:
       - producer
       - change_type
       - alignment_status
+      - requirement_id
+      - layer
