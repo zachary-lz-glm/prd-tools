@@ -17,13 +17,20 @@
 
 ## 目标
 
-**Phase 1 — Report 生成：**
+本步骤分为两个阶段，中间必须 HARD STOP。
+
+### 阶段 A — 生成 report.md 后立即暂停
+
+生成以下产物后 **HARD STOP**，写入 `context/report-confirmation.yaml`（status: pending），向用户展示 report 摘要并询问 approved / needs_revision / blocked。
 
 - `_prd-tools/distill/<slug>/report.md`（决策报告 + 阻塞问题）
+- `_prd-tools/distill/<slug>/context/report-confirmation.yaml`
 
-**⏸ HARD STOP：生成 `context/report-confirmation.yaml`，暂停等用户确认。仅当 `status: approved` 时才继续 Phase 2。**
+**绝对不得在用户回复前生成 plan.md。**
 
-**Phase 2 — Plan 生成（仅当 report approved）：**
+### 阶段 B — 用户 approved 后才继续
+
+仅当 `report-confirmation.yaml` 的 `status: approved` 时，生成：
 
 - `_prd-tools/distill/<slug>/plan.md`（技术方案 + 开发计划）
 - `_prd-tools/distill/<slug>/context/reference-update-suggestions.yaml`
