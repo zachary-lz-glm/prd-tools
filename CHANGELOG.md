@@ -4,6 +4,14 @@
 
 ---
 
+## [2.18.0] - 2026-05-12
+
+### Added
+- Artifact Contract MVP：通用 validate-artifact.py + 4 个核心 contract（requirement-ir、ai-friendly-prd、layer-impact、contract-delta）
+- Context Budget：distill-step-gate.py 每步 forbidden_outputs 字段，违反时 warning
+- Two-Pass Critic：critique-template.md 自检模板 + distill-workflow-gate.py critique_status 检查
+- distill-quality-gate.py 集成 artifact_contracts 检查项，输出 artifact-validation.yaml
+
 ## [2.17.0] - 2026-05-12
 
 ### Added

@@ -3,6 +3,14 @@
 All notable changes to the **prd-distill** plugin are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [2.18.0] - 2026-05-12
+
+### Added
+- Artifact Contract MVP：validate-artifact.py + 4 个 contract 文件
+- Context Budget：forbidden_outputs 字段，spec 阶段禁止 report.md/plan.md
+- Two-Pass Critic：critique-template.md + workflow gate critique_status 检查
+- distill-quality-gate.py 集成 artifact_contracts 检查
+
 ## [2.17.0] - 2026-05-12
 
 ### Added
