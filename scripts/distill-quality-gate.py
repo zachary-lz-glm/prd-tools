@@ -135,7 +135,7 @@ def _check_afprd_sections(base):
     status = 'pass'
     if len(found) < 8:
         status = 'fail'
-    elif len(missing) > 3:
+    elif len(found) < 13:
         status = 'warning'
 
     return {
