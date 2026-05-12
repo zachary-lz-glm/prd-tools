@@ -62,6 +62,7 @@ STEP_TABLE = {
         "label": "Phase 2 Stage 4: routing",
         "prerequisites": [
             ("_prd-tools/reference/01-codebase.yaml", "Stage 1"),
+            ("_prd-tools/reference/02-coding-rules.yaml", "Stage 2"),
             ("_prd-tools/reference/03-contracts.yaml", "Stage 3"),
         ],
         "output": ["_prd-tools/reference/04-routing-playbooks.yaml"],
