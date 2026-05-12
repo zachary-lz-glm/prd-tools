@@ -41,10 +41,11 @@ Steps: 0 → 1 → 1.5-afprd → 1.5-quality → 2
 
 ### Stage 2: report
 
-Steps: 2.5 → 3.1 → 3.2 → 4 → 8 → 8.1-confirm
+Steps: 2.5 → 3.1 → 3.2 → 3.5 → 4 → 8 → 8.1-confirm
 
 允许产物：
 - `context/query-plan.yaml`（如 index 存在）
+- `context/context-pack.md`（如 index 存在）
 - `context/graph-context.md`
 - `context/layer-impact.yaml`
 - `context/contract-delta.yaml`
@@ -57,7 +58,7 @@ Steps: 2.5 → 3.1 → 3.2 → 4 → 8 → 8.1-confirm
 
 ### Stage 3: plan
 
-Steps: 5 → 6 → 8.5 → 8.6 → 9
+Steps: 5 → 6 → 7 → 8.5 → 8.6 → 9
 
 **前置条件**：`context/report-confirmation.yaml` 必须为 `status: approved`。
 
@@ -205,7 +206,7 @@ _prd-tools/distill/<slug>/
 | 文件 | 用途 | 不放 |
 |---|---|---|
 | `_ingest/*` | PRD 原始读取结果 | 不写业务结论 |
-| `report.md` | 渐进式披露：摘要→变更→字段→规则→Checklist→契约风险→§11 阻塞项 | 不展开 YAML 证据链 |
+| `report.md` | 渐进式披露：摘要→变更→字段→规则→Checklist→契约风险→§12 阻塞项 | 不展开 YAML 证据链 |
 | `plan.md` | 技术方案 + 实现计划 + QA 矩阵 + 回滚方案 | 不复制 PRD 原文 |
 | `context/evidence.yaml` | 证据台账：PRD、技术方案、源码、负向搜索 | 不下结论 |
 | `context/requirement-ir.yaml` | 结构化需求：业务意图、规则、验收条件、变更类型 | 不写实现细节 |
@@ -245,13 +246,13 @@ _prd-tools/distill/<slug>/
 - 先证据，后结论。
 - 每个 requirement 至少有 PRD 或技术文档证据（优先来自 `_ingest/evidence-map.yaml`）。
 - 每个 layer impact 至少有源码或负向搜索证据。
-- `extraction-quality.yaml` 为 `warn` 时必须在 `report.md` §11 暴露。
+- `extraction-quality.yaml` 为 `warn` 时必须在 `report.md` §12 暴露。
 - 业务关键规则不能只靠前端守。
-- 中低置信度项必须进入 `report.md` §11。
+- 中低置信度项必须进入 `report.md` §12。
 - 不确定标 `confidence: low`，不补脑。
 - 不直接修改 `_prd-tools/reference/`，只生成回流建议。
 - **⚠ Reference 强制消费**：reference 存在时，步骤 3 门禁→步骤 6 桥接→步骤 7 reference-first 扫描，缺一不可。reference 不存在时，必须显式标记缺失并降低置信度。
-- **⚠ Reference 不可盲信**：reference/index 只提供候选事实、路由和代码锚点。凡是会进入 report/plan 的结论，必须由 PRD、源码、技术文档、接口文档或负向搜索二次确认；无法确认时降置信度并写入 §11。
+- **⚠ Reference 不可盲信**：reference/index 只提供候选事实、路由和代码锚点。凡是会进入 report/plan 的结论，必须由 PRD、源码、技术文档、接口文档或负向搜索二次确认；无法确认时降置信度并写入 §12。
 - `report.md` 生成前必须核对 P0/P1 细节：券批次/券张数/互斥、折扣卡 Card ID/数量/有效期/城市校验、EventRule、Budget/GMV、Push 占位符、PRD 内部冲突或 typo。不能只在 context YAML 中出现。
 
 ### AI-friendly PRD 规则
@@ -298,7 +299,6 @@ revision_requests:
   - section: "§5"
     issue: "变更描述不够具体"
     expected_change: "补充文件路径和函数名"
-blocked_reason: ""
 blocked_reason: ""
 ```
 
@@ -348,7 +348,7 @@ blocked_reason: ""
    - `03-contracts.yaml`：提取现有契约，作为 contract-delta 基线。
    - `05-domain.yaml`：提取领域术语，用于 requirement-ir 拆解时的术语对齐。
    - 将消费状态写入 evidence.yaml（`EV-REF-CONSUMED`）。
-   - **⚠ reference 不存在时**：所有涉及 reference 的步骤标记缺失，layer-impact/contract-delta confidence 强制降为 `low`，report.md §11 必须暴露。
+   - **⚠ reference 不存在时**：所有涉及 reference 的步骤标记缺失，layer-impact/contract-delta confidence 强制降为 `low`，report.md §12 必须暴露。
 4. 建立 `context/evidence.yaml`，映射 ingestion 证据后补充源码证据和 reference 消费证据。
 5. 拆 `context/requirement-ir.yaml`。
 
@@ -365,7 +365,7 @@ blocked_reason: ""
 8. **Index 融合**：如果索引存在，**必须**运行 `python3 .prd-tools/scripts/context-pack.py` 生成 `context/context-pack.md`（上下文包）。index 不存在则跳过，但必须在 readiness-report 记录缺失。
 9. 生成 `context/layer-impact.yaml`。
 10. 生成 `context/contract-delta.yaml`。
-11. 生成 `report.md`（渐进式披露 + 源码扫描命中摘要 + §11）。
+11. 生成 `report.md`（渐进式披露 + 源码扫描命中摘要 + §12）。
 12. **Report Review Gate**：暂停，要求用户确认 report 是否符合预期，写入 `context/report-confirmation.yaml`。
 
 ### plan 阶段（requires approved report）
@@ -393,7 +393,7 @@ blocked_reason: ""
 - 当前完成的阶段（spec / report / plan）。
 - 输出目录路径。
 - `report.md` 最重要结论。
-- `report.md` §11 最重要阻塞项。
+- `report.md` §12 最重要阻塞项。
 - 是否存在 `needs_confirmation` 或 `blocked` 契约。
 - 是否生成 reference 回流建议。
 - `readiness-report.yaml` 的 status、score、decision。
