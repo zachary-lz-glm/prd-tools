@@ -13,6 +13,14 @@
 - MUST NOT read files listed in `<must_not_read_by_default>` unless explicitly needed
 - MUST NOT proceed if step gate exits with code 2
 
+> **修复循环规避规则**：
+> 如果 gate 连续 2 次报同一个 fail，**必须停下**检查：
+> 1. workflow 模板教你写的字段名/格式 vs gate 检查的字段名/格式是否一致
+> 2. 是 gate 错了还是产物错了？
+> 3. 不要为了让 gate 过就编造/删除证据。
+>
+> 宁可让 gate 报 fail，也不要让产物偏离原文。
+
 # 步骤 1：证据与 Requirement IR
 
 ## Pre-flight
