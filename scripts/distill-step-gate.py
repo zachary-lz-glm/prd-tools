@@ -117,6 +117,15 @@ STEP_TABLE = {
         "output": ["context/query-plan.yaml"],
         "forbidden_outputs": ["plan.md"],
     },
+    "2.6": {
+        "label": "Step 2.6: Context Pack",
+        "stage": "report",
+        "prerequisites": [
+            ("context/query-plan.yaml", "Step 2.5"),
+        ],
+        "output": ["context/context-pack.md"],
+        "forbidden_outputs": ["plan.md"],
+    },
     "3.1": {
         "label": "Step 3.1: Graph Context",
         "stage": "report",
@@ -139,6 +148,12 @@ STEP_TABLE = {
         ],
         "output": ["context/layer-impact.yaml"],
         "forbidden_outputs": ["plan.md"],
+    },
+    "3.6": {
+        "label": "Step 3.6: Critique Pass",
+        "stage": "report",
+        "prerequisites": [],
+        "output": [],
     },
     "4": {
         "label": "Step 4: Contract Delta",
@@ -193,6 +208,14 @@ STEP_TABLE = {
         ],
         "output": ["context/readiness-report.yaml"],
     },
+    "7": {
+        "label": "Step 7: Reference Feedback",
+        "stage": "plan",
+        "prerequisites": [
+            ("plan.md", "Step 5"),
+        ],
+        "output": ["context/reference-update-suggestions.yaml"],
+    },
     "8.5": {
         "label": "Step 8.5: Final Quality Gate",
         "stage": "plan",
@@ -204,6 +227,14 @@ STEP_TABLE = {
     },
     "8.6": {
         "label": "Step 8.6: Distill Completion Gate",
+        "stage": "plan",
+        "prerequisites": [
+            ("context/final-quality-gate.yaml", "Step 8.5"),
+        ],
+        "output": [],
+    },
+    "8.6.1": {
+        "label": "Step 8.6.1: Gate Checklist",
         "stage": "plan",
         "prerequisites": [
             ("context/final-quality-gate.yaml", "Step 8.5"),
@@ -272,6 +303,7 @@ def _get_next_step(current_step: str) -> str:
 
 STEP_ALIASES = {
     "8.1": "8.1-confirm",
+    "8.6.1": "8.6",
 }
 
 
