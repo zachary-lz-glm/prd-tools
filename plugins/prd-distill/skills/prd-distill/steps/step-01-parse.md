@@ -21,18 +21,35 @@
 
 **docx 读取流程（零第三方依赖，Claude 原生多模态看图）：**
 
-```bash
-# 1. 提取 docx 中的文本内容
-unzip -p <file>.docx word/document.xml | sed 's/<[^>]*>//g' | sed '/^$/d'
+### docx 解压标准流程（硬约束）
 
-# 2. 提取 docx 中的图片
-mkdir -p _ingest/media
-unzip -o <file>.docx "media/*" -d _ingest/
+使用 Python zipfile 一次性提文本 + 图片，避免 unzip 的权限/glob 坑：
+
+```bash
+python3 - <<'EOF'
+import zipfile, re, shutil
+from pathlib import Path
+
+src = "<PRD_FILE>.docx"
+dst = Path("_prd-tools/distill/<SLUG>/_ingest")
+dst.mkdir(parents=True, exist_ok=True)
+(dst / "media").mkdir(exist_ok=True)
+
+with zipfile.ZipFile(src) as z:
+    xml = z.read("word/document.xml").decode("utf-8")
+    text = re.sub(r"<[^>]*>", "", xml)
+    text = re.sub(r"\n{3,}", "\n\n", text).strip()
+    (dst / "document.md").write_text(text, encoding="utf-8")
+    for name in z.namelist():
+        if name.startswith("word/media/"):
+            with z.open(name) as f:
+                (dst / "media" / Path(name).name).write_bytes(f.read())
+EOF
 ```
 
-- docx 本质是 zip 包，`word/document.xml` 包含正文，`media/` 包含嵌入图片。
-- 文本提取：`sed` 去标签得到纯文本，写入 `_ingest/document.md`。
-- 图片提取：`unzip` 将 `media/*.png|jpg|jpeg|gif` 抽出到 `_ingest/media/`。
+**不要用 `unzip -d`**——macOS 下解压出来的文件默认 mode 是 700，需要额外 chmod，易踩 permission denied。
+
+- docx 本质是 zip 包，`word/document.xml` 包含正文，`word/media/` 包含嵌入图片。
 - 图片定位：解析 `word/document.xml` 中的 `<w:drawing>` 或 `<w:pict>` 标签，在纯文本对应位置插入 `![image-N](media/imageN.png)` 占位标记，Claude 后续可用 Read 工具直接查看图片内容。
 - Claude 原生支持图片理解（多模态），提取后直接用 Read 工具读取 `_ingest/media/imageN.png`，无需第三方 Vision API。
 - 表格基本结构会保留（行会用换行分隔），但复杂格式可能丢失。
@@ -61,12 +78,10 @@ unzip -o <file>.docx "media/*" -d _ingest/
 
 1. 读取文件或接受粘贴文本：
    - `.md`/`.txt`：直接读取，保留原文格式。
-   - `.docx`：
-     a. `unzip -p <file> word/document.xml | sed 's/<[^>]*>//g' | sed '/^$/d'` 提取纯文本。
-     b. `mkdir -p _ingest/media && unzip -o <file> "media/*" -d _ingest/` 提取所有图片。
-     c. 解析 XML 中的 `<w:drawing>` / `<w:pict>` 标签定位图片插入位置，在文本中插入 `![image-N](media/imageN.png)` 占位标记。
-     d. 写入 `_ingest/document.md`。
-     e. 用 Read 工具逐个查看 `_ingest/media/` 下的图片，理解内容（UI 截图、流程图、数据图表），将分析结果写入 `_ingest/media-analysis.yaml`。
+   - `.docx`：使用 Pre-flight 中的 Python zipfile 标准流程一次性提取文本和图片。
+     a. 运行 Python zipfile 脚本提取 `document.md` + `media/*`。
+     b. 解析 XML 中的 `<w:drawing>` / `<w:pict>` 标签定位图片插入位置，在文本中插入 `![image-N](media/imageN.png)` 占位标记。
+     c. 用 Read 工具逐个查看 `_ingest/media/` 下的图片，理解内容（UI 截图、流程图、数据图表），将分析结果写入 `_ingest/media-analysis.yaml`。
    - 粘贴文本：直接作为 document 内容。
    创建 `_ingest/` 证据结构。
 2. 读取 `_ingest/extraction-quality.yaml`；`status: block` 时暂停，`status: warn` 时继续但必须暴露风险。
