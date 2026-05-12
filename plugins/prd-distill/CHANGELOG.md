@@ -3,7 +3,20 @@
 All notable changes to the **prd-distill** plugin are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
-## [2.16.2] - 2026-05-11
+## [2.16.3] - 2026-05-12
+
+### Added
+- 保真度优先：AI-friendly PRD 重新定位为索引层，requirement-ir 主输入回退到 document.md
+- 新增 prd-coverage-gate.py（5 项保真度检查）
+- 三段式工作流：/prd-distill 拆为 spec/report/plan 三段式命令
+- Workflow State v2 + step gate --write-state
+- Human workflow checkpoints（report review gate）
+
+### Changed
+- ADR-0011 整合为统一迭代计划
+- requirement-ir schema 新增 primary_source 和 source_blocks 字段
+
+- chore: release v2.16.1
 
 ### Added
 - AI-friendly PRD Compiler：新增 `spec/ai-friendly-prd.md` 和 `context/prd-quality-report.yaml`。

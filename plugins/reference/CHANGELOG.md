@@ -3,7 +3,14 @@
 All notable changes to the **reference** plugin are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
-## [2.16.2] - 2026-05-11
+## [2.16.3] - 2026-05-12
+
+### Added
+- Workflow State v2 + step gate --write-state
+- Human workflow checkpoints（mode selection gate）
+- Step 文件顶部 workflow_state header + MUST NOT 约束
+
+- chore: release v2.16.1
 
 ### Added
 - 固定模板 + `render-reference-portal.py` 脚本渲染 `portal.html`，避免 AI 每次手写页面导致风格漂移。

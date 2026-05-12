@@ -4,6 +4,19 @@
 
 ---
 
+## [2.16.3] - 2026-05-12
+
+### Added
+- 保真度优先架构修正：AI-friendly PRD 重新定位为索引层，requirement-ir 主输入回退到 document.md，新增 prd-coverage-gate.py
+- 三段式工作流骨架：/prd-distill 拆为 spec/report/plan 三段式命令
+- Workflow State v2：step gate 新增 --write-state，共享 workflow_state.py 模块
+- 前置步骤门禁脚本（distill-step-gate.py / reference-step-gate.py 升级）
+- Human workflow checkpoints（report review gate + mode selection gate）
+
+### Changed
+- ADR-0011/0012/0013 整合为统一迭代计划（ADR-0011 重写）
+
+
 ## [2.16.2] - 2026-05-11
 
 ### Added
