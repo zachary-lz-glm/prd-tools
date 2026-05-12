@@ -230,12 +230,13 @@ STEP_TABLE = {
         "output": ["context/final-quality-gate.yaml"],
     },
     "8.6": {
-        "label": "Step 8.6: Distill Completion Gate",
+        "label": "Step 8.6: Reference Update Staging",
         "stage": "plan",
         "prerequisites": [
             ("context/final-quality-gate.yaml", "Step 8.5"),
+            ("context/reference-update-suggestions.yaml", "Step 7"),
         ],
-        "output": [],
+        "output": ["context/completion-report.yaml"],
     },
     "8.6.1": {
         "label": "Step 8.6.1: Gate Checklist",
