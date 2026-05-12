@@ -217,10 +217,13 @@ AI-friendly PRD（规范化中间层）：把现实中不够 AI-friendly 的 PRD
 
 AI-friendly PRD 质量评分：评估原始 PRD 转换为 AI-friendly PRD 的质量、缺失项、推断项和风险项。
 
+- `overall_score` (int, 0-100): 权威字段，按评分公式计算。
+- `score` (int, 0-100, 已废弃): 旧字段名，新产物不要写，gate 仍接受但不推荐。
+
 ```yaml
 schema_version: "1.0"
 status: "pass | warning | fail"
-score: 0
+overall_score: 0
 summary:
   decision: "ready_for_distill | distill_with_warnings | needs_prd_clarification"
   top_reasons: []

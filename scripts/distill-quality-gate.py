@@ -153,7 +153,7 @@ def _check_prd_quality_report(base):
         return {'status': 'fail', 'has_status': False, 'has_score': False}
 
     has_status = bool(re.search(r'^status:\s*', text, re.M))
-    has_score = bool(re.search(r'^score:\s*\d+', text, re.M))
+    has_score = bool(re.search(r'^(overall_score|score):\s*\d+', text, re.M))
 
     status = 'pass' if (has_status and has_score) else 'fail'
     return {
