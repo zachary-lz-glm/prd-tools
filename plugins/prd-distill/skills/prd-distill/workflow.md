@@ -365,6 +365,39 @@ phases:
 
 触发时机：步骤 3 完成后、步骤 4（Contract Delta）之前。如果索引不存在则跳过，但必须在 readiness-report 中记录缺失。
 
+## 步骤 2.5：Query Plan（Reference Index 桥接层）
+
+> **定位**：Query Plan 是 reference index 到源码扫描的**强制桥接层**。当 index 存在时，步骤 3.1 **必须消费** query-plan.yaml，不能跳过直接 grep。
+
+**前置条件**：`context/requirement-ir.yaml` 已生成（步骤 2 完成）。
+
+如果 `_prd-tools/reference/index/` 存在，**必须**运行 `python3 .prd-tools/scripts/context-pack.py` 生成 `context/query-plan.yaml`，为后续 Graph Context（步骤 3.1）提供预匹配的代码锚点。
+
+```bash
+python3 .prd-tools/scripts/context-pack.py \
+  --distill _prd-tools/distill/<slug> \
+  --index _prd-tools/reference/index \
+  --out _prd-tools/distill/<slug>/context/context-pack.md
+```
+
+产出 `context/query-plan.yaml`：
+
+```yaml
+schema_version: "1.0"
+phases:
+  seed_anchors: []        # 从 requirement-ir 提取的种子查询词
+  impact_hints: []        # 从 layer-impact 提取的文件路径提示
+  p0_requirements: []     # P0 需求的关键实体和术语
+```
+
+## 步骤 2.6：Context Pack（Reference Index 融合层）
+
+> **定位**：Context Pack 融合 Evidence Index 与 distill 上下文，为 report/plan 提供精简代码坐标。当 index 存在时**必须运行**。
+
+在步骤 3（Layer Impact）完成后，**必须**运行 `python3 .prd-tools/scripts/context-pack.py`（此时 layer-impact.yaml 已存在），生成 `context/context-pack.md`，将 Evidence Index 中的代码实体与 distill 上下文融合，形成模型可直接消费的精简上下文（建议 ≤800 行）。
+
+触发时机：步骤 3 完成后、步骤 4（Contract Delta）之前。如果索引不存在则跳过，但必须在 readiness-report 中记录缺失。
+
 ## 步骤 3：Layer Impact
 
 在生成 Layer Impact 前，先构建需求级代码上下文。
