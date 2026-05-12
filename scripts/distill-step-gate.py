@@ -383,7 +383,7 @@ def run_gate(distill_dir, repo_root, step_id):
 def main():
     parser = argparse.ArgumentParser(description="Distill Step Gate — check prerequisites before each step")
     parser.add_argument("--step", required=True, help="Step ID (e.g., 0, 1, 1.5-afprd, 2, 2.5, 3.1, 3.2, 4, 8, 8.1-confirm, 5, 6, 8.5, 8.6, 9)")
-    parser.add_argument("--distill-dir", required=True, help="Path to distill output directory")
+    parser.add_argument("--distill-dir", "--distill", dest="distill_dir", required=True, help="Path to distill output directory")
     parser.add_argument("--repo-root", "--repo", dest="repo_root", required=True, help="Path to project root directory")
     parser.add_argument("--write-state", action="store_true",
                         help="Write/update workflow-state.yaml on pass or fail")
