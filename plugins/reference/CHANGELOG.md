@@ -3,6 +3,14 @@
 All notable changes to the **reference** plugin are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [2.17.0] - 2026-05-12
+
+### Added
+- Mode Selection Gate 脚本化：Step 1+ 必须有 mode_selection approved
+- --confirm-mode 参数写入 mode_selection checkpoint
+- 顺序验证 + --allow-rerun 逃生口
+- Step 0 豁免 mode selection（context enrichment 可在选模式前运行）
+
 ## [2.16.3] - 2026-05-12
 
 ### Added

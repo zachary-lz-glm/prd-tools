@@ -4,6 +4,16 @@
 
 ---
 
+## [2.17.0] - 2026-05-12
+
+### Added
+- Workflow State 成熟：顺序验证（step 必须匹配 resume.next_step）、--allow-rerun 逃生口
+- current_stage 字段写入 workflow-state.yaml
+- human_checkpoints 写入：distill report_review + reference mode_selection
+- Mode Selection Gate 脚本化：reference Step 1+ 必须有 mode_selection approved
+- --confirm-mode 参数：AI agent 在用户确认模式后调用写入 checkpoint
+- stage 边界 warning：spec 阶段存在 report.md/plan.md 时警告
+
 ## [2.16.3] - 2026-05-12
 
 ### Added

@@ -3,6 +3,15 @@
 All notable changes to the **prd-distill** plugin are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [2.17.0] - 2026-05-12
+
+### Added
+- 顺序验证：step gate 检查 resume.next_step，不匹配时 exit 2
+- --allow-rerun 逃生口
+- current_stage 写入 workflow-state.yaml
+- Step 8.1-confirm 通过时写入 human_checkpoints.report_review
+- stage 边界 warning（spec 阶段存在 report.md 时警告）
+
 ## [2.16.3] - 2026-05-12
 
 ### Added
