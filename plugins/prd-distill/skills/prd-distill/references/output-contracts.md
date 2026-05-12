@@ -791,7 +791,7 @@ deltas:
     consumers: ["frontend", "bff", "backend", "external"]
     change_type: "ADD | MODIFY | DELETE | NO_CHANGE"
     layer: "bff"
-    requirement_id: "IR-001"
+    requirement_id: "REQ-001"
     contract_surface: "endpoint | schema | event | payload | db_table | external_api"
     request_fields:
       - name: ""

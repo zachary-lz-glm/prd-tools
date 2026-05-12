@@ -61,5 +61,5 @@ python3 .prd-tools/scripts/render-distill-portal.py \
 ## Self-Check
 
 - [ ] [M] `portal.html` 渲染完成后，如果 `context/evidence.yaml` 存在，其中所有 EV-PRD-* ID 必须出现在 portal 的 HTML 内容中（全集校验）。缺失 EV 必须在 portal 源码报告中标注为 "unrendered"。
-  - verify: `grep -oE 'EV-PRD-[0-9]+' portal.html | sort -u > /tmp/portal_evs.txt && grep -oE 'EV-PRD-[0-9]+' context/evidence.yaml | sort -u | comm -23 - /tmp/portal_evs.txt`
+  - verify: `cd _prd-tools/distill/<slug> && grep -oE 'EV-PRD-[0-9]+' portal.html | sort -u > /tmp/portal_evs.txt && grep -oE 'EV-PRD-[0-9]+' context/evidence.yaml | sort -u | comm -23 - /tmp/portal_evs.txt`
   - expect: 无输出（所有 EV-PRD-* 均已渲染）

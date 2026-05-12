@@ -18,6 +18,8 @@
 > 1. workflow 模板教你写的字段名/格式 vs gate 检查的字段名/格式是否一致
 > 2. 是 gate 错了还是产物错了？
 > 3. 不要为了让 gate 过就编造/删除证据。
+
+> **跨步骤交叉引用**：本文件声称覆盖 gate steps 0, 1, 1.5-afprd, 1.5-quality, 2，但正文仅详述 Step 0（PRD Ingestion）和 Step 2（Requirement IR）。Step 1（Evidence Ledger）和 Step 1.5（AI-friendly PRD）的完整指令见 workflow.md 对应步骤段落。
 >
 > 宁可让 gate 报 fail，也不要让产物偏离原文。
 

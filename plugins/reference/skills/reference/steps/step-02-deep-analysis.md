@@ -62,6 +62,12 @@ _prd-tools/reference/05-domain.yaml
 
 > 你正在生成 01-codebase.yaml。记住：字段级契约留给 03-contracts，编码规则留给 02-coding-rules，场景打法留给 04-routing-playbooks，业务术语留给 05-domain。
 
+---
+
+> **⏸ PAUSE**：验证阶段 1 完成 — 确认 `01-codebase.yaml` 已生成且 enums/registries/data_flows 均有源码证据，再进入阶段 2。
+
+---
+
 ### 阶段 2：编码规则
 
 5. 从源码注释（`# WHY:`、`# NOTE:`、`# HACK:`）和历史 diff 提取编码规则和踩坑经验。
@@ -69,6 +75,12 @@ _prd-tools/reference/05-domain.yaml
 7. 检查 01-codebase 中的 registries，如果 registries 中包含了"怎么注册"的规则描述，将规则部分移到 02 的 rules 中。
 
 > 你正在生成 02-coding-rules.yaml。记住：契约字段留给 03-contracts，场景驱动步骤留给 04-routing-playbooks。
+
+---
+
+> **⏸ PAUSE**：验证阶段 2 完成 — 确认 `02-coding-rules.yaml` 已生成且 fatal 规则均有源码位置证据，再进入阶段 3。
+
+---
 
 ### 阶段 3：契约
 
@@ -80,6 +92,12 @@ _prd-tools/reference/05-domain.yaml
 13. 跨仓契约如果未确认，标注 `needs_confirmation`，不写 `confirmed`。
 
 > 你正在生成 03-contracts.yaml。记住：编码规则留给 02-coding-rules，开发步骤留给 04-routing-playbooks，枚举值列表留给 01-codebase 的 enums。
+
+---
+
+> **⏸ PAUSE**：验证阶段 3 完成 — 确认 `03-contracts.yaml` 已生成且每个契约有 alignment_status，再进入阶段 4。
+
+---
 
 ### 阶段 4：路由与打法
 
@@ -105,6 +123,12 @@ _prd-tools/reference/05-domain.yaml
 
 > 你正在生成 04-routing-playbooks.yaml。记住：枚举值留给 01-codebase，字段级契约留给 03-contracts，编码规则留给 02-coding-rules。
 
+---
+
+> **⏸ PAUSE**：验证阶段 4 完成 — 确认 `04-routing-playbooks.yaml` 已生成且 routing 条目均有 playbook_ref，再进入阶段 5。
+
+---
+
 ### 阶段 5：业务领域
 
 20. 从 PRD、技术方案、QA 记录中提取领域概念和隐式规则。
@@ -112,6 +136,12 @@ _prd-tools/reference/05-domain.yaml
 22. 如果 05-domain 的术语与 01-codebase 中已有定义重复，删除 05 中的重复条目，改为引用指向 01-codebase。
 
 > 你正在生成 05-domain.yaml。记住：代码路径留给 01-codebase，编码规则留给 02-coding-rules，契约字段留给 03-contracts，枚举值列表留给 01-codebase 的 enums。
+
+---
+
+> **⏸ PAUSE**：验证阶段 5 完成 — 确认 `05-domain.yaml` 已生成且术语无重复（已与 01-codebase 去重），再进入阶段 6 导航生成和去重检查。
+
+---
 
 ### 阶段 6：导航
 

@@ -191,7 +191,7 @@ quality_gates: []
 ## context/contract-delta.yaml
 
 ```yaml
-schema_version: "2.0"
+schema_version: "4.0"
 tool_version: "<tool-version>"
 meta:
   primary_source: "<原始 PRD 路径>"

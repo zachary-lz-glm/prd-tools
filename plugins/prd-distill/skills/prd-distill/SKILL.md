@@ -283,24 +283,7 @@ _prd-tools/distill/<slug>/
 4. 只有 `status: approved` 时，才允许生成最终 `plan.md`。
 5. 如果用户指出 report 不符合预期，必须回到对应上游产物修正：AI-friendly PRD、Requirement IR、Layer Impact 或 Contract Delta，而不是直接在 plan 里补丁式修正。
 
-确认文件格式：
-
-```yaml
-schema_version: "1.0"
-status: "approved | needs_revision | blocked"
-confirmed_by: "user"
-confirmed_at: ""
-approved_sections:
-  - "requirements"
-  - "layer_impact"
-  - "contract_delta"
-  - "open_questions"
-revision_requests:
-  - section: "§5"
-    issue: "变更描述不够具体"
-    expected_change: "补充文件路径和函数名"
-blocked_reason: ""
-```
+确认文件格式：见 `workflow.md`（SSOT）。
 
 状态含义：
 
@@ -363,18 +346,20 @@ blocked_reason: ""
 - [ ] ⚠ graph-context.md 存在性检查：`context/graph-context.md` 必须存在。如不存在，必须先生成再继续 plan.md。
 - [ ] ⚠ reference 消费检查：如果 reference 存在，graph-context.md 中至少 30% 线索应来自 reference/index（阶段 1-2）。未达标时在 readiness-report 标记 `reference_underconsumed`。
 8. **Index 融合**：如果索引存在，**必须**运行 `python3 .prd-tools/scripts/context-pack.py` 生成 `context/context-pack.md`（上下文包）。index 不存在则跳过，但必须在 readiness-report 记录缺失。
-9. 生成 `context/layer-impact.yaml`。
-10. 生成 `context/contract-delta.yaml`。
-11. 生成 `report.md`（渐进式披露 + 源码扫描命中摘要 + §12）。
-12. **Report Review Gate**：暂停，要求用户确认 report 是否符合预期，写入 `context/report-confirmation.yaml`。
+9. **Step 3.5 Context Pack**：layer-impact 完成后运行 `context-pack.py`，将 Evidence Index 代码实体与 distill 上下文融合为精简的 `context/context-pack.md`（≤800 行）。index 不存在则跳过。
+10. **Step 3.6 Critique Pass**：高风险步骤（1.5/2/3.2/4）完成后对产物做二次审查，输出 `context/critique/<step_id>.yaml`。fail 阻断后续步骤，warning 记入 readiness-report。详见 `workflow.md` 步骤 3.6。
+11. 生成 `context/layer-impact.yaml`。
+12. 生成 `context/contract-delta.yaml`。
+13. 生成 `report.md`（渐进式披露 + 源码扫描命中摘要 + §12）。
+14. **Report Review Gate**：暂停，要求用户确认 report 是否符合预期，写入 `context/report-confirmation.yaml`。
 
 ### plan 阶段（requires approved report）
 
-13. 用户确认 `approved` 后，生成 `plan.md`（消费 `graph-context.md` 函数级上下文）。
-14. 生成 `context/readiness-report.yaml`。
-15. （辅助层）运行 `python3 .prd-tools/scripts/final-quality-gate.py` 生成 `context/final-quality-gate.yaml`（5 项确定性检查评分）。
-16. 生成 `context/reference-update-suggestions.yaml`。
-17. 生成 `portal.html`（自包含可视化页面，详见 `steps/step-04-portal.md`）。
+15. 用户确认 `approved` 后，生成 `plan.md`（消费 `graph-context.md` 函数级上下文）。
+16. 生成 `context/readiness-report.yaml`。
+17. （辅助层）运行 `python3 .prd-tools/scripts/final-quality-gate.py` 生成 `context/final-quality-gate.yaml`（5 项确定性检查评分）。
+18. 生成 `context/reference-update-suggestions.yaml`。
+19. 生成 `portal.html`（自包含可视化页面，详见 `steps/step-04-portal.md`）。
 
 ## 参考文件
 

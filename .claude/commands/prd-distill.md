@@ -20,8 +20,8 @@ Identify which stage the user wants:
 | Input | Stage | Behavior |
 |-------|-------|----------|
 | `/prd-distill spec foo.docx` | spec | Run Steps 0→1→1.5→2 only. Do NOT generate `report.md` or `plan.md`. |
-| `/prd-distill report <slug>` | report | Run Steps 2.5→3.1→3.2→3.5→4→8→8.1. Generate `report.md` but NOT `plan.md`. Stop and ask user to confirm. |
-| `/prd-distill plan <slug>` | plan | Run Steps 5→6→8.5→8.6→9. Must check `context/report-confirmation.yaml` has `status: approved`. |
+| `/prd-distill report <slug>` | report | Run Steps 2.5→3.1→3.2→3.5→4→8→8.1-confirm. Generate `report.md` but NOT `plan.md`. Stop and ask user to confirm. |
+| `/prd-distill plan <slug>` | plan | Run Steps 5→6→7→8.5→8.6→9. Must check `context/report-confirmation.yaml` has `status: approved`. |
 | `/prd-distill <PRD>` (no subcommand) | guided entry | Start with spec, then prompt user to continue with report, then confirm, then plan. Do NOT auto-generate plan. |
 
 ## Step Gate (硬约束 — 每步执行前必须通过)

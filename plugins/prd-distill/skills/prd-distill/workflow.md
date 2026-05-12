@@ -508,7 +508,7 @@ ADD/MODIFY/DELETE/NO_CHANGE 必须由源码或负向搜索支撑。
 源码扫描增强：
 
 - 优先消费 `context/graph-context.md`，不要在 plan/report 阶段重新凭空猜函数。
-- 将源码扫描命中的符号写入 impact 条目的 `code_anchors` 和 `graph_evidence_refs`。
+- 将源码扫描命中的符号写入 impact 条目的 `code_anchors` 和 `graph_evidence_refs`（aspirational，尚未在 schema 中定义）。
 - 将业务约束写入 impact 条目的 `business_constraints`。
 
 ### 3.4 Report / Plan 消费约束
@@ -645,7 +645,7 @@ suggestions:
       related_repos: []
       aggregation_status: "candidate | confirmed | rejected | not_applicable"
     evidence: ["EV-001"]
-    graph_context_refs: []
+    graph_context_refs: []  # aspirational：尚未在 schema 中定义
     priority: "high | medium | low"
     confidence: "high | medium | low"
     proposed_patch: ""

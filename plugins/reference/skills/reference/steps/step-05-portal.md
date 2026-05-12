@@ -1,6 +1,6 @@
 <workflow_state>
   <workflow>reference</workflow>
-  <current_step>5</current_step>
+  <current_step>3</current_step>
   <allowed_inputs>_prd-tools/reference/00-portal.md, _prd-tools/reference/project-profile.yaml, _prd-tools/reference/01-05, _prd-tools/reference/index/</allowed_inputs>
   <must_not_read_by_default>source code (not needed for portal rendering)</must_not_read_by_default>
   <must_not_produce>any reference YAML files</must_not_produce>
