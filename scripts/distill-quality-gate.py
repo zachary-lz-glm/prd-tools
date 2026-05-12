@@ -146,6 +146,34 @@ def _check_afprd_sections(base):
     }
 
 
+def _check_req_id_anchors(base):
+    """Check each ai_prd_req_id in requirement-ir.yaml has a ### REQ-XXX heading in ai-friendly-prd.md."""
+    afprd_path = base / 'spec' / 'ai-friendly-prd.md'
+    ir_path = base / 'context' / 'requirement-ir.yaml'
+    if not afprd_path.is_file() or not ir_path.is_file():
+        return {'status': 'skip', 'reason': 'files missing'}
+
+    with open(afprd_path) as f:
+        afprd_text = f.read()
+    with open(ir_path) as f:
+        ir = yaml.safe_load(f) or {}
+
+    headings = set(re.findall(r'^### (REQ-[A-Z0-9_-]+)\s*$', afprd_text, re.MULTILINE))
+    missing = []
+    for req in (ir.get('requirements') or []):
+        afprd_id = req.get('ai_prd_req_id', '')
+        for aid in [x.strip() for x in afprd_id.split(',') if x.strip()]:
+            normalized = aid if aid.startswith('REQ-') else f'REQ-{aid}'
+            if normalized not in headings and aid not in headings:
+                missing.append({'ir_id': req.get('id'), 'ai_prd_req_id': aid})
+
+    return {
+        'status': 'pass' if not missing else 'fail',
+        'total_heading_anchors': len(headings),
+        'missing': missing,
+    }
+
+
 def _check_prd_quality_report(base):
     """Check prd-quality-report.yaml has status and score."""
     text = _read_safe(base / 'context' / 'prd-quality-report.yaml')
@@ -439,6 +467,7 @@ def run_checks(distill_dir, repo_root):
     results = {}
     results['required_files'] = _check_required_files(base)
     results['afprd_sections'] = _check_afprd_sections(base)
+    results['req_id_anchors'] = _check_req_id_anchors(base)
     results['prd_quality_report'] = _check_prd_quality_report(base)
     results['requirement_ir'] = _check_requirement_ir(base)
     results['layer_impact'] = _check_layer_impact(base)
@@ -471,6 +500,7 @@ def print_summary(results):
     checks = [
         ('required_files', 'Required files'),
         ('afprd_sections', 'AI-friendly PRD sections'),
+        ('req_id_anchors', 'REQ-ID heading anchors'),
         ('prd_quality_report', 'PRD quality report'),
         ('requirement_ir', 'Requirement IR'),
         ('layer_impact', 'Layer impact'),

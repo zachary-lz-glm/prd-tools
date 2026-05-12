@@ -140,11 +140,45 @@ requirements:
 open_questions: []
 ```
 
+## ai-friendly-prd.md 生成硬规则
+
+### 13 段必须用英文标准名
+
+ai-friendly-prd.md 的 13 个 `##` 段必须使用以下英文标题，**顺序固定，不得翻译，不得合并**：
+
+1. Overview
+2. Problem Statement
+3. Target Users
+4. Goals & Success Metrics
+5. User Stories
+6. Functional Requirements
+7. Non-Functional Requirements
+8. Technical Considerations
+9. UI/UX Requirements
+10. Out of Scope
+11. Timeline & Milestones
+12. Risks & Mitigations
+13. Open Questions
+
+### 每个 REQ-XXX 必须是独立 `### REQ-XXX` 三级标题锚点
+
+在 Functional / Non-Functional / Technical / UI/UX / Open Questions 这 5 段内，每条需求必须形如：
+
+```markdown
+### REQ-CFG-001
+
+**Source**: explicit
+**Priority**: P0
+...
+```
+
+标题**只放** `### REQ-XXX`，描述性文字放正文。**不得**写成 `### FR-2: 配置页面基础信息（REQ-ID: CFG-001）` 这种复合标题。
+
 ## IR ↔ AI-friendly PRD 编号一致性（硬约束）
 
 生成 IR 前后，必须跑以下两条自检：
 
-1. **每条 IR 的 `ai_prd_req_id` 必须在 `spec/ai-friendly-prd.md` 里 `rg -F "REQ-" | rg "{ai_prd_req_id}"` 能命中**。未命中 → 当前 IR 生成失败，不得提交。
+1. **每条 IR 的 `ai_prd_req_id` 必须在 `spec/ai-friendly-prd.md` 里有独立 `### REQ-XXX` 三级标题能命中**。未命中 → 当前 IR 生成失败，不得提交。
    - verify: `grep -c "ai_prd_req_id" context/requirement-ir.yaml`
    - expect: 数量与 requirements 条目数一致
 2. **ai-friendly-prd.md 里每个 `REQ-xxx` heading 必须在 IR 列表里至少出现一次**（哪怕 `type: NO_CHANGE`）。缺失 → 补一条 IR 占位，type=NO_CHANGE，summary 写 "no BFF-layer change, reviewed"。
