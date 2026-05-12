@@ -72,7 +72,7 @@ unzip -o <file>.docx "media/*" -d _ingest/
 2. 读取 `_ingest/extraction-quality.yaml`；`status: block` 时暂停，`status: warn` 时继续但必须暴露风险。
 3. 以 `_ingest/document.md` 为主输入，结合 `evidence-map.yaml` 建立 context/ evidence 台账。
 4. 将 PRD 拆成独立业务 requirement。
-4. 按以下信号匹配每个 requirement（**必须优先使用 reference 路由表**）：
+5. 按以下信号匹配每个 requirement（**必须优先使用 reference 路由表**）：
    - **reference 路由匹配**（优先级最高）：将 PRD 关键词与 `04-routing-playbooks.yaml` 的 `prd_keywords` 匹配，确定 target_surfaces 和 playbook_ref。
    - **reference 术语匹配**：将 PRD 表述与 `05-domain.yaml` 的 terms/synonyms 对齐。
    - routing 关键词
@@ -80,7 +80,7 @@ unzip -o <file>.docx "media/*" -d _ingest/
    - 结构信号
    - playbook/golden sample 相似度
    - 低置信度兜底匹配
-5. 产出 `context/requirement-ir.yaml`。
+6. 产出 `context/requirement-ir.yaml`。
 
 ## 规则
 
