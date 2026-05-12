@@ -65,6 +65,26 @@ if git tag -l "v${version}" | grep -q .; then
   errors=$((errors + 1))
 fi
 
+# --- 检查 4: install.sh 覆盖 scripts/*.py ---
+# scripts/ 下的 .py 文件（排除 dev-only 脚本）必须在 install.sh 中声明，否则用户安装后缺文件。
+dev_only_scripts="benchmark_score.py selfcheck-runner.py branch_case.py"
+installed_scripts=$(grep -oP '[\w_-]+\.py' "${REPO_ROOT}/install.sh" | sort -u)
+repo_scripts=$(ls "${REPO_ROOT}/scripts/"*.py 2>/dev/null | xargs -n1 basename | sort -u)
+
+for s in $repo_scripts; do
+  # Skip dev-only scripts
+  skip=false
+  for d in $dev_only_scripts; do
+    [ "$s" = "$d" ] && skip=true
+  done
+  $skip && continue
+
+  if ! echo "$installed_scripts" | grep -q "^${s}$"; then
+    echo "ERROR: scripts/${s} 未在 install.sh 中声明安装。请将该脚本加入 install.sh 的 for 循环列表。"
+    errors=$((errors + 1))
+  fi
+done
+
 # --- 结果 ---
 if [ $errors -gt 0 ]; then
   echo ""
