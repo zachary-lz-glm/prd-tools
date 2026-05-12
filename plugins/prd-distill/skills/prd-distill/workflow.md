@@ -563,27 +563,27 @@ ADD/MODIFY/DELETE/NO_CHANGE 必须由源码或负向搜索支撑。
 生成 `context/reference-update-suggestions.yaml`：
 
 ```yaml
-schema_version: “4.0”
-tool_version: “<tool-version>”
+schema_version: "4.0"
+tool_version: "<tool-version>"
 suggestions:
-  - id: “REF-UPD-001”
-    type: “new_term | new_route | new_contract | new_playbook | contradiction | golden_sample_candidate”
-    target_file: “_prd-tools/reference/04-routing-playbooks.yaml”
-    summary: “”
+  - id: "REF-UPD-001"
+    type: "new_term | new_route | new_contract | new_playbook | contradiction | golden_sample_candidate"
+    target_file: "_prd-tools/reference/04-routing-playbooks.yaml"
+    summary: ""
     current_repo_scope:
-      authority: “single_repo”
-      action: “apply_to_current_repo | record_as_signal | needs_owner_confirmation”
+      authority: "single_repo"
+      action: "apply_to_current_repo | record_as_signal | needs_owner_confirmation"
     owner_to_confirm: []
     team_reference_candidate: false
     team_scope:
-      type: “contract | domain_term | playbook | decision | routing_signal | golden_sample”
+      type: "contract | domain_term | playbook | decision | routing_signal | golden_sample"
       related_repos: []
-      aggregation_status: “candidate | confirmed | rejected | not_applicable”
-    evidence: [“EV-001”]
+      aggregation_status: "candidate | confirmed | rejected | not_applicable"
+    evidence: ["EV-001"]
     graph_context_refs: []
-    priority: “high | medium | low”
-    confidence: “high | medium | low”
-    proposed_patch: “”
+    priority: "high | medium | low"
+    confidence: "high | medium | low"
+    proposed_patch: ""
 ```
 
 触发条件：
