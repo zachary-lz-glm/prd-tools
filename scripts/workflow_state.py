@@ -164,7 +164,8 @@ class WorkflowState:
             b for b in self.data.get("blocked_steps", []) if b.get("step") != step_id
         ]
 
-        # Update status
+        # Update current_step and status
+        self.data["current_step"] = step_id
         self.data["status"] = "in_progress"
 
     def mark_step_blocked(
@@ -214,6 +215,7 @@ class WorkflowState:
     def mark_workflow_completed(self):
         """Mark the entire workflow as completed."""
         self.data["status"] = "completed"
+        self.data["current_stage"] = "completed"
 
     # --- Persistence ---
 

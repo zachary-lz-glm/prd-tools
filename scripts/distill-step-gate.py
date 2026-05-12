@@ -431,6 +431,8 @@ def main():
             next_step = _get_next_step(args.step)
             next_label = STEP_TABLE.get(next_step, {}).get("label", "completed")
             state.set_resume(next_step, next_label)
+            if next_step == "completed":
+                state.mark_workflow_completed()
             # Write human checkpoint for report review
             if args.step == "8.1-confirm":
                 rc_path = os.path.join(distill_dir, "context", "report-confirmation.yaml")
