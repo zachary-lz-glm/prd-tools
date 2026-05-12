@@ -72,7 +72,7 @@ RE_BLOCKER_QUALITY = re.compile(
 RE_ANCHOR_PATH = re.compile(r'`([^`]+\.(?:ts|tsx|js|jsx|go))`')
 
 # Key anchors that should appear in a well-contextualized deliverable
-KEY_ANCHOR_FILES = [
+KEY_ANCHOR_FILES_DEFAULT = [
     'campaignType.ts',
     'previewRewardType.ts',
     'details/index.ts',
@@ -81,6 +81,24 @@ KEY_ANCHOR_FILES = [
     'basic.ts',
     'message.ts',
 ]
+
+
+def load_key_anchors(base):
+    """Load key anchor files from routing-playbooks, fall back to hardcoded."""
+    rp = base.parent.parent / "reference" / "04-routing-playbooks.yaml"
+    if rp.exists():
+        try:
+            import yaml as _yaml
+            data = _yaml.safe_load(rp.read_text(encoding='utf-8')) or {}
+            anchors = []
+            for route in data.get('prd_routing', []):
+                for f in route.get('key_files', []):
+                    anchors.append(f)
+            if anchors:
+                return anchors
+        except Exception:
+            pass
+    return list(KEY_ANCHOR_FILES_DEFAULT)
 
 # ──────────────────────────────────────────
 # Check helpers
@@ -300,11 +318,12 @@ def check_code_anchor_coverage(base, plan_text):
     score = int(100 * ratio)
 
     # Also check against key anchor basenames
+    key_anchors = load_key_anchors(base)
     key_found = 0
-    for ka in KEY_ANCHOR_FILES:
+    for ka in key_anchors:
         if ka.lower() in plan_lower:
             key_found += 1
-    key_ratio = key_found / len(KEY_ANCHOR_FILES) if KEY_ANCHOR_FILES else 1
+    key_ratio = key_found / len(key_anchors) if key_anchors else 1
     key_score = int(100 * key_ratio)
 
     # Combined score (60% coverage, 40% key anchors)
@@ -323,7 +342,7 @@ def check_code_anchor_coverage(base, plan_text):
         'total_anchors': len(anchor_paths),
         'covered': len(covered),
         'key_anchors_found': key_found,
-        'key_anchors_total': len(KEY_ANCHOR_FILES),
+        'key_anchors_total': len(key_anchors),
         'uncovered_samples': sorted(uncovered)[:5],
     }
 
