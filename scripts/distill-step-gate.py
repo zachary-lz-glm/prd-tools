@@ -46,6 +46,7 @@ STEP_TABLE = {
         "stage": "spec",
         "prerequisites": [],
         "output": ["_ingest/document.md", "_ingest/source-manifest.yaml"],
+        "forbidden_outputs": ["report.md", "plan.md"],
     },
     "1": {
         "label": "Step 1: Evidence Ledger",
@@ -54,6 +55,7 @@ STEP_TABLE = {
             ("_ingest/document.md", "Step 0"),
         ],
         "output": ["context/evidence.yaml"],
+        "forbidden_outputs": ["report.md", "plan.md"],
     },
     "1.5-afprd": {
         "label": "Step 1.5: AI-friendly PRD",
@@ -63,6 +65,7 @@ STEP_TABLE = {
             ("context/evidence.yaml", "Step 1"),
         ],
         "output": ["spec/ai-friendly-prd.md"],
+        "forbidden_outputs": ["report.md", "plan.md"],
     },
     "1.5-quality": {
         "label": "Step 1.5: PRD Quality Report",
@@ -72,6 +75,7 @@ STEP_TABLE = {
             ("context/evidence.yaml", "Step 1"),
         ],
         "output": ["context/prd-quality-report.yaml"],
+        "forbidden_outputs": ["report.md", "plan.md"],
     },
     "2": {
         "label": "Step 2: Requirement IR",
@@ -84,6 +88,7 @@ STEP_TABLE = {
             ("_ingest/evidence-map.yaml", "Step 1"),
         ],
         "output": ["context/requirement-ir.yaml"],
+        "forbidden_outputs": ["report.md", "plan.md"],
     },
     # ── report 阶段 ──
     "2.5": {
@@ -97,6 +102,7 @@ STEP_TABLE = {
              ["context/query-plan.yaml", "Step 2.5"]),
         ],
         "output": ["context/query-plan.yaml"],
+        "forbidden_outputs": ["plan.md"],
     },
     "3.1": {
         "label": "Step 3.1: Graph Context",
@@ -109,6 +115,7 @@ STEP_TABLE = {
              ["context/query-plan.yaml", "Step 2.5"]),
         ],
         "output": ["context/graph-context.md"],
+        "forbidden_outputs": ["plan.md"],
     },
     "3.2": {
         "label": "Step 3.2: Layer Impact",
@@ -118,6 +125,7 @@ STEP_TABLE = {
             ("context/graph-context.md", "Step 3.1"),
         ],
         "output": ["context/layer-impact.yaml"],
+        "forbidden_outputs": ["plan.md"],
     },
     "4": {
         "label": "Step 4: Contract Delta",
@@ -127,6 +135,7 @@ STEP_TABLE = {
             ("context/layer-impact.yaml", "Step 3.2"),
         ],
         "output": ["context/contract-delta.yaml"],
+        "forbidden_outputs": ["plan.md"],
     },
     "8": {
         "label": "Step 8: Report",
@@ -138,6 +147,7 @@ STEP_TABLE = {
             ("context/contract-delta.yaml", "Step 4"),
         ],
         "output": ["report.md"],
+        "forbidden_outputs": ["plan.md"],
     },
     "8.1-confirm": {
         "label": "Step 8.1: Report Review Gate",
@@ -259,16 +269,11 @@ def run_gate(distill_dir, repo_root, step_id):
 
     print(f"=== Distill Step Gate: {label} ===")
 
-    # Stage boundary warnings
-    stage = STEP_STAGES.get(step_id, "")
-    if stage == "spec":
-        if os.path.isfile(os.path.join(distill_dir, "report.md")):
-            print("  [!] WARNING: report.md exists during spec stage (stale from previous run?)")
-        if os.path.isfile(os.path.join(distill_dir, "plan.md")):
-            print("  [!] WARNING: plan.md exists during spec stage (stale from previous run?)")
-    elif stage == "report":
-        if os.path.isfile(os.path.join(distill_dir, "plan.md")):
-            print("  [!] WARNING: plan.md exists during report stage (stale from previous run?)")
+    # Forbidden outputs check (context budget enforcement)
+    forbidden = step_info.get("forbidden_outputs", [])
+    for fpath in forbidden:
+        if os.path.isfile(os.path.join(distill_dir, fpath)):
+            print(f"  [!] WARNING: {fpath} exists but is forbidden at this stage (stale from previous run?)")
 
     missing = []
     for rel_path, source_step in prerequisites:

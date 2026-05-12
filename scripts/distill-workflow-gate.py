@@ -327,6 +327,57 @@ def _check_plan_confirmation(distill_dir):
     }
 
 
+def _check_critique_status(distill_dir):
+    """Check if any critique file has status: fail."""
+    critique_dir = distill_dir / 'context' / 'critique'
+    if not critique_dir.is_dir():
+        return {
+            'status': 'pass',
+            'message': 'No critique directory (critic not yet run)',
+        }
+
+    critique_files = sorted(critique_dir.glob('*.yaml'))
+    if not critique_files:
+        return {
+            'status': 'pass',
+            'message': 'No critique files found',
+        }
+
+    failed = []
+    warnings = []
+    for cf in critique_files:
+        try:
+            with open(cf, 'r', encoding='utf-8') as f:
+                data = yaml.safe_load(f) or {}
+        except Exception:
+            continue
+        status = data.get('status', 'pass')
+        step = data.get('step', cf.stem)
+        if status == 'fail':
+            failed.append(step)
+        elif status == 'warning':
+            warnings.append(step)
+
+    if failed:
+        return {
+            'status': 'fail',
+            'failed_steps': failed,
+            'warning_steps': warnings,
+            'message': f'Critique failed for: {", ".join(failed)}',
+        }
+    if warnings:
+        return {
+            'status': 'warning',
+            'failed_steps': [],
+            'warning_steps': warnings,
+            'message': f'Critique warnings for: {", ".join(warnings)}',
+        }
+    return {
+        'status': 'pass',
+        'message': f'{len(critique_files)} critique(s) passed',
+    }
+
+
 def _check_quality_gate(distill_dir, repo_root):
     """Run distill-quality-gate.py and capture result."""
     candidates = [
@@ -390,6 +441,7 @@ def run_checks(distill_dir, repo_root):
     results['layer_impact_anchors'] = _check_layer_impact_anchors(base)
     results['report_confirmation'] = _check_report_confirmation(base)
     results['plan_confirmation'] = _check_plan_confirmation(base)
+    results['critique_status'] = _check_critique_status(base)
     results['portal_html'] = _check_portal_script_rendered(base)
     results['quality_gate'] = _check_quality_gate(base, repo_root)
 
@@ -457,6 +509,11 @@ def print_summary(results):
         print(f'  [{sym}] plan confirmation: no plan files yet (not applicable)')
     else:
         print(f'  [{sym}] plan confirmation: {pc.get("message", "report not approved")}')
+
+    # Critique status
+    cs = results['critique_status']
+    sym = '+' if cs['status'] == 'pass' else ('!' if cs['status'] == 'warning' else 'x')
+    print(f'  [{sym}] critique status: {cs.get("message", "")}')
 
     # Portal html
     ph = results['portal_html']
