@@ -235,6 +235,12 @@ AI-friendly PRD 必须使用 13 个固定章节：
 4. `report.md` 中必须说明 AI-friendly PRD 的质量状态。
 5. `plan.md` 不得把 `missing_confirmation` 当确定实现任务。
 
+### Self-Check（afprd 生成后）
+
+- [M] `spec/ai-friendly-prd.md` 每个章节标题格式为 `## N. EnglishName` 或 `## N. EnglishName（中文）`，N 从 1 到 13
+  verify: `python3 -c "import re; m={'Overview','Problem Statement','Target Users','Goals & Success Metrics','User Stories','Functional Requirements','Non-Functional Requirements','Technical Considerations','UI/UX Requirements','Out of Scope','Timeline & Milestones','Risks & Mitigations','Open Questions'}; t=open('spec/ai-friendly-prd.md').read(); found={x for x in m if re.search(rf'^##\s+(?:\d+\.?\s+)?{re.escape(x)}', t, re.M)}; assert found==m, sorted(m-found)"`
+  expect: exit 0
+
 ### context/prd-quality-report.yaml
 
 格式见 `references/output-contracts.md` 中 `context/prd-quality-report.yaml` 章节。
