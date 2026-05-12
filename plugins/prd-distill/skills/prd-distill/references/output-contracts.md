@@ -29,10 +29,6 @@ _prd-tools/
 │   ├── quality-report.yaml
 │   ├── health-check.yaml
 │   ├── feedback-report.yaml
-│   └── graph/
-│       ├── sync-report.yaml
-│       ├── code-evidence.yaml
-│       └── business-evidence.yaml
 └── distill/                               # prd-distill 蒸馏产出
     └── <slug>/
         ├── spec/                          # AI-friendly PRD（规范化中间层）
