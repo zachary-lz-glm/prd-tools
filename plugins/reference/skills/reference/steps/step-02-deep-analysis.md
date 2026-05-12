@@ -82,10 +82,22 @@ _prd-tools/reference/05-domain.yaml
 
 ---
 
-### 阶段 3：契约
+### 阶段 3：契约（全栈契约，团队公共库基础）
 
 8. 通过源码 Read 追踪 import/调用关系，精确填充 producer/consumer 关系。
 9. 生成 `03-contracts.yaml`：跨层和外部契约、字段级定义（type/required/compatibility）。
+
+每个契约条目**必须**填充全栈字段，不得用单一 `direction` 字符串替代：
+
+- `producer`: `"frontend | bff | backend | external"` 单值
+- `consumers`: `["frontend", "bff", "backend", "external"]` **数组**（至少 1 个，除 producer 之外）
+- `checked_by`: `["bff"]` **数组**，标注哪些层已 verify（未 verify 的层即"待对齐"）
+- `producer_repo`: producer 所在仓库名（团队公共库用来跨仓追踪）
+- `consumer_repos`: 每个 consumer 对应的仓库/角色/确认状态
+- `team_reference_candidate`: true/false（是否适合升级到团队公共库）
+- `alignment_status`: `aligned | needs_confirmation | blocked | not_applicable`
+
+**禁止**用 `direction: "frontend → bff"` 单字符串替代上述结构。遇到"这个接口前端调 BFF"时应拆成：`producer: bff, consumers: [frontend], checked_by: [bff], consumer_repos: [{repo: <frontend-repo>, role: frontend, verification: needs_confirmation}]`。
 10. 检查 01-codebase 中的 structures.fields，如果包含 type/required 信息，删除并添加 `contract_ref` 指向 03 中的契约。
 11. 检查 01-codebase 中的 external_systems，如果展开了 endpoint 列表，将 endpoint 详情移到 03，01 中只保留系统名和 contract_ref。
 12. 每个契约必须有 `alignment_status`（aligned / misaligned / unchecked）。

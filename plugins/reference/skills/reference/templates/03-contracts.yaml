@@ -7,6 +7,10 @@ last_verified: "<YYYY-MM-DD>"
 verify_cadence: "14d"
 owner: "<team>"
 boundary: "契约：系统边界之间的承诺。endpoint、schema、event、payload 的字段级定义。不放编码规则（见02-coding-rules）、不放开发步骤（见04-routing-playbooks）、不放枚举值列表（见01-codebase）。这是字段级信息的唯一权威来源。"
+# NOTE: 全栈公共库原则
+#   每个 contract 必须用 producer(单值) + consumers(数组) + checked_by(数组) 结构。
+#   禁止用 direction: "A→B" 字符串表达。
+#   跨仓契约必须填 producer_repo + consumer_repos，为团队公共库聚合做准备。
 repo_scope:
   authority: "single_repo"
   local_repo_role: "<frontend|bff|backend|multi-layer>"

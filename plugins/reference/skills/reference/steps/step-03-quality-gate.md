@@ -30,6 +30,9 @@
 - 多层契约面缺少 contract 条目。
 - 影响业务结果的校验只在前端，且没有明确授权。
 - 跨文件重复：同一事实（如字段定义、编码规则）出现在多个文件中且措辞矛盾。
+- 所有 contracts[].producer 不是字符串单值 → fail
+- 所有 contracts[].consumers 不是数组或长度 < 1 → fail
+- 所有 contracts[].checked_by 不是数组 → fail
 
 警告项：
 
@@ -39,6 +42,8 @@
 - golden sample 缺少变更文件或 contract 引用。
 - 路由条目缺少 playbook_ref。
 - 存在旧版 v3.1 文件（00~09），但没有 v4 迁移建议。
+- 使用了 `direction:` 字段的契约需重写为 producer/consumers[]
+- 跨仓契约（consumers 含非当前仓角色）未填 consumer_repos
 
 ## 边界检查
 
