@@ -1,6 +1,6 @@
 <workflow_state>
   <workflow>prd-distill</workflow>
-  <current_step>4</current_step>
+  <current_step>9</current_step>
   <allowed_inputs>report.md, plan.md, spec/ai-friendly-prd.md, context/*</allowed_inputs>
   <must_not_read_by_default>source code (not needed for portal rendering)</must_not_read_by_default>
   <must_not_produce>any context/ YAML files</must_not_produce>
