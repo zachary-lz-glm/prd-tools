@@ -740,7 +740,7 @@ python3 .prd-tools/scripts/distill-quality-gate.py \
 - exit code 2（fail）：必须补缺失文件，不得宣称 /prd-distill 完成。
 - exit code 0（pass 或 warning）：可以完成，但 warning 必须写入 report 或最终回复。
 
-## 步骤 8.6：Distill Completion Gate
+## 步骤 8.6.1：Gate 检查清单
 
 > 条件步骤：运行 `distill-quality-gate.py` 和 `distill-workflow-gate.py`，确认所有 gate 通过。
 
