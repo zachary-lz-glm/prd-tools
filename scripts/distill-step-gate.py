@@ -270,6 +270,15 @@ def _get_next_step(current_step: str) -> str:
         return current_step
 
 
+STEP_ALIASES = {
+    "8.1": "8.1-confirm",
+}
+
+
+def _resolve_step(step_id):
+    return STEP_ALIASES.get(step_id, step_id)
+
+
 def run_gate(distill_dir, repo_root, step_id):
     """Run the step gate check. Returns (passed, message, missing_files)."""
     if step_id not in STEP_TABLE:
@@ -349,6 +358,9 @@ def main():
 
     distill_dir = os.path.abspath(args.distill_dir)
     repo_root = os.path.abspath(args.repo_root)
+
+    # Resolve step aliases (e.g. "8.1" -> "8.1-confirm")
+    args.step = _resolve_step(args.step)
 
     if not os.path.isdir(distill_dir):
         print(f"ERROR: distill-dir does not exist: {distill_dir}")
