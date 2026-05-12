@@ -33,7 +33,13 @@
 
 ### docx 解压标准流程（硬约束）
 
-使用 Python zipfile 一次性提文本 + 图片，避免 unzip 的权限/glob 坑：
+优先使用 `ingest-docx.py` 脚本：
+
+```bash
+python3 .prd-tools/scripts/ingest-docx.py --input "<prd.docx>" --output _prd-tools/distill/<slug>
+```
+
+如果脚本不可用，fallback 到手动 Python zipfile：
 
 ```bash
 python3 - <<'EOF'
