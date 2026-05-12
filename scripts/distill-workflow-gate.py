@@ -546,9 +546,9 @@ def main():
     ap = argparse.ArgumentParser(
         description='Distill Workflow Gate — enforce ordering and completion for /prd-distill output'
     )
-    ap.add_argument('--distill-dir', required=True,
+    ap.add_argument('--distill-dir', '--distill', dest='distill_dir', required=True,
                     help='Path to distill output directory (_prd-tools/distill/<slug>)')
-    ap.add_argument('--repo-root', required=True,
+    ap.add_argument('--repo-root', '--repo', dest='repo_root', required=True,
                     help='Project root directory (containing _prd-tools/reference/)')
     args = ap.parse_args()
 

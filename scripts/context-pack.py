@@ -814,7 +814,7 @@ def main():
     )
     ap.add_argument('--distill', '--distill-dir', dest='distill', required=True,
                     help='Path to distill output directory')
-    ap.add_argument('--index', required=False,
+    ap.add_argument('--index', '--index-dir', dest='index', required=False,
                     help='Path to evidence index directory (default: <distill>/../reference/index)')
     ap.add_argument('--out', required=False,
                     help='Output path for context-pack.md (default: <distill>/context/context-pack.md)')

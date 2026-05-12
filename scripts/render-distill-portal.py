@@ -319,7 +319,7 @@ def render(distill_dir, template_path, out_path):
 
 def main():
     ap = argparse.ArgumentParser(description='Render distill portal.html from fixed template')
-    ap.add_argument('--distill-dir', required=True, help='Path to distill output directory')
+    ap.add_argument('--distill-dir', '--distill', dest='distill_dir', required=True, help='Path to distill output directory')
     ap.add_argument('--template', required=True, help='Path to portal template HTML')
     ap.add_argument('--out', required=True, help='Output path for portal.html')
     args = ap.parse_args()
