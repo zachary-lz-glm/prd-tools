@@ -91,15 +91,7 @@ If the step gate exits with code 2 (FAIL):
 - 首次建设：推荐 `F→A`，但必须等用户确认。
 - 已有 reference：推荐 `B2` 健康检查或 `B` 增量更新，除非用户明确要求重建。
 
-用户确认后，将选择写入 `_prd-tools/build/reference-workflow-state.yaml`：
-
-```yaml
-human_checkpoints:
-  mode_selection:
-    status: "approved"
-    selected_mode: "F_then_A | F_only | A_only | B | B2 | C | E"
-    confirmed_by: "user"
-```
+用户确认后，将选择写入 `_prd-tools/build/reference-workflow-state.yaml`。YAML 结构见 `references/mode-selection.schema.md`。
 
 如果用户选择 Chat，只讨论方案，不生成或修改 reference 产物。
 
