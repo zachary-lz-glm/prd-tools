@@ -4,6 +4,16 @@
 
 ---
 
+## [2.18.1] - 2026-05-12
+
+### Added
+- feat: Evidence Index 准确性提升 — 多行签名、跨文件边、增量更新、领域术语桥接
+- feat: 删除agent
+
+### Fixed
+- fix: install.sh 补充新增脚本 + quality gate contracts 路径兼容
+
+
 ## [2.18.0] - 2026-05-12
 
 ### Added
