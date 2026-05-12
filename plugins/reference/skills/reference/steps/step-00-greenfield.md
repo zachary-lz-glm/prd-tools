@@ -61,8 +61,12 @@ project-profile.yaml        # 项目画像（layer 标注 greenfield）
 
 ## Self-Check（生成后必须逐项验证）
 
-- [ ] project-profile.yaml 的 layer 字段与项目预期架构一致
-- [ ] 01-codebase.yaml 标注了 `implemented: false`（因为没有源码）
-- [ ] 03-contracts.yaml 的预期契约面有 PRD 或上游 API 文档证据
-- [ ] 04-routing-playbooks.yaml 的 playbook 步骤标注了 `confidence: low`
-- [ ] 每个 confidence: low 的条目在 open_questions 中有对应问题
+> **Self-Check 的两种条目**：本清单同时包含 (a) **机器可验证断言**（标 `[M]`）和 (b) **人工判读提示**（标 `[H]`）。执行 Self-Check 时：
+> - `[M]` 条目必须逐条列出 `verify: <命令>` 与 `expect: <结果>`，未通过不得进下一步。
+> - `[H]` 条目作为判读提示，LLM 自检后必须写入 workflow-state.yaml 的 `self_check_notes[step_id]` 数组，内容为"我为什么认为这条满足"的简短解释。
+
+- [ ] [H] project-profile.yaml 的 layer 字段与项目预期架构一致
+- [ ] [M] 01-codebase.yaml 标注了 `implemented: false`（因为没有源码）
+- [ ] [H] 03-contracts.yaml 的预期契约面有 PRD 或上游 API 文档证据
+- [ ] [M] 04-routing-playbooks.yaml 的 playbook 步骤标注了 `confidence: low`
+- [ ] [M] 每个 confidence: low 的条目在 open_questions 中有对应问题

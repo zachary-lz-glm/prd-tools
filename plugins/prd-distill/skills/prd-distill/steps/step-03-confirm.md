@@ -199,11 +199,16 @@
 `/prd-distill` 不直接编辑 `_prd-tools/reference/`；实际修改交给 `/reference` 的反馈回流。
 
 ## Self-Check（生成后必须逐项验证）
-- [ ] report.md 包含全部 11 个章节（§1-§11）
-- [ ] plan.md 包含全部 11 个章节（§1-§11，§11 工作量估算可选）
-- [ ] 每个 IMP 在 report.md §5 变更明细表中有对应行
-- [ ] 每个 Phase 在 plan.md §3 中有 checklist 格式的任务
-- [ ] 每个 MODIFY/DELETE 任务引用了至少一个 GCTX ID
-- [ ] reference-update-suggestions.yaml 的 current_repo_scope.action 与证据来源匹配
-- [ ] report.md 长度在 300-650 行范围内（超出时按优先级精简）
-- [ ] plan.md 长度在 300-700 行范围内（超出时按优先级精简）
+
+> **Self-Check 的两种条目**：本清单同时包含 (a) **机器可验证断言**（标 `[M]`）和 (b) **人工判读提示**（标 `[H]`）。执行 Self-Check 时：
+> - `[M]` 条目必须逐条列出 `verify: <命令>` 与 `expect: <结果>`，未通过不得进下一步。
+> - `[H]` 条目作为判读提示，LLM 自检后必须写入 workflow-state.yaml 的 `self_check_notes[step_id]` 数组，内容为"我为什么认为这条满足"的简短解释。
+
+- [ ] [M] report.md 包含全部 11 个章节（§1-§11）
+- [ ] [M] plan.md 包含全部 11 个章节（§1-§11，§11 工作量估算可选）
+- [ ] [M] 每个 IMP 在 report.md §5 变更明细表中有对应行
+- [ ] [M] 每个 Phase 在 plan.md §3 中有 checklist 格式的任务
+- [ ] [M] 每个 MODIFY/DELETE 任务引用了至少一个 GCTX ID
+- [ ] [H] reference-update-suggestions.yaml 的 current_repo_scope.action 与证据来源匹配
+- [ ] [M] report.md 长度在 300-650 行范围内（超出时按优先级精简）
+- [ ] [M] plan.md 长度在 300-700 行范围内（超出时按优先级精简）

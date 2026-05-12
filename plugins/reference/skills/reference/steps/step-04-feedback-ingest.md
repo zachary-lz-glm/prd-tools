@@ -58,8 +58,13 @@
 - `team_reference_candidate: true` 必须保留为候选标记；除非用户明确确认团队治理结果，否则不代表已经同步到团队知识库。
 
 ## Self-Check（回流后必须逐项验证）
-- [ ] 每条 suggestion 的 target_file 是存在的 reference 文件
-- [ ] apply_to_current_repo 的建议有当前仓源码证据支撑
-- [ ] needs_owner_confirmation 的建议填写了 owner_to_confirm
-- [ ] golden_sample_candidate 的建议有完整的 lessons 和 evidence
-- [ ] 用户确认后才修改 reference，未自动修改
+
+> **Self-Check 的两种条目**：本清单同时包含 (a) **机器可验证断言**（标 `[M]`）和 (b) **人工判读提示**（标 `[H]`）。执行 Self-Check 时：
+> - `[M]` 条目必须逐条列出 `verify: <命令>` 与 `expect: <结果>`，未通过不得进下一步。
+> - `[H]` 条目作为判读提示，LLM 自检后必须写入 workflow-state.yaml 的 `self_check_notes[step_id]` 数组，内容为"我为什么认为这条满足"的简短解释。
+
+- [ ] [M] 每条 suggestion 的 target_file 是存在的 reference 文件
+- [ ] [H] apply_to_current_repo 的建议有当前仓源码证据支撑
+- [ ] [M] needs_owner_confirmation 的建议填写了 owner_to_confirm
+- [ ] [M] golden_sample_candidate 的建议有完整的 lessons 和 evidence
+- [ ] [H] 用户确认后才修改 reference，未自动修改

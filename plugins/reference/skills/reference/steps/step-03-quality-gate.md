@@ -69,8 +69,13 @@ next_actions: []
 存在致命发现时，不要宣称 reference 已可用于生产。
 
 ## Self-Check（质量检查后必须逐项验证）
-- [ ] quality-report.yaml 的 score 是根据实际检查结果计算，不是估算
-- [ ] 每个 fatal_finding 都有具体的 reference 文件和证据引用
-- [ ] boundary_violations 列出了具体的重叠内容和建议修复方式
-- [ ] sample_replay 已执行（如有 golden sample）
-- [ ] 幻觉检查覆盖了所有文件路径、函数名、变量名
+
+> **Self-Check 的两种条目**：本清单同时包含 (a) **机器可验证断言**（标 `[M]`）和 (b) **人工判读提示**（标 `[H]`）。执行 Self-Check 时：
+> - `[M]` 条目必须逐条列出 `verify: <命令>` 与 `expect: <结果>`，未通过不得进下一步。
+> - `[H]` 条目作为判读提示，LLM 自检后必须写入 workflow-state.yaml 的 `self_check_notes[step_id]` 数组，内容为"我为什么认为这条满足"的简短解释。
+
+- [ ] [H] quality-report.yaml 的 score 是根据实际检查结果计算，不是估算
+- [ ] [M] 每个 fatal_finding 都有具体的 reference 文件和证据引用
+- [ ] [M] boundary_violations 列出了具体的重叠内容和建议修复方式
+- [ ] [M] sample_replay 已执行（如有 golden sample）
+- [ ] [H] 幻觉检查覆盖了所有文件路径、函数名、变量名

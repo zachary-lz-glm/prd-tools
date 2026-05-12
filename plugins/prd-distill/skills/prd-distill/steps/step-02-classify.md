@@ -121,9 +121,14 @@
 `graph-context.md` 输出格式见 `references/schemas/03-context.md`。plan.md 中每个 MODIFY/DELETE 任务必须引用至少一个 GCTX ID；无法引用时，必须在 graph-context 的 fallback/未命中表中说明。
 
 ## Self-Check（生成后必须逐项验证）
-- [ ] 每个 IMP-* 项的 surface 使用 layer-adapters.md 中定义的能力面名称
-- [ ] MODIFY/DELETE 类型的 IMP 有源码证据（不只是 reference 标记）
-- [ ] ADD 类型有 negative_code_search 证据或参考实现路径
-- [ ] graph-context.md 中每个 GCTX 条目都被 plan.md 或 report.md 引用
-- [ ] Contract Delta 只在跨层/API/外部系统场景生成
-- [ ] alignment_status 为 needs_confirmation 的契约列出了需要确认的内容
+
+> **Self-Check 的两种条目**：本清单同时包含 (a) **机器可验证断言**（标 `[M]`）和 (b) **人工判读提示**（标 `[H]`）。执行 Self-Check 时：
+> - `[M]` 条目必须逐条列出 `verify: <命令>` 与 `expect: <结果>`，未通过不得进下一步。
+> - `[H]` 条目作为判读提示，LLM 自检后必须写入 workflow-state.yaml 的 `self_check_notes[step_id]` 数组，内容为"我为什么认为这条满足"的简短解释。
+
+- [ ] [M] 每个 IMP-* 项的 surface 使用 layer-adapters.md 中定义的能力面名称
+- [ ] [M] MODIFY/DELETE 类型的 IMP 有源码证据（不只是 reference 标记）
+- [ ] [M] ADD 类型有 negative_code_search 证据或参考实现路径
+- [ ] [M] graph-context.md 中每个 GCTX 条目都被 plan.md 或 report.md 引用
+- [ ] [H] Contract Delta 只在跨层/API/外部系统场景生成
+- [ ] [H] alignment_status 为 needs_confirmation 的契约列出了需要确认的内容
