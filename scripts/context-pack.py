@@ -55,7 +55,7 @@ def parse_requirement_ir(path):
     """Extract structured requirements from requirement-ir.yaml."""
     text = Path(path).read_text(encoding='utf-8')
     reqs = []
-    pattern = re.compile(r'^\s*-\s+id:\s+"?(REQ-\d+)"?\s*$(.*?)(?=^\s*-\s+id:|\Z)', re.S | re.M)
+    pattern = re.compile(r'^\s*-\s+id:\s+"?([A-Z]+-\d+)"?\s*$(.*?)(?=^\s*-\s+id:|\Z)', re.S | re.M)
     for m in pattern.finditer(text):
         req_id = m.group(1)
         block = m.group(2)
