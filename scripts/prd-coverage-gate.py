@@ -57,7 +57,7 @@ def _check_block_coverage(distill_dir):
     missing = []
     total = 0
     for block in ds_blocks:
-        block_id = block.get("block_id", "")
+        block_id = block.get("block_id") or block.get("id", "")
         block_type = block.get("block_type", "")
         if block_type in exclusion_types:
             continue
