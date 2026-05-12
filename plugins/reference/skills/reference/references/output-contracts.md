@@ -980,3 +980,30 @@ Portal 页面采用模板+脚本渲染机制，AI 不得直接手写 `portal.htm
 2. 运行渲染脚本：`python3 scripts/render-reference-portal.py` 或 `python3 scripts/render-distill-portal.py`
 3. 脚本读取模板，注入数据，输出 `portal.html`
 4. 任何对 `portal.html` 的直接手写修改都会在下次渲染时被覆盖
+
+## `context/final-quality-gate.yaml` overall_score 算法
+
+```
+weighted_avg = sum(check_weight * check_score for each check) / sum(check_weights)
+overall_score = round(weighted_avg)
+```
+
+权重表（`scripts/final-quality-gate.py` CHECK_WEIGHTS）：
+
+| 检查项 | 权重 |
+|--------|------|
+| required_files | 0.20 |
+| context_pack_consumed | 0.15 |
+| code_anchor_coverage | 0.25 |
+| plan_actionability | 0.25 |
+| blocker_quality | 0.15 |
+
+`status` 映射：
+- overall_score >= 85 → pass
+- 60 <= overall_score < 85 → warning
+- overall_score < 60 → fail
+
+额外硬失败规则（无论 score 多少）：
+- required_files 有 missing_critical → fail
+- plan_actionability 有 missing_file_paths → fail
+- plan_actionability 有 missing_checklists → warning (cap 84)
