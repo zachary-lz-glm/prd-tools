@@ -130,7 +130,7 @@ project-profile.yaml        # 项目画像
 2. 阶段 2：`02-coding-rules.yaml`（检查 01 去重）
 3. 阶段 3：`03-contracts.yaml`（检查 01 去重，移入字段级信息）
 4. 阶段 4：`04-routing-playbooks.yaml`（含 capability_inventory，检查 02 去重）
-5. 阶段 5：`05-domain.yaml`（检查术语与静态事实边界）
+5. 阶段 5：`05-domain.yaml` + `00-portal.md`（检查术语与静态事实边界）
 
 每个子步骤文件末尾有 Self-Check 清单，生成后必须逐项验证通过再进入下一步。
 
