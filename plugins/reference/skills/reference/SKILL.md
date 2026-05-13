@@ -172,6 +172,7 @@ _prd-tools/build/              # 过程和质量报告
 6. 生成或更新 `_prd-tools/reference/`。
 7. 构建 Evidence Index（辅助层）：`python3 .prd-tools/scripts/build-index.py --repo <项目路径> --out _prd-tools/reference/index`。
 8. 执行健康检查或质量门控。
+9. 运行 Completion Gate：`python3 .prd-tools/scripts/quality-gate.py reference --root .`。
 10. 给用户摘要：新增/更新文件、质量状态、风险、下一步。
 
 ## 参考文件

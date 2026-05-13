@@ -124,12 +124,16 @@ forbidden_claims:
 | 名称 | 对应文件 |
 |------|----------|
 | report | `report.md` |
-| plan | `plan.md` |
+| plan | `plan.md`（团队模式：`team-plan.md` 或 `plans/plan-{repo}.md`） |
+| ai-friendly-prd | `spec/ai-friendly-prd.md` |
 | requirement-ir | `context/requirement-ir.yaml` |
 | graph-context | `context/graph-context.md` |
 | layer-impact | `context/layer-impact.yaml` |
 | contract-delta | `context/contract-delta.yaml` |
 | readiness-report | `context/readiness-report.yaml` |
+| prd-quality-report | `context/prd-quality-report.yaml` |
+| final-quality-gate | `context/final-quality-gate.yaml` |
+| report-confirmation | `context/report-confirmation.yaml` |
 
 ## Snapshot 评分
 

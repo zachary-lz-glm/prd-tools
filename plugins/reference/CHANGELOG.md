@@ -7,19 +7,16 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ### Added
 - feat: 团队知识库初始化工作流（/reference Mode T-init）
-- feat: 团队级 prd-distill 模式（v2.20 team distill）
-- feat: 枚举 label 增加 label_source 来源标注，区分源码提取与 AI 推断
 
 ### Changed
-- Revert "refactor: 消除跨插件 5 个重复文件，提取到 _shared 并用 symlink 引用"
-- Revert "refactor: 删除 symlink，共享文件只存 _shared 一份，更新 hook 和路径引用"
-- refactor: 删除 symlink，共享文件只存 _shared 一份，更新 hook 和路径引用
-- refactor: 消除跨插件 5 个重复文件，提取到 _shared 并用 symlink 引用
-- refactor: 移除 team-reference 聚合/继承脚本，合并策略回归 skill 工作流
-- refactor: 合并 7 个 gate 脚本为统一 quality-gate.py，step ordering 回归 markdown
-- refactor: 移除 Portal 可视化页面系统，移除 label_source 机制
+- refactor: 合并 7 个 gate 脚本为统一 `quality-gate.py`（子命令：reference / distill / final）
+- refactor: 移除 team-reference 聚合/继承脚本，合并策略回归 skill 工作流（LLM 按文档执行）
+- refactor: 移除 Portal 可视化页面系统（portal.html 不再生成）
 
-- refactor: 移除 Portal 可视化页面系统，移除 label_source 机制
+### Fixed
+- fix: label_source 来源标注机制在本版本中引入后移除（最终未保留）
+
+## [2.19.0] - 2026-05-13
 
 ### Added
 - feat: 团队公共知识库聚合与继承（v2.19 T/T2 模式）
@@ -46,15 +43,14 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 - fix(audit-p1): [P1-3] align source_blocks / source_block_ids semantics
 - fix: human_checkpoint 单复数兼容 + SKILL.md 文档统一为复数
 
-- fix: human_checkpoint 单复数兼容 + SKILL.md 文档统一为复数
+## [2.18.1] - 2026-05-12
 
 ### Added
 - feat: Evidence Index 准确性提升 — 多行签名、跨文件边、增量更新、领域术语桥接
 
-- feat: Evidence Index 准确性提升 — 多行签名、跨文件边、增量更新、领域术语桥接
+## [2.18.0] - 2026-05-12
 
-### Added
-- （本版本无 reference 插件变更，版本号跟随 lockstep）
+（本版本无 reference 插件专属变更，版本号跟随 lockstep）
 
 ## [2.17.0] - 2026-05-12
 

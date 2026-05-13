@@ -29,7 +29,7 @@ Claude Code 中通过以下命令触发：
 | Layer Impact | 主要分析 1 层 | 4 层全部从 snapshots 填充 |
 | Contract Delta | 单仓视角 | 全栈：consumers[] 从 `team/03-contracts.yaml` |
 | Plan | 1 份 `plan.md` | 1 份 `team-plan.md` + N 份 `plans/plan-{repo}.md` |
-| Report §10 | 按层简述 | 强制 4 个子节：10.1 Frontend / 10.2 BFF / 10.3 Backend / 10.4 External |
+| Report §10 | 按层简述（至少 4 子节） | 强制 5 个子节：10.1 Frontend / 10.2 BFF / 10.3 Backend / 10.4 External / 10.5 跨层风险 |
 
 成员仓列表来自 `team_reference.member_repos[]`，sub-plan 文件名动态生成（`member_repos[].repo` 小写 → `plans/plan-{repo}.md`）。
 
@@ -58,7 +58,7 @@ Steps: 0 → 1 → 1.5-afprd → 1.5-quality → 2
 
 ### Stage 2: report
 
-Steps: 2.5 → 3.1 → 3.2 → 3.5 → 4 → 8 → 8.1-confirm
+Steps: 2.5 → 3.1 → 3.2 → 3.5 → 3.6 → 4 → 8 → 8.1-confirm
 
 允许产物：
 - `context/query-plan.yaml`（如 index 存在）
@@ -66,6 +66,7 @@ Steps: 2.5 → 3.1 → 3.2 → 3.5 → 4 → 8 → 8.1-confirm
 - `context/graph-context.md`
 - `context/layer-impact.yaml`
 - `context/contract-delta.yaml`
+- `context/critique/*.yaml`
 - `report.md`
 - `context/report-confirmation.yaml`
 
@@ -75,7 +76,7 @@ Steps: 2.5 → 3.1 → 3.2 → 3.5 → 4 → 8 → 8.1-confirm
 
 ### Stage 3: plan
 
-Steps: 5 → 6 → 7 → 8.5 → 8.6 → 9
+Steps: 5 → 6 → 7 → 8.5 → 8.6
 
 **前置条件**：`context/report-confirmation.yaml` 必须为 `status: approved`。
 
@@ -86,6 +87,7 @@ Steps: 5 → 6 → 7 → 8.5 → 8.6 → 9
 - `plan.md`（单仓）或 `team-plan.md` + `plans/plan-{repo}.md`（团队）
 - `context/readiness-report.yaml`
 - `context/final-quality-gate.yaml`
+- `context/reference-update-suggestions.yaml`
 
 **plan 阶段不得重新解释原始 PRD**，只消费 approved report 和 context。
 
@@ -109,11 +111,6 @@ Before each step, verify ALL prerequisite files from the previous step exist and
 
 其余禁止项详见 workflow.md 对应步骤。
 
-**禁止行为（详细列表）：**
-- 不得跳过前置产物验证直接执行步骤
-- 不得在验证失败后手动创建缺失文件绕过检查
-- 不得合并多个步骤为一次执行
-
 ## Final Completion Gate（硬约束）
 
 /prd-distill 完成必须满足以下条件，缺一不可：
@@ -125,11 +122,11 @@ Before each step, verify ALL prerequisite files from the previous step exist and
 5. `context/final-quality-gate.yaml` 必须生成。
 6. 必须运行 `python3 .prd-tools/scripts/quality-gate.py distill --mode all --distill-dir _prd-tools/distill/<slug> --repo-root .`，且 exit code 不为 2。
 7. completion gate 不通过，不得宣称 /prd-distill 完成。
-9. `report.md` 必须包含 PRD 质量摘要。
-10. 生成最终 plan 前，必须获得用户对 `report.md` 的确认，并写入 `context/report-confirmation.yaml`。
-11. `context/report-confirmation.yaml` 的 `status` 必须为 `approved`，否则不得生成最终 plan。
-12. plan 不得包含把 `missing_confirmation` 当确定任务的内容。团队模式：`team-plan.md` 和所有 `plans/plan-*.md` 均适用此规则。
-13. **团队模式**：`team-plan.md` 必须存在且包含 Sub-Plan 索引表；`plans/` 目录必须存在，且每个有 IMP 的成员仓有对应的 `plans/plan-{repo}.md`。
+8. `report.md` 必须包含 PRD 质量摘要。
+9. 生成最终 plan 前，必须获得用户对 `report.md` 的确认，并写入 `context/report-confirmation.yaml`。
+10. `context/report-confirmation.yaml` 的 `status` 必须为 `approved`，否则不得生成最终 plan。
+11. plan 不得包含把 `missing_confirmation` 当确定任务的内容。团队模式：`team-plan.md` 和所有 `plans/plan-*.md` 均适用此规则。
+12. **团队模式**：`team-plan.md` 必须存在且包含 Sub-Plan 索引表；`plans/` 目录必须存在，且每个有 IMP 的成员仓有对应的 `plans/plan-{repo}.md`。
 
 ## 触发条件
 
@@ -361,7 +358,7 @@ _prd-tools/distill/<slug>/
    - **阶段 3（补充扫描）**：仅对阶段 1-2 未覆盖的部分用 rg/glob 补充扫描。
    - 每条线索标注来源：`reference_routing` | `index_query` | `code_scan`。
 - [ ] ⚠ graph-context.md 存在性检查：`context/graph-context.md` 必须存在。如不存在，必须先生成再继续 plan.md。
-- [ ] ⚠ reference 消费检查：如果 reference 存在，graph-context.md 中至少 30% 线索应来自 reference/index（阶段 1-2）。未达标时在 readiness-report 标记 `reference_underconsumed`。
+- [ ] ⚠ reference 消费检查：如果 reference 存在，graph-context.md 中**每个关键 IMP 至少 1 条线索来自 reference/index**（阶段 1-2）。全部线索都来自 grep 时在 readiness-report 标记 `reference_underconsumed` 并在 §12 暴露原因。
 8. **Index 融合**：如果索引存在，**必须**运行 `python3 .prd-tools/scripts/context-pack.py` 生成 `context/context-pack.md`（上下文包）。index 不存在则跳过，但必须在 readiness-report 记录缺失。
 9. **Step 3.5 Context Pack**：layer-impact 完成后运行 `context-pack.py`，将 Evidence Index 代码实体与 distill 上下文融合为精简的 `context/context-pack.md`（≤800 行）。index 不存在则跳过。
 10. **Step 3.6 Critique Pass**：高风险步骤（1.5/2/3.2/4）完成后对产物做二次审查，输出 `context/critique/<step_id>.yaml`。fail 阻断后续步骤，warning 记入 readiness-report。详见 `workflow.md` 步骤 3.6。

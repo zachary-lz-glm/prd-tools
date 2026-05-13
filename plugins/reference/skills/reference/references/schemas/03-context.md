@@ -43,7 +43,7 @@
 - 源码确认的符号、调用链、route consumer 可以作为 high-confidence 代码线索。
 - 所有 GCTX 条目必须被 `plan.md` 或 `report.md` 消费，未消费要说明原因。
 - 每个 GCTX entry 必须引用 `requirement_id`、`impact_id`（如已确定）、`ai_prd_req_id`、`layer`、`code_anchor id/file/symbol/line`、`confidence`、`evidence source`。
-- 每个 code anchor 必须说明是由 rg、GitNexus/reference、源码阅读还是推断得到。
+- 每个 code anchor 必须说明是由 rg、reference/index、源码阅读还是推断得到。
 - 低置信度 anchor 必须进入 report 风险或 plan 假设。
 
 ## context/evidence.yaml

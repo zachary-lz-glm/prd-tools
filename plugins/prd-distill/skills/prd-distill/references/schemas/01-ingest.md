@@ -12,7 +12,7 @@
 | `media-analysis.yaml` | 图片分析状态和摘要；Claude 用 Read 工具（原生多模态）直接查看图片后填写。类型：`ui_screenshot | flowchart | data_chart | table_image | decoration`。每条包含：文件名、类型、关键信息摘要、置信度 | 不确认的图片内容只能产生低置信度问题 |
 | `tables/` | 单独抽出的表格 markdown | 不修复原表格，只保留转换结果 |
 | `extraction-quality.yaml` | 读取质量门禁：`pass | warn | block`、统计、风险 | 不写开发计划 |
-| `conversion-warnings.md` | 给人看的转换风险 | 不替代 report.md §11 |
+| `conversion-warnings.md` | 给人看的转换风险 | 不替代 report.md §12 |
 
 `extraction-quality.yaml` 示例：
 
@@ -92,5 +92,5 @@ media:
 质量规则：
 
 - `block`：暂停蒸馏，要求用户提供 markdown/text。
-- `warn`：允许继续，但必须在 `report.md` §11 中暴露风险。
+- `warn`：允许继续，但必须在 `report.md` §12 中暴露风险。
 - Claude 看图提取的信息置信度为 `medium`（AI 视觉理解），关键结论仍需文本证据或人工确认才能升为 `high`。

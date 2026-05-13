@@ -8,10 +8,10 @@
 
 ```text
 PRD raw file/text
-  → /prd-distill spec      (Steps 0→1→1.5→2)
-  → /prd-distill report    (Steps 2.5→3.1→3.2→4→8→8.1)
-  → user confirmation      (report-confirmation.yaml)
-  → /prd-distill plan      (Steps 5→6→8.5→8.6→9)
+  → /prd-distill spec      (Steps 0 → 1 → 1.5-afprd → 1.5-quality → 2)
+  → /prd-distill report    (Steps 2.5 → 3.1 → 3.2 → 3.5 → 3.6 → 4 → 8 → 8.1)
+  → user confirmation      (report-confirmation.yaml: approved)
+  → /prd-distill plan      (Steps 5 → 6 → 7 → 8.5 → 8.6)
 ```
 
 每个阶段的核心问题：
@@ -169,71 +169,9 @@ _ingest/
 
 ### spec/ai-friendly-prd.md
 
-AI-friendly PRD 必须使用 13 个固定章节：
+AI-friendly PRD 必须使用 **13 个固定英文章节**：Overview / Problem Statement / Target Users / Goals & Success Metrics / User Stories / Functional Requirements / Non-Functional Requirements / Technical Considerations / UI/UX Requirements / Out of Scope / Timeline & Milestones / Risks & Mitigations / Open Questions。
 
-```markdown
-# AI-friendly PRD: <title>
-
-## 1. Overview
-说明需求背景、业务目标、产品范围。
-
-## 2. Problem Statement
-说明要解决的问题、当前痛点、为什么要做。
-
-## 3. Target Users
-列出角色、用户群、使用场景。
-
-## 4. Goals & Success Metrics
-列出目标和可衡量指标。
-如果原 PRD 没有指标，必须标注：`Missing confirmation`。
-
-## 5. User Stories
-用统一格式：
-- As a <role>, I want <capability>, so that <benefit>.
-每条必须有 source 标记。
-
-## 6. Functional Requirements
-原子化需求列表。
-格式：
-- REQ-001
-  - Priority: P0/P1/P2
-  - Statement:
-  - Source: explicit | inferred | missing_confirmation
-  - Evidence: 原 PRD 摘要或位置描述
-  - Acceptance Criteria:
-    - AC-001:
-
-## 7. Non-Functional Requirements
-性能、权限、兼容性、稳定性、国际化、可观测性等。
-没有则写 `No explicit NFR found`，不能编造。
-
-## 8. Technical Considerations
-接口、字段、枚举、状态、配置、数据流、前端/BFF/后端边界。
-不确定的写 `Needs owner confirmation`。
-
-## 9. UI/UX Requirements
-页面、表单、组件、文案、错误提示、预览、交互。
-没有明确 UI 描述则写缺失。
-
-## 10. Out of Scope
-明确不做什么。
-如果原 PRD 没写，列出 inferred risks，不要当事实。
-
-## 11. Timeline & Milestones
-里程碑、灰度、上线、依赖。
-原 PRD 没有则标 missing。
-
-## 12. Risks & Mitigations
-列出冲突、歧义、缺字段、跨团队依赖、实现风险。
-
-## 13. Open Questions
-必须列出所有需要 owner 确认的问题。
-每条包含：
-- Question
-- Why it matters
-- Blocking level: P0/P1/P2
-- Suggested owner: PM/FE/BFF/BE/QA/Unknown
-```
+完整章节模板、每章节的占位规则（含 `Missing confirmation` / `No explicit NFR found` / `Needs owner confirmation` 等）见 **`references/output-contracts.md` § spec/ai-friendly-prd.md**（SSOT）。本文件只维护 Source 标记规则与 Self-Check。
 
 ### Source 标记规则
 
@@ -458,7 +396,10 @@ phases:
 
 始终生成 `context/graph-context.md`，记录实际执行的搜索查询、命中结果和**reference 消费记录**（从哪些 reference 文件提取了哪些路由/规则/实体）。
 
-**门禁检查**：graph-context.md 中至少 30% 的线索应来自阶段 1-2（reference/index），否则在 readiness-report 中标记 `reference_underconsumed`。
+**门禁检查（reference 存在时强制）**：
+- graph-context.md 中**每个**关键 IMP 至少 1 条线索来自阶段 1-2（标 `source: reference_routing` 或 `source: index_query`），并能在 evidence.yaml 中找到对应的 reference 消费记录（`EV-REF-CONSUMED`）。
+- 全部线索都来自 `code_scan`（grep）→ 必须在 readiness-report 标记 `reference_underconsumed`，并在 §12 暴露原因（如"reference 路由表未命中本次 PRD 关键词"）。
+- 这是 LLM 可自检的弱门禁；具体百分比阈值不强制，但只有阶段 3 (rg/glob) 命中是反模式。
 
 **推测信息约束**：所有"推测"/"speculative"信息（如未确认的接口路径、未验证的调用关系）必须加 `⚠ speculative, confidence=<low|medium>, verify before use` 前缀，否则不得出现在 `graph-context.md` 中。
 
@@ -525,7 +466,7 @@ ADD/MODIFY/DELETE/NO_CHANGE 必须由源码或负向搜索支撑。
 源码扫描增强：
 
 - 优先消费 `context/graph-context.md`，不要在 plan/report 阶段重新凭空猜函数。
-- 将源码扫描命中的符号写入 impact 条目的 `code_anchors` 和 `graph_evidence_refs`（aspirational，尚未在 schema 中定义）。
+- 将源码扫描命中的符号写入 impact 条目的 `code_anchors`。
 - 将业务约束写入 impact 条目的 `business_constraints`。
 
 ### 3.4 Report / Plan 消费约束
@@ -589,7 +530,6 @@ findings:
 - alignment_status
 - checked_by
 - evidence
-- graph_evidence_refs（可选，源码扫描命中时填充）
 
 判断：
 
@@ -685,7 +625,6 @@ suggestions:
       related_repos: []
       aggregation_status: "candidate | confirmed | rejected | not_applicable"
     evidence: ["EV-001"]
-    graph_context_refs: []  # aspirational：尚未在 schema 中定义
     priority: "high | medium | low"
     confidence: "high | medium | low"
     proposed_patch: ""
@@ -726,11 +665,12 @@ suggestions:
 
 报告里不要隐藏低置信度项；低置信度是价值，不是瑕疵。**线索式证据不能省略**：代码注释、已有结构体名、文件路径等线索必须保留。
 
-**团队模式 report §10**：必须包含 4 个显式子节：
+**report §10 强制 5 个子节**（单仓和团队模式一致）：
 - §10.1 Frontend：前端层 IMP 和契约
 - §10.2 BFF：BFF 层 IMP 和契约
 - §10.3 Backend：后端层 IMP 和契约
 - §10.4 External：外部系统影响（如有）
+- §10.5 跨层对齐风险：`consumers - checked_by` 不为空 / `alignment_status: blocked` 等
 
 ## 步骤 8.1：Report Review Gate（人类确认）
 
@@ -819,7 +759,7 @@ summary:
   top_gaps: []
 ```
 
-触发时机：步骤 8（report.md）完成后。
+触发时机：步骤 5（plan.md / team-plan.md）完成后，属于 plan 阶段产物（与 Stage 3 允许产物列表一致）。
 
 **团队模式**：检查 `team-plan.md` + `plans/` 目录（而非 `plan.md`）。
 
@@ -852,19 +792,6 @@ python3 .prd-tools/scripts/quality-gate.py distill \
 
 - exit code 2（fail）：必须补缺失文件，不得宣称 /prd-distill 完成。
 - exit code 0（pass 或 warning）：可以完成，但 warning 必须写入 report 或最终回复。
-
-## 步骤 8.6.1：Gate 检查清单
-
-> 条件步骤：运行 `quality-gate.py distill`，确认所有 gate 通过。
-
-**输入**：所有 context 文件、report.md、plan.md
-
-**输出**：无文件产出（gate 检查结果）
-
-**检查项**：
-
-1. 运行 `python3 .prd-tools/scripts/quality-gate.py distill --distill-dir _prd-tools/distill/<slug> --repo-root .`，exit code 不为 2。
-2. gate 通过即可完成。
 
 ## 暂停条件
 

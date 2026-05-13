@@ -182,7 +182,6 @@ context/report-confirmation.yaml status: approved
 ```text
 _prd-tools/distill/<slug>/
 ├── plan.md
-├── portal.html
 └── context/
     ├── readiness-report.yaml
     ├── final-quality-gate.yaml

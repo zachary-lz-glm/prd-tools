@@ -39,6 +39,10 @@
 | **B2** 健康检查 | 检查是否过期、缺证据、边界混乱 | 怀疑知识库过期时 |
 | **C** 质量门控 | 证据追溯、契约闭环、幻觉风险检查 | 上线前质量确认 |
 | **E** 反馈回流 | 从 prd-distill 输出回收新知识 | PRD 交付完成后 |
+| **T** 团队聚合 | 在团队仓聚合 N 个成员仓的 reference | 团队仓 (`layer: team-common`) |
+| **T2** 团队继承 | 成员仓继承团队公共事实（fatal 规则强制覆盖） | 成员仓配置了 `team_reference.upstream_local_path` |
+
+/reference 进入时必须先做模式选择（Mode Selection Gate），不允许默认全自动跑。
 
 ## 什么时候用
 
@@ -46,6 +50,7 @@
 - **项目结构、接口或业务规则大改** — Mode B 或 Mode A
 - **PRD 交付后想沉淀经验** — Mode E
 - **怀疑知识库过期或有幻觉** — 先 Mode B2，再 Mode C
+- **多团队共享领域知识** — 团队仓 Mode T 聚合，成员仓 Mode T2 继承
 
 **不适合的场景：** 只是解释代码、直接改代码、没有源码也没有上下文。
 
@@ -68,4 +73,4 @@ A: 建议 `.gitignore` 排除。这是本地生成的知识库，每个开发者
 A: 前端、BFF、后端都支持。通过能力面适配器自动识别项目层级和结构。
 
 **Q: 多仓项目怎么办？**
-A: 每个仓独立维护自己的 `_prd-tools/reference/`。跨仓契约标记为待确认状态。
+A: 单仓维护：每个仓独立维护自己的 `_prd-tools/reference/`，跨仓契约标记为待确认。多团队协作：使用团队模式——在独立的团队仓执行 Mode T 聚合各成员仓 reference 为 `team/*.yaml`，成员仓用 Mode T2 继承团队公共事实（domain_terms / contracts_cross_repo / coding_rules_fatal）。

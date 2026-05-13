@@ -19,11 +19,11 @@
 > 2. 是模板错了还是产物错了？
 > 3. 不要为了通过检查就编造/删除证据。
 
-> **跨步骤交叉引用**：本文件声称覆盖 gate steps 0, 1, 1.5-afprd, 1.5-quality, 2，但正文仅详述 Step 0（PRD Ingestion）和 Step 2（Requirement IR）。Step 1（Evidence Ledger）和 Step 1.5（AI-friendly PRD）的完整指令见 workflow.md 对应步骤段落。
+> **范围声明**：本文件覆盖 spec 阶段 5 个 gate step（0 / 1 / 1.5-afprd / 1.5-quality / 2）的共享约束和入口指引。每个 step 的完整指令以 workflow.md 对应段落为 SSOT，本文件只给跨步骤的入口规则和 Pre-flight 检查。
 >
 > 宁可让 gate 报 fail，也不要让产物偏离原文。
 
-# 步骤 1：证据与 Requirement IR
+# spec 阶段入口（Step 0 → 1 → 1.5-afprd → 1.5-quality → 2）
 
 ## Pre-flight
 
@@ -69,7 +69,7 @@ EOF
 - 图片定位：解析 `word/document.xml` 中的 `<w:drawing>` 或 `<w:pict>` 标签，在纯文本对应位置插入 `![image-N](media/imageN.png)` 占位标记，Claude 后续可用 Read 工具直接查看图片内容。
 - Claude 原生支持图片理解（多模态），提取后直接用 Read 工具读取 `_ingest/media/imageN.png`，无需第三方 Vision API。
 - 表格基本结构会保留（行会用换行分隔），但复杂格式可能丢失。
-- 格式丢失时 `extraction-quality.yaml` 标记 `warn`，在 `report.md` §11 暴露。
+- 格式丢失时 `extraction-quality.yaml` 标记 `warn`，在 `report.md` §12 暴露。
 - 图片分析结果写入 `_ingest/media-analysis.yaml`：每张图片的文件名、类型（UI截图/流程图/数据图表/装饰图）、关键信息摘要、置信度。
 
 ## 目标

@@ -6,29 +6,27 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 ## [2.19.1] - 2026-05-13
 
 ### Added
-- feat: 团队级 prd-distill 模式（v2.20 team distill）
+- feat: 团队级 prd-distill 模式（自动检测 `layer: team-common`，产出 `team-plan.md` + `plans/plan-{repo}.md`，§10 强制 5 子节）
 
 ### Changed
-- Revert "refactor: 消除跨插件 5 个重复文件，提取到 _shared 并用 symlink 引用"
-- Revert "refactor: 删除 symlink，共享文件只存 _shared 一份，更新 hook 和路径引用"
-- refactor: 删除 symlink，共享文件只存 _shared 一份，更新 hook 和路径引用
-- refactor: 消除跨插件 5 个重复文件，提取到 _shared 并用 symlink 引用
-- refactor: 合并 7 个 gate 脚本为统一 quality-gate.py，step ordering 回归 markdown
-- refactor: 移除 Portal 可视化页面系统，移除 label_source 机制
+- refactor: 合并 7 个 gate 脚本为统一 `quality-gate.py`（子命令：reference / distill / final）
+- refactor: 移除 Portal 可视化页面系统（portal.html 不再生成）
 - refactor: 消除 prd-tools 中 Dive 项目硬编码假设，改为从 reference 数据动态构建
 
-- refactor: 消除 prd-tools 中 Dive 项目硬编码假设，改为从 reference 数据动态构建
+## [2.19.0] - 2026-05-13
 
 ### Added
 - feat(team-ref): [P1-4] introduce team common reference scaffolding (aggregation + inheritance)
 - feat(scripts): [P1-1] add ingest-docx.py to replace ad-hoc XML parsing in Step 0
 
 ### Changed
-- refactor(audit): self-audit postfix P2 — 13/13 fixes
+- refactor(audit-p2): [P2-11] portal EV full-set self-check + speculative tagging
 - refactor(audit-p2): [P2-9] unify plan.md section count to 11 across docs
+- refactor(audit-p2): [P2-8] step-04-portal current_step aligns to gate --step 9
 - refactor(audit-p2): [P2-7] materialize Phase 3.6 Critique Pass in workflow.md
 - refactor(audit-p2): [P2-6] split duplicate Step 8.6 headings
 - refactor(audit-p2): [P2-5] remove deprecated graph/ subtree from output-contracts
+- refactor(audit): self-audit postfix P2 — 13/13 fixes
 
 ### Fixed
 - fix(audit-p2): [P2-2] step-03-confirm.md inline HARD STOP instruction between report and plan
@@ -59,19 +57,18 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 - fix(audit-p1): [P1-6] enforce IR ↔ ai-friendly-prd REQ id consistency
 - fix(audit-p1): [P1-4] fix duplicate step number in step-01-parse.md
 - fix(audit-p1): [P1-3] align source_blocks / source_block_ids semantics
-- fix(audit-p1): [P1-2] SKILL.md lists distill-workflow-gate.py
 - fix(audit-p1): [P1-1] normalize smart quotes in workflow.md yaml templates
 - fix(audit-p0): [P0-5] code_scan must cover build/ for registry changes
 - fix(audit-p0): [P0-4] align contract-delta.contract.yaml with real schema
 - fix(audit-p0): [P0-2] remove duplicate Step 2.5/2.6 in workflow.md
 - fix: 全盘修复 gate/workflow/command 一致性问题
 
-- fix: 全盘修复 gate/workflow/command 一致性问题
+## [2.18.1] - 2026-05-12
 
 ### Added
 - feat: Evidence Index 准确性提升 — 多行签名、跨文件边、增量更新、领域术语桥接
 
-- feat: Evidence Index 准确性提升 — 多行签名、跨文件边、增量更新、领域术语桥接
+## [2.18.0] - 2026-05-12
 
 ### Added
 - Artifact Contract MVP：validate-artifact.py + 4 个 contract 文件

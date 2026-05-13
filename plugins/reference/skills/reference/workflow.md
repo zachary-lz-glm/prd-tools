@@ -280,6 +280,27 @@ python3 .prd-tools/scripts/quality-gate.py reference --root .
 
 用户确认后再修改 reference，并更新 `last_verified`。
 
+## Mode → 阶段映射（B / B2 / C / E 可执行清单）
+
+`F` 和 `A` 走完整阶段 0-3.6。其他模式按下表只跑必要阶段，避免重复全量构建：
+
+| 模式 | 跑哪些阶段 | 跳过 | 关键产物 | 完成判定 |
+|------|-----------|------|---------|---------|
+| **F** 上下文收集 | 阶段 0 | 1/2/3/3.5/3.6 | `build/context-enrichment.yaml` | 至少 1 个 sample 含 lessons[] |
+| **A** 全量构建 | 阶段 1 → 2 → 3 → 3.5 → 3.6 | — | `reference/01-05.yaml` + `project-profile.yaml` + `index/` | Completion Gate exit ≠ 2 |
+| **B** 增量更新 | 阶段 1（增量扫 git diff 影响的模块）→ 阶段 2 的相关子阶段（只重写涉及的 yaml）→ 阶段 3.5（增量 build-index，默认无 `--full`）→ 阶段 3.6 | 阶段 0；阶段 2 中未受影响的子阶段 | 受影响的 yaml 文件 + 更新后的 `index/manifest.yaml` | Completion Gate exit ≠ 2 且只动了"应该动"的文件 |
+| **B2** 健康检查 | 阶段 3 + last_verified 检查 + index 与源码一致性 | 阶段 0/1/2/3.5（不重建） | `build/health-check.yaml`（含 stale_entries / missing_evidence / index_drift） | 报告 status: pass/warning/fail |
+| **C** 质量门控 | 阶段 3 only | 阶段 0/1/2/3.5（信任已有产物） | `build/quality-report.yaml` | fatal_findings 为空 |
+| **E** 反馈回流 | 阶段 4 | 其他全部 | `build/feedback-report.yaml` + 受影响的 `reference/*.yaml`（仅有证据的建议被应用） | 所有 suggestion 已 dispositioned (apply / reject / defer) |
+| **T** 团队聚合 | 阶段 5（详解见下文） | 单仓阶段全部 | `team/*.yaml` + `snapshots/{layer}/{repo}/` + `build/aggregation-report.yaml` + `build/conflicts.yaml` | conflicts.yaml total_conflicts 已处理或归档 |
+| **T2** 团队继承 | 阶段 6（详解见下文） | 单仓阶段全部 | 更新后的本仓 `reference/*.yaml`（带 `source: team-common`） | `project-profile.yaml` 的 `team_reference.last_synced` 更新 |
+
+**Mode B/B2/C/E 共同规则**：
+
+- 执行前必须读 `_prd-tools/build/reference-workflow-state.yaml`，确认上次完成态。
+- 不允许"顺手补全"非本模式应该动的文件（典型陷阱：Mode B2 只是检查健康，不能直接改 yaml；发现问题写到 health-check.yaml 让用户决定走 B 还是 A）。
+- 结束时更新 `reference-workflow-state.yaml` 的 `mode` / `completed_at` / `last_verified`。
+
 ## 阶段 T-init：团队仓库初始化
 
 > **定位**：在空团队仓库中引导初始化，创建配置和目录结构，运行首次聚合。
@@ -385,7 +406,7 @@ prd-tools 自动维护的团队级公共知识库。
 当成员仓库的 reference 更新后，在本仓库重新运行 `/reference Mode T`。
 ```
 
-## 阶段 5：团队聚合（Mode T）
+## 阶段 5：团队聚合（Mode T 详解）
 
 > **定位**：在团队仓执行，从各成员仓的 `_prd-tools/reference/` 聚合事实到团队仓 `team/`。
 
@@ -456,7 +477,7 @@ conflicts:
 | `coding_rule_conflict` | 同一 rule_id 在不同仓有不同描述 | 对齐规则描述后重新聚合 |
 | `playbook_layer_steps_conflict` | 多仓为同一 playbook 的同一层写了 steps | 确定一个 `playbook_owner`，其他仓删除该层 steps |
 
-## 阶段 6：团队继承（Mode T2）
+## 阶段 6：团队继承（Mode T2 详解）
 
 > **定位**：在成员仓执行，从团队仓 `team/` 继承公共事实到本仓 `_prd-tools/reference/`。
 
@@ -465,6 +486,16 @@ conflicts:
 - `project-profile.yaml` 的 `team_reference.upstream_local_path` 指向团队仓本地路径
 - `team_reference.inherit_scopes` 已配置继承范围
 - 团队仓已运行过 Mode T 聚合
+
+**前置失败处理**：
+
+| 检测项 | 失败时行为 |
+|-------|-----------|
+| `upstream_local_path` 字段未配置 | 停止，提示用户在 `project-profile.yaml` 配置后重试 |
+| `upstream_local_path` 指向的目录不存在 | 停止，输出 `unreachable_upstream` 错误：提示用户 `git clone` 或 `git pull` 团队仓到该路径，或修正路径 |
+| 团队仓存在但 `team/` 目录缺失 | 停止，输出 `team_not_aggregated` 错误：提示先在团队仓运行 `/reference` Mode T 完成聚合 |
+| 团队仓 `team/01-05.yaml` 部分缺失 | 部分继承：只继承存在且非空的 scope；缺失的 scope 写入 `_prd-tools/build/inherit-skipped.yaml` 让用户感知 |
+| 团队仓的某条目 `source: team-common` 但无 `evidence` | 跳过该条目（不允许继承无证据事实），记入 `inherit-skipped.yaml` |
 
 **执行步骤**：
 

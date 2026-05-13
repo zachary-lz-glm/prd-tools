@@ -97,7 +97,7 @@ _prd-tools/distill/<slug>/
 | `media-analysis.yaml` | 图片分析状态和摘要。顶层字段 `media`（权威）是数组，每条含 `file / type / summary / confidence`；`images`/`items` 仅为兼容旧产物。类型：`ui_screenshot | flowchart | data_chart | table_image | decoration` | 不确认的图片内容只能产生低置信度问题 |
 | `tables/` | 单独抽出的表格 markdown | 不修复原表格，只保留转换结果 |
 | `extraction-quality.yaml` | 读取质量门禁：`pass | warn | block`、统计、风险 | 不写开发计划 |
-| `conversion-warnings.md` | 给人看的转换风险 | 不替代 report.md §11 |
+| `conversion-warnings.md` | 给人看的转换风险 | 不替代 report.md §12 |
 
 `extraction-quality.yaml` 示例：
 
@@ -408,7 +408,7 @@ coverage:
 - **自然语言为主**，避免纯 YAML/JSON 格式；用 Markdown 表格提高可扫描性。
 - **具体到文件路径**：每个变更项都带目标文件路径（如 `model/business_object/xxx/`）。
 - **关联 ID**：每个条目引用 REQ-*/IMP-*/CONTRACT-*，方便跳到 context/ 查证。
-- **不隐藏低置信度**：低置信度项用 ⚠ 标注，进入 §11.2。
+- **不隐藏低置信度**：低置信度项用 ⚠ 标注，进入 §12 阻塞问题与待确认项。
 - **Checklist 可直接执行**：开发人员拿到就能按步骤干活。
 - **线索式证据不能省略**：代码注释、已有结构体名、文件路径等线索必须保留（如 `proxy/bpm.go:311 注释暗示冲单挑战系统已存在`）。这些线索对开发定位问题有极高价值。
 - **P0/P1 需求细节必须显性披露**：券批次/券张数/互斥、折扣卡 Card ID/数量/有效期/城市校验、EventRule、Budget/GMV、Push 占位符不能只存在于 `context/`，必须在 report 的字段、校验、阻塞或 open question 中出现。
@@ -596,7 +596,7 @@ coverage:
 - 所有 GCTX 条目必须被 `plan.md` 或 `report.md` 消费，未消费要说明原因。
 - 每个 GCTX entry 必须引用 `requirement_id`、`impact_id`（如已确定）、`ai_prd_req_id`、`layer`、`code_anchor id/file/symbol/line`、`confidence`、`evidence source`。
 - graph-context 不只是代码扫描摘要，要成为 REQ→代码证据链的一部分。
-- 每个 code anchor 必须说明是由 rg、GitNexus/reference、源码阅读还是推断得到。
+- 每个 code anchor 必须说明是由 rg、reference/index、源码阅读还是推断得到。
 - 低置信度 anchor 必须进入 report 风险或 plan 假设。
 - 新增 §3 Code Anchor 汇总表，为 report/plan 提供可直接引用的锚点清单。
 
