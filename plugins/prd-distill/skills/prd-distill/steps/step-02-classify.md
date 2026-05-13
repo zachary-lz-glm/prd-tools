@@ -42,7 +42,7 @@
   - `04-routing-playbooks.yaml`：路由表——确定每个 REQ 的 target_surfaces。
   - v3.1 兼容：`01-entities.yaml`、`02-architecture.yaml`、`03-conventions.yaml`、`04-constraints.yaml`、`08-contracts.yaml`、`09-playbooks.yaml`
 - `context/query-plan.yaml`（如步骤 2.5 已生成，**必须消费**）
-- `../../../_shared/references/layer-adapters.md`
+- `references/layer-adapters.md`
 
 ## 执行
 
@@ -163,7 +163,7 @@ Self-check：团队模式下，graph-context.md 中不应出现 `source: code_sc
 > - `[M]` 条目必须逐条列出 `verify: <命令>` 与 `expect: <结果>`，未通过不得进下一步。
 > - `[H]` 条目作为判读提示，LLM 自检后必须写入 workflow-state.yaml 的 `self_check_notes[step_id]` 数组，内容为"我为什么认为这条满足"的简短解释。
 
-- [ ] [M] 每个 IMP-* 项的 surface 使用 ../../../_shared/references/layer-adapters.md 中定义的能力面名称
+- [ ] [M] 每个 IMP-* 项的 surface 使用 layer-adapters.md 中定义的能力面名称
 - [ ] [M] MODIFY/DELETE 类型的 IMP 有源码证据（不只是 reference 标记）
 - [ ] [M] ADD 类型有 negative_code_search 证据或参考实现路径
 - [ ] [M] graph-context.md 中每个 GCTX 条目都被 plan.md 或 report.md 引用

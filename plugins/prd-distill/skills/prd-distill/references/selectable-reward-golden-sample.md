@@ -1,0 +1,1 @@
+../../../../_shared/references/selectable-reward-golden-sample.md

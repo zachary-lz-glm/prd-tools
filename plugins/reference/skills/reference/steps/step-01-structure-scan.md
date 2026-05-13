@@ -1,7 +1,7 @@
 <workflow_state>
   <workflow>reference</workflow>
   <current_step>1</current_step>
-  <allowed_inputs>project directory, ../../../_shared/references/layer-adapters.md</allowed_inputs>
+  <allowed_inputs>project directory, references/layer-adapters.md</allowed_inputs>
   <must_not_read_by_default>_prd-tools/reference/01-codebase.yaml</must_not_read_by_default>
   <must_not_produce>_prd-tools/reference/01-codebase.yaml</must_not_produce>
 </workflow_state>
@@ -23,7 +23,7 @@
 
 - 当前项目路径或用户提供的路径。
 - 可选层级提示：`frontend | bff | backend | multi-layer`。
-- `../../../_shared/references/layer-adapters.md`。
+- `references/layer-adapters.md`。
 
 ## 执行
 
@@ -37,7 +37,7 @@
 ### 2. 层级判断与适配器加载
 
 5. 根据代码形态判断层级；不确定时让用户确认。
-6. 加载对应能力面适配器（`../../../_shared/references/layer-adapters.md`），路径只作为候选。
+6. 加载对应能力面适配器（`references/layer-adapters.md`），路径只作为候选。
 
 ### 3. 能力面识别
 

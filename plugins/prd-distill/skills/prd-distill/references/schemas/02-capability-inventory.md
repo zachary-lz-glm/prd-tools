@@ -1,0 +1,1 @@
+../../../../../_shared/references/schemas/02-capability-inventory.md

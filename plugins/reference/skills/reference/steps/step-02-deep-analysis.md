@@ -1,7 +1,7 @@
 <workflow_state>
   <workflow>reference</workflow>
   <current_step>2</current_step>
-  <allowed_inputs>_prd-tools/build/modules-index.yaml, references/reference-v4.md, ../../../_shared/references/layer-adapters.md, templates/, ../../../_shared/references/output-contracts.md</allowed_inputs>
+  <allowed_inputs>_prd-tools/build/modules-index.yaml, references/reference-v4.md, references/layer-adapters.md, templates/, references/output-contracts.md</allowed_inputs>
   <must_not_read_by_default>prd-distill schemas, _prd-tools/distill/</must_not_read_by_default>
   <must_not_produce>report.md, plan.md</must_not_produce>
 </workflow_state>
@@ -33,8 +33,8 @@ _prd-tools/reference/05-domain.yaml
 - `_prd-tools/build/modules-index.yaml`
 - `_prd-tools/build/context-enrichment.yaml`，如存在
 - `references/reference-v4.md`
-- `../../../_shared/references/layer-adapters.md`
-- `../../../_shared/references/output-contracts.md`（索引，按需加载 `schemas/` 下具体 schema）
+- `references/layer-adapters.md`
+- `references/output-contracts.md`（索引，按需加载 `schemas/` 下具体 schema）
 - `templates/` 下的模板
 
 ## 执行

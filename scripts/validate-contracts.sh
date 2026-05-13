@@ -56,7 +56,8 @@ current_contract_files=(
   "plugins/prd-distill/skills/prd-distill/SKILL.md"
   "plugins/prd-distill/skills/prd-distill/workflow.md"
   "plugins/prd-distill/skills/prd-distill/steps/step-03-confirm.md"
-  "plugins/_shared/references/output-contracts.md"
+  "plugins/reference/skills/reference/references/output-contracts.md"
+  "plugins/prd-distill/skills/prd-distill/references/output-contracts.md"
 )
 
 check_absent 'questions\.md.*(默认|生成|读|输出|不替代|清单|阻塞|owner|证据链|artifacts)' \
@@ -68,8 +69,10 @@ check_absent 'graph_source:' \
   "plugins/reference/skills/reference/workflow.md" \
   "plugins/reference/skills/reference/references/reference-v4.md"
 
-if [ ! -f "plugins/_shared/references/output-contracts.md" ]; then
-  fail "plugins/_shared/references/output-contracts.md must exist."
+if ! cmp -s \
+  "plugins/prd-distill/skills/prd-distill/references/output-contracts.md" \
+  "plugins/reference/skills/reference/references/output-contracts.md"; then
+  fail "The shared output-contracts.md copies must stay identical across both plugins."
 fi
 
 if [ "$errors" -gt 0 ]; then

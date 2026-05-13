@@ -1,6 +1,6 @@
 # prd-distill 工作流
 
-> **加载指引**：每个 step 只需加载 workflow.md 对应段落 + step 文件 + ../../../_shared/references/output-contracts.md 对应 schema 段，不需要全文加载。按需读取可显著降低 attention decay。
+> **加载指引**：每个 step 只需加载 workflow.md 对应段落 + step 文件 + output-contracts.md 对应 schema 段，不需要全文加载。按需读取可显著降低 attention decay。
 
 ## 目标
 
@@ -22,7 +22,7 @@ PRD raw file/text
 | report | 这个 PRD 放到当前项目会影响什么 | 必须读 reference / index / 源码 | 必须确认 |
 | plan | 在确认后的影响分析基础上怎么实施 | 只消费确认后的 report 和 context | 不再重新解释 PRD |
 
-主流程对前端、BFF、后端通用；层差异通过 `../../../_shared/references/layer-adapters.md` 的能力面适配器生效。默认给人看轻量输出，机器可读细节放入 `context/`。
+主流程对前端、BFF、后端通用；层差异通过 `references/layer-adapters.md` 的能力面适配器生效。默认给人看轻量输出，机器可读细节放入 `context/`。
 
 短入口：
 
@@ -259,7 +259,7 @@ AI-friendly PRD 必须使用 13 个固定章节：
 
 ### context/prd-quality-report.yaml
 
-格式见 `../../../_shared/references/output-contracts.md` 中 `context/prd-quality-report.yaml` 章节。
+格式见 `references/output-contracts.md` 中 `context/prd-quality-report.yaml` 章节。
 
 评分规则（总分 100）：
 

@@ -26,7 +26,7 @@
 - PRD 路径或粘贴文本。
 - 可选兄弟项目路径。
 - 可选上游 API/技术方案路径。
-- `../../../_shared/references/layer-adapters.md` 中当前层章节。
+- `references/layer-adapters.md` 中当前层章节。
 - `templates/` 下的 v4 模板。
 
 ## 输出

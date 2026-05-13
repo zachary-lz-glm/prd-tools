@@ -110,8 +110,8 @@ capability_surfaces:
 
 每个子步骤独立读取所需的参考文件：
 - `steps/step-02-deep-analysis.md` 包含 5 个阶段的完整生成指令、边界规则、去重检查和输出质量标准
-- 共享规则：`references/reference-v4.md` 的文件边界规则、`../../../_shared/references/layer-adapters.md` 的能力面适配器
-- 读取 `../../../_shared/references/output-contracts.md` 索引，按需加载 `schemas/` 下的具体 schema
+- 共享规则：`references/reference-v4.md` 的文件边界规则、`references/layer-adapters.md` 的能力面适配器
+- 读取 `references/output-contracts.md` 索引，按需加载 `schemas/` 下的具体 schema
 
 生成 `_prd-tools/reference/` v4.0：
 
@@ -169,7 +169,7 @@ confidence: "high | medium | low"
 - 证据完整性：实体、路由、契约、playbook 关键项都有 evidence。
 - 源码一致性：路径、枚举值、注册点、模板函数、契约字段仍存在。
 - 契约闭环：跨层字段有 producer / consumer / checked_by / alignment_status。
-- 能力面适配器门控：按 `../../../_shared/references/layer-adapters.md` 检查当前层必需 surface。
+- 能力面适配器门控：按 `references/layer-adapters.md` 检查当前层必需 surface。
 - 边界门控：5 条跨文件边界规则（见 step-03-quality-gate.md）。
 - 幻觉检查：文件、函数、变量、机制不能没有证据。
 - 样例回归：至少用一个 golden sample 反推 PRD -> IR -> Layer Impact -> Contract Delta 是否走通。
