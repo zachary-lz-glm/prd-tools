@@ -86,11 +86,9 @@ Phase 2 deep analysis is strictly ordered — read `steps/step-02-deep-analysis.
    ⚙ Gate: `reference-step-gate.py --step 2c`
 4. Stage 4: `04-routing-playbooks.yaml` (must read 01, 02 first)
    ⚙ Gate: `reference-step-gate.py --step 2d`
-5. Stage 5: `05-domain.yaml` + `00-portal.md` (must read 01–04 first)
+5. Stage 5: \`05-domain.yaml\` (must read 01–04 first)
    ⚙ Gate: `reference-step-gate.py --step 2e`
 6. After all 5 stages: run "去重检查" and "确定性验证"
-7. render `portal.html` with `.prd-tools/scripts/render-reference-portal.py`
-   ⚙ Gate: `reference-step-gate.py --step 3`
 8. build Evidence Index with `.prd-tools/scripts/build-index.py`
    ⚙ Gate: `reference-step-gate.py --step 3.5`
 9. run `.prd-tools/scripts/reference-quality-gate.py --root .`
@@ -114,7 +112,6 @@ Do not claim /reference is complete if any gate exits with code 2. Do not claim 
 
 ## Hard Gates
 
-- Do not handwrite `portal.html`.
 - Do not skip `_prd-tools/reference/index/`.
 - Do not generate `02-coding-rules.yaml` before `01-codebase.yaml` exists.
 - Do not generate `03-contracts.yaml` before `02-coding-rules.yaml` exists.

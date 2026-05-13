@@ -8,10 +8,8 @@ META = {
     "description": "<current_step> in step file matches filename prefix",
 }
 
-# 允许的别名（例如 step-04-portal.md 的 current_step 就是 9，对应 --step 9）
 ALIASES = {
     # key = filename stem, value = allowed current_step values
-    "step-04-portal": {"9"},
 }
 
 STEP_TAG_RE = re.compile(r"<current_step>([\w.-]+)</current_step>")

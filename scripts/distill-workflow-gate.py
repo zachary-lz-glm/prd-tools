@@ -4,8 +4,7 @@ distill-workflow-gate.py — Distill Workflow Order & Completion Gate
 
 Deterministic gate that enforces:
   1. Distill files must be generated in order (_ingest -> spec -> context -> report/plan)
-  2. portal.html must be script-rendered (not handwritten)
-  3. distill-quality-gate.py must pass
+  2. distill-quality-gate.py must pass
 
 Usage:
     python3 scripts/distill-workflow-gate.py \
@@ -121,18 +120,6 @@ WORKFLOW_STEPS = [
         'label': 'Step 8.5: Final Quality Gate',
         'stage': 'plan',
     },
-    {
-        'step': 'distill_completion_gate',
-        'output': None,
-        'label': 'Step 8.6: Distill Completion Gate',
-        'stage': 'plan',
-    },
-    {
-        'step': 'portal',
-        'output': 'portal.html',
-        'label': 'Step 9: Portal HTML',
-        'stage': 'plan',
-    },
 ]
 
 
@@ -234,37 +221,6 @@ def _check_workflow_order(distill_dir, is_team=False):
     }
 
 
-def _check_portal_script_rendered(distill_dir):
-    """Check portal.html exists and has script-rendered marker."""
-    portal_path = distill_dir / 'portal.html'
-    exists = _file_exists_nonempty(portal_path)
-
-    if not exists:
-        return {
-            'status': 'fail',
-            'exists': False,
-            'marker_ok': False,
-            'message': 'portal.html 不存在或为空',
-        }
-
-    text = _read_safe(portal_path)
-    marker_ok = 'data-prd-tools-portal="distill"' in text
-
-    if not marker_ok:
-        return {
-            'status': 'fail',
-            'exists': True,
-            'marker_ok': False,
-            'message': 'portal.html 缺少 data-prd-tools-portal="distill" 标记，可能非脚本渲染',
-        }
-
-    return {
-        'status': 'pass',
-        'exists': True,
-        'marker_ok': True,
-    }
-
-
 def _check_requirement_ir_source(distill_dir):
     """Check requirement-ir.yaml has ai_prd_req_id (must come from afprd)."""
     text = _read_safe(distill_dir / 'context' / 'requirement-ir.yaml')
@@ -330,7 +286,7 @@ def _check_plan_confirmation(distill_dir, is_team=False):
     """Check that plan-stage files only exist when report is approved.
 
     If any plan-stage file exists (plan.md/team-plan.md, readiness-report.yaml,
-    final-quality-gate.yaml, portal.html) but report-confirmation.yaml
+    final-quality-gate.yaml) but report-confirmation.yaml
     is not approved, that's a violation of the three-stage workflow.
     In team mode, also checks that plans/ directory exists with at least one file.
     """
@@ -339,7 +295,6 @@ def _check_plan_confirmation(distill_dir, is_team=False):
         (plan_file_name, 'Step 5: Plan'),
         ('context/readiness-report.yaml', 'Step 6: Readiness'),
         ('context/final-quality-gate.yaml', 'Step 8.5: Final Quality Gate'),
-        ('portal.html', 'Step 9: Portal HTML'),
     ]
 
     existing_plan_files = []
@@ -502,7 +457,6 @@ def run_checks(distill_dir, repo_root):
     results['report_confirmation'] = _check_report_confirmation(base)
     results['plan_confirmation'] = _check_plan_confirmation(base, is_team=is_team)
     results['critique_status'] = _check_critique_status(base)
-    results['portal_html'] = _check_portal_script_rendered(base)
     results['quality_gate'] = _check_quality_gate(base, repo_root)
 
     return results
@@ -582,16 +536,6 @@ def print_summary(results):
     cs = results['critique_status']
     sym = '+' if cs['status'] == 'pass' else ('!' if cs['status'] == 'warning' else 'x')
     print(f'  [{sym}] critique status: {cs.get("message", "")}')
-
-    # Portal html
-    ph = results['portal_html']
-    sym = '+' if ph['status'] == 'pass' else ('!' if ph['status'] == 'warning' else 'x')
-    if ph['exists'] and ph.get('marker_ok'):
-        print(f'  [{sym}] portal.html: script-rendered')
-    elif ph['exists']:
-        print(f'  [{sym}] portal.html: exists but {ph.get("message", "not script-rendered")}')
-    else:
-        print(f'  [{sym}] portal.html: {ph.get("message", "MISSING")}')
 
     # Quality gate
     qg = results['quality_gate']

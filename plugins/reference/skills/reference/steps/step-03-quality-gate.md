@@ -23,7 +23,7 @@
 
 致命项：
 
-- v4 reference 文件缺失（至少需要 00-portal.md 和 01~05 中的 3 个）。
+- v4 reference 文件缺失（至少需要 01~05 中的 3 个）。
 - entity、route、contract 或 playbook 没有 evidence。
 - 引用的文件路径不存在。
 - enum/field/contract 与源码或文档冲突。

@@ -23,7 +23,6 @@ PRD raw file/text
 | step-01-parse.md | 0, 1, 1.5-afprd, 1.5-quality, 2 | spec |
 | step-02-classify.md | 2.5, 3.1, 3.2, 3.5, 3.6, 4 | report |
 | step-03-confirm.md | 8, 8.1-confirm, 5, 6, 7, 8.5, 8.6 | report + plan |
-| step-04-portal.md | 9 | plan |
 
 每个阶段的核心问题：
 
@@ -102,7 +101,6 @@ _prd-tools/distill/<slug>/
 ├── _ingest/
 ├── report.md
 ├── plan.md
-├── portal.html
 └── context/
 ```
 
@@ -785,7 +783,7 @@ blocked_reason: ""
   - 影响范围错 → 修 `context/graph-context.md` 和 `context/layer-impact.yaml`
   - 契约判断错 → 修 `context/contract-delta.yaml`
   - 阻塞项错 → 修 `report.md` §12 和 readiness 输入
-- `blocked` 时，不生成 plan、readiness、final-quality-gate 或 portal。
+- `blocked` 时，不生成 plan、readiness 或 final-quality-gate。
 - 如果用户明确说“跳过确认，直接生成 plan”，也必须写入 `report-confirmation.yaml`，`status: approved`，并在 `approved_sections` 中记录 `user_explicit_skip_review`。
 
 ### Report 质量门禁
@@ -829,7 +827,7 @@ summary:
   top_gaps: []
 ```
 
-触发时机：步骤 8（report.md）完成后、步骤 9（portal.html）之前。
+触发时机：步骤 8（report.md）完成后。
 
 **团队模式**：检查 `team-plan.md` + `plans/` 目录（而非 `plan.md`）。
 
@@ -875,30 +873,7 @@ python3 .prd-tools/scripts/distill-quality-gate.py \
 
 1. 运行 `python3 .prd-tools/scripts/distill-quality-gate.py --distill-dir _prd-tools/distill/<slug> --repo-root .`，exit code 不为 2。
 2. 运行 `python3 .prd-tools/scripts/distill-workflow-gate.py --distill-dir _prd-tools/distill/<slug> --repo-root .`，exit code 不为 2。
-3. 两个 gate 都通过才允许继续 Step 9。
-
-## 步骤 9：Portal HTML 生成
-
-运行脚本生成 `_prd-tools/distill/<slug>/portal.html`，将所有蒸馏产物内联为一个自包含的可视化页面：
-
-```bash
-python3 .prd-tools/scripts/render-distill-portal.py \
-  --distill-dir _prd-tools/distill/<slug> \
-  --template .prd-tools/assets/distill-portal-template.html \
-  --out _prd-tools/distill/<slug>/portal.html
-```
-
-**AI 不得手写 portal.html**，必须通过脚本渲染生成。
-
-详细生成规则见 `steps/step-04-portal.md`。
-
-核心要求：
-
-- 读取全部产出文件（report.md、plan.md、context/*），解析为结构化数据后内联到 HTML。
-- 页面包含 9 个可视化 Section：总览、源码命中、影响分析、契约差异、开发计划、QA 矩阵、阻塞问题、回流建议。
-- 开发计划的 checklist 支持交互式勾选，状态持久化到 localStorage。
-- 零外部依赖，file:// 协议可用，双击即可在浏览器中打开。
-- 生成后告知用户文件路径。
+3. 两个 gate 都通过即可完成。
 
 ## 暂停条件
 
@@ -916,7 +891,7 @@ python3 .prd-tools/scripts/render-distill-portal.py \
 3. 业务规则不能只靠前端守。
 4. 多层需求必须给契约计划。
 5. 每个输出都要能回溯 evidence。
-6. 完成后简要告知输出路径、最重要的阻塞/风险，并优先引导用户阅读 `report.md`。同时告知 `portal.html` 可在浏览器中打开查看完整可视化报告。
+6. 完成后简要告知输出路径、最重要的阻塞/风险，并优先引导用户阅读 `report.md`。
 7. **report.md 和 plan.md 是主产物**；query-plan、context-pack、final-quality-gate 是辅助层，不替代主产物的阅读优先级。
 8. **⚠ Reference 强制消费**：`_prd-tools/reference/` 存在时，必须消费。Step 0 消费门禁（路由/规则/契约/术语）→ Step 2.5 桥接 index → Step 3.1 reference-first 扫描。禁止跳过 reference 直接 grep 源码。reference 不存在时，所有涉及 reference 的步骤必须标记缺失并降低置信度。
 9. **三段式硬约束**：

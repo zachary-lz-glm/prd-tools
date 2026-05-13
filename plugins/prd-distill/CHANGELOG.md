@@ -11,9 +11,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ### Changed
 - refactor(audit): self-audit postfix P2 — 13/13 fixes
-- refactor(audit-p2): [P2-11] portal EV full-set self-check + speculative tagging
 - refactor(audit-p2): [P2-9] unify plan.md section count to 11 across docs
-- refactor(audit-p2): [P2-8] step-04-portal current_step aligns to gate --step 9
 - refactor(audit-p2): [P2-7] materialize Phase 3.6 Critique Pass in workflow.md
 - refactor(audit-p2): [P2-6] split duplicate Step 8.6 headings
 - refactor(audit-p2): [P2-5] remove deprecated graph/ subtree from output-contracts
@@ -95,12 +93,10 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 - AI-friendly PRD Compiler：新增 `spec/ai-friendly-prd.md` 和 `context/prd-quality-report.yaml`。
 - requirement-ir 对齐 AI-friendly PRD，新增 `ai_prd_req_id`、source、confirmation、planning eligibility 等字段。
 - REQ → IMP → code_anchor 强绑定，增强 layer-impact、graph-context、report/plan 的可追溯性。
-- 固定模板 + `render-distill-portal.py` 脚本渲染 `portal.html`，避免 AI 每次手写页面导致风格漂移。
-- distill 完成门禁脚本 `distill-quality-gate.py`，检查 AI-friendly PRD、IR、anchors、final gate 和 portal marker。
+- distill 完成门禁脚本 `distill-quality-gate.py`，检查 AI-friendly PRD、IR、anchors、final gate。
 
 ### Fixed
 - 强化 `/prd-distill` 完成门禁：关键产物缺失时不得宣称完成。
-- 修复安装链路，确保 `distill-portal-template.html` 会安装到目标项目 `.prd-tools/assets/`。
 
 ## [2.16.1] - 2026-05-10
 
@@ -114,9 +110,6 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 - prd-distill 支持 `.docx` 输入，提取图片并使用 Claude 原生多模态看图。
 
 ## [2.15.0] - 2026-05-08
-
-### Added
-- prd-distill 新增 `portal.html` 可视化页面生成步骤。
 
 ### Changed
 - 重写 README，强化对外可读性。

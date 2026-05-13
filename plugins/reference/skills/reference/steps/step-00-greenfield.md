@@ -34,7 +34,6 @@
 使用 v4 模板生成 `_prd-tools/reference/`：
 
 ```text
-00-portal.md                # 导航（最后生成）
 project-profile.yaml        # 项目画像（layer 标注 greenfield）
 01-codebase.yaml            # 预期目录结构、枚举、模块
 02-coding-rules.yaml        # 来自兄弟项目的编码规则

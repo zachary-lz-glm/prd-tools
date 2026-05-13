@@ -58,7 +58,7 @@ Allowed outputs:
 - `context/prd-quality-report.yaml`
 - `context/requirement-ir.yaml`
 
-**MUST NOT produce**: `report.md`, `plan.md`, `portal.html`, `context/readiness-report.yaml`, `context/final-quality-gate.yaml`
+**MUST NOT produce**: `report.md`, `plan.md`, `context/readiness-report.yaml`, `context/final-quality-gate.yaml`
 
 ### Stage 2: report
 
@@ -72,13 +72,13 @@ Allowed outputs:
 - `report.md`
 - `context/report-confirmation.yaml`
 
-**MUST NOT produce**: `plan.md`, `portal.html`, `context/readiness-report.yaml`, `context/final-quality-gate.yaml`
+**MUST NOT produce**: `plan.md`, `context/readiness-report.yaml`, `context/final-quality-gate.yaml`
 
 **STOP after Step 8.1**: Ask user to confirm report. Write `context/report-confirmation.yaml` with user's response.
 
 ### Stage 3: plan
 
-Steps: 5 → 6 → 7 → 8.5 → 8.6 → 9
+Steps: 5 → 6 → 7 → 8.5 → 8.6
 
 **Prerequisite**: `context/report-confirmation.yaml` must exist with `status: approved`.
 
@@ -91,7 +91,6 @@ Allowed outputs:
 - `plan.md`
 - `context/readiness-report.yaml`
 - `context/final-quality-gate.yaml`
-- `portal.html`
 
 ## Execution Order (HARD CONSTRAINTS)
 
@@ -141,8 +140,6 @@ Steps are strictly ordered — each step depends on the previous step's output.
    ⚙ Gate: `distill-step-gate.py --step 8.5`
 15. Step 8.6: Distill Completion Gate → run `distill-quality-gate.py`
    ⚙ Gate: `distill-step-gate.py --step 8.6`
-16. Step 9: Portal HTML → render with `render-distill-portal.py`
-   ⚙ Gate: `distill-step-gate.py --step 9`
 
 **Do NOT use background agents for artifact generation.** Only source code reading may be parallelized.
 
@@ -166,11 +163,9 @@ Do not claim /prd-distill is complete if any gate exits with code 2.
 - Ready MODIFY/DELETE work must be connected to layer-impact code anchors or an explicit fallback reason.
 - If `_prd-tools/reference/index/` exists, run `.prd-tools/scripts/context-pack.py`.
 - Generate `context/final-quality-gate.yaml`.
-- Render `portal.html` with `.prd-tools/scripts/render-distill-portal.py`.
 - Run `.prd-tools/scripts/distill-quality-gate.py --distill-dir _prd-tools/distill/<slug> --repo-root .`.
 - Run `.prd-tools/scripts/distill-workflow-gate.py --distill-dir _prd-tools/distill/<slug> --repo-root .`.
 - **Do not generate final `plan.md` before `context/report-confirmation.yaml` exists with `status: approved`.**
-- Do not handwrite `portal.html`.
 - Do not generate `context/requirement-ir.yaml` before `spec/ai-friendly-prd.md` exists.
 - Do not generate `context/layer-impact.yaml` before `context/requirement-ir.yaml` exists.
 - **Before each step, run `distill-step-gate.py` with the step ID. If exit code is 2, stop and complete the missing prerequisite before proceeding.**

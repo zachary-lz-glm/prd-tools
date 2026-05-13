@@ -246,14 +246,6 @@ STEP_TABLE = {
         ],
         "output": [],
     },
-    "9": {
-        "label": "Step 9: Portal HTML",
-        "stage": "plan",
-        "prerequisites": [
-            ("context/final-quality-gate.yaml", "Step 8.5"),
-        ],
-        "output": ["portal.html"],
-    },
 }
 
 # Ordered step sequence for resume pointer
@@ -261,7 +253,7 @@ STEP_TABLE = {
 DISTILL_STEP_ORDER = [
     "0", "1", "1.5-afprd", "1.5-quality", "2",       # spec
     "2.5", "3.1", "3.2", "3.5", "4", "8", "8.1-confirm",    # report
-    "5", "6", "8.5", "8.6", "9",                       # plan
+    "5", "6", "8.5", "8.6",                                  # plan
 ]
 
 
@@ -430,7 +422,7 @@ def run_gate(distill_dir, repo_root, step_id):
 
 def main():
     parser = argparse.ArgumentParser(description="Distill Step Gate — check prerequisites before each step")
-    parser.add_argument("--step", required=True, help="Step ID (e.g., 0, 1, 1.5-afprd, 2, 2.5, 3.1, 3.2, 4, 8, 8.1-confirm, 5, 6, 8.5, 8.6, 9)")
+    parser.add_argument("--step", required=True, help="Step ID (e.g., 0, 1, 1.5-afprd, 2, 2.5, 3.1, 3.2, 4, 8, 8.1-confirm, 5, 6, 8.5, 8.6)")
     parser.add_argument("--distill-dir", "--distill", dest="distill_dir", required=True, help="Path to distill output directory")
     parser.add_argument("--repo-root", "--repo", dest="repo_root", required=True, help="Path to project root directory")
     parser.add_argument("--write-state", action="store_true",

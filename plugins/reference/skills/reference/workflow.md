@@ -116,7 +116,6 @@ capability_surfaces:
 生成 `_prd-tools/reference/` v4.0：
 
 ```text
-00-portal.md                # 人类导航 + 场景阅读指南
 project-profile.yaml        # 项目画像
 01-codebase.yaml            # 静态清单
 02-coding-rules.yaml        # 编码规则
@@ -132,7 +131,6 @@ project-profile.yaml        # 项目画像
 3. 阶段 3：`03-contracts.yaml`（检查 01 去重，移入字段级信息）
 4. 阶段 4：`04-routing-playbooks.yaml`（含 capability_inventory，检查 02 去重）
 5. 阶段 5：`05-domain.yaml` + `00-portal.md`（检查术语与静态事实边界）
-6. 运行脚本生成 `portal.html`：`python3 .prd-tools/scripts/render-reference-portal.py --root . --template .prd-tools/assets/reference-portal-template.html --out _prd-tools/reference/portal.html`（**AI 不得手写 portal.html**，必须通过脚本渲染生成）
 
 每个子步骤文件末尾有 Self-Check 清单，生成后必须逐项验证通过再进入下一步。
 
@@ -167,7 +165,7 @@ confidence: "high | medium | low"
 
 必须检查：
 
-- 文件完整性：`00-portal.md` 存在，`01~05` 中至少 3 个存在。
+- 文件完整性：`01~05` 中至少 3 个存在。
 - 证据完整性：实体、路由、契约、playbook 关键项都有 evidence。
 - 源码一致性：路径、枚举值、注册点、模板函数、契约字段仍存在。
 - 契约闭环：跨层字段有 producer / consumer / checked_by / alignment_status。
@@ -194,8 +192,6 @@ next_actions: []
 ```
 
 致命项不通过时，不要宣称 reference 可用于生产；列出最小修复项。
-
-如果 quality-report 的 status 不是 fail 且 reference 文件有更新，重新运行脚本生成 `portal.html`：`python3 .prd-tools/scripts/render-reference-portal.py --root . --template .prd-tools/assets/reference-portal-template.html --out _prd-tools/reference/portal.html`（**AI 不得手写 portal.html**，必须通过脚本渲染生成），确保可视化页面与最新 reference 数据一致。
 
 ## 阶段 3.5：Evidence Index 构建
 
@@ -247,17 +243,15 @@ python3 .prd-tools/scripts/reference-quality-gate.py --root .
 
 1. required reference files 是否存在且非空
 2. index 四个文件是否存在且非空
-3. portal.html 是否存在且非空
-4. YAML 文件是否基本可读
-5. 关键 reference 文件是否包含 schema_version
-6. 是否存在模糊统计、未证据化 owner/contact、无证据 high confidence（warning）
+3. YAML 文件是否基本可读
+4. 关键 reference 文件是否包含 schema_version
+5. 是否存在模糊统计、未证据化 owner/contact、无证据 high confidence（warning）
 
 门禁规则：
 
 - exit code 2（fail）：必须补缺失文件，不得宣称 /reference 完成。
 - exit code 0（pass 或 warning）：可以完成，但 warning 必须在最终回复中说明。
 - index 缺失时，不得宣称 /reference 完成。
-- portal.html 缺失时，不得宣称 /reference 完成。
 - 最终回复必须列出 index manifest 摘要（实体数、边数、term 数）。
 
 ## 阶段 4：反馈回流

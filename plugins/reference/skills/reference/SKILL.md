@@ -42,13 +42,10 @@ If the step gate exits with code 2 (FAIL):
 
 1. `_prd-tools/reference/` 下 00-05 共 6 个主文件 + `project-profile.yaml` 存在且非空。
 2. 必须运行 `python3 .prd-tools/scripts/build-index.py --repo <项目路径> --out _prd-tools/reference/index`，生成 `index/` 下 4 个文件。
-3. 必须运行 `python3 .prd-tools/scripts/render-reference-portal.py --root . --template .prd-tools/assets/reference-portal-template.html --out _prd-tools/reference/portal.html` 生成 `portal.html`。AI 不得手写 portal.html。
-4. 必须运行 `python3 .prd-tools/scripts/reference-quality-gate.py --root .`，且 exit code 不为 2。
-5. index 缺失时，不得宣称 /reference 完成。
-6. portal.html 缺失时，不得宣称 /reference 完成。
-7. 最终回复必须列出 index manifest 摘要（实体数、边数、term 数）。
-8. quality-gate 报告的 warning 必须在最终回复中说明。
-9. portal.html 是脚本渲染产物，风格由固定模板决定，AI 不得手写或修改其内容。
+3. 必须运行 `python3 .prd-tools/scripts/reference-quality-gate.py --root .`，且 exit code 不为 2。
+4. index 缺失时，不得宣称 /reference 完成。
+5. 最终回复必须列出 index manifest 摘要（实体数、边数、term 数）。
+6. quality-gate 报告的 warning 必须在最终回复中说明。
 
 ## 触发条件
 
@@ -112,14 +109,12 @@ If the step gate exits with code 2 (FAIL):
 
 ```text
 _prd-tools/reference/           # 长期知识库（v4.0，6 文件）
-├── 00-portal.md               # 人类导航 + 场景阅读指南
 ├── project-profile.yaml       # 项目画像
 ├── 01-codebase.yaml           # 代码库静态清单
 ├── 02-coding-rules.yaml       # 编码规则
 ├── 03-contracts.yaml          # 跨层和外部契约
 ├── 04-routing-playbooks.yaml  # PRD 路由信号 + 场景打法
 ├── 05-domain.yaml             # 业务领域知识
-├── portal.html                # 可视化浏览器页面（零外部依赖）
 └── index/                     # Evidence Index（辅助层，v2.16+）
     ├── entities.json          # 代码实体索引
     ├── edges.json             # 实体关系索引
@@ -172,8 +167,7 @@ _prd-tools/build/              # 过程和质量报告
 5. 用 `rg`/glob 找候选，再 Read 源码确认事实。
 6. 生成或更新 `_prd-tools/reference/`。
 7. 构建 Evidence Index（辅助层）：`python3 .prd-tools/scripts/build-index.py --repo <项目路径> --out _prd-tools/reference/index`。
-8. 生成 `portal.html`（详见 `steps/step-05-portal.md`）。
-9. 执行健康检查或质量门控。
+8. 执行健康检查或质量门控。
 10. 给用户摘要：新增/更新文件、质量状态、风险、下一步。
 
 ## 参考文件
@@ -186,8 +180,6 @@ _prd-tools/build/              # 过程和质量报告
 | `references/output-contracts.md` | 输出契约索引（按需加载 `schemas/` 下具体文件） |
 | `templates/*.yaml` | 创建 reference 骨架时 |
 | `references/selectable-reward-golden-sample.md` | 需要示例或校准复杂需求时 |
-| `references/portal-design-system.md` | 生成 portal.html 时读取设计系统 |
-| `steps/step-05-portal.md` | 生成 portal.html 可视化页面时 |
 
 ## 完成标准
 

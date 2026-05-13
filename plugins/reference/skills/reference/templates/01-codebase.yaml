@@ -18,8 +18,7 @@ enums:
     values:
       - name: "<NAME>"
         value: "<value>"
-        label: "<一句话业务含义>"
-        label_source: "<source_comment|i18n|prd|inferred>"  # label 来源，见 step-02 规则 23
+        label: "<一句话业务含义，仅从源码注释/文案提取，无则留空>"
         notes: ""                        # 可选：复杂逻辑/踩坑说明
     evidence:
       - "EV-001"

@@ -58,12 +58,10 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 - chore: release v2.16.1
 
 ### Added
-- 固定模板 + `render-reference-portal.py` 脚本渲染 `portal.html`，避免 AI 每次手写页面导致风格漂移。
-- reference 完成门禁脚本 `reference-quality-gate.py`，检查 required files、Evidence Index、portal marker 和基础 schema。
+- reference 完成门禁脚本 `reference-quality-gate.py`，检查 required files、Evidence Index 和基础 schema。
 
 ### Fixed
-- 强化 `/reference` 完成门禁：不生成 `index/` 和脚本渲染的 `portal.html` 不得宣称完成。
-- 修复安装链路，确保 `reference-portal-template.html` 会安装到目标项目 `.prd-tools/assets/`。
+- 强化 `/reference` 完成门禁：不生成 `index/` 不得宣称完成。
 
 ## [2.16.1] - 2026-05-10
 
@@ -72,9 +70,6 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 - Evidence Index benchmark harness，用于验证 reference/index 对下游 code anchor 的收益。
 
 ## [2.15.0] - 2026-05-08
-
-### Added
-- reference 新增 `portal.html` 可视化页面生成步骤。
 
 ### Changed
 - 重写 README，强化对外可读性。
@@ -171,7 +166,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ### Changed
 - Reference 结构从 10 文件精简到 6 文件（SSOT + Boundary 声明）
-- 删除旧版 10 个模板，新建 6 个模板（00-portal.md ~ 05-domain.yaml）
+- 删除旧版 10 个模板，新建 6 个模板（project-profile.yaml ~ 05-domain.yaml）
 - references/reference-v3.md → references/reference-v4.md
 
 ## [2.3.0] - 2026-04-29

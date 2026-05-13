@@ -26,10 +26,8 @@
 - refactor(audit-p0r2): D4 selfcheck scoped to within-skill gate references
 - docs(audit): v2.18.1 audit fix report — P0 6/6, P1 10/10, P2 11/11
 - refactor(audit-p2): register phantom steps 2.6/3.6/7/8.6.1 in STEP_TABLE
-- refactor(audit-p2): [P2-11] portal EV full-set self-check + speculative tagging
 - refactor(audit-p2): [P2-10] single canonical mode-selection schema
 - refactor(audit-p2): [P2-9] unify plan.md section count to 11 across docs
-- refactor(audit-p2): [P2-8] step-04-portal current_step aligns to gate --step 9
 - refactor(audit-p2): [P2-7] materialize Phase 3.6 Critique Pass in workflow.md
 - refactor(audit-p2): [P2-6] split duplicate Step 8.6 headings
 - refactor(audit-p2): [P2-5] remove deprecated graph/ subtree from output-contracts
@@ -140,11 +138,6 @@
 
 ### Added
 - feat: add AI-friendly PRD compiler pipeline
-- feat: render stable portal pages
-
-### Fixed
-- fix: install portal templates
-- fix: add hard completion gates
 
 
 ## [2.16.1] - 2026-05-10
@@ -161,10 +154,6 @@
 
 
 ## [2.15.0] - 2026-05-08
-
-### Added
-- feat: prd-distill 新增 portal.html 可视化页面生成步骤
-- feat: reference 新增 portal.html 可视化页面生成步骤
 
 ### Changed
 - docs: 重写三个 README，强化对外可读性
@@ -347,7 +336,7 @@
 ### Changed
 - **Reference 结构从 10 文件精简到 6 文件**，引入 SSOT + Boundary 声明 + 去重检查（详见 [ADR-0001](docs/adr/0001-reference-SSOT优化.md)）
 - 分类维度从"内容性质/关注点/使用场景"三维度统一为"知识在开发生命周期中的角色"
-- 删除旧版 10 个模板 + reference-v3.md，新建 6 个模板 + reference-v4.md
+- 删除旧版 10 个模板 + reference-v3.md，新建 6 个模板（project-profile.yaml ~ 05-domain.yaml）+ reference-v4.md
 
 ### Removed
 - `templates/00-index.md`、`01-entities.yaml`、`02-architecture.yaml`、`03-conventions.yaml`、`04-constraints.yaml`、`05-routing.yaml`、`06-glossary.yaml`、`07-business-context.yaml`、`08-contracts.yaml`、`09-playbooks.yaml`

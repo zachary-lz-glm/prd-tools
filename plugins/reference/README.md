@@ -14,18 +14,16 @@
 
 ## 产出物
 
-构建完成后在项目根目录生成 `_prd-tools/reference/`，包含 8 个文件：
+构建完成后在项目根目录生成 `_prd-tools/reference/`，包含 6 个文件：
 
 | 文件 | 内容 |
 |------|------|
-| `00-portal.md` | 人类导航 + 场景阅读指南 |
 | `project-profile.yaml` | 项目画像：技术栈、入口、能力面 |
 | `01-codebase.yaml` | 代码库清单：目录、模块、符号、数据流 |
 | `02-coding-rules.yaml` | 编码规则：设计规范 + 踩坑经验 |
 | `03-contracts.yaml` | 跨层契约：API endpoint、schema、字段定义 |
 | `04-routing-playbooks.yaml` | PRD 路由信号 + 场景打法 + QA 矩阵 |
 | `05-domain.yaml` | 业务领域：术语、背景、隐式规则 |
-| `portal.html` | 可视化浏览器页面（零外部依赖，双击即可打开） |
 
 构建过程中产生的中间报告（扫描快照、健康检查、质量门控等）存放在 `_prd-tools/build/`。
 

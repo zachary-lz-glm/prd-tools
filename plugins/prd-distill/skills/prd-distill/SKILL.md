@@ -54,7 +54,7 @@ Steps: 0 → 1 → 1.5-afprd → 1.5-quality → 2
 - `context/prd-quality-report.yaml`
 - `context/requirement-ir.yaml`
 
-**禁止产物**：`report.md`、`plan.md`、`portal.html`、`context/readiness-report.yaml`、`context/final-quality-gate.yaml`
+**禁止产物**：`report.md`、`plan.md`、`context/readiness-report.yaml`、`context/final-quality-gate.yaml`
 
 ### Stage 2: report
 
@@ -69,7 +69,7 @@ Steps: 2.5 → 3.1 → 3.2 → 3.5 → 4 → 8 → 8.1-confirm
 - `report.md`
 - `context/report-confirmation.yaml`
 
-**禁止产物**：`plan.md`、`portal.html`、`context/readiness-report.yaml`、`context/final-quality-gate.yaml`
+**禁止产物**：`plan.md`、`context/readiness-report.yaml`、`context/final-quality-gate.yaml`
 
 **Step 8.1 后必须暂停**：向用户展示 report 摘要和确认选项，写入 `context/report-confirmation.yaml`。
 
@@ -86,7 +86,6 @@ Steps: 5 → 6 → 7 → 8.5 → 8.6 → 9
 - `plan.md`（单仓）或 `team-plan.md` + `plans/plan-{repo}.md`（团队）
 - `context/readiness-report.yaml`
 - `context/final-quality-gate.yaml`
-- `portal.html`
 
 **plan 阶段不得重新解释原始 PRD**，只消费 approved report 和 context。
 
@@ -122,8 +121,7 @@ If the step gate exits with code 2 (FAIL):
 | 4 | plan 阶段不得重新解释原始 PRD | 只消费 approved report |
 | 5 | 不得编造行号或 grep 命令结果 | 证据链真实性 |
 | 6 | `inferred` 不得伪装为 `explicit` | 置信度诚实 |
-| 7 | 不得手写 portal.html | 必须用脚本渲染 |
-| 8 | 每个 REQ-ID 必须在 ai-friendly-prd.md 有标题锚点 | 追溯链完整性 |
+| 7 | 每个 REQ-ID 必须在 ai-friendly-prd.md 有标题锚点 | 追溯链完整性 |
 
 其余禁止项详见 workflow.md 对应步骤。
 
@@ -148,9 +146,7 @@ If the step gate exits with code 2 (FAIL):
 10. 生成最终 plan 前，必须获得用户对 `report.md` 的确认，并写入 `context/report-confirmation.yaml`。
 11. `context/report-confirmation.yaml` 的 `status` 必须为 `approved`，否则不得生成最终 plan。
 12. plan 不得包含把 `missing_confirmation` 当确定任务的内容。团队模式：`team-plan.md` 和所有 `plans/plan-*.md` 均适用此规则。
-13. 必须运行 `python3 .prd-tools/scripts/render-distill-portal.py --distill-dir _prd-tools/distill/<slug> --template .prd-tools/assets/distill-portal-template.html --out _prd-tools/distill/<slug>/portal.html` 生成 `portal.html`。AI 不得手写 portal.html。
-14. portal.html 是脚本渲染产物，风格由固定模板决定，AI 不得手写或修改其内容。
-15. **团队模式**：`team-plan.md` 必须存在且包含 Sub-Plan 索引表；`plans/` 目录必须存在，且每个有 IMP 的成员仓有对应的 `plans/plan-{repo}.md`。
+13. **团队模式**：`team-plan.md` 必须存在且包含 Sub-Plan 索引表；`plans/` 目录必须存在，且每个有 IMP 的成员仓有对应的 `plans/plan-{repo}.md`。
 
 ## 触发条件
 
@@ -205,7 +201,6 @@ _prd-tools/distill/<slug>/
 │   └── ai-friendly-prd.md         #   13-section 对 AI agent 友好的 PRD
 ├── report.md                      # 渐进式披露报告
 ├── plan.md                        # 函数级技术方案 + 开发/测试计划 + QA 矩阵
-├── portal.html                    # 可视化浏览器页面（零外部依赖，双击即可打开）
 └── context/
     ├── prd-quality-report.yaml    #   AI-friendly PRD 质量评分
     ├── requirement-ir.yaml        # 结构化需求：业务意图、规则、验收条件
@@ -235,7 +230,6 @@ _prd-tools/distill/<slug>/
 │   ├── plan-genos.md              # 前端仓 sub-plan（文件名来自 member_repos[].repo）
 │   ├── plan-dive-bff.md           # BFF sub-plan
 │   └── plan-magellan.md           # 后端 sub-plan
-├── portal.html                    # 含 Sub-Plans tab
 └── context/
     ├── layer-impact.yaml          # 4 层完整填充（anchors 来自 snapshots）
     ├── contract-delta.yaml        # 全栈 consumers[]
@@ -262,7 +256,6 @@ _prd-tools/distill/<slug>/
 | `context/final-quality-gate.yaml` | 最终质量门禁：5 项确定性检查评分（辅助层） | 不替代 readiness-report.yaml |
 | `spec/ai-friendly-prd.md` | AI-friendly PRD：13-section 规范化中间层，给 AI agent 消费 | 不替代原始 PRD；不替代 report.md / plan.md / requirement-ir.yaml |
 | `context/prd-quality-report.yaml` | AI-friendly PRD 质量评分：source 分布、缺失项、推断项、风险项 | 不替代 readiness-report.yaml |
-| `portal.html` | 自包含可视化页面：总览、源码命中、影响、契约、计划、QA、阻塞问题、回流建议 | 不替代 report.md 和 plan.md 的人读文本 |
 
 ## 能力面适配器
 
@@ -400,14 +393,12 @@ _prd-tools/distill/<slug>/
 16. 生成 `context/readiness-report.yaml`。
 17. （辅助层）运行 `python3 .prd-tools/scripts/final-quality-gate.py` 生成 `context/final-quality-gate.yaml`（5 项确定性检查评分）。
 18. 生成 `context/reference-update-suggestions.yaml`。
-19. 生成 `portal.html`（自包含可视化页面，详见 `steps/step-04-portal.md`）。
 
 ## 参考文件
 
 | 文件 | 何时读取 |
 |---|---|
 | `workflow.md` | 执行完整蒸馏时 |
-| `steps/step-04-portal.md` | 生成 portal.html 可视化页面时 |
 | `references/output-contracts.md` | 确认输出格式和字段边界时 |
 | `references/layer-adapters.md` | 判断能力面时 |
 | `references/selectable-reward-golden-sample.md` | 复杂需求校准时 |
@@ -423,9 +414,8 @@ _prd-tools/distill/<slug>/
 - 是否存在 `needs_confirmation` 或 `blocked` 契约。
 - 是否生成 reference 回流建议。
 - `readiness-report.yaml` 的 status、score、decision。
-- `portal.html` 已生成，可在浏览器中打开查看完整可视化报告。
 
 **三段式完成标准**：
 - spec 阶段完成：`spec/ai-friendly-prd.md` + `context/requirement-ir.yaml` 存在，提示用户继续 `/prd-distill report <slug>`。
 - report 阶段完成：`report.md` 存在，已写入 `context/report-confirmation.yaml`，等待用户确认。
-- plan 阶段完成：`plan.md`（单仓）或 `team-plan.md` + `plans/`（团队）+ `portal.html` 存在，所有 gate 通过。
+- plan 阶段完成：`plan.md`（单仓）或 `team-plan.md` + `plans/`（团队）存在，所有 gate 通过。

@@ -416,28 +416,6 @@ def _check_team_sub_plans(base, member_repos):
     }
 
 
-def _check_portal_html(base):
-    """Check portal.html exists and has script-rendered marker."""
-    portal_path = base / 'portal.html'
-    exists = _file_exists_nonempty(portal_path)
-    marker_ok = False
-    message = ''
-    if exists:
-        text = _read_safe(portal_path)
-        if 'data-prd-tools-portal="distill"' in text:
-            marker_ok = True
-        else:
-            message = 'portal.html 缺少 data-prd-tools-portal="distill" 标记，可能非脚本渲染'
-    else:
-        message = 'portal.html 不存在或为空'
-    status = 'pass' if (exists and marker_ok) else ('warning' if exists else 'fail')
-    return {
-        'status': status,
-        'exists': exists,
-        'marker_ok': marker_ok,
-        'message': message,
-    }
-
 def _check_prd_coverage(base):
     """Run prd-coverage-gate checks and return aggregated status."""
     coverage_path = base / 'context' / 'coverage-report.yaml'
@@ -565,7 +543,6 @@ def run_checks(distill_dir, repo_root):
     results['plan_missing_confirmation'] = _check_plan_missing_confirmation(base, is_team=is_team)
     if is_team:
         results['team_sub_plans'] = _check_team_sub_plans(base, member_repos)
-    results['portal_html'] = _check_portal_html(base)
     results['prd_coverage'] = _check_prd_coverage(base)
     results['artifact_contracts'] = _check_artifact_contracts(base)
 
@@ -604,7 +581,6 @@ def print_summary(results):
     if is_team:
         checks.append(('team_sub_plans', 'Team sub-plans'))
     checks += [
-        ('portal_html', 'Portal HTML'),
         ('prd_coverage', 'PRD coverage (fidelity)'),
         ('artifact_contracts', 'Artifact contracts'),
     ]

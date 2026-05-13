@@ -87,16 +87,7 @@ STEP_TABLE = {
         ],
         "output": [
             "_prd-tools/reference/05-domain.yaml",
-            "_prd-tools/reference/00-portal.md",
         ],
-    },
-    "3": {
-        "label": "Phase 3: Portal HTML",
-        "prerequisites": [
-            ("_prd-tools/reference/05-domain.yaml", "Stage 5"),
-            ("_prd-tools/reference/00-portal.md", "Stage 5"),
-        ],
-        "output": ["_prd-tools/reference/portal.html"],
     },
     "3.5": {
         "label": "Phase 3.5: Evidence Index",
@@ -114,21 +105,20 @@ STEP_TABLE = {
         "label": "Phase 3.6: Completion Gate",
         "prerequisites": [
             ("_prd-tools/reference/index/manifest.yaml", "Phase 3.5"),
-            ("_prd-tools/reference/portal.html", "Phase 3"),
         ],
         "output": [],
     },
     "4": {
         "label": "Phase 4: Feedback Ingest",
         "prerequisites": [
-            ("_prd-tools/reference/00-portal.md", "Stage 5"),
+            ("_prd-tools/reference/05-domain.yaml", "Stage 5"),
         ],
         "output": ["_prd-tools/build/feedback-report.yaml"],
     },
 }
 
 # Ordered step sequence for resume pointer
-REFERENCE_STEP_ORDER = ["0", "1", "2a", "2b", "2c", "2d", "2e", "3", "3.5", "3.6", "4"]
+REFERENCE_STEP_ORDER = ["0", "1", "2a", "2b", "2c", "2d", "2e", "3.5", "3.6", "4"]
 
 
 def file_exists_nonempty(root_dir, rel_path):
@@ -212,7 +202,7 @@ def run_gate(root_dir, step_id):
         return True, "ok", []
 
 
-STEPS_REQUIRING_MODE_SELECTION = {"1", "2a", "2b", "2c", "2d", "2e", "3", "3.5", "3.6", "4"}
+STEPS_REQUIRING_MODE_SELECTION = {"1", "2a", "2b", "2c", "2d", "2e", "3.5", "3.6", "4"}
 
 
 def main():
@@ -221,7 +211,7 @@ def main():
     )
     parser.add_argument(
         "--step",
-        help="Step ID (0, 1, 2a, 2b, 2c, 2d, 2e, 3, 3.5, 3.6, 4)",
+        help="Step ID (0, 1, 2a, 2b, 2c, 2d, 2e, 3.5, 3.6, 4)",
     )
     parser.add_argument(
         "--root",

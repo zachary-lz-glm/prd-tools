@@ -42,17 +42,14 @@ For the target plugin, verify all expected output files exist:
 - `context/contract-delta.yaml` (if report stage)
 - `report.md` (if report stage)
 - `plan.md` (if plan stage)
-- `portal.html` (if plan stage)
 
 **reference** (within `_prd-tools/reference/`):
-- `00-portal.md`
 - `project-profile.yaml`
 - `01-codebase.yaml`
 - `02-coding-rules.yaml`
 - `03-contracts.yaml`
 - `04-routing-playbooks.yaml`
 - `05-domain.yaml`
-- `portal.html`
 - `index/manifest.yaml` (if full build)
 
 ### C-2: Contract Compliance

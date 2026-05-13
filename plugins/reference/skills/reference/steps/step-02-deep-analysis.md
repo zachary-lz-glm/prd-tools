@@ -20,7 +20,6 @@
 生成 reference v4.0：
 
 ```text
-_prd-tools/reference/00-portal.md
 _prd-tools/reference/project-profile.yaml
 _prd-tools/reference/01-codebase.yaml
 _prd-tools/reference/02-coding-rules.yaml
@@ -164,7 +163,7 @@ _prd-tools/reference/05-domain.yaml
 20. 从 PRD、技术方案、QA 记录中提取领域概念和隐式规则。
 21. 生成 `05-domain.yaml`：业务域概览、术语（只收录**无法归入 01-codebase 枚举 label** 的概念）、隐式业务规则、历史决策。
 22. 检查 01-codebase 中的枚举 label，如果 05-domain 的术语与枚举 label 重复，删除 05 中的重复条目，改为 `see_enum: "<EnumName>"` 引用。
-23. 为每个枚举值生成 label 时，按优先级：源码注释 > i18n/文案 > PRD 历史 > UI 映射 > 实在没有写"待 PM 补充"。label 是一句话（< 30 字）。**必须同时标注 `label_source`**：`source_comment`（直接摘自源码注释）、`i18n`（来自国际化文案）、`prd`（来自 PRD 文档）、`inferred`（AI 推断，无直接源码依据）。绝不编造源码中不存在的注释。
+23. 为每个枚举值生成 label 时，**只从源码注释、i18n 文案中提取**，源码没有的留空（`label: ""`）。不推断、不编造、不从 PRD/UI 猜测。label 是一句话（< 30 字）。绝不编造源码中不存在的注释。
 
 > 你正在生成 05-domain.yaml。记住：代码路径留给 01-codebase，编码规则留给 02-coding-rules，契约字段留给 03-contracts，枚举值列表留给 01-codebase 的 enums。
 
@@ -176,9 +175,7 @@ _prd-tools/reference/05-domain.yaml
 
 ### 阶段 6：导航
 
-23. 生成 `00-portal.md`：项目画像摘要、按场景阅读指南、文件地图、健康状态。
-24. 更新 `project-profile.yaml`（如需要）。
-25. 运行脚本生成 `portal.html`：`python3 .prd-tools/scripts/render-reference-portal.py --root . --template .prd-tools/assets/reference-portal-template.html --out _prd-tools/reference/portal.html`（**AI 不得手写 portal.html**，必须通过脚本渲染生成）
+23. 更新 `project-profile.yaml`（如需要）。
 
 ## 去重检查（生成完成后必执行）
 

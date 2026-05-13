@@ -4,9 +4,8 @@ reference-workflow-gate.py — Reference Workflow Order & Completion Gate
 
 Deterministic gate that enforces:
   1. Reference files must be generated in order (01→02→03→04→05)
-  2. portal.html must be script-rendered (not handwritten)
-  3. index/manifest.yaml must exist
-  4. reference-quality-gate.py must pass
+  2. index/manifest.yaml must exist
+  3. reference-quality-gate.py must pass
 
 Usage:
     python3 scripts/reference-workflow-gate.py --root /path/to/project
@@ -112,37 +111,6 @@ def _check_workflow_order(ref_dir):
         'completed_steps': completed,
         'total_steps': len(WORKFLOW_STEPS),
         'violations': violations,
-    }
-
-
-def _check_portal_script_rendered(ref_dir):
-    """Check portal.html exists and has script-rendered marker."""
-    portal_path = ref_dir / 'portal.html'
-    exists = _file_exists_nonempty(portal_path)
-
-    if not exists:
-        return {
-            'status': 'fail',
-            'exists': False,
-            'marker_ok': False,
-            'message': 'portal.html 不存在或为空',
-        }
-
-    text = _read_safe(portal_path)
-    marker_ok = 'data-prd-tools-portal="reference"' in text
-
-    if not marker_ok:
-        return {
-            'status': 'fail',
-            'exists': True,
-            'marker_ok': False,
-            'message': 'portal.html 缺少 data-prd-tools-portal="reference" 标记，可能非脚本渲染',
-        }
-
-    return {
-        'status': 'pass',
-        'exists': True,
-        'marker_ok': True,
     }
 
 
@@ -253,15 +221,6 @@ def _check_project_profile(ref_dir):
     }
 
 
-def _check_portal_md(ref_dir):
-    """Check 00-portal.md exists (generated with step 02e)."""
-    exists = _file_exists_nonempty(ref_dir / '00-portal.md')
-    return {
-        'status': 'pass' if exists else 'fail',
-        'exists': exists,
-    }
-
-
 def run_checks(root):
     """Run all checks and return results dict."""
     ref_dir = Path(root) / '_prd-tools' / 'reference'
@@ -269,8 +228,6 @@ def run_checks(root):
     results = {}
     results['project_profile'] = _check_project_profile(ref_dir)
     results['workflow_order'] = _check_workflow_order(ref_dir)
-    results['portal_md'] = _check_portal_md(ref_dir)
-    results['portal_html'] = _check_portal_script_rendered(ref_dir)
     results['index'] = _check_index_exists(ref_dir)
     results['quality_gate'] = _check_quality_gate(ref_dir, root)
 
@@ -302,21 +259,6 @@ def print_summary(results):
     if wo['violations']:
         for v in wo['violations']:
             print(f'      VIOLATION: {v["output"]} exists but prerequisite {v["missing_prerequisite"]} is missing')
-
-    # Portal md
-    pm = results['portal_md']
-    sym = '+' if pm['status'] == 'pass' else 'x'
-    print(f'  [{sym}] 00-portal.md: {"exists" if pm["exists"] else "MISSING"}')
-
-    # Portal html
-    ph = results['portal_html']
-    sym = '+' if ph['status'] == 'pass' else ('!' if ph['status'] == 'warning' else 'x')
-    if ph['exists'] and ph.get('marker_ok'):
-        print(f'  [{sym}] portal.html: script-rendered')
-    elif ph['exists']:
-        print(f'  [{sym}] portal.html: exists but {ph.get("message", "not script-rendered")}')
-    else:
-        print(f'  [{sym}] portal.html: {ph.get("message", "MISSING")}')
 
     # Index
     ix = results['index']
