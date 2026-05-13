@@ -286,6 +286,98 @@ python3 .prd-tools/scripts/reference-quality-gate.py --root .
 
 用户确认后再修改 reference，并更新 `last_verified`。
 
+## 阶段 5：团队聚合（Mode T）
+
+> **定位**：在团队仓执行，从各成员仓的 `_prd-tools/reference/` 聚合事实到团队仓 `team/`。
+
+**前置条件**：
+- 当前工作目录是团队仓（含 `team/project-profile.yaml`，`layer: team-common`）
+- `team_reference.member_repos[]` 已配置各成员仓路径
+- 各成员仓已运行过 `/reference` Mode A/B，有完整的 01-05 YAML
+- **各成员仓已将 `_prd-tools/reference/*.yaml` 提交到 git**（聚合脚本需从 git 读取）
+
+**数据源解析优先级**：
+1. `local_path` 存在且有 `_prd-tools/reference/` → 直接读本地（最快）
+2. `remote_url` 提供且 local_path 不可用 → `git clone --depth 1` 到临时目录后读取
+
+运行命令：
+
+```bash
+python3 scripts/team-reference-aggregate.py --team-root .
+```
+
+**成员仓前提**：各仓需将 `_prd-tools/reference/` 提交到 git（确保 `.gitignore` 没有忽略该目录）。YAML 文件是文本，体积小，适合版本控制。
+
+聚合策略（由 `team_reference.aggregation_policy` 配置）：
+
+| 产物 | 默认策略 | 说明 |
+|------|---------|------|
+| 03-contracts | union_by_id | 同 ID 合并 producer/consumers/checked_by，producer 不一致标 conflict |
+| 05-domain | union_dedupe | 按 term 名去重，定义不同标 divergence |
+| 02-coding-rules | fatal_only | 只聚合 severity=fatal 规则 |
+| 04-routing-playbooks | cross_layer_only | 只聚合 target_surfaces 涉及 2+ 层的 playbook |
+| 01-codebase | index_only | 不聚合代码地图，只从 contracts 提取 cross_repo_entities 索引 |
+
+产出：
+
+- `team/01-codebase.yaml` ~ `team/05-domain.yaml`：5 个聚合产物
+- `{frontend,bff,backend}/snapshots/{repo}/`：成员仓全量镜像 + `_snapshot-meta.yaml`
+- `build/aggregation-report.yaml`：聚合状态报告
+- `build/conflicts.yaml`：跨仓冲突清单（待人工仲裁）
+
+冲突处理：团队仓的 `conflicts.yaml` 不手工编辑。仲裁方式是回到对应成员仓修正字段，重新跑 `/reference`，再回到团队仓重新聚合。
+
+`build/conflicts.yaml` 格式：
+
+```yaml
+generated_at: "<ISO-8601>"
+total_conflicts: 0
+conflicts:
+  - type: "contract_producer_mismatch"     # 或 coding_rule_conflict / playbook_layer_steps_conflict
+    contract_id: "CONTRACT-XXX"            # 或 rule_id / playbook_id
+    divergent_claims:
+      - repo: "repo-a"
+        claim: "..."
+      - repo: "repo-b"
+        claim: "..."
+    suggested_resolution: "ask owner"
+```
+
+冲突类型及处理方式：
+
+| 冲突类型 | 原因 | 处理 |
+|---------|------|------|
+| `contract_producer_mismatch` | 多仓声称自己是同一契约的 producer | 回到冲突仓确认实际 owner，修正 `producer` 字段 |
+| `coding_rule_conflict` | 同一 rule_id 在不同仓有不同描述 | 对齐规则描述后重新聚合 |
+| `playbook_layer_steps_conflict` | 多仓为同一 playbook 的同一层写了 steps | 确定一个 `playbook_owner`，其他仓删除该层 steps |
+
+## 阶段 6：团队继承（Mode T2）
+
+> **定位**：在成员仓执行，从团队仓 `team/` 继承公共事实到本仓 `_prd-tools/reference/`。
+
+**前置条件**：
+- 当前工作目录是成员仓（含 `_prd-tools/reference/`）
+- `project-profile.yaml` 的 `team_reference.upstream_local_path` 指向团队仓本地路径
+- `team_reference.inherit_scopes` 已配置继承范围
+- 团队仓已运行过 Mode T 聚合
+
+运行命令：
+
+```bash
+python3 scripts/team-reference-inherit.py --repo-root .
+```
+
+继承规则：
+
+| 场景 | 行为 |
+|------|------|
+| 本仓没有同 ID 条目 | 新增，标 `source: "team-common"`, `read_only: true` |
+| 本仓已有同 ID（非 team-common） | 保留本仓版本，记 conflict |
+| 本仓已有同 ID（team-common） | 更新为团队仓最新版 |
+| coding_rules_fatal | **强制覆盖**（团队级 fatal 规则权威） |
+
+`inherit_scopes` 可选值：`domain_terms`、`contracts_cross_repo`、`coding_rules_fatal`。
+
 ## 执行规则
 
 1. 源码是最终权威；reference 是快速通道。

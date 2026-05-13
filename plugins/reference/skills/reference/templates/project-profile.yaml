@@ -21,6 +21,7 @@ reference_scope:
   team_reference_ready: false
 
 team_reference:
+  # ── 成员仓配置 ──
   upstream_repo: ""                                      # e.g. "git@git.xxx:dive-team-reference.git"
   upstream_local_path: ""                                # local clone path, e.g. "../dive-team-reference"
   inherit_scopes:
@@ -28,6 +29,19 @@ team_reference:
     - contracts_cross_repo                               # inherit team_reference_candidate contracts
     - coding_rules_fatal                                 # inherit fatal rules
   last_synced: ""
+  # ── 团队仓配置（仅团队仓填写，v2.19）──
+  # member_repos:                                        # 团队聚合的成员仓列表
+  #   - repo: ""                                         # 仓库名
+  #     local_path: ""                                   # 本地路径（有则优先用）
+  #     remote_url: ""                                   # 远程 git URL（local_path 不可用时自动 clone）
+  #     branch: "HEAD"                                   # 可选，指定分支
+  #     layer: ""                                        # frontend | bff | backend
+  #     role: ""                                         # producer | consumer | middleware | peer
+  # aggregation_policy:                                  # 聚合策略
+  #   contracts: "union_by_id"                           # 同 ID 合并 producer/consumers/checked_by
+  #   domain_terms: "union_dedupe"                       # 去重合并
+  #   coding_rules: "fatal_only"                         # 只聚合 severity=fatal 规则
+  #   playbooks: "cross_layer_only"                      # 只聚合跨层 playbook
 
 related_repositories:
   - repo: ""

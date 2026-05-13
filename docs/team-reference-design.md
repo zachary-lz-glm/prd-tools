@@ -484,13 +484,13 @@ _prd-tools/reference/ 新增 source=team-common 条目
 
 ### 必做（最小可运行聚合）
 
-- [ ] `scripts/team-reference-aggregate.py`（~500 行估算）
-- [ ] `scripts/team-reference-inherit.py`（~300 行估算）
-- [ ] `plugins/reference/skills/reference/workflow.md` 新增 T/T2 模式描述（~30 行）
-- [ ] `plugins/reference/skills/reference/SKILL.md` 模式选择表加 T/T2 两行
-- [ ] `plugins/reference/skills/reference/templates/project-profile.yaml` 扩展 `team_reference:` 块（member_repos + aggregation_policy 字段）
+- [x] `scripts/team-reference-aggregate.py`（~500 行估算）
+- [x] `scripts/team-reference-inherit.py`（~300 行估算）
+- [x] `plugins/reference/skills/reference/workflow.md` 新增 T/T2 模式描述（~30 行）
+- [x] `plugins/reference/skills/reference/SKILL.md` 模式选择表加 T/T2 两行
+- [x] `plugins/reference/skills/reference/templates/project-profile.yaml` 扩展 `team_reference:` 块（member_repos + aggregation_policy 字段）
 - [ ] 在 `dive-team-reference` 仓初始化一个 fixture（可用 dive-bff + mock genos + mock magellan 跑通聚合）
-- [ ] 写 `build/conflicts.yaml` 样板 + 冲突处理说明（写入 README）
+- [x] 写 `build/conflicts.yaml` 样板 + 冲突处理说明（写入 workflow.md Phase 5）
 
 ### 不做（留给 v2.20+）
 

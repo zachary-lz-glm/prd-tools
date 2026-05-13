@@ -74,6 +74,8 @@ If the step gate exits with code 2 (FAIL):
 | B2 健康检查 | 是否过期/缺证据 | `_prd-tools/build/health-check.yaml` |
 | C 质量门控 | 证据/契约闭环/幻觉 | `_prd-tools/build/quality-report.yaml` |
 | E 反馈回流 | prd-distill 输出回收 | `_prd-tools/build/feedback-report.yaml` |
+| T 团队聚合 | 在团队仓执行，从成员仓聚合 | `team/*.yaml` + `snapshots/` + `build/conflicts.yaml` |
+| T2 团队继承 | 在成员仓执行，从团队仓继承 | 更新后的 `_prd-tools/reference/` |
 
 ### Mode Selection Gate
 
@@ -84,12 +86,14 @@ If the step gate exits with code 2 (FAIL):
 - 当前 `_prd-tools/reference/` 是否存在。
 - 当前 `_prd-tools/build/` 是否存在历史上下文或质量报告。
 - 推荐模式和原因。
-- 可选模式：F→A、F only、A only、B、B2、C、E、Chat。
+- 可选模式：F→A、F only、A only、B、B2、C、E、T、T2、Chat。
 
 默认推荐：
 
 - 首次建设：推荐 `F→A`，但必须等用户确认。
 - 已有 reference：推荐 `B2` 健康检查或 `B` 增量更新，除非用户明确要求重建。
+- 团队仓（`project-profile.yaml` 含 `layer: team-common`）：推荐 `T` 团队聚合。
+- 成员仓且已配置 `team_reference.upstream_local_path`：可推荐 `T2` 团队继承。
 
 用户确认后，将选择写入 `_prd-tools/build/reference-workflow-state.yaml`。YAML 结构见 `references/mode-selection.schema.md`。
 

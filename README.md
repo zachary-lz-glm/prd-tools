@@ -38,6 +38,8 @@ curl -fsSL https://raw.githubusercontent.com/zachary-lz-glm/prd-tools/v2.0/insta
 | `B2 健康检查` | 检查 reference 是否完整、过期或矛盾 |
 | `C 质量门控` | 检查证据闭环、源码一致性、幻觉风险 |
 | `E 反馈回流` | 把 prd-distill 产出的新知识写回 reference |
+| `T 团队聚合` | 在团队仓聚合成员仓知识库（v2.19+） |
+| `T2 团队继承` | 在成员仓继承团队公共知识（v2.19+） |
 
 ## 支持的输入
 
