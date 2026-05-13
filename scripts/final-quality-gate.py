@@ -71,34 +71,27 @@ RE_BLOCKER_QUALITY = re.compile(
 )
 RE_ANCHOR_PATH = re.compile(r'`([^`]+\.(?:ts|tsx|js|jsx|go))`')
 
-# Key anchors that should appear in a well-contextualized deliverable
-KEY_ANCHOR_FILES_DEFAULT = [
-    'campaignType.ts',
-    'previewRewardType.ts',
-    'details/index.ts',
-    'audienceSegmentation/index.ts',
-    'rewardCondition.ts',
-    'basic.ts',
-    'message.ts',
-]
+# Key anchors loaded dynamically from routing-playbooks (no project-specific defaults)
 
 
 def load_key_anchors(base):
-    """Load key anchor files from routing-playbooks, fall back to hardcoded."""
+    """Load key anchor files from routing-playbooks. Returns [] if unavailable."""
     rp = base.parent.parent / "reference" / "04-routing-playbooks.yaml"
-    if rp.exists():
-        try:
-            import yaml as _yaml
-            data = _yaml.safe_load(rp.read_text(encoding='utf-8')) or {}
-            anchors = []
-            for route in data.get('prd_routing', []):
-                for f in route.get('key_files', []):
+    if not rp.exists():
+        return []
+    try:
+        text = rp.read_text(encoding='utf-8')
+        anchors = []
+        for m in re.finditer(r'key_files:\s*\[([^\]]*)\]', text):
+            for f in m.group(1).split(','):
+                f = f.strip().strip('"').strip("'")
+                if f:
                     anchors.append(f)
-            if anchors:
-                return anchors
-        except Exception:
-            pass
-    return list(KEY_ANCHOR_FILES_DEFAULT)
+        if anchors:
+            return anchors
+    except Exception:
+        pass
+    return []
 
 # ──────────────────────────────────────────
 # Check helpers

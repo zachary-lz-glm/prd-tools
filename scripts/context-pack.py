@@ -270,6 +270,78 @@ TYPE_BONUS = frozenset({
     'template', 'registry', 'switch_case',
 })
 
+_GENERIC_NAMES = frozenset({
+    'data', 'params', 'result', 'error', 'value', 'key', 'item',
+    'index', 'count', 'name', 'type', 'options', 'config', 'args',
+    'props', 'state', 'context', 'callback', 'handler', 'dispatch',
+    'resolve', 'reject', 'request', 'response', 'req', 'res',
+})
+
+
+def _build_type_map_from_index(by_id):
+    """Build keyword -> expected entity type mapping from the evidence index."""
+    type_map = {}
+    for ent in by_id.values():
+        name = ent.get('name', '')
+        etype = ent.get('type', '')
+        if not name or not etype or etype in ('file', 'import', 'const'):
+            continue
+        if name not in type_map:
+            type_map[name] = []
+        if etype not in type_map[name]:
+            type_map[name].append(etype)
+    return type_map
+
+
+def _build_signal_terms(by_id, domain_terms):
+    """Build set of domain-specific signal terms from index + domain vocabulary."""
+    terms = set()
+    for ent in by_id.values():
+        name = ent.get('name', '')
+        etype = ent.get('type', '')
+        if not name or len(name) < 3 or etype in ('file', 'import'):
+            continue
+        lower = name.lower()
+        if lower in _GENERIC_NAMES:
+            continue
+        terms.add(lower)
+    for dt in domain_terms or []:
+        t = dt.get('term', '')
+        if t:
+            terms.add(t.lower())
+        for s in dt.get('synonyms', []):
+            if s and len(s) > 2:
+                terms.add(s.lower())
+        for k in dt.get('prd_keywords', []):
+            if k and len(k) > 2:
+                terms.add(k.lower())
+    return terms
+
+
+def _load_similar_patterns(ref_dir):
+    """Load similar example patterns from golden_samples and dimensioned_capabilities."""
+    patterns = []
+    rp_path = Path(ref_dir) / '04-routing-playbooks.yaml'
+    if not rp_path.exists():
+        return patterns
+    try:
+        text = rp_path.read_text(encoding='utf-8')
+    except Exception:
+        return patterns
+    for m in re.finditer(r'changed_files:\s*\[([^\]]*)\]', text):
+        for f in m.group(1).split(','):
+            f = f.strip().strip('"').strip("'")
+            if f:
+                stem = Path(f).stem
+                if stem:
+                    patterns.append((stem, f))
+    for m in re.finditer(r'existing_entries:\s*\[([^\]]*)\]', text):
+        for e in m.group(1).split(','):
+            e = e.strip().strip('"').strip("'")
+            if e:
+                patterns.append((e, ''))
+    return patterns
+
 
 def query_entities(query_str, inv, by_id, max_results=10):
     """Score and rank entities for a query string (mirrors build-index.py scoring)."""
@@ -309,18 +381,7 @@ def query_entities(query_str, inv, by_id, max_results=10):
 # Query plan generation
 # ──────────────────────────────────────────
 
-# Map requirement change_type / keywords to expected entity types
-_KEYWORD_TYPE_MAP = {
-    'CampaignType': ['enum'],
-    'Template': ['template', 'function'],
-    'getDetailsTemplate': ['template'],
-    'getAudienceSegmentationTemplate': ['template'],
-    'previewRewardTypeMap': ['registry', 'const'],
-    'rewardCondition': ['template', 'function'],
-    'Controller': ['class'],
-    'Service': ['class'],
-    'Model': ['class'],
-}
+# type_map is built dynamically by _build_type_map_from_index() from entities.json
 
 def _extract_query_hints_from_impacts(impacts):
     """Derive query terms from layer-impact targets."""
@@ -331,8 +392,8 @@ def _extract_query_hints_from_impacts(impacts):
         stem = Path(target.replace(' (NEW)', '')).stem
         if stem and stem not in ('index',):
             hints.append(stem)
-        # Extract class/function names from changes text
-        for name in re.findall(r'get\w+Template|CampaignType|\w+Controller|\w+Service', imp['changes']):
+        # Extract CamelCase identifiers from changes text
+        for name in re.findall(r'get\w+Template|\w+Type\b|\w+Controller|\w+Service', imp['changes']):
             hints.append(name)
     return list(set(hints))
 
@@ -345,7 +406,7 @@ _TERM_STOPWORDS = frozenset({
 })
 
 
-def _codeish_terms(text):
+def _codeish_terms(text, signal_terms=None):
     """Extract compact code/search terms without exploding context size."""
     terms = set()
     for raw in re.findall(r'[A-Za-z][A-Za-z0-9_]*', text or ''):
@@ -358,35 +419,33 @@ def _codeish_terms(text):
             '_' in raw
             or any(c.isupper() for c in raw[1:])
             or raw.isupper()
-            or lower in {
-                'campaign', 'campaigntype', 'gasstation', 'gasstationdxgy',
-                'courierdxgy', 'previewrewardtypemap', 'rewardcondition',
-                'eventrule', 'budget', 'gmv', 'push', 'dlp', 'card',
-                'coupon', 'discount', 'message', 'basic',
-            }
+            or (signal_terms and lower in signal_terms)
         )
         if has_signal:
             terms.add(raw)
     return terms
 
 
-def build_query_plan(requirements, impacts, inv, by_id, domain_terms=None, ref_dir=None):
+def build_query_plan(requirements, impacts, inv, by_id, domain_terms=None,
+                     ref_dir=None, type_map=None, signal_terms=None):
     """Build query plan from requirements + impacts + index."""
     queries = []
     qid = 0
+    if type_map is None:
+        type_map = {}
 
     # Phase 1: requirement-driven queries
     seen_terms = set()
     req_terms = []
     for req in requirements:
-        req_terms.extend(_codeish_terms(req['title']))
-        req_terms.extend(_codeish_terms(req['intent']))
+        req_terms.extend(_codeish_terms(req['title'], signal_terms))
+        req_terms.extend(_codeish_terms(req['intent'], signal_terms))
         for ent in req.get('business_entities', []):
-            req_terms.extend(_codeish_terms(ent))
+            req_terms.extend(_codeish_terms(ent, signal_terms))
         for rule in req.get('rules', []):
-            req_terms.extend(_codeish_terms(rule))
+            req_terms.extend(_codeish_terms(rule, signal_terms))
         for q in req.get('open_questions', []):
-            req_terms.extend(_codeish_terms(q))
+            req_terms.extend(_codeish_terms(q, signal_terms))
 
     # Domain expansion: expand PRD terms to code identifiers
     domain_expanded = set()
@@ -431,7 +490,7 @@ def build_query_plan(requirements, impacts, inv, by_id, domain_terms=None, ref_d
         if not matched:
             continue
         qid += 1
-        expected = _KEYWORD_TYPE_MAP.get(t, [])
+        expected = type_map.get(t, [])
         conf = 'high' if any(e['type'] in ('enum', 'template', 'registry', 'class') for _, e in hits) else 'medium'
         # Domain-expanded terms cap at medium confidence
         if t.lower() in domain_expanded and conf == 'high':
@@ -449,36 +508,55 @@ def build_query_plan(requirements, impacts, inv, by_id, domain_terms=None, ref_d
             break
 
     # Phase 2: queries from reference seed symbols
-    SEED_QUERIES_DEFAULT = [
-        'CampaignType',
-        'getDetailsTemplate',
-        'getAudienceSegmentationTemplate',
-        'previewRewardTypeMap',
-        'rewardCondition',
-        'courierDxGy',
-        'gasStation',
-        'build/**/*.d.ts',
-        'build/**/*.js',
-    ]
-
     def _load_seed_queries(ref_dir):
-        if ref_dir:
-            rp = ref_dir / "04-routing-playbooks.yaml"
-            if rp.exists():
-                try:
-                    import yaml as _yaml
-                    data = _yaml.safe_load(rp.read_text(encoding='utf-8')) or {}
-                    queries = []
-                    for route in data.get('prd_routing', []):
-                        for f in route.get('key_files', []):
+        """Load seed queries from reference data. Returns [] if unavailable."""
+        if not ref_dir:
+            return []
+        queries = []
+        # From 04-routing-playbooks.yaml: key_files, prd_keywords, structural_signals
+        rp = ref_dir / '04-routing-playbooks.yaml'
+        if rp.exists():
+            try:
+                text = rp.read_text(encoding='utf-8')
+                for m in re.finditer(r'key_files:\s*\[([^\]]*)\]', text):
+                    for f in m.group(1).split(','):
+                        f = f.strip().strip('"').strip("'")
+                        if f:
                             stem = Path(f).stem
                             if stem:
                                 queries.append(stem)
-                    if queries:
-                        return queries
-                except Exception:
-                    pass
-        return SEED_QUERIES_DEFAULT
+                for m in re.finditer(r'prd_keywords:\s*\[([^\]]*)\]', text):
+                    for kw in m.group(1).split(','):
+                        kw = kw.strip().strip('"').strip("'")
+                        if kw and len(kw) > 2:
+                            queries.append(kw)
+                for m in re.finditer(r'structural_signals:\s*\[([^\]]*)\]', text):
+                    for sig in m.group(1).split(','):
+                        sig = sig.strip().strip('"').strip("'")
+                        if sig and len(sig) > 2:
+                            queries.append(sig)
+            except Exception:
+                pass
+        # From 01-codebase.yaml: enum keys
+        cb = ref_dir / '01-codebase.yaml'
+        if cb.exists():
+            try:
+                text = cb.read_text(encoding='utf-8')
+                in_enums = False
+                for line in text.split('\n'):
+                    if line.strip() == 'enums:':
+                        in_enums = True
+                        continue
+                    if in_enums:
+                        em = re.match(r'^  (\w+):\s*$', line)
+                        if em:
+                            queries.append(em.group(1))
+                            continue
+                        if line and not line.startswith(' ') and line.strip():
+                            in_enums = False
+            except Exception:
+                pass
+        return queries
 
     seed_queries = _load_seed_queries(ref_dir)
     for sq in seed_queries:
@@ -491,7 +569,7 @@ def build_query_plan(requirements, impacts, inv, by_id, domain_terms=None, ref_d
         conf = 'high' if any(e['type'] in ('enum', 'template', 'registry', 'class') for _, e in hits) else 'medium'
         if not matched:
             conf = 'low'
-        expected = _KEYWORD_TYPE_MAP.get(sq, [])
+        expected = type_map.get(sq, [])
         queries.append({
             'id': f'QP-{qid:03d}',
             'requirement_hint': 'anchor: ' + sq,
@@ -524,8 +602,8 @@ def build_query_plan(requirements, impacts, inv, by_id, domain_terms=None, ref_d
     for req in requirements:
         if req['priority'] != 'P0':
             continue
-        # Extract candidate query terms from requirement title
-        terms = re.findall(r'[A-Z][a-z]+(?:[A-Z][a-z]+)+|\b(?:CampaignType|Template|Controller|Service|Reward)\b', req['title'])
+        # Extract candidate query terms from requirement title (CamelCase + known suffixes)
+        terms = re.findall(r'[A-Z][a-z]+(?:[A-Z][a-z]+)+|\w+(?:Type|Template|Controller|Service|Model|Map|Registry)\b', req['title'])
         if not terms:
             # Try extracting from rules
             for rule in req['rules']:
@@ -582,7 +660,8 @@ def _ent_anchor(ent, reason=''):
     )
 
 
-def generate_context_pack(slug, requirements, impacts, query_plan, by_id):
+def generate_context_pack(slug, requirements, impacts, query_plan, by_id,
+                          similar_patterns=None):
     """Generate context-pack.md content."""
     lines = []
 
@@ -648,7 +727,7 @@ def generate_context_pack(slug, requirements, impacts, query_plan, by_id):
             if not ent:
                 continue
             seen_ids.add(eid)
-            cat = _categorize_entity(ent)
+            cat = _categorize_entity(ent, similar_patterns)
             # Determine tier based on query confidence and requirement priority
             hint = q['requirement_hint']
             is_p0 = any(rid in hint for rid in p0_req_ids)
@@ -761,14 +840,23 @@ def generate_context_pack(slug, requirements, impacts, query_plan, by_id):
             lines.append(_ent_anchor(ent, hint[:50]))
         lines.append('')
 
-    # Explicit CourierDxGy/GasStation examples from impacts
+    # Pattern references from similar_patterns (golden_samples)
+    ref_example = ''
+    if similar_patterns:
+        for kw, ref_file in similar_patterns:
+            if ref_file:
+                ref_example = ref_file
+                break
+        if not ref_example and similar_patterns:
+            ref_example = similar_patterns[0][0]
     lines.append('**Pattern to follow:**')
     lines.append('```')
     for imp in impacts:
         if '(NEW)' in imp['target']:
             lines.append(f'NEW FILE: {imp["target"]}')
             lines.append(f'  -> {imp["changes"]}')
-            lines.append(f'  -> Reference: courierDxGy.ts (same pattern)')
+            if ref_example:
+                lines.append(f'  -> Reference: {ref_example} (same pattern)')
             lines.append('')
     lines.append('```')
     lines.append('')
@@ -825,17 +913,18 @@ def generate_context_pack(slug, requirements, impacts, query_plan, by_id):
     return '\n'.join(lines)
 
 
-def _categorize_entity(ent):
+def _categorize_entity(ent, similar_patterns=None):
     """Assign an entity to a display category for the anchors section."""
     t = ent['type']
     name = ent['name']
     path = ent['path']
 
-    # Similar examples: courierDxGy / gasStation files and functions
-    for kw in ('courierDxGy', 'gasStation', 'courier', 'GasStation'):
-        if kw.lower() in name.lower() or kw.lower() in path.lower():
-            if t in ('template', 'function', 'file') and 'index' not in path:
-                return 'similar'
+    # Similar examples: matched against golden_samples / dimensioned_capabilities
+    if similar_patterns:
+        for kw, _ in similar_patterns:
+            if kw.lower() in name.lower() or kw.lower() in path.lower():
+                if t in ('template', 'function', 'file') and 'index' not in path:
+                    return 'similar'
 
     # Type registry: enums, interfaces, classes
     if t in ('enum', 'interface', 'class'):
@@ -898,15 +987,25 @@ def main():
     ref_dir = index_dir.parent  # index is at _prd-tools/reference/index/, parent is reference/
     domain_terms = _load_domain_terms(ref_dir)
 
+    # Build dynamic config from index + reference data (replaces hardcoded assumptions)
+    type_map = _build_type_map_from_index(by_id)
+    signal_terms = _build_signal_terms(by_id, domain_terms)
+    similar_patterns = _load_similar_patterns(ref_dir)
+
     print(f'Requirements: {len(requirements)}')
     print(f'BFF impacts:  {len(impacts)}')
     print(f'Index:        {len(entities)} entities, {len(inv)} terms')
     if domain_terms:
         print(f'Domain terms: {len(domain_terms)} loaded')
+    if type_map:
+        print(f'Type map:     {len(type_map)} entries from index')
+    if similar_patterns:
+        print(f'Similar:      {len(similar_patterns)} patterns from playbooks')
 
     # Build query plan
     query_plan = build_query_plan(requirements, impacts, inv, by_id,
-                                  domain_terms=domain_terms, ref_dir=ref_dir)
+                                  domain_terms=domain_terms, ref_dir=ref_dir,
+                                  type_map=type_map, signal_terms=signal_terms)
     high_q = sum(1 for q in query_plan if q['confidence'] == 'high')
     low_q = sum(1 for q in query_plan if q['confidence'] == 'low')
     print(f'Query plan:   {len(query_plan)} queries (high={high_q}, low={low_q})')
@@ -918,7 +1017,8 @@ def main():
     print(f'Written: {qp_path}')
 
     # Generate context-pack.md
-    md = generate_context_pack(slug, requirements, impacts, query_plan, by_id)
+    md = generate_context_pack(slug, requirements, impacts, query_plan, by_id,
+                               similar_patterns=similar_patterns)
 
     # Write output
     out_path.parent.mkdir(parents=True, exist_ok=True)

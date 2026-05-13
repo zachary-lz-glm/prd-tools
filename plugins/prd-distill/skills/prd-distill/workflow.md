@@ -738,9 +738,9 @@ blocked_reason: ""
 
 生成 `report.md` 前必须重新读取 `context/requirement-ir.yaml`、`context/graph-context.md`、`context/contract-delta.yaml` 和 `context/context-pack.md`，核对报告已覆盖下列高收益信息。缺任一项时，不要用泛化总结替代，必须补进对应章节或 §12：
 
-- P0/P1 需求中的配置细节：券批次/券张数/互斥、折扣卡 Card ID/数量/有效期/城市校验、EventRule 格式、Budget/GMV 范围、Push 占位符。
-- PRD 内部矛盾或疑似 typo：例如同一字段同时出现 `1-10` 与 `1-99`、报错文案 `1-0` 与规则 `1-9` 不一致。此类内容必须进入 §12 阻塞问题或低置信度假设。
-- 关键代码锚点：`rewardCondition.ts`、`basic.ts`、`message.ts` 等如果已在 graph-context 中出现，report/plan 不得遗漏其风险说明。
+- P0/P1 需求中从 requirement-ir 提取的配置细节、业务约束和数值范围。
+- PRD 内部矛盾或疑似 typo：同一字段出现不一致的数值范围或互斥描述。此类内容必须进入 §12 阻塞问题或低置信度假设。
+- 关键代码锚点：graph-context.md 中标记为 `must` 的 code anchors，report/plan 不得遗漏其风险说明。
 - reference 只作为候选事实和路由依据；任何 reference 结论必须被源码、PRD、技术文档或负向搜索二次确认。未确认时降为 `confidence: low|medium` 并进入 §12。
 
 ## 步骤 8.5：Final Quality Gate（辅助层）
