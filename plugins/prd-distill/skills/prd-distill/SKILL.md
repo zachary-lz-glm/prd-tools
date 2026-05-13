@@ -16,6 +16,23 @@ Claude Code 中通过以下命令触发：
 
 人类可读文档见插件根目录 `README.md`。
 
+## 团队模式（v2.20）
+
+**自动检测**：执行前读取 `_prd-tools/reference/project-profile.yaml`（或 `team/project-profile.yaml`），如果 `layer: "team-common"`，自动进入团队模式。
+
+**团队模式 vs 单仓模式**：
+
+| 方面 | 单仓模式 | 团队模式 |
+|------|----------|----------|
+| 源码扫描 | `rg`/`glob` 源码 + reference | 禁止；从 `team/01-codebase.yaml` + `snapshots/` 读取 |
+| Step 2.5 / 3.5 | 如果 index 存在则执行 | 跳过（团队仓无 index） |
+| Layer Impact | 主要分析 1 层 | 4 层全部从 snapshots 填充 |
+| Contract Delta | 单仓视角 | 全栈：consumers[] 从 `team/03-contracts.yaml` |
+| Plan | 1 份 `plan.md` | 1 份 `team-plan.md` + N 份 `plans/plan-{repo}.md` |
+| Report §10 | 按层简述 | 强制 4 个子节：10.1 Frontend / 10.2 BFF / 10.3 Backend / 10.4 External |
+
+成员仓列表来自 `team_reference.member_repos[]`，sub-plan 文件名动态生成（`member_repos[].repo` 小写 → `plans/plan-{repo}.md`）。
+
 ## 三段式工作流（硬约束）
 
 `/prd-distill` 采用三段式工作流：**spec → report(confirm) → plan**
@@ -66,7 +83,7 @@ Steps: 5 → 6 → 7 → 8.5 → 8.6 → 9
 - `blocked`：停止蒸馏。
 
 允许产物：
-- `plan.md`
+- `plan.md`（单仓）或 `team-plan.md` + `plans/plan-{repo}.md`（团队）
 - `context/readiness-report.yaml`
 - `context/final-quality-gate.yaml`
 - `portal.html`
@@ -122,17 +139,18 @@ If the step gate exits with code 2 (FAIL):
 1. `spec/ai-friendly-prd.md` 必须存在且包含 13 个章节。不生成不得进入 requirement-ir。
 2. `context/requirement-ir.yaml` 必须包含 `ai_prd_req_id`。
 3. `context/layer-impact.yaml` 必须包含 `code_anchors` 或 fallback reason。
-4. 如果 `_prd-tools/reference/index` 存在，必须运行 `context-pack.py` 生成 `context/query-plan.yaml` 和 `context/context-pack.md`。
+4. 如果 `_prd-tools/reference/index` 存在，必须运行 `context-pack.py` 生成 `context/query-plan.yaml` 和 `context/context-pack.md`。**团队模式豁免**（无 index）。
 5. `context/final-quality-gate.yaml` 必须生成。
 6. 必须运行 `python3 .prd-tools/scripts/distill-quality-gate.py --distill-dir _prd-tools/distill/<slug> --repo-root .`，且 exit code 不为 2。
 7. 必须运行 `python3 .prd-tools/scripts/distill-workflow-gate.py --distill-dir _prd-tools/distill/<slug> --repo-root .`，且 exit code 不为 2（0 = 全过，1 = warning，2 = 硬失败）。
 8. completion gate 不通过，不得宣称 /prd-distill 完成。
 9. `report.md` 必须包含 PRD 质量摘要。
-10. 生成最终 `plan.md` 前，必须获得用户对 `report.md` 的确认，并写入 `context/report-confirmation.yaml`。
-11. `context/report-confirmation.yaml` 的 `status` 必须为 `approved`，否则不得生成最终 `plan.md`。
-12. `plan.md` 不得包含把 `missing_confirmation` 当确定任务的内容。
+10. 生成最终 plan 前，必须获得用户对 `report.md` 的确认，并写入 `context/report-confirmation.yaml`。
+11. `context/report-confirmation.yaml` 的 `status` 必须为 `approved`，否则不得生成最终 plan。
+12. plan 不得包含把 `missing_confirmation` 当确定任务的内容。团队模式：`team-plan.md` 和所有 `plans/plan-*.md` 均适用此规则。
 13. 必须运行 `python3 .prd-tools/scripts/render-distill-portal.py --distill-dir _prd-tools/distill/<slug> --template .prd-tools/assets/distill-portal-template.html --out _prd-tools/distill/<slug>/portal.html` 生成 `portal.html`。AI 不得手写 portal.html。
 14. portal.html 是脚本渲染产物，风格由固定模板决定，AI 不得手写或修改其内容。
+15. **团队模式**：`team-plan.md` 必须存在且包含 Sub-Plan 索引表；`plans/` 目录必须存在，且每个有 IMP 的成员仓有对应的 `plans/plan-{repo}.md`。
 
 ## 触发条件
 
@@ -169,6 +187,8 @@ PRD 读取规则：
 
 ## 输出结构
 
+### 单仓模式
+
 ```text
 _prd-tools/distill/<slug>/
 ├── _ingest/                       # PRD 原始读取
@@ -199,6 +219,27 @@ _prd-tools/distill/<slug>/
     ├── query-plan.yaml              # 查询计划（辅助层）
     ├── context-pack.md              # 上下文包（辅助层）
     └── final-quality-gate.yaml      # 最终质量门禁（辅助层）
+```
+
+### 团队模式
+
+如果 `project-profile.yaml` 的 `layer: team-common`：
+
+```text
+_prd-tools/distill/<slug>/
+├── _ingest/                       # 同单仓
+├── spec/                          # 同单仓
+├── report.md                      # 团队级报告（§10 分 frontend/BFF/backend/external 4 个子节）
+├── team-plan.md                   # 团队级开发计划（总览 + 跨仓时序 + Sub-Plan 索引）
+├── plans/                         # Sub-Plans 目录（动态命名）
+│   ├── plan-genos.md              # 前端仓 sub-plan（文件名来自 member_repos[].repo）
+│   ├── plan-dive-bff.md           # BFF sub-plan
+│   └── plan-magellan.md           # 后端 sub-plan
+├── portal.html                    # 含 Sub-Plans tab
+└── context/
+    ├── layer-impact.yaml          # 4 层完整填充（anchors 来自 snapshots）
+    ├── contract-delta.yaml        # 全栈 consumers[]
+    └── ...                        # 其余同单仓
 ```
 
 ## 输出文件边界
@@ -387,4 +428,4 @@ _prd-tools/distill/<slug>/
 **三段式完成标准**：
 - spec 阶段完成：`spec/ai-friendly-prd.md` + `context/requirement-ir.yaml` 存在，提示用户继续 `/prd-distill report <slug>`。
 - report 阶段完成：`report.md` 存在，已写入 `context/report-confirmation.yaml`，等待用户确认。
-- plan 阶段完成：`plan.md` + `portal.html` 存在，所有 gate 通过。
+- plan 阶段完成：`plan.md`（单仓）或 `team-plan.md` + `plans/`（团队）+ `portal.html` 存在，所有 gate 通过。

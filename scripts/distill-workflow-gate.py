@@ -148,22 +148,57 @@ def _file_exists_nonempty(path):
     return p.exists() and p.is_file() and p.stat().st_size > 0
 
 
-def _check_workflow_order(distill_dir):
+def _detect_team_mode(repo_root):
+    """Detect team mode from project-profile.yaml.
+
+    Returns (is_team: bool, member_repos: list[str]).
+    Team mode is active when layer == 'team-common' and member_repos is non-empty.
+    """
+    candidates = [
+        Path(repo_root) / 'team' / 'project-profile.yaml',
+        Path(repo_root) / '_prd-tools' / 'reference' / 'project-profile.yaml',
+    ]
+    for p in candidates:
+        if p.is_file():
+            try:
+                data = yaml.safe_load(p.read_text(encoding='utf-8')) or {}
+            except Exception:
+                continue
+            if data.get('layer') == 'team-common':
+                repos = [r.get('repo', '') for r in data.get('team_reference', {}).get('member_repos', []) if r.get('repo')]
+                return True, repos
+    return False, []
+
+
+def _check_workflow_order(distill_dir, is_team=False):
     """Check that distill files were generated in order.
 
     For each step N, if step N's output exists but step N-1's output
     does not, that's an ordering violation.
     Steps with output=None are skipped for file existence checks.
+    In team mode, steps 2.5 (query_plan) and 3.5 (context_pack) are skipped.
     """
     violations = []
     completed = []
+
+    # Steps skipped in team mode — their missing output is not a violation
+    team_skip_steps = {'query_plan'}
 
     for i, step in enumerate(WORKFLOW_STEPS):
         # Skip steps with no output file (e.g. distill_completion_gate)
         if step.get('output') is None:
             continue
 
-        output_path = distill_dir / step['output']
+        # In team mode, skip certain steps entirely
+        if is_team and step['step'] in team_skip_steps:
+            continue
+
+        # Resolve output path — team mode uses team-plan.md instead of plan.md
+        output_rel = step['output']
+        if is_team and step['step'] == 'plan' and output_rel == 'plan.md':
+            output_rel = 'team-plan.md'
+
+        output_path = distill_dir / output_rel
         exists = _file_exists_nonempty(output_path)
 
         if exists:
@@ -171,12 +206,18 @@ def _check_workflow_order(distill_dir):
                 prev = WORKFLOW_STEPS[j]
                 if prev.get('output') is None:
                     continue
-                prev_path = distill_dir / prev['output']
+                # Skip team-mode steps when checking prerequisites
+                if is_team and prev['step'] in team_skip_steps:
+                    continue
+                prev_rel = prev['output']
+                if is_team and prev['step'] == 'plan' and prev_rel == 'plan.md':
+                    prev_rel = 'team-plan.md'
+                prev_path = distill_dir / prev_rel
                 if not _file_exists_nonempty(prev_path):
                     violations.append({
                         'step': step['step'],
-                        'output': step['output'],
-                        'missing_prerequisite': prev['output'],
+                        'output': output_rel,
+                        'missing_prerequisite': prev_rel,
                         'prerequisite_step': prev['step'],
                     })
             completed.append(step['step'])
@@ -285,15 +326,17 @@ def _check_report_confirmation(distill_dir):
     }
 
 
-def _check_plan_confirmation(distill_dir):
+def _check_plan_confirmation(distill_dir, is_team=False):
     """Check that plan-stage files only exist when report is approved.
 
-    If any plan-stage file exists (plan.md, readiness-report.yaml,
+    If any plan-stage file exists (plan.md/team-plan.md, readiness-report.yaml,
     final-quality-gate.yaml, portal.html) but report-confirmation.yaml
     is not approved, that's a violation of the three-stage workflow.
+    In team mode, also checks that plans/ directory exists with at least one file.
     """
+    plan_file_name = 'team-plan.md' if is_team else 'plan.md'
     plan_files = [
-        ('plan.md', 'Step 5: Plan'),
+        (plan_file_name, 'Step 5: Plan'),
         ('context/readiness-report.yaml', 'Step 6: Readiness'),
         ('context/final-quality-gate.yaml', 'Step 8.5: Final Quality Gate'),
         ('portal.html', 'Step 9: Portal HTML'),
@@ -311,6 +354,17 @@ def _check_plan_confirmation(distill_dir):
             'plan_files_exist': False,
             'message': 'No plan-stage files found, confirmation check not applicable',
         }
+
+    # Team mode: check plans/ directory exists with at least one file
+    if is_team:
+        plans_dir = distill_dir / 'plans'
+        if not plans_dir.is_dir() or not any(plans_dir.iterdir()):
+            return {
+                'status': 'fail',
+                'plan_files_exist': True,
+                'report_approved': False,
+                'message': 'team-plan.md exists but plans/ directory is missing or empty — team mode requires individual member plans',
+            }
 
     # Plan files exist — report must be approved
     rc = _check_report_confirmation(distill_dir)
@@ -437,13 +491,16 @@ def _check_quality_gate(distill_dir, repo_root):
 def run_checks(distill_dir, repo_root):
     """Run all checks and return results dict."""
     base = Path(distill_dir).resolve()
+    is_team, member_repos = _detect_team_mode(repo_root)
 
     results = {}
-    results['workflow_order'] = _check_workflow_order(base)
+    results['is_team'] = is_team
+    results['member_repos'] = member_repos
+    results['workflow_order'] = _check_workflow_order(base, is_team=is_team)
     results['requirement_ir_source'] = _check_requirement_ir_source(base)
     results['layer_impact_anchors'] = _check_layer_impact_anchors(base)
     results['report_confirmation'] = _check_report_confirmation(base)
-    results['plan_confirmation'] = _check_plan_confirmation(base)
+    results['plan_confirmation'] = _check_plan_confirmation(base, is_team=is_team)
     results['critique_status'] = _check_critique_status(base)
     results['portal_html'] = _check_portal_script_rendered(base)
     results['quality_gate'] = _check_quality_gate(base, repo_root)
@@ -463,11 +520,18 @@ def print_summary(results):
     print('=== Distill Workflow Gate ===')
     print()
 
+    # Team mode banner
+    is_team = results.get('is_team', False)
+    member_repos = results.get('member_repos', [])
+    prefix = '[team] ' if is_team else ''
+    if is_team:
+        print(f'  [team] Team mode detected (member_repos: {", ".join(member_repos)})')
+
     # Workflow order
     wo = results['workflow_order']
     sym = '+' if wo['status'] == 'pass' else 'x'
     completed = f'{len(wo["completed_steps"])}/{wo["total_steps"]}'
-    print(f'  [{sym}] workflow order: {wo["status"]} ({completed} steps completed)')
+    print(f'  [{sym}] {prefix}workflow order: {wo["status"]} ({completed} steps completed)')
     if wo['violations']:
         for v in wo['violations']:
             print(f'      VIOLATION: {v["output"]} exists but prerequisite {v["missing_prerequisite"]} is missing')
@@ -506,12 +570,13 @@ def print_summary(results):
     # Plan confirmation (three-stage gate)
     pc = results['plan_confirmation']
     sym = '+' if pc['status'] == 'pass' else 'x'
+    plan_label = 'team-plan' if is_team else 'plan'
     if pc.get('plan_files_exist') and pc.get('report_approved'):
-        print(f'  [{sym}] plan confirmation: plan files exist with approved report')
+        print(f'  [{sym}] {prefix}{plan_label} confirmation: plan files exist with approved report')
     elif not pc.get('plan_files_exist'):
-        print(f'  [{sym}] plan confirmation: no plan files yet (not applicable)')
+        print(f'  [{sym}] {prefix}{plan_label} confirmation: no plan files yet (not applicable)')
     else:
-        print(f'  [{sym}] plan confirmation: {pc.get("message", "report not approved")}')
+        print(f'  [{sym}] {prefix}{plan_label} confirmation: {pc.get("message", "report not approved")}')
 
     # Critique status
     cs = results['critique_status']
@@ -563,6 +628,8 @@ def main():
     print(f'Repo root:   {repo_root}')
 
     results = run_checks(distill_dir, repo_root)
+    if results.get('is_team'):
+        print(f'Team mode:   YES (member_repos: {", ".join(results.get("member_repos", []))})')
     print_summary(results)
 
     # Emit fix hints for failed checks

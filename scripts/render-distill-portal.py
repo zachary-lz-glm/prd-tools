@@ -16,7 +16,9 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
-TABS = [
+import yaml
+
+TABS_SINGLE = [
     ('overview', '概览'),
     ('afprd', 'AI-friendly PRD'),
     ('requirements', '需求'),
@@ -24,6 +26,18 @@ TABS = [
     ('risks', '风险与问题'),
     ('report', '报告'),
     ('plan', '方案'),
+    ('raw', '原始上下文'),
+]
+
+TABS_TEAM = [
+    ('overview', '概览'),
+    ('afprd', 'AI-friendly PRD'),
+    ('requirements', '需求'),
+    ('anchors', '代码锚点'),
+    ('risks', '风险与问题'),
+    ('report', '报告'),
+    ('plan', '团队方案'),
+    ('subplans', 'Sub-Plans'),
     ('raw', '原始上下文'),
 ]
 
@@ -46,6 +60,27 @@ def _read(path):
         return Path(path).read_text(encoding='utf-8')
     except Exception:
         return ''
+
+
+def _detect_team_mode(repo_root):
+    """Detect team mode from project-profile.yaml.
+
+    Returns (is_team: bool, member_repos: list[str]).
+    """
+    candidates = [
+        Path(repo_root) / 'team' / 'project-profile.yaml',
+        Path(repo_root) / '_prd-tools' / 'reference' / 'project-profile.yaml',
+    ]
+    for p in candidates:
+        if p.is_file():
+            try:
+                data = yaml.safe_load(p.read_text(encoding='utf-8')) or {}
+            except Exception:
+                continue
+            if data.get('layer') == 'team-common':
+                repos = [r.get('repo', '') for r in data.get('team_reference', {}).get('member_repos', []) if r.get('repo')]
+                return True, repos
+    return False, []
 
 
 def _esc(text):
@@ -132,9 +167,9 @@ def extract_final_gate(base):
     }
 
 
-def build_nav():
+def build_nav(tabs):
     links = []
-    for tab_id, label in TABS:
+    for tab_id, label in tabs:
         links.append(f'<a data-tab="sec-{tab_id}" onclick="showTab(\'sec-{tab_id}\')">{_esc(label)}</a>')
     return ' '.join(links)
 
@@ -149,16 +184,22 @@ def build_summary_cards(quality, req_ir, impact, gate):
     return '\n'.join(cards)
 
 
-def build_overview_section(base, quality, req_ir, impact, gate):
+def build_overview_section(base, quality, req_ir, impact, gate, is_team=False):
     rows = []
+    plan_label = '团队方案' if is_team else '技术方案'
+    plan_file = 'team-plan.md' if is_team else 'plan.md'
     checks = [
         ('spec/ai-friendly-prd.md', 'AI-friendly PRD', _file_exists_nonempty(base / 'spec' / 'ai-friendly-prd.md')),
         ('report.md', '分析报告', _file_exists_nonempty(base / 'report.md')),
-        ('plan.md', '技术方案', _file_exists_nonempty(base / 'plan.md')),
+        (plan_file, plan_label, _file_exists_nonempty(base / plan_file)),
         ('context/requirement-ir.yaml', '需求 IR', _file_exists_nonempty(base / 'context' / 'requirement-ir.yaml')),
         ('context/layer-impact.yaml', '层级影响', _file_exists_nonempty(base / 'context' / 'layer-impact.yaml')),
         ('context/final-quality-gate.yaml', '质量门禁', _file_exists_nonempty(base / 'context' / 'final-quality-gate.yaml')),
     ]
+    if is_team:
+        plans_dir = base / 'plans'
+        has_subplans = plans_dir.is_dir() and any(plans_dir.glob('plan-*.md'))
+        checks.append(('plans/', 'Sub-Plans', has_subplans))
     for fname, label, exists in checks:
         cls = 'badge-pass' if exists else 'badge-fail'
         rows.append(f'<tr><td>{_esc(fname)}</td><td>{_esc(label)}</td><td><span class="value badge {cls}">{"存在" if exists else "缺失"}</span></td></tr>')
@@ -242,8 +283,9 @@ def build_report_section(base):
     </div>'''
 
 
-def build_plan_section(base):
-    text = _read(base / 'plan.md')
+def build_plan_section(base, is_team=False):
+    plan_file = 'team-plan.md' if is_team else 'plan.md'
+    text = _read(base / plan_file)
     if not text:
         return f'''<div class="section" id="sec-plan"><h2>方案</h2><p>文件缺失</p></div>'''
     return f'''<div class="section" id="sec-plan">
@@ -253,7 +295,7 @@ def build_plan_section(base):
     </div>'''
 
 
-def build_raw_section(base):
+def build_raw_section(base, is_team=False):
     viewers = []
     # spec
     spec_files = [('spec/ai-friendly-prd.md', 'AI-friendly PRD')]
@@ -268,11 +310,40 @@ def build_raw_section(base):
             viewers.append(f'''<details><summary>context/{_esc(fname)}</summary><pre>{_esc(text[:50000])}</pre></details>''')
         else:
             viewers.append(f'''<details><summary>context/{_esc(fname)} (缺失)</summary><pre></pre></details>''')
+    # team mode: include sub-plans
+    if is_team:
+        plans_dir = base / 'plans'
+        if plans_dir.is_dir():
+            for pf in sorted(plans_dir.glob('plan-*.md')):
+                text = _read(pf)
+                if text:
+                    viewers.append(f'''<details><summary>plans/{_esc(pf.name)}</summary><pre>{_esc(text[:100000])}</pre></details>''')
 
     return f'''<div class="section" id="sec-raw">
         <h2>原始上下文</h2>
         <input type="text" id="rawSearch" class="search-box" placeholder="搜索文件内容..." oninput="searchRaw()">
         <div id="raw-context" style="margin-top:12px">{"".join(viewers)}</div>
+    </div>'''
+
+
+def build_subplans_section(base):
+    subplans = sorted((base / 'plans').glob('plan-*.md')) if (base / 'plans').is_dir() else []
+    if not subplans:
+        return f'''<div class="section" id="sec-subplans"><h2>Sub-Plans</h2><p>未找到 sub-plan 文件</p></div>'''
+
+    items = []
+    for pf in subplans:
+        text = _read(pf)
+        repo_name = pf.stem.replace('plan-', '', 1)
+        items.append(f'''<details><summary>{_esc(repo_name)}</summary>
+            <div class="md-content">{_md_to_html(text[:30000])}</div>
+            <details><summary>原始内容</summary><pre>{_esc(text[:100000])}</pre></details>
+        </details>''')
+
+    return f'''<div class="section" id="sec-subplans">
+        <h2>Sub-Plans</h2>
+        <p style="margin-bottom:8px">共 {len(subplans)} 个成员仓技术方案</p>
+        {"".join(items)}
     </div>'''
 
 
@@ -283,23 +354,30 @@ def render(distill_dir, template_path, out_path):
         print(f'Error: template not found: {template_path}', file=sys.stderr)
         sys.exit(1)
 
+    # Detect team mode: use repo_root as parent of distill_dir
+    repo_root = base.parent.parent.parent  # _prd-tools/distill/<slug> → repo root
+    is_team, member_repos = _detect_team_mode(repo_root)
+    tabs = TABS_TEAM if is_team else TABS_SINGLE
+
     quality = extract_quality_report(base)
     req_ir = extract_requirement_ir(base)
     impact = extract_layer_impact(base)
     gate = extract_final_gate(base)
 
-    nav = build_nav()
+    nav = build_nav(tabs)
     cards = build_summary_cards(quality, req_ir, impact, gate)
 
     sections = []
-    sections.append(build_overview_section(base, quality, req_ir, impact, gate))
+    sections.append(build_overview_section(base, quality, req_ir, impact, gate, is_team))
     sections.append(build_afprd_section(base))
     sections.append(build_requirements_section(base, req_ir))
     sections.append(build_anchors_section(base, impact))
     sections.append(build_risks_section(base))
     sections.append(build_report_section(base))
-    sections.append(build_plan_section(base))
-    sections.append(build_raw_section(base))
+    sections.append(build_plan_section(base, is_team))
+    if is_team:
+        sections.append(build_subplans_section(base))
+    sections.append(build_raw_section(base, is_team))
 
     generated_at = f'由 render-distill-portal.py 生成 — {datetime.now().strftime("%Y-%m-%d %H:%M")}'
 

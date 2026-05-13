@@ -100,6 +100,12 @@ EOF
 
 这些信息在 report/plan 中允许高于本仓 reference 的权威性——它们是"全团队已 checked_by 的共识"。
 
+**团队模式**（`layer: team-common`）：额外读取以下团队聚合产物作为需求匹配输入：
+- `team/01-codebase.yaml` 的 `cross_repo_entities`（跨仓代码坐标索引）
+- `team/03-contracts.yaml`（跨仓契约合并视图）
+- `team/05-domain.yaml`（团队级术语和决策）
+这些数据优先级高于本仓 reference（团队仓是 SSOT）。
+
 ## 执行
 
 1. 读取文件或接受粘贴文本：

@@ -69,6 +69,25 @@ _prd-tools/
 
 `context/` 包含结构化需求、证据台账、契约分析上下文和就绪度评分，`_ingest/` 是原始文档读取层。
 
+### 团队模式输出目录
+
+如果 `project-profile.yaml` 的 `layer: team-common`：
+
+```text
+_prd-tools/distill/<slug>/
+├── _ingest/                       # 同单仓
+├── spec/                          # 同单仓
+├── report.md                      # 团队级报告（§10 分 4 层子节）
+├── team-plan.md                   # 团队级开发计划总览
+├── plans/                         # 动态生成的 Sub-Plans
+│   └── plan-{repo}.md             # 每个成员仓一份（repo 来自 member_repos[].repo）
+├── portal.html                    # 含 Sub-Plans tab
+└── context/
+    ├── layer-impact.yaml          # 4 层完整填充
+    ├── contract-delta.yaml        # 全栈 consumers[]
+    └── ...                        # 其余同单仓
+```
+
 ## _ingest/
 
 `_ingest/` 解决"PRD 到底被 AI 读成了什么"的问题。它不是需求结论层，只负责保真读取、定位、图片/表格风险暴露。`.md`/`.txt` 直接读取，`.docx` 用 `unzip -p <file> word/document.xml | sed 's/<[^>]*>//g'` 提取纯文本后写入 `document.md`。

@@ -94,6 +94,14 @@
 - 按受影响层分组列出（10.1 前端 / 10.2 BFF / 10.3 后端 / 10.4 外部 / 10.5 跨层风险）
 - 每层都要有自己的小段，即使为空也要显式写"无变更"
 
+**团队模式 report §10 变体**：必须包含 4 个显式子节：
+- §10.1 Frontend：前端层 IMP 和相关契约
+- §10.2 BFF：BFF 层 IMP 和相关契约
+- §10.3 Backend：后端层 IMP 和相关契约
+- §10.4 External：外部系统影响（如有）
+
+每层子节格式：IMP 摘要表 + 关键契约对齐状态 + 风险项。
+
 ### 11. Top Open Questions
 - 最多5个最关键的阻塞问题，带 Q-ID
 
@@ -230,6 +238,25 @@ report.md 生成后、plan.md 生成前，必须暂停：
 - 不要复制 PRD 原文
 - 建议总长度控制在 300-700 行（Markdown 源码）。超限时精简优先级：工作量估算 > 配置与开关 > 数据存储细节（先精简）；实现计划 > QA 矩阵 > 风险与回滚（不精简）
 
+**团队模式 plan 生成**：
+
+`team-plan.md`（团队级总览，7-section）：
+1. 范围与假设（目标、跨仓依赖、成员仓角色表）
+2. 跨仓架构（代码坐标按 repo 分组、跨仓调用链）
+3. 跨仓时序（Phase 依赖图、每仓里程碑）
+4. Sub-Plan 索引表（| 仓 | Sub-Plan 文件 | IMP 数 |）
+5. 契约对齐全栈视图
+6. 风险与回滚
+7. 工作量总览
+
+`plans/plan-{repo}.md`（成员仓 sub-plan）：
+- 复用标准 11-section plan 模板
+- Scope 限定到单个成员仓
+- IMP 从 `layer-impact.yaml` 该仓对应层提取
+- 文件名动态生成：`member_repos[].repo` → `plan-{repo}.md`
+
+**禁止硬编码**：sub-plan 文件名必须从 `member_repos[].repo` 动态生成。
+
 ## Reference 回流
 
 生成 `context/reference-update-suggestions.yaml`：
@@ -290,3 +317,9 @@ report.md 生成后、plan.md 生成前，必须暂停：
 - [ ] [H] reference-update-suggestions.yaml 的 current_repo_scope.action 与证据来源匹配
 - [ ] [M] report.md 长度在 300-650 行范围内（超出时按优先级精简）
 - [ ] [M] plan.md 长度在 300-700 行范围内（超出时按优先级精简）
+
+**团队模式 Self-Check**：
+- `[M]` `team-plan.md` 存在且包含 Sub-Plan 索引表
+- `[M]` `plans/` 目录存在
+- `[M]` 每个 `layer-impact.yaml` 中有 IMP 的成员仓，`plans/plan-{repo}.md` 存在
+- `[M]` sub-plan 文件名与 `member_repos[].repo` 一致

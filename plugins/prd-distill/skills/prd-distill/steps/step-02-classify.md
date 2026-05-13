@@ -13,6 +13,13 @@
 - MUST NOT read files listed in `<must_not_read_by_default>` unless explicitly needed
 - MUST NOT proceed if step gate exits with code 2
 
+> **团队模式**（`project-profile.yaml` 的 `layer` 为 `team-common` 时）：
+> - Step 2.5 Query Plan：跳过（无 index）
+> - Step 3.1 Graph Context：不执行 rg/glob，从 `team/01-codebase.yaml` + `snapshots/` 读取
+> - Step 3.2 Layer Impact：4 层全部从 snapshots 填充
+> - Step 3.5 Context Pack：跳过（无 index）
+> - Step 4 Contract Delta：全栈视角，consumers[] 来自 `team/03-contracts.yaml`
+
 # 步骤 2：Layer Impact 与 Contract Delta
 
 ## 目标
@@ -40,6 +47,11 @@
 ## 执行
 
 ### 源码上下文构建（Reference-First，始终执行）
+
+**团队模式数据源**（`layer: team-common`）：
+从 `team/01-codebase.yaml` cross_repo_entities 获取实体映射 → 按需下钻 `snapshots/{layer}/{repo}/` 获取模块/注册表/数据流详情。每条 GCTX entry 标记 `source: "team_snapshot"`。**禁止 rg/glob**。
+
+Self-check：团队模式下，graph-context.md 中不应出现 `source: code_scan` 的条目。
 
 **⚠ 强制：必须先消费 reference 再扫描源码。禁止跳过 reference 直接 grep。**
 
@@ -92,6 +104,9 @@
 - 4 个 layer key 必须同时存在于 layer-impact.yaml
 - 空数组要显式写 `capability_areas: []` 并加 comment 说明理由
 - 非当前仓层的 IMP confidence 不得 high，必须 needs_confirmation
+
+**团队模式**：4 层 IMP 全部从 `snapshots/` 填充。非本仓层的 IMP 标注 `confidence: medium, source: team_snapshot`。本仓层（如果团队仓就是当前执行仓）可为 `high`。
+
 5. 对每个跨层/API/schema/event/downstream 契约面创建 Contract Delta。
 6. `alignment_summary` 必须用 `status:` + `blockers:[]` + `next_actions:[]` 结构，**不得**用 `aligned: N / needs_confirmation: N / blocked: N` 的计数结构。
 6. 从规范、约束、third rails、契约、playbook 和 `graph-context.md` 中补充风险。
@@ -130,6 +145,8 @@
 以下场景生成 Contract Delta：
 
 - 影响超过一层。
+
+**团队模式**：`consumers[]` 从 `team/03-contracts.yaml` 的 `consumer_repos` 填充，`alignment_summary` 按跨仓视角生成。
 - request/response/schema/event payload 变化。
 - 触达外部权益、券、支付、奖励、风控、审计系统。
 - producer/consumer 归属不清。

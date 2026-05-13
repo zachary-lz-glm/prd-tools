@@ -265,6 +265,28 @@ DISTILL_STEP_ORDER = [
 ]
 
 
+def _detect_team_mode(repo_root):
+    """Detect team mode from project-profile.yaml.
+
+    Returns (is_team: bool, member_repos: list[str]).
+    Team mode is active when layer == 'team-common' and member_repos is non-empty.
+    """
+    candidates = [
+        Path(repo_root) / 'team' / 'project-profile.yaml',
+        Path(repo_root) / '_prd-tools' / 'reference' / 'project-profile.yaml',
+    ]
+    for p in candidates:
+        if p.is_file():
+            try:
+                data = yaml.safe_load(p.read_text(encoding='utf-8')) or {}
+            except Exception:
+                continue
+            if data.get('layer') == 'team-common':
+                repos = [r.get('repo', '') for r in data.get('team_reference', {}).get('member_repos', []) if r.get('repo')]
+                return True, repos
+    return False, []
+
+
 def file_exists_nonempty(base_dir, rel_path):
     """Check if a file exists and is non-empty."""
     full_path = os.path.join(base_dir, rel_path)
@@ -323,13 +345,40 @@ def run_gate(distill_dir, repo_root, step_id):
 
     step_info = STEP_TABLE[step_id]
     label = step_info["label"]
-    prerequisites = step_info["prerequisites"]
-    conditional = step_info.get("conditional_prerequisites", [])
+    prerequisites = list(step_info["prerequisites"])
+    conditional = list(step_info.get("conditional_prerequisites", []))
+
+    is_team, member_repos = _detect_team_mode(repo_root)
 
     print(f"=== Distill Step Gate: {label} ===")
+    if is_team:
+        print(f"  [team] Team mode detected (member_repos: {', '.join(member_repos)})")
+
+    # Team mode: skip steps that require a local reference index
+    if is_team and step_id in ("2.5", "3.5"):
+        print(f"  [team] SKIP — step {step_id} not applicable in team mode (no local reference index)")
+        print(f"RESULT: PASS — skipped_team_mode")
+        return True, "skipped_team_mode", []
+
+    # Team mode: relax step 3.1 conditional prerequisites (no entities.json needed)
+    if is_team and step_id == "3.1":
+        conditional = []
+        # Check team/01-codebase.yaml exists instead
+        team_cb = os.path.join(repo_root, "team", "01-codebase.yaml")
+        if os.path.isfile(team_cb):
+            print(f"  [team] team/01-codebase.yaml — exists")
+        else:
+            print(f"  [x] team/01-codebase.yaml — MISSING (team mode data source)")
+            return False, "team data source missing", ["team/01-codebase.yaml"]
+
+    # Team mode: substitute plan.md → team-plan.md in prerequisites for plan-stage steps
+    if is_team and step_id in ("5", "6", "7", "8.5", "8.6"):
+        prerequisites = [
+            ("team-plan.md" if rp == "plan.md" else rp, ss) for rp, ss in prerequisites
+        ]
 
     # Forbidden outputs check (context budget enforcement)
-    forbidden = step_info.get("forbidden_outputs", [])
+    forbidden = list(step_info.get("forbidden_outputs", []))
     for fpath in forbidden:
         if os.path.isfile(os.path.join(distill_dir, fpath)):
             print(f"  [!] WARNING: {fpath} exists but is forbidden at this stage (stale from previous run?)")
@@ -358,7 +407,6 @@ def run_gate(distill_dir, repo_root, step_id):
             print(f"  [~] {req_path} ({req_step}) — SKIPPED ({trigger_label} not present)")
 
     # Human confirmation check before plan generation.
-    # This is the core of the three-stage workflow: plan requires approved report.
     if step_id == "5":
         approved, approval_msg = report_confirmation_approved(distill_dir)
         if approved:
@@ -424,7 +472,11 @@ def main():
 
         step_info = STEP_TABLE[args.step]
         label = step_info["label"]
-        output_files = step_info.get("output", [])
+        output_files = list(step_info.get("output", []))
+
+        # Team mode: step 5 produces team-plan.md + plans/ instead of plan.md
+        if is_team and args.step == "5":
+            output_files = ["team-plan.md"]
 
         if passed:
             state.mark_step_passed(args.step, label, output_files, distill_dir)

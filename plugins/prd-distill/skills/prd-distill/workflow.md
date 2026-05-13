@@ -42,6 +42,18 @@ PRD raw file/text
 - `/prd-distill plan <slug>`：运行 plan 阶段，需 report-confirmation.yaml status: approved。
 - `/prd-distill <PRD>`：引导式入口，不自动生成 plan。
 
+## 团队模式自动检测（v2.20）
+
+执行前，读取 `_prd-tools/reference/project-profile.yaml`（或 `team/project-profile.yaml`）。如果 `layer: "team-common"`，进入团队模式：
+
+- 从 `team_reference.member_repos[]` 获取成员仓列表（`repo`、`layer`、`local_path`/`remote_url`）
+- Step 2.5 / 3.5：**跳过**（团队仓无 `_prd-tools/reference/index/`）
+- Step 3.1：数据源改为 `team/01-codebase.yaml` cross_repo_entities + `snapshots/{layer}/{repo}/` 下钻，**禁止 rg/glob**
+- Step 3.2：4 层 IMP 全部从 snapshots 填充
+- Step 4：contract delta 消费 `team/03-contracts.yaml` 全栈 consumers[]
+- Step 5：生成 `team-plan.md` + `plans/plan-{repo}.md`（文件名从 `member_repos[].repo` 动态生成）
+- Step 8：report.md §10 强制 4 个子节（10.1–10.4）
+
 ---
 
 # ── spec 阶段 ──
@@ -395,6 +407,8 @@ phases:
   p0_requirements: []     # P0 需求的关键实体和术语
 ```
 
+**团队模式**：跳过此步骤。团队仓无 `_prd-tools/reference/index/`，不生成 query-plan.yaml。Step gate 会自动通过。
+
 ## 步骤 3.5：Context Pack（Reference Index 融合层）
 
 > **定位**：Context Pack 融合 Evidence Index 与 distill 上下文，为 report/plan 提供精简代码坐标。当 index 存在时**必须运行**。
@@ -402,6 +416,8 @@ phases:
 在步骤 3.2（Layer Impact）完成后、步骤 4（Contract Delta）之前，**必须**运行 `python3 .prd-tools/scripts/context-pack.py`（此时 layer-impact.yaml 已存在），生成 `context/context-pack.md`，将 Evidence Index 中的代码实体与 distill 上下文融合，形成模型可直接消费的精简上下文（建议 ≤800 行）。
 
 触发时机：步骤 3.2 完成后、步骤 4 之前。如果索引不存在则跳过，但必须在 readiness-report 中记录缺失。
+
+**团队模式**：跳过此步骤。团队仓无 index，不生成 context-pack.md。Step gate 会自动通过。
 
 ## 步骤 3：Layer Impact
 
@@ -456,6 +472,15 @@ phases:
 
 **推测信息约束**：所有"推测"/"speculative"信息（如未确认的接口路径、未验证的调用关系）必须加 `⚠ speculative, confidence=<low|medium>, verify before use` 前缀，否则不得出现在 `graph-context.md` 中。
 
+**团队模式数据源**（`layer: team-common` 时）：
+1. 读取 `team/01-codebase.yaml` 的 `cross_repo_entities`，获取 PRD 相关的跨仓实体映射
+2. 对每个 REQ，从 cross_repo_entities 匹配实体，获取 `defined_in.repo`/`defined_in.file` 和 `consumed_by[]`
+3. 需要代码细节时，下钻到 `snapshots/{layer}/{repo}/01-codebase.yaml` 获取 modules、registries、data_flows
+4. 需要契约细节时，读 `snapshots/{layer}/{repo}/03-contracts.yaml`
+5. 团队 fatal 规则从 `team/02-coding-rules.yaml` 读取
+6. 团队术语从 `team/05-domain.yaml` 读取
+7. **禁止执行 rg/glob 命令**——团队仓没有源码，所有 GCTX entry 标记 `source: "team_snapshot"`
+
 ### 3.2 Layer Impact 生成
 
 读取目标层适配器：
@@ -480,6 +505,8 @@ phases:
 - `risks`
 - `evidence`
 - `confidence`
+
+**团队模式**：4 层 IMP 全部从 `snapshots/` 填充。每层的 `code_anchors` 指向 snapshots 文件路径（如 `snapshots/frontend/genos/01-codebase.yaml` 中的模块）。confidence 为 `medium`（未直接验证源码），除非被多个 snapshot 交叉验证（此时可为 `high`）。
 
 ### 3.3 Code Anchor 规则
 
@@ -581,6 +608,8 @@ findings:
 - `blocked`：字段、枚举、required、时序或责任归属冲突。
 - `not_applicable`：确认为单层内部变化。
 
+**团队模式**：全栈视角。每条 delta 的 `consumers[]` 从 `team/03-contracts.yaml` 的 `consumer_repos` 填充，`checked_by[]` 从聚合状态获取。每层契约基线从对应 `snapshots/{repo}/03-contracts.yaml` 读取。
+
 # ── plan 阶段 ──
 
 > **前置条件**：`context/report-confirmation.yaml` 必须为 `status: approved`。
@@ -604,6 +633,25 @@ findings:
 - 不直接写代码，除非用户明确要求进入实现。
 - **`missing_confirmation` 不得作为确定实现任务**：ai-friendly-prd 中标注为 `missing_confirmation` 的需求不得写入 plan 的确定实现 checklist，只能写入"待确认"或"假设前提"章节。
 - 格式详见 `references/schemas/04-report-plan.md` 中 plan.md 模板。
+
+**团队模式 plan 生成**：
+
+生成 `team-plan.md`（团队级总览）+ N 份 `plans/plan-{repo}.md`（成员仓 sub-plan）。
+
+`team-plan.md` 结构：
+1. **范围与假设**：目标、跨仓依赖、成员仓角色表（来自 member_repos）
+2. **跨仓架构**：代码坐标总览（按 repo 分组，来自 cross_repo_entities）、跨仓调用链、关键设计决策
+3. **跨仓时序**：Phase 1-N 跨仓依赖图、每个仓的交付里程碑
+4. **Sub-Plan 索引表**：动态列出所有 sub-plan 文件名 + 对应仓 + IMP 数
+5. **契约对齐（全栈）**：从 contract-delta.yaml 提取跨仓契约摘要
+6. **风险与回滚**：跨仓联调风险、回滚策略
+7. **工作量总览**：按仓汇总
+
+`plans/plan-{repo}.md`：复用标准 11-section plan 模板，但 scope 限定到单个成员仓。每份 sub-plan 的 IMP 从 `layer-impact.yaml` 中该仓对应层的 entries 提取。
+
+文件名生成规则：`member_repos[].repo` 值直接用作 `plan-{repo}.md`（如 `repo: "dive-bff"` → `plans/plan-dive-bff.md`）。
+
+**禁止硬编码**：sub-plan 文件名必须从 `member_repos[].repo` 动态生成，不得硬编码特定仓库名。
 
 ## 步骤 6：Readiness 评分
 
@@ -687,6 +735,12 @@ suggestions:
 格式详见 `references/schemas/04-report-plan.md` 中 report.md 模板。
 
 报告里不要隐藏低置信度项；低置信度是价值，不是瑕疵。**线索式证据不能省略**：代码注释、已有结构体名、文件路径等线索必须保留。
+
+**团队模式 report §10**：必须包含 4 个显式子节：
+- §10.1 Frontend：前端层 IMP 和契约
+- §10.2 BFF：BFF 层 IMP 和契约
+- §10.3 Backend：后端层 IMP 和契约
+- §10.4 External：外部系统影响（如有）
 
 ## 步骤 8.1：Report Review Gate（人类确认）
 
@@ -776,6 +830,8 @@ summary:
 ```
 
 触发时机：步骤 8（report.md）完成后、步骤 9（portal.html）之前。
+
+**团队模式**：检查 `team-plan.md` + `plans/` 目录（而非 `plan.md`）。
 
 ## 步骤 8.6：Distill Completion Gate（硬约束）
 

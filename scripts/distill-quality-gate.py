@@ -47,6 +47,27 @@ REQUIRED_DISTILL_FILES = {
     ],
 }
 
+# Team mode: same as REQUIRED_DISTILL_FILES but plan.md → team-plan.md
+# and plans/ directory with at least one plan-*.md is required.
+REQUIRED_TEAM_FILES = {
+    'critical': [
+        '_ingest/document.md',
+        'spec/ai-friendly-prd.md',
+        'report.md',
+        'team-plan.md',
+    ],
+    'important': [
+        'context/prd-quality-report.yaml',
+        'context/requirement-ir.yaml',
+        'context/layer-impact.yaml',
+        'context/contract-delta.yaml',
+        'context/graph-context.md',
+        'context/report-confirmation.yaml',
+        'context/readiness-report.yaml',
+        'context/final-quality-gate.yaml',
+    ],
+}
+
 # AI-friendly PRD section headers (13 sections)
 AFPRD_SECTIONS = [
     'Overview',
@@ -79,25 +100,54 @@ def _file_exists_nonempty(path):
     return p.exists() and p.is_file() and p.stat().st_size > 0
 
 
-def _check_required_files(base):
+def _detect_team_mode(repo_root):
+    """Detect team mode from project-profile.yaml.
+    Returns (is_team: bool, member_repos: list[str]).
+    Team mode is active when layer == 'team-common' and member_repos is non-empty.
+    """
+    candidates = [
+        Path(repo_root) / 'team' / 'project-profile.yaml',
+        Path(repo_root) / '_prd-tools' / 'reference' / 'project-profile.yaml',
+    ]
+    for p in candidates:
+        if p.is_file():
+            try:
+                data = yaml.safe_load(p.read_text(encoding='utf-8')) or {}
+            except Exception:
+                continue
+            if data.get('layer') == 'team-common':
+                repos = [r.get('repo', '') for r in data.get('team_reference', {}).get('member_repos', []) if r.get('repo')]
+                return True, repos
+    return False, []
+
+
+def _check_required_files(base, is_team=False):
     """Check required distill files exist and non-empty."""
+    file_spec = REQUIRED_TEAM_FILES if is_team else REQUIRED_DISTILL_FILES
     missing_critical = []
     missing_important = []
     empty = []
 
-    for f in REQUIRED_DISTILL_FILES['critical']:
+    for f in file_spec['critical']:
         p = base / f
         if not p.exists():
             missing_critical.append(f)
         elif p.stat().st_size == 0:
             empty.append(f)
 
-    for f in REQUIRED_DISTILL_FILES['important']:
+    for f in file_spec['important']:
         p = base / f
         if not p.exists():
             missing_important.append(f)
         elif p.stat().st_size == 0:
             empty.append(f)
+
+    # In team mode, plans/ directory must exist with at least one plan-*.md
+    if is_team:
+        plans_dir = base / 'plans'
+        plan_files = list(plans_dir.glob('plan-*.md')) if plans_dir.is_dir() else []
+        if not plan_files:
+            missing_critical.append('plans/plan-*.md (no sub-plans found)')
 
     status = 'pass'
     if missing_critical:
@@ -305,31 +355,65 @@ def _check_report_confirmation(base):
     }
 
 
-def _check_plan_missing_confirmation(base):
-    """Check plan.md doesn't treat missing_confirmation as confirmed tasks."""
-    text = _read_safe(base / 'plan.md')
-    if not text.strip():
+def _check_plan_missing_confirmation(base, is_team=False):
+    """Check plan.md (or team-plan.md + sub-plans) doesn't treat missing_confirmation as confirmed tasks."""
+    # Collect all plan files to check
+    if is_team:
+        plan_files = [base / 'team-plan.md']
+        plans_dir = base / 'plans'
+        if plans_dir.is_dir():
+            plan_files.extend(sorted(plans_dir.glob('plan-*.md')))
+    else:
+        plan_files = [base / 'plan.md']
+
+    total_suspicious = 0
+    for plan_path in plan_files:
+        text = _read_safe(plan_path)
+        if not text.strip():
+            continue
+
+        # Find checklist items that contain missing_confirmation-like language
+        # but are written as confirmed implementation tasks
+        suspicious = 0
+        # Pattern: checklist item with "missing_confirmation" or "待确认" in context
+        # but formatted as a definitive "- [ ]" task without caveats
+        checklist_lines = re.findall(r'^-\s+\[[ x]\]\s+.+', text, re.M)
+        for line in checklist_lines:
+            # If a checklist item explicitly says "missing_confirmation" or "待确认"
+            # but doesn't have "假设" or "前提" or "需确认" caveat, it's suspicious
+            if re.search(r'missing_confirmation|待确认|needs_confirmation', line, re.I):
+                if not re.search(r'假设|前提|需确认|assumption|pending|blocked', line, re.I):
+                    suspicious += 1
+        total_suspicious += suspicious
+
+    # Fail if primary plan is missing/empty in single-repo mode
+    if not is_team and not (base / 'plan.md').exists():
         return {'status': 'fail', 'suspicious_count': 0}
 
-    # Find checklist items that contain missing_confirmation-like language
-    # but are written as confirmed implementation tasks
-    suspicious = 0
-    # Pattern: checklist item with "missing_confirmation" or "待确认" in context
-    # but formatted as a definitive "- [ ]" task without caveats
-    checklist_lines = re.findall(r'^-\s+\[[ x]\]\s+.+', text, re.M)
-    for line in checklist_lines:
-        # If a checklist item explicitly says "missing_confirmation" or "待确认"
-        # but doesn't have "假设" or "前提" or "需确认" caveat, it's suspicious
-        if re.search(r'missing_confirmation|待确认|needs_confirmation', line, re.I):
-            if not re.search(r'假设|前提|需确认|assumption|pending|blocked', line, re.I):
-                suspicious += 1
-
-    status = 'pass' if suspicious == 0 else 'warning'
+    status = 'pass' if total_suspicious == 0 else 'warning'
     return {
         'status': status,
-        'suspicious_count': suspicious,
+        'suspicious_count': total_suspicious,
     }
 
+
+def _check_team_sub_plans(base, member_repos):
+    """In team mode, check that plans/plan-{repo}.md exists for each member repo."""
+    found = []
+    missing = []
+    for repo in member_repos:
+        plan_file = base / 'plans' / f'plan-{repo}.md'
+        if _file_exists_nonempty(plan_file):
+            found.append(repo)
+        else:
+            missing.append(repo)
+    # Missing sub-plans for member repos is WARNING (not FAIL)
+    status = 'pass' if not missing else 'warning'
+    return {
+        'status': status,
+        'sub_plans_found': found,
+        'sub_plans_missing': missing,
+    }
 
 
 def _check_portal_html(base):
@@ -464,8 +548,11 @@ def run_checks(distill_dir, repo_root):
     """Run all checks and return results dict."""
     base = Path(distill_dir).resolve()
 
+    # Detect team mode
+    is_team, member_repos = _detect_team_mode(repo_root)
+
     results = {}
-    results['required_files'] = _check_required_files(base)
+    results['required_files'] = _check_required_files(base, is_team=is_team)
     results['afprd_sections'] = _check_afprd_sections(base)
     results['req_id_anchors'] = _check_req_id_anchors(base)
     results['prd_quality_report'] = _check_prd_quality_report(base)
@@ -475,7 +562,9 @@ def run_checks(distill_dir, repo_root):
     results['final_quality_gate'] = _check_final_quality_gate(base)
     results['report_quality'] = _check_report_quality(base)
     results['report_confirmation'] = _check_report_confirmation(base)
-    results['plan_missing_confirmation'] = _check_plan_missing_confirmation(base)
+    results['plan_missing_confirmation'] = _check_plan_missing_confirmation(base, is_team=is_team)
+    if is_team:
+        results['team_sub_plans'] = _check_team_sub_plans(base, member_repos)
     results['portal_html'] = _check_portal_html(base)
     results['prd_coverage'] = _check_prd_coverage(base)
     results['artifact_contracts'] = _check_artifact_contracts(base)
@@ -494,7 +583,9 @@ def compute_exit_code(results):
 def print_summary(results):
     """Print human-readable summary."""
     print()
-    print('=== Distill Quality Gate ===')
+    is_team = 'team_sub_plans' in results
+    mode_label = 'TEAM MODE' if is_team else 'SINGLE-REPO MODE'
+    print(f'=== Distill Quality Gate ({mode_label}) ===')
     print()
 
     checks = [
@@ -509,6 +600,10 @@ def print_summary(results):
         ('report_quality', 'Report quality'),
         ('report_confirmation', 'Report confirmation'),
         ('plan_missing_confirmation', 'Plan missing_confirmation'),
+    ]
+    if is_team:
+        checks.append(('team_sub_plans', 'Team sub-plans'))
+    checks += [
         ('portal_html', 'Portal HTML'),
         ('prd_coverage', 'PRD coverage (fidelity)'),
         ('artifact_contracts', 'Artifact contracts'),

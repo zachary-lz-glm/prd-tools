@@ -292,6 +292,45 @@ npm test
 - **inferred 需确认后才能确定**：确定实现 checklist 只能包含 `explicit`，或已在 report/questions 中明确确认路径的 `inferred`。未确认的 `inferred` 只能进入"待确认 / 假设前提"。
 - **REQ-ID 必须可回溯**：每个计划项应引用 requirement-ir 的 REQ-ID，并尽量能追溯到 `spec/ai-friendly-prd.md` 的 REQ-ID。
 
+### team-plan.md（团队模式）
+
+```markdown
+# 团队技术方案：{需求名称}
+
+## 1. 范围与假设
+### 1.1 目标
+### 1.2 跨仓依赖
+### 1.3 成员仓角色表（| 仓 | Layer | Role |）
+
+## 2. 跨仓架构
+### 2.1 代码坐标总览（按 repo 分组，来自 cross_repo_entities）
+### 2.2 跨仓调用链
+### 2.3 关键设计决策
+
+## 3. 跨仓时序
+### 3.1 Phase 依赖图
+### 3.2 每仓交付里程碑
+
+## 4. Sub-Plan 索引
+| 仓 | Sub-Plan | IMP 数 | 状态 |
+|---|---|---|---|
+| {repo} | plans/plan-{repo}.md | N | ready/assumption |
+
+## 5. 契约对齐（全栈）
+| Contract ID | Producer | Consumers | Alignment |
+|---|---|---|---|
+
+## 6. 风险与回滚
+## 7. 工作量总览
+| 仓 | 预估 | 关键路径 |
+|---|---|---|
+```
+
+`plans/plan-{repo}.md` 结构与单仓 `plan.md` 的 11-section 模板相同，但：
+- 标题改为 `# {repo} 技术方案：{需求名称}`
+- Scope 限定到该成员仓
+- IMP 从 `layer-impact.yaml` 对应层提取
+
 ### 职责边界
 
 - **plan.md 是可 review 的技术方案，不是二次报告**。
