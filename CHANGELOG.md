@@ -2,425 +2,127 @@
 
 > 遵循 [Keep a Changelog](https://keepachangelog.com/) 格式。架构决策详见 [docs/adr/](docs/adr/)。
 
----
-
 ## [2.19.1] - 2026-05-13
 
-### Added
-- feat: 团队知识库初始化工作流（/reference Mode T-init）
-- feat: 团队级 prd-distill 模式（自动检测 `layer: team-common`，产出 team-plan.md + plans/plan-{repo}.md）
-
-### Changed
-- refactor: 合并 7 个 gate 脚本为统一 `quality-gate.py`（子命令：reference / distill / final），step ordering 回归 markdown
-- refactor: 移除 team-reference 聚合/继承脚本，合并策略回归 skill 工作流（LLM 按文档执行）
-- refactor: 移除 Portal 可视化页面系统（portal.html 不再生成）
-- refactor: 消除 prd-tools 中 Dive 项目硬编码假设，改为从 reference 数据动态构建
-- refactor: 撤销跨插件 _shared symlink 方案，恢复插件独立性
-
-### Fixed
-- fix: sync install.sh script list with actual scripts/
-- fix: label_source 来源标注机制在本版本中引入后移除（最终未保留）
-
+- 团队知识库初始化工作流（/reference Mode T-init）+ 团队级 prd-distill 模式
+- 合并 7 个 gate 脚本为统一 quality-gate.py，移除 Portal 和第三方图谱依赖
+- 恢复插件独立性，消除项目硬编码
 
 ## [2.19.0] - 2026-05-13
 
-### Added
-- feat: 团队公共知识库聚合与继承（v2.19 T/T2 模式）
-- feat: 团队公共知识库
-- feat: teams文档
-- feat: 提交修复文档
-- feat(team-ref): [P1-4] introduce team common reference scaffolding (aggregation + inheritance)
-- feat(scripts): [P1-1] add ingest-docx.py to replace ad-hoc XML parsing in Step 0
-- feat: 自检
-- feat: 自检工具
-- feat: 自检工具
-- feat: 验收
-- feat: 2.18.1自动化测试skill
-
-### Changed
-- chore: remove 0-ref dead scripts (2748 lines) before v2.19 refactor
-- refactor(audit): self-audit postfix P2 — 13/13 fixes
-- docs(audit): v2.18.1 round2 audit fix report — P0R2 12/12, D4 1/1, selfcheck 0 fail
-- refactor(audit-p0r2): D4 selfcheck scoped to within-skill gate references
-- docs(audit): v2.18.1 audit fix report — P0 6/6, P1 10/10, P2 11/11
-- refactor(audit-p2): register phantom steps 2.6/3.6/7/8.6.1 in STEP_TABLE
-- refactor(audit-p2): [P2-10] single canonical mode-selection schema
-- refactor(audit-p2): [P2-9] unify plan.md section count to 11 across docs
-- refactor(audit-p2): [P2-7] materialize Phase 3.6 Critique Pass in workflow.md
-- refactor(audit-p2): [P2-6] split duplicate Step 8.6 headings
-- refactor(audit-p2): [P2-5] remove deprecated graph/ subtree from output-contracts
-- refactor(audit-p2): [P2-4] context-pack seed_queries derived from routing-playbooks
-- refactor(audit-p2): [P2-3] final-quality-gate reads anchors from routing-playbooks
-- refactor(audit-p2): [P2-2] accept --step 8.1 as alias for 8.1-confirm
-- refactor(audit-p2): [P2-1] step-gate default tool-version reads VERSION file
-- docs(audit): v2.18.1 audit fix report — P0 6/6, P1 10/10
-
-### Fixed
-- fix(audit): [P0-4 followup] add --distill alias to distill-step-gate.py
-- fix(audit-p2): [P2-2] step-03-confirm.md inline HARD STOP instruction between report and plan
-- fix(audit-p2): [P2-1] context-pack.md tiers anchors (must/should/optional) with visual markers
-- fix(audit-p1): [P1-3] step 8.6 Completion Gate renamed to Reference Update Staging with actual checks
-- fix(audit-p1): [P1-2] plan.md must-contain Checklist/Verify; report.md blocker 6-elements enforced
-- fix(audit-p0): [P0-14] restore human-readable enum labels + see_enum dedup (reference vs index boundary)
-- fix(audit-p0): [P0-13] enforce schema field names for evidence/alignment_summary/readiness (anti-drift)
-- fix(audit-p0): [P0-12] reference-update-suggestions.yaml restore 12-field schema + team candidate flag
-- fix(audit-p0): [P0-11] strict H2 section structure for report.md (12) and plan.md (11)
-- fix(audit-p0): [P0-10] routing-playbooks.yaml restore handoff_surfaces + layer_steps 3-layer
-- fix(audit-p0): [P0-9] plan.md §7/§9 enforce 3-layer validation matrix + contract table
-- fix(audit-p0): [P0-8] 03-contracts.yaml restore producer/consumers[]/checked_by[] + team repo fields
-- fix(audit-p0): [P0-7] layer-impact.yaml requires all 4 layers (frontend/bff/backend/external)
-- fix(audit-p0): [P0-6] restore v2.16.0 full-stack contract suggestions (frontend/bff/backend grouping)
-- fix(audit-p0): [P0-5] distill-step-gate writes current_step/status alongside completed_steps
-- fix(audit-p0): [P0-4] unify CLI args --distill-dir/--index-dir/--repo-root across scripts
-- fix(audit-p0): [P0-3] align schemas/03-context.md schema_version with contracts (all 2.0)
-- fix(audit-p0): [P0-2] evidence.yaml as single source of truth, evidence-map.yaml read-only
-- fix(audit-p0): [P0-1] enforce 13 english sections + ### REQ-XXX heading anchors in ai-friendly-prd
-- fix(audit): self-audit postfix — P0 1/1, P1 8/8, audit report
-- fix: install.sh 补装 _gate_fixhint.py + pre-commit 防遗漏
-- fix(audit): self-audit dryrun 29 findings — P0 6/6, P1 13/13, P2 10/10
-- fix(audit-p0r2): [P0R2-12] document-structure.json exclusion_types taught to AI
-- fix(audit-p0r2): [P0R2-11] gate failures suggest checking template/gate, not just artifact
-- fix(audit-p0r2): [P0R2-10] Step 0 outputs enforced as Step 1 prerequisites
-- fix(audit-p0r2): [P0R2-9] final-quality-gate accepts --distill-dir alias
-- fix(audit-p0r2): [P0R2-8] context-pack accepts --distill-dir alias + auto-derives --index/--out
-- fix(audit-p0r2): [P0R2-7] docx ingestion uses python zipfile standard path
-- fix(audit-p0r2): [P0R2-6] contract-delta requires meta + requirement_id + layer
-- fix(audit-p0r2): [P0R2-5] IR evidence field unified as object with source_blocks/source_block_ids
-- fix(audit-p0r2): [P0R2-4] media-analysis.yaml top-level key unified as `media`
-- fix(audit-p0r2): [P0R2-3] evidence-map.yaml top-level key unified as `blocks`
-- fix(audit-p0r2): [P0R2-2] gate accepts overall_score as score alias
-- fix(audit-p0r2): [P0R2-1] ai-friendly-prd section format matches gate regex
-- fix(audit-p1): [P1-10] document overall_score formula in output-contracts
-- fix(audit-p1): [P1-9] add fix_hint to distill-workflow and reference-step gates
-- fix(audit-p1): [P1-8] tag Self-Check items as [M]achine / [H]uman
-- fix(audit-p1): [P1-7] align ai-friendly-prd h2 thresholds
-- fix(audit-p1): [P1-6] enforce IR ↔ ai-friendly-prd REQ id consistency
-- fix(audit-p1): [P1-5] 8.1-confirm step reads real report-confirmation status
-- fix(audit-p1): [P1-4] fix duplicate step number in step-01-parse.md
-- fix(audit-p1): [P1-3] align source_blocks / source_block_ids semantics
-- fix(audit-p1): [P1-2] SKILL.md lists distill-workflow-gate.py
-- fix(audit-p1): [P1-1] normalize smart quotes in workflow.md yaml templates
-- fix(audit-p0): [P0-6] coverage-report missing now carries real block_ids
-- fix(audit-p0): [P0-5] code_scan must cover build/ for registry changes
-- fix(audit-p0): [P0-4] align contract-delta.contract.yaml with real schema
-- fix(audit-p0): [P0-3] reference-step-gate 2d requires 02-coding-rules
-- fix(audit-p0): [P0-2] remove duplicate Step 2.5/2.6 in workflow.md
-- fix(audit-p0): [P0-1] distill-workflow-gate.py import yaml
-- fix: 全盘修复 gate/workflow/command 一致性问题
-- fix: context-pack.py 兼容 IR-xxx 格式的 requirement id
-- fix: human_checkpoint 单复数兼容 + SKILL.md 文档统一为复数
-
+- 团队公共知识库聚合与继承（T/T2 模式）
+- 自检工具 self-audit，删除 2748 行死代码
+- 全盘 audit 修复（gate/workflow/schema 一致性）
 
 ## [2.18.1] - 2026-05-12
 
-### Added
-- feat: Evidence Index 准确性提升 — 多行签名、跨文件边、增量更新、领域术语桥接
-- feat: 删除agent
-
-### Fixed
-- fix: install.sh 补充新增脚本 + quality gate contracts 路径兼容
-
+- Evidence Index 准确性提升（多行签名、跨文件边、增量更新、领域术语桥接）
 
 ## [2.18.0] - 2026-05-12
 
-### Added
-- Artifact Contract MVP：通用 validate-artifact.py + 4 个核心 contract（requirement-ir、ai-friendly-prd、layer-impact、contract-delta）
-- Context Budget：distill-step-gate.py 每步 forbidden_outputs 字段，违反时 warning
-- Two-Pass Critic：critique-template.md 自检模板 + distill-workflow-gate.py critique_status 检查
-- distill-quality-gate.py 集成 artifact_contracts 检查项，输出 artifact-validation.yaml
+- Artifact Contract 校验框架 + Context Budget + Two-Pass Critic 自检
 
 ## [2.17.0] - 2026-05-12
 
-### Added
-- Workflow State 成熟：顺序验证（step 必须匹配 resume.next_step）、--allow-rerun 逃生口
-- current_stage 字段写入 workflow-state.yaml
-- human_checkpoints 写入：distill report_review + reference mode_selection
-- Mode Selection Gate 脚本化：reference Step 1+ 必须有 mode_selection approved
-- --confirm-mode 参数：AI agent 在用户确认模式后调用写入 checkpoint
-- stage 边界 warning：spec 阶段存在 report.md/plan.md 时警告
+- Workflow State 顺序验证 + Human Checkpoints 脚本化（mode selection / report review）
 
 ## [2.16.3] - 2026-05-12
 
-### Added
-- 保真度优先架构修正：AI-friendly PRD 重新定位为索引层，requirement-ir 主输入回退到 document.md，新增 prd-coverage-gate.py
-- 三段式工作流骨架：/prd-distill 拆为 spec/report/plan 三段式命令
-- Workflow State v2：step gate 新增 --write-state，共享 workflow_state.py 模块
-- 前置步骤门禁脚本（distill-step-gate.py / reference-step-gate.py 升级）
-- Human workflow checkpoints（report review gate + mode selection gate）
-
-### Changed
-- ADR-0011/0012/0013 整合为统一迭代计划（ADR-0011 重写）
-
+- 保真度优先架构修正 + 三段式工作流 + Step Gate 前置门禁
 
 ## [2.16.2] - 2026-05-11
 
-### Added
-- feat: add AI-friendly PRD compiler pipeline
-
+- AI-friendly PRD compiler pipeline
 
 ## [2.16.1] - 2026-05-10
 
-### Added
-- feat: add branch-backed multi-layer benchmark
-- feat: add evidence index benchmark harness
-
+- 多层 benchmark + Evidence Index benchmark
 
 ## [2.16.0] - 2026-05-08
 
-### Added
-- feat: prd-distill 支持 .docx 输入，提取图片并使用 Claude 原生多模态看图
-
+- prd-distill 支持 .docx 输入 + Claude 多模态图片分析
 
 ## [2.15.0] - 2026-05-08
 
-### Changed
-- docs: 重写三个 README，强化对外可读性
-
+- 重写 README，强化对外可读性
 
 ## [2.14.0] - 2026-05-08
 
-### Changed
-- refactor: 移除全部第三方依赖和辅助脚本，精简 distill 产出结构
-
+- 移除第三方依赖，精简 distill 产出结构
 
 ## [2.13.0] - 2026-05-08
 
-### Changed
-- refactor: 移除 GitNexus/Graphify 第三方图谱工具依赖，回归原生能力
-
+- 移除 GitNexus/Graphify 第三方图谱依赖，回归原生能力
 
 ## [2.12.0] - 2026-05-08
 
-### Added
-- feat: add status dashboard MVP
-
-### Changed
-- docs: fold output guide into readme
-- docs: streamline prd tools guidance
-- refactor: remove reference command alias
-- refactor: rename reference plugin internals
-
-### Fixed
-- fix: unify reference install workflow
-
+- 状态面板 MVP + reference 安装流程统一
 
 ## [2.11.1] - 2026-05-07
 
-### Changed
-- i18n: install.sh / doctor.sh 用户可见输出改中文
-- refactor: install.sh 三层职责拆分 (ADR-0008)
-
-### Fixed
-- fix: doctor.sh gitnexus 内网 registry 检测 + uv mirror 检测 + 下一步提示
-- fix: doctor.sh $P 邻接全角字符触发 set -u + 修正 markitdown-ocr 安装命令
-- fix: install.sh 代理检测改用 SOCKS 优先 + 移除安装时索引
-
+- install.sh / doctor.sh 中文国际化 + 代理检测修复
 
 ## [2.11.0] - 2026-05-07
 
-### Changed
-- refactor: _output/ + _reference/ 统一为 _prd-tools/，Spec Kit 对齐重组
-- docs: 全面更新图谱集成文档 + 修复过时引用
-- docs: 插件新增人类可读 README + SKILL.md 精简 + 外部工具描述更新
-- docs: SKILL.md 添加 mermaid 一眼看懂流程图
-- docs: simplify prd-tools entrypoints
-
-### Fixed
-- fix: install.sh GitNexus 索引启用 embeddings + HuggingFace 不可达容错
-- fix: install.sh VISION_KEY unbound variable 防护
-
-
-## [2.10.3] - 2026-05-07
-
-### Fixed
-- fix: post-commit 改为询问发版 + install.sh API Key 交互优化
-
-
-## [2.10.2] - 2026-05-07
-
-### Fixed
-- fix: install.sh 安装后输出清晰的必做清单
-
-
-## [2.10.1] - 2026-05-07
-
-### Fixed
-- fix: install.sh npx 调 gitnexus 时绕过公司内网 npm registry
-
+- 输出目录统一为 _prd-tools/ + 插件 README + SKILL.md 流程图
 
 ## [2.10.0] - 2026-05-06
 
-### Added
-- feat: reference 单仓治理 + graph-context 图谱中间层 + install 改进
-
-### Fixed
-- fix: 修复安装归档路径与输出口径漂移
-
+- reference 单仓治理 + graph-context 图谱中间层
 
 ## [2.9.0] - 2026-05-06
 
-### Added
-- feat: v2.8 质量复盘 — 输出契约全面升级 + 契约校验自动化
-
+- 输出契约全面升级 + 契约校验自动化
 
 ## [2.8.0] - 2026-05-06
 
-### Added
-- feat: prd-distill v2.8 质量复盘 — 修复图片confidence + questions合并 + plan升级技术方案 + 线索保留
-
-### Changed
-- docs: README 同步 v2.7 — MarkItDown/外部工具/安装向导/自动发版
-
+- prd-distill 质量复盘：图片 confidence + plan 技术方案升级
 
 ## [2.7.0] - 2026-05-06
 
-### Added
-- feat: 版本迭代自动化 — release.sh --auto + post-commit hook 自动发版
-
+- 版本迭代自动化（release.sh --auto + post-commit hook）
 
 ## [2.6.0] - 2026-05-04
 
-### Added
-- **MarkItDown 集成**：用 microsoft/markitdown 替换手写 OOXML 解析和 pdftotext，作为 prd-ingest 的文件转换后端
-- **LLM Vision 图片分析**：自动检测环境变量（OPENAI_API_KEY 或智谱 ANTHROPIC_AUTH_TOKEN），启用 markitdown-ocr 插件分析 PRD 中的流程图、截图、设计稿内容
-- **智谱（bigmodel.cn）自动适配**：检测到 ANTHROPIC_BASE_URL 含 bigmodel.cn 时，自动转换为 OpenAI 兼容端点（glm-4v-flash）
-- **新增格式支持**：pptx/xlsx/html/epub（原仅 docx/pdf/md/txt）
-- **install.sh 完全重写**（~40 行 → 395 行 7 步向导）：自动代理检测、uv 安装、MarkItDown+OCR、GitNexus CLI 安装+自动索引、Graphify MCP、Claude Code MCP 配置、安装状态汇总
-- PEP 723 依赖声明：Graphify 和 MarkItDown 的脚本头部声明独立依赖，无需手动 pip install
-
-### Changed
-- `ingest_prd.py` 完全重写（645行→~400行），保留原有 prd-ingest 输出格式不变
-- SKILL.md / workflow.md 更新格式列表、图片分析说明、LLM Vision 环境变量配置
-
-### Removed
-- 手写 OOXML 解析代码（parse_docx 函数及底层 XML helpers）
-- pdftotext 依赖（由 MarkItDown 内置 PDF 解析替代）
+- MarkItDown 集成 + LLM Vision 图片分析 + 多格式支持（pptx/xlsx/html/epub）
+- install.sh 完全重写（7 步向导）
 
 ## [2.5.1] - 2026-05-01
 
-### Fixed
-- **图谱融合端到端补齐**：修复 v2.5.0 图谱证据层规范完整但实现断裂的问题（详见 [ADR-0006](docs/adr/0006-图谱融合与知识库架构.md)）
-- 6 个模板（01-05 + project-profile）增加 `graph_sources: []` 和 `graph_evidence_refs: []` 字段，AI 填模板时能产出图谱数据
-- step-01-structure-scan 增加图谱证据文件创建指令（必执行）、EV/GEV 证据 ID 桥接规则
-- step-02-deep-analysis 增加前置图谱证据加载、per-phase 模板字段填充指令
-- step-03-quality-gate 增加图谱证据检查（GEV 孤立引用、置信度校验、provider 一致性）
-- reference SKILL.md 升级图谱增强 section（双证据字段说明、置信度映射表）
-- prd-distill output-contracts.md 补全 layer-impact 的 `affected_symbols`/`business_constraints`（放 impact 条目内）和 contract-delta 的 `graph_evidence_refs`
-- prd-distill SKILL.md 加图谱增强 section，workflow.md Step 3/4 加图谱引用
-- `graph-sync-report.yaml` 必须始终产出，记录 provider 可用状态和不可用原因
-
-### Changed
-- 所有 `graph_source` 单值改为 `graph_sources: []` 数组（支持多 provider 交汇）
-- 文件级 `graph_providers` 改为结构化列表 `[{provider, graph, available}]`
-- Graphify 置信度映射收紧：EXTRACTED 需有 source locator 才能标 high
-
----
+- 图谱融合端到端补齐
 
 ## [2.5.0] - 2026-04-30
 
-### Added
-- **图谱证据层（Graph Evidence）**：GitNexus + Graphify 双图谱集成，作为 reference 的结构化证据源
-- reference-v4.md 新增「图谱证据层」章节：统一图谱证据格式 `graph_evidence`、provider 映射、置信度映射规则
-- reference 文件按数据源分工：01/03 ← GitNexus（代码维度），02/04/05 ← Graphify（业务维度）
-- step-01-structure-scan.md 增加双图谱查询策略（代码层 GitNexus + 业务层 Graphify），自动回退 rg/glob
-- step-02-deep-analysis.md 按数据源分 6 阶段生成 reference，图谱不可用时回退到原有流程
-- prd-distill step-02-classify.md 增加双维度影响分析（代码影响 GitNexus + 业务影响 Graphify）
-- `_output/graph/` 目录：business-graph-evidence.yaml、code-graph-evidence.yaml
-- evidence kind 新增 `knowledge_graph`
-
-### Changed
-- workflow.md 新增三层架构说明：Graphify（业务维度）+ GitNexus（代码维度）+ prd-tools（治理维度）
-- SKILL.md 增加「图谱增强」章节和核心原则说明
+- 图谱证据层：GitNexus + Graphify 双图谱集成
 
 ## [2.4.1] - 2026-04-29
 
-### Fixed
-- **口径一致性修复**：8 个文件的版本号、schema_version、文件引用从 v2.2/v3.1 统一到 v2.4/v4.0（详见 [ADR-0004](docs/adr/0004-口径一致性修复.md)）
-- report.md / plan.md / questions.md 增加职责边界和长度约束，防止输出膨胀
+- 口径一致性修复（版本号/schema_version 统一）
 
 ## [2.4.0] - 2026-04-29
 
-### Added
-- **渐进式披露输出**：report.md 从 6 章扩展到 9 章渐进式披露结构（30 秒决策 → 变更明细 → 字段清单 → 契约风险）（详见 [ADR-0002](docs/adr/0002-渐进式披露输出优化.md)）
-- plan.md 增加 checklist 格式、文件行号、验证命令、参考实现
-- output-contracts.md 完整定义 report.md 和 plan.md 模板
-
-### Changed
-- report.md 定位从"轻量摘要"升级为"决策文档"——一屏可读结论，按需展开细节
-- plan.md 定位从"合并计划"升级为"可执行开发手册"
+- 渐进式披露输出（report 9 章 + plan 可执行手册）
 
 ## [2.3.0] - 2026-04-29
 
-### Changed
-- **Reference 结构从 10 文件精简到 6 文件**，引入 SSOT + Boundary 声明 + 去重检查（详见 [ADR-0001](docs/adr/0001-reference-SSOT优化.md)）
-- 分类维度从"内容性质/关注点/使用场景"三维度统一为"知识在开发生命周期中的角色"
-- 删除旧版 10 个模板 + reference-v3.md，新建 6 个模板（project-profile.yaml ~ 05-domain.yaml）+ reference-v4.md
-
-### Removed
-- `templates/00-index.md`、`01-entities.yaml`、`02-architecture.yaml`、`03-conventions.yaml`、`04-constraints.yaml`、`05-routing.yaml`、`06-glossary.yaml`、`07-business-context.yaml`、`08-contracts.yaml`、`09-playbooks.yaml`
-- `references/reference-v3.md`
+- Reference 从 10 文件精简到 6 文件，引入 SSOT
 
 ## [2.2.0] - 2026-04-29
 
-### Added
-- **PRD 工程化解析（prd-ingest）**：支持 .docx / .md / .txt / .pdf 的结构化读取
-- PRD 读取质量门禁（extraction-quality.yaml：pass / warn / block）
-- 图片/复杂表格未确认时强制进入 warning / question / block
-- prd-ingest 完整输出：source-manifest、document.md、document-structure.json、evidence-map、media/、tables/、extraction-quality、conversion-warnings
-
-### Changed
-- 输出契约明确 prd-ingest 和 artifacts 的边界
-- SKILL.md 增加 PRD 读取规则和暂停条件
+- PRD 工程化解析（prd-ingest）+ 读取质量门禁
 
 ## [2.1.0] - 2026-04-28
 
-### Added
-- 能力面适配器替代路径优先规则，前端/BFF/后端各自有独立能力面定义
-- 安装版本标记（`.prd-tools-version`）
-
-### Changed
-- Reference 默认视图瘦身：合并重复的输出文件
-- 明确 `03-conventions` / `08-contracts` / `09-playbooks` 边界
-- prd-distill 默认输出瘦身为 report / plan / questions，证据链迁入 artifacts/
-- Layer Impact 改为能力面 surface 而非硬编码路径
-
-### Fixed
-- 安装脚本防止双层嵌套 skill 目录
+- 能力面适配器 + 安装版本标记
 
 ## [2.0.0] - 2026-04-28
 
-### Added
-- **完整 7 步蒸馏工作流**：PRD → Ingestion → Evidence → Requirement IR → Layer Impact → Contract Delta → Plan → Report
-- Reference v3.1：10 文件结构（entities / architecture / conventions / constraints / routing / glossary / business-context / contracts / playbooks）
-- reference 4 阶段工作流：上下文收集 → 结构扫描 → 深度分析 → 质量门控
-- prd-distill 3 步工作流：解析和路由 → 分类 → 确认
-- 契约差异分析（contract-delta）：producer / consumer / alignment_status
-- 反馈回流机制：prd-distill → reference-update-suggestions → reference
-- Golden sample 支持
+- 完整 7 步蒸馏工作流 + Reference v3.1 + 契约差异分析
 
 ## [1.1.0] - 2026-04-27
 
-### Added
-- 确定性事实校验（verified_by 轨迹）
-- 按严重级别分级的质量门控（fatal / warning / info）
-- 结构化幻觉检测
+- 确定性事实校验 + 分级质量门控 + 幻觉检测
 
 ## [1.0.0] - 2026-04-27
 
-### Added
-- **初始版本发布**
-- reference：4 步工作流（结构扫描 → 深度分析 → 质量门控 → 反馈回流）
-- prd-distill：3 步工作流（解析和路由 → 分类 → 确认）
-- 安装脚本（install.sh）
-- Plugin manifest（.claude-plugin/plugin.json）
-- Marketplace manifest（.claude-plugin/marketplace.json）
-
----
-
-## 待开始
-
-- **演进路线图**已规划 4 个方向，详见 [ADR-0003](docs/adr/0003-演进路线图.md)
-  - Phase 1：能力面适配器优化（1-2 周）
-  - Phase 2：多轮构建（2-4 周）
-  - Phase 3：三方视角 Skill（4-8 周）
-  - Phase 4：营销知识库（持续）
+- 初始版本：reference 4 步工作流 + prd-distill 3 步工作流 + 安装脚本

@@ -1,232 +1,96 @@
 # Changelog
 
 All notable changes to the **reference** plugin are documented here.
-Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ## [2.19.1] - 2026-05-13
 
-### Added
-- feat: 团队知识库初始化工作流（/reference Mode T-init）
-
-### Changed
-- refactor: 合并 7 个 gate 脚本为统一 `quality-gate.py`（子命令：reference / distill / final）
-- refactor: 移除 team-reference 聚合/继承脚本，合并策略回归 skill 工作流（LLM 按文档执行）
-- refactor: 移除 Portal 可视化页面系统（portal.html 不再生成）
-
-### Fixed
-- fix: label_source 来源标注机制在本版本中引入后移除（最终未保留）
+- 团队知识库初始化工作流（/reference Mode T-init）
+- 合并 gate 脚本为统一 quality-gate.py，移除 Portal 和 team-reference 聚合脚本
 
 ## [2.19.0] - 2026-05-13
 
-### Added
-- feat: 团队公共知识库聚合与继承（v2.19 T/T2 模式）
-- feat(team-ref): [P1-4] introduce team common reference scaffolding (aggregation + inheritance)
-
-### Changed
-- refactor(audit): self-audit postfix P2 — 13/13 fixes
-- refactor(audit-p2): [P2-10] single canonical mode-selection schema
-- refactor(audit-p2): [P2-5] remove deprecated graph/ subtree from output-contracts
-
-### Fixed
-- fix(audit-p0): [P0-14] restore human-readable enum labels + see_enum dedup (reference vs index boundary)
-- fix(audit-p0): [P0-10] routing-playbooks.yaml restore handoff_surfaces + layer_steps 3-layer
-- fix(audit-p0): [P0-8] 03-contracts.yaml restore producer/consumers[]/checked_by[] + team repo fields
-- fix(audit): self-audit postfix — P0 1/1, P1 8/8, audit report
-- fix(audit): self-audit dryrun 29 findings — P0 6/6, P1 13/13, P2 10/10
-- fix(audit-p0r2): [P0R2-12] document-structure.json exclusion_types taught to AI
-- fix(audit-p0r2): [P0R2-6] contract-delta requires meta + requirement_id + layer
-- fix(audit-p0r2): [P0R2-4] media-analysis.yaml top-level key unified as `media`
-- fix(audit-p0r2): [P0R2-3] evidence-map.yaml top-level key unified as `blocks`
-- fix(audit-p0r2): [P0R2-2] gate accepts overall_score as score alias
-- fix(audit-p1): [P1-10] document overall_score formula in output-contracts
-- fix(audit-p1): [P1-8] tag Self-Check items as [M]achine / [H]uman
-- fix(audit-p1): [P1-3] align source_blocks / source_block_ids semantics
-- fix: human_checkpoint 单复数兼容 + SKILL.md 文档统一为复数
+- 团队公共知识库聚合与继承（T/T2 模式）+ self-audit 全盘修复
 
 ## [2.18.1] - 2026-05-12
 
-### Added
-- feat: Evidence Index 准确性提升 — 多行签名、跨文件边、增量更新、领域术语桥接
-
-## [2.18.0] - 2026-05-12
-
-（本版本无 reference 插件专属变更，版本号跟随 lockstep）
+- Evidence Index 准确性提升（多行签名、跨文件边、增量更新）
 
 ## [2.17.0] - 2026-05-12
 
-### Added
-- Mode Selection Gate 脚本化：Step 1+ 必须有 mode_selection approved
-- --confirm-mode 参数写入 mode_selection checkpoint
-- 顺序验证 + --allow-rerun 逃生口
-- Step 0 豁免 mode selection（context enrichment 可在选模式前运行）
+- Mode Selection Gate 脚本化 + 顺序验证 + --allow-rerun 逃生口
 
 ## [2.16.3] - 2026-05-12
 
-### Added
-- Workflow State v2 + step gate --write-state
-- Human workflow checkpoints（mode selection gate）
-- Step 文件顶部 workflow_state header + MUST NOT 约束
-
-- chore: release v2.16.1
-
-### Added
-- reference 完成门禁脚本 `reference-quality-gate.py`，检查 required files、Evidence Index 和基础 schema。
-
-### Fixed
-- 强化 `/reference` 完成门禁：不生成 `index/` 不得宣称完成。
+- Workflow State v2 + step gate --write-state + Human checkpoints
 
 ## [2.16.1] - 2026-05-10
 
-### Added
-- branch-backed multi-layer benchmark 支持 reference 相关锚点评测。
-- Evidence Index benchmark harness，用于验证 reference/index 对下游 code anchor 的收益。
+- 多层 benchmark + Evidence Index benchmark
 
 ## [2.15.0] - 2026-05-08
 
-### Changed
-- 重写 README，强化对外可读性。
+- 重写 README，强化对外可读性
 
 ## [2.14.0] - 2026-05-08
 
-### Changed
-- 移除全部第三方依赖和辅助脚本，精简 reference/prd-distill 共享产出结构。
+- 移除第三方依赖，精简产出结构
 
 ## [2.13.0] - 2026-05-08
 
-### Changed
-- 移除 GitNexus/Graphify 第三方图谱工具依赖，回归原生能力。
+- 移除 GitNexus/Graphify 依赖，回归原生能力
 
 ## [2.12.0] - 2026-05-08
 
-### Added
-- status dashboard MVP。
-
-### Changed
-- 精简 prd-tools guidance。
-- 重命名 reference plugin internals。
-
-## [2.11.1] - 2026-05-07
-
-### Changed
-- install.sh 三层职责拆分（ADR-0008）。
+- 状态面板 MVP + 安装流程统一
 
 ## [2.11.0] - 2026-05-07
 
-### Changed
-- refactor: _output/ + _reference/ 统一为 _prd-tools/，Spec Kit 对齐重组
-- docs: 全面更新图谱集成文档 + 修复过时引用
-- docs: 插件新增人类可读 README + SKILL.md 精简 + 外部工具描述更新
-- docs: SKILL.md 添加 mermaid 一眼看懂流程图
-- docs: simplify prd-tools entrypoints
+- 输出目录统一为 _prd-tools/ + README + SKILL.md 流程图
 
-### Added
-- feat: reference 单仓治理 + graph-context 图谱中间层 + install 改进
+## [2.10.0] - 2026-05-06
 
-### Fixed
-- fix: 修复安装归档路径与输出口径漂移
+- 单仓治理 + graph-context 图谱中间层
 
 ## [2.9.0] - 2026-05-06
 
-### Added
-- v2.8 质量复盘：输出契约全面升级 + 契约校验自动化。
+- 输出契约全面升级 + 契约校验自动化
 
 ## [2.5.1] - 2026-05-01
 
-### Fixed
-- 6 个模板（01-05 + project-profile）增加 `graph_sources: []` 和 `graph_evidence_refs: []` 字段
-- step-01-structure-scan 增加图谱证据文件创建指令、EV/GEV 证据 ID 桥接规则
-- step-02-deep-analysis 增加前置图谱证据加载、per-phase 模板字段填充指令
-- step-03-quality-gate 增加图谱证据检查（GEV 孤立引用、置信度校验、provider 一致性）
-- SKILL.md 升级图谱增强 section（双证据字段说明、置信度映射表）
-
-### Changed
-- 所有 `graph_source` 单值改为 `graph_sources: []` 数组
-- 文件级 `graph_providers` 改为结构化列表 `[{provider, graph, available}]`
-- Graphify 置信度映射收紧：EXTRACTED 需有 source locator 才能标 high
+- 图谱融合端到端补齐（模板字段 + 步骤指令 + 证据检查）
 
 ## [2.5.0] - 2026-04-30
 
-### Added
-- **图谱证据层**：GitNexus（代码结构）+ Graphify（业务语义）双图谱集成
-- reference-v4.md 新增「图谱证据层」章节：统一证据格式、provider 映射、置信度映射
-- step-01-structure-scan.md 增加双图谱查询策略，自动回退 rg/glob
-- step-02-deep-analysis.md 按数据源分工 6 阶段生成 reference
-- `_output/graph/` 输出目录：code-graph-evidence.yaml、business-graph-evidence.yaml
-- evidence kind 新增 `knowledge_graph`
-
-### Changed
-- workflow.md 新增三层架构说明和图谱增强阶段描述
-- SKILL.md 增加「图谱增强」章节
+- 图谱证据层：GitNexus + Graphify 双图谱集成
 
 ## [2.4.1] - 2026-04-29
 
-### Fixed
-- 8 个文件的版本号、schema_version、文件引用从 v2.2/v3.1 统一到 v2.4/v4.0
-- step-00-context-enrichment.md 全面重写为 v4.0 文件映射
-- step-01-structure-scan.md schema_version 修正为 4.0
-- output-contracts.md 标题和 YAML 字段修正
-- project-profile.yaml 模板 schema_version 修正
-- plugin.json 移除非标准 changelog 数组，仅保留 version 字段
-
-### Removed
-- Codex 兼容代码（install.sh、SKILL.md、README.md）
+- 口径一致性修复（版本号/schema_version 统一）
 
 ## [2.4.0] - 2026-04-29
 
-### Added
-- output-contracts.md 完整定义 reference 产出模板和边界
-
-### Changed
-- Reference 结构从 10 文件精简到 6 文件（SSOT + Boundary 声明）
-- 删除旧版 10 个模板，新建 6 个模板（project-profile.yaml ~ 05-domain.yaml）
-- references/reference-v3.md → references/reference-v4.md
+- output-contracts.md 完整定义 reference 产出模板
 
 ## [2.3.0] - 2026-04-29
 
-### Changed
 - 能力面适配器替代路径优先规则
-- step-02-deep-analysis.md 增加去重检查步骤
 
 ## [2.2.0] - 2026-04-29
 
-### Added
-- PRD 工程化解析（prd-ingest）质量门禁联动
-- 输出契约明确 prd-ingest 和 artifacts 的边界
-
-### Changed
-- SKILL.md 增加 PRD 读取规则和暂停条件
+- PRD 工程化解析（prd-ingest）+ 读取质量门禁
 
 ## [2.1.0] - 2026-04-28
 
-### Added
-- 能力面适配器替代路径优先规则
-- 安装版本标记（`.prd-tools-version`）
-
-### Changed
-- Reference 默认视图瘦身：合并重复的输出文件
-- 明确 `03-conventions` / `08-contracts` / `09-playbooks` 边界
-
-### Fixed
-- 安装脚本防止双层嵌套 skill 目录
+- 能力面适配器 + 安装版本标记
 
 ## [2.0.0] - 2026-04-28
 
-### Added
-- Reference v3.1：10 文件结构
-- 4 阶段工作流：上下文收集 → 结构扫描 → 深度分析 → 质量门控
-- 反馈回流机制
-- Golden sample 支持
+- Reference v3.1：10 文件结构 + 4 阶段工作流 + 反馈回流
 
 ## [1.1.0] - 2026-04-27
 
-### Added
-- 确定性事实校验（verified_by 轨迹）
-- 按严重级别分级的质量门控（fatal / warning / info）
-- 结构化幻觉检测
+- 确定性事实校验 + 分级质量门控 + 幻觉检测
 
 ## [1.0.0] - 2026-04-27
 
-### Added
-- 初始版本发布
-- 4 步工作流（结构扫描 → 深度分析 → 质量门控 → 反馈回流）
-- 安装脚本和 Plugin manifest
+- 初始版本：4 步工作流 + 安装脚本 + Plugin manifest
