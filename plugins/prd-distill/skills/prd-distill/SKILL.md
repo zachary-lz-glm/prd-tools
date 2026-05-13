@@ -242,7 +242,7 @@ _prd-tools/distill/<slug>/
 
 ## 能力面适配器
 
-读取 `references/layer-adapters.md` 按目标层套用适配器。路径只是候选，最终以能力面证据为准。
+读取 `../../../_shared/references/layer-adapters.md` 按目标层套用适配器。路径只是候选，最终以能力面证据为准。
 
 ## 契约规则
 
@@ -382,9 +382,9 @@ _prd-tools/distill/<slug>/
 | 文件 | 何时读取 |
 |---|---|
 | `workflow.md` | 执行完整蒸馏时 |
-| `references/output-contracts.md` | 确认输出格式和字段边界时 |
-| `references/layer-adapters.md` | 判断能力面时 |
-| `references/selectable-reward-golden-sample.md` | 复杂需求校准时 |
+| `../../../_shared/references/output-contracts.md` | 确认输出格式和字段边界时 |
+| `../../../_shared/references/layer-adapters.md` | 判断能力面时 |
+| `../../../_shared/references/selectable-reward-golden-sample.md` | 复杂需求校准时 |
 | `references/external-practices.md` | 解释设计依据时 |
 
 ## 完成标准

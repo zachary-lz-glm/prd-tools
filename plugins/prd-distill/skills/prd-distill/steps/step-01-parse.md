@@ -1,7 +1,7 @@
 <workflow_state>
   <workflow>prd-distill</workflow>
   <current_step>0, 1, 1.5-afprd, 1.5-quality, 2</current_step>
-  <allowed_inputs>PRD file (.md/.txt/.docx), _prd-tools/reference/ (if exists), references/layer-adapters.md</allowed_inputs>
+  <allowed_inputs>PRD file (.md/.txt/.docx), _prd-tools/reference/ (if exists), ../../../_shared/references/layer-adapters.md</allowed_inputs>
   <must_not_read_by_default>source code (beyond reference routing), report.md, plan.md</must_not_read_by_default>
   <must_not_produce>context/layer-impact.yaml</must_not_produce>
 </workflow_state>

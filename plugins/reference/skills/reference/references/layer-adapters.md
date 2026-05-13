@@ -1,1 +1,0 @@
-../../../../_shared/references/layer-adapters.md
