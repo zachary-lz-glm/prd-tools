@@ -25,7 +25,6 @@
 
 - **report.md** — 影响报告，含风险项、待确认问题、阻塞项，供人阅读做决策
 - **plan.md** — 函数级技术方案 + 开发计划 + QA 测试矩阵，精确到 `file:line`
-- **portal.html** — 自包含可视化页面，双击即可在浏览器中查看总览、源码命中、影响分析、契约差异、开发计划、QA 矩阵、阻塞问题等，零外部依赖
 - **context/** — 结构化中间产物（需求 IR、证据台账、分层影响、契约差异、知识回流建议等），供审计和下游工具消费
 
 ### context/ 文件清单
@@ -72,6 +71,6 @@ flowchart TD
 
 ## 典型工作流
 
-1. **蒸馏** — 运行 `/prd-distill <PRD 文件>`，产出 report + plan + context + portal.html
-2. **决策** — 先看 `report.md` 的结论和阻塞项，或在浏览器中打开 `portal.html` 一站式浏览
+1. **蒸馏** — 运行 `/prd-distill <PRD 文件>`，产出 report + plan + context
+2. **决策** — 先看 `report.md` 的结论和阻塞项
 3. **执行** — 按 `plan.md` 的函数级方案开发，交付后可运行 `/reference` 回流经验

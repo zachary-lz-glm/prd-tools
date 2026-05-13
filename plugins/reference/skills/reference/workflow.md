@@ -133,8 +133,7 @@ project-profile.yaml        # 项目画像
 3. `03-contracts`：producer/consumer、endpoint/schema/event、字段级定义、跨仓确认状态。
 4. `04-routing-playbooks`：PRD 路由信号、字段映射、场景打法、跨仓 handoff、golden samples。
 5. `05-domain`：业务域概览、术语、隐式规则、历史决策。
-6. `00-portal` + `project-profile`：导航和画像汇总。
-7. `portal.html`：读取步骤 5（`step-05-portal.md`）生成可视化 HTML 页面。全量构建完成后自动生成。
+6. `00-portal.md` + `project-profile`：导航和画像汇总。
 
 每条事实必须具备：
 
@@ -160,7 +159,7 @@ confidence: "high | medium | low"
 
 必须检查：
 
-- 文件完整性：`00-portal.md` 存在，`01~05` 中至少 3 个存在。
+- 文件完整性：`01~05` 中至少 3 个存在。
 - 证据完整性：实体、路由、契约、playbook 关键项都有 evidence。
 - 源码一致性：路径、枚举值、注册点、模板函数、契约字段仍存在。
 - 契约闭环：跨层字段有 producer / consumer / checked_by / alignment_status。
@@ -187,8 +186,6 @@ next_actions: []
 ```
 
 致命项不通过时，不要宣称 reference 可用于生产；列出最小修复项。
-
-如果 quality-report 的 status 不是 fail 且 reference 文件有更新，重新生成 `portal.html`（按 `step-05-portal.md` 执行），确保可视化页面与最新 reference 数据一致。
 
 ## 阶段 3.5：Evidence Index 构建
 
@@ -260,3 +257,9 @@ _prd-tools/reference/index/
 5. 跨仓事实默认是线索，不是结论；没有 owner 确认时写 `needs_confirmation`。
 6. 每个 reference 文件尽量短；复杂样例放 `04-routing-playbooks.golden_samples`。
 7. 完成后给用户一份摘要：新增/更新文件、质量门控结果、下一步建议。
+
+## 团队模式
+
+Mode T（团队聚合）、Mode T2（团队继承）和 Mode T-init（团队仓库初始化）的完整工作流定义见 `references/team-workflow.md`。
+
+团队模式下的数据源、聚合策略、冲突处理和继承规则都在该文件中。主 workflow 只覆盖单仓阶段 0-4。

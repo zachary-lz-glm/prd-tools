@@ -144,6 +144,59 @@ def load_index(index_dir):
     return entities, edges, inv, by_id
 
 
+def load_team_index(snapshots_dir):
+    """Load and merge evidence indexes from multiple member repo snapshots.
+
+    Scans {snapshots_dir}/{layer}/snapshots/{repo}/index/ for member repo indexes.
+    Entities are deduplicated by ID (first seen wins), each gets a 'repo' field.
+    Inverted index entries are merged and deduplicated.
+    """
+    base = Path(snapshots_dir)
+    if not base.exists():
+        return [], [], {}, {}
+
+    all_entities = []
+    all_edges = []
+    seen_ids = set()
+
+    # Discover member repo indexes under {layer}/snapshots/{repo}/index/
+    for layer_dir in sorted(base.iterdir()):
+        if not layer_dir.is_dir():
+            continue
+        snapshots = layer_dir / 'snapshots'
+        if not snapshots.exists():
+            continue
+        for repo_dir in sorted(snapshots.iterdir()):
+            if not repo_dir.is_dir():
+                continue
+            idx_dir = repo_dir / 'index'
+            if not (idx_dir / 'entities.json').exists():
+                continue
+            repo_name = repo_dir.name
+            try:
+                ents, edgs, inv_part, _ = load_index(idx_dir)
+            except Exception:
+                continue
+            for e in ents:
+                if e['id'] not in seen_ids:
+                    seen_ids.add(e['id'])
+                    e['repo'] = repo_name
+                    all_entities.append(e)
+            for e in edgs:
+                all_edges.append(e)
+
+    # Rebuild merged inverted index
+    merged_inv = defaultdict(list)
+    for ent in all_entities:
+        for term in ent.get('terms', []):
+            t = term.lower()
+            if ent['id'] not in merged_inv[t]:
+                merged_inv[t].append(ent['id'])
+
+    by_id = {e['id']: e for e in all_entities}
+    return all_entities, all_edges, dict(merged_inv), by_id
+
+
 def name_to_terms(name, extra=()):
     """Decompose an identifier into searchable terms (mirrors build-index.py)."""
     terms = {name}
@@ -418,8 +471,9 @@ def format_query_plan_yaml(queries):
 def _ent_anchor(ent, reason=''):
     """Format a single entity as a code anchor line."""
     line_str = f':{ent["line"]}' if ent.get('line') else ''
+    repo_prefix = f'{ent["repo"]}:' if ent.get('repo') else ''
     return (
-        f'| `{ent["path"]}{line_str}` '
+        f'| `{repo_prefix}{ent["path"]}{line_str}` '
         f'| `{ent["name"]}` '
         f'| {ent["type"]} '
         f'| {reason} |'
@@ -658,32 +712,42 @@ def main():
     )
     ap.add_argument('--distill', required=True,
                     help='Path to distill output directory')
-    ap.add_argument('--index', required=True,
-                    help='Path to evidence index directory')
+    idx_group = ap.add_mutually_exclusive_group(required=True)
+    idx_group.add_argument('--index',
+                    help='Path to single-repo evidence index directory')
+    idx_group.add_argument('--team-snapshots',
+                    help='Path to team snapshots root (contains {layer}/snapshots/{repo}/index/)')
     ap.add_argument('--out', required=True,
                     help='Output path for context-pack.md')
     args = ap.parse_args()
 
     distill = Path(args.distill).resolve()
-    index_dir = Path(args.index).resolve()
     out_path = Path(args.out).resolve()
 
-    # Validate inputs
+    # Validate distill inputs
     ctx_dir = distill / 'context'
     req_ir_path = ctx_dir / 'requirement-ir.yaml'
     impact_path = ctx_dir / 'layer-impact.yaml'
     if not req_ir_path.exists():
         print(f'Error: {req_ir_path} not found', file=sys.stderr)
         sys.exit(1)
-    if not (index_dir / 'entities.json').exists():
-        print(f'Error: {index_dir}/entities.json not found', file=sys.stderr)
-        sys.exit(1)
+
+    # Load index: single-repo or team mode
+    if args.team_snapshots:
+        snapshots_dir = Path(args.team_snapshots).resolve()
+        entities, edges, inv, by_id = load_team_index(snapshots_dir)
+        print(f'Team index:   {len(entities)} entities from snapshots', file=sys.stderr if not entities else sys.stdout)
+    else:
+        index_dir = Path(args.index).resolve()
+        if not (index_dir / 'entities.json').exists():
+            print(f'Error: {index_dir}/entities.json not found', file=sys.stderr)
+            sys.exit(1)
+        entities, edges, inv, by_id = load_index(index_dir)
 
     # Read inputs
     slug = distill.name
     requirements = parse_requirement_ir(req_ir_path)
     impacts = parse_layer_impact(impact_path) if impact_path.exists() else []
-    entities, edges, inv, by_id = load_index(index_dir)
 
     print(f'Requirements: {len(requirements)}')
     print(f'BFF impacts:  {len(impacts)}')

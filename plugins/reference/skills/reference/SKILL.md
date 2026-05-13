@@ -19,9 +19,21 @@ Claude Code 中通过 `/reference` 触发。
 
 ## 工作模式选择
 
+`/reference` 必须先进入人机模式选择，不得默认一路全自动构建。
+
 先检查 `_prd-tools/reference/` 是否存在：
 - 不存在 → 建议 Mode F（上下文收集）→ Mode A（全量构建）。
 - 已存在 → 按用户目标执行 B/B2/C/E。
+
+**团队仓库检测**（在上述检查之前执行）：
+
+1. 检查 `_prd-tools/reference/project-profile.yaml`：如果 `layer: team-common` → 团队仓库，推荐 Mode T
+2. 检查 `team/project-profile.yaml`：如果存在且 `layer: team-common` → 团队仓库，推荐 Mode T
+3. 都不存在 → 询问用户：**这是单项目仓库还是团队知识库仓库？**
+   - 团队知识库 → 读取 `workflow.md` 阶段 T-init，执行交互式初始化
+   - 单项目 → 按现有 F→A 流程
+
+团队成员仓（`team_reference.upstream_local_path` 已配置）：可推荐 T2 团队继承。
 
 | 模式 | 何时 | 输出 |
 |---|---|---|
@@ -31,6 +43,30 @@ Claude Code 中通过 `/reference` 触发。
 | B2 健康检查 | 是否过期/缺证据 | `_prd-tools/build/health-check.yaml` |
 | C 质量门控 | 证据/契约闭环/幻觉 | `_prd-tools/build/quality-report.yaml` |
 | E 反馈回流 | prd-distill 输出回收 | `_prd-tools/build/feedback-report.yaml` |
+| T 团队聚合 | 在团队仓执行，从成员仓聚合 | `team/*.yaml` + `snapshots/` + `build/conflicts.yaml` |
+| T2 团队继承 | 在成员仓执行，从团队仓继承 | 更新后的 `_prd-tools/reference/` |
+
+### Mode Selection Gate
+
+执行任何会写 `_prd-tools/reference/` 的动作前，必须先向用户展示当前状态和模式选项，并等待确认。
+
+展示内容：
+
+- 当前 `_prd-tools/reference/` 是否存在。
+- 当前 `_prd-tools/build/` 是否存在历史上下文或质量报告。
+- 推荐模式和原因。
+- 可选模式：F→A、F only、A only、B、B2、C、E、T、T2、Chat。
+
+默认推荐：
+
+- 首次建设：推荐 `F→A`，但必须等用户确认。
+- 已有 reference：推荐 `B2` 健康检查或 `B` 增量更新，除非用户明确要求重建。
+- 团队仓（`project-profile.yaml` 含 `layer: team-common`）：推荐 `T` 团队聚合。
+- 成员仓且已配置 `team_reference.upstream_local_path`：可推荐 `T2` 团队继承。
+
+用户确认后，将选择写入 `_prd-tools/build/reference-workflow-state.yaml`。YAML 结构见 `references/mode-selection.schema.md`。
+
+如果用户选择 Chat，只讨论方案，不生成或修改 reference 产物。
 
 ## 输入
 
@@ -52,7 +88,6 @@ _prd-tools/reference/           # 长期知识库（v4.0，6 文件）
 ├── 03-contracts.yaml          # 跨层和外部契约
 ├── 04-routing-playbooks.yaml  # PRD 路由信号 + 场景打法
 ├── 05-domain.yaml             # 业务领域知识
-├── portal.html                # 可视化浏览器页面（零外部依赖）
 └── index/                     # Evidence Index（辅助层，v2.16+）
     ├── entities.json          # 代码实体索引
     ├── edges.json             # 实体关系索引
@@ -105,9 +140,8 @@ _prd-tools/build/              # 过程和质量报告
 5. 用 `rg`/glob 找候选，再 Read 源码确认事实。
 6. 生成或更新 `_prd-tools/reference/`。
 7. 构建 Evidence Index（辅助层）：`python3 .prd-tools/scripts/build-index.py --repo <项目路径> --out _prd-tools/reference/index`。
-8. 生成 `portal.html`（详见 `steps/step-05-portal.md`）。
-9. 执行健康检查或质量门控。
-10. 给用户摘要：新增/更新文件、质量状态、风险、下一步。
+8. 执行健康检查或质量门控。
+9. 给用户摘要：新增/更新文件、质量状态、风险、下一步。
 
 ## 参考文件
 
@@ -119,7 +153,6 @@ _prd-tools/build/              # 过程和质量报告
 | `references/output-contracts.md` | 和 prd-distill 输出契约对齐时 |
 | `templates/*.yaml` | 创建 reference 骨架时 |
 | `references/selectable-reward-golden-sample.md` | 需要示例或校准复杂需求时 |
-| `steps/step-05-portal.md` | 生成 portal.html 可视化页面时 |
 
 ## 完成标准
 

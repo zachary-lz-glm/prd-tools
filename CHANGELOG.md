@@ -4,6 +4,18 @@
 
 ---
 
+## [2.17.1] - 2026-05-13
+
+### Added
+- feat: 团队知识库工作流（Mode T/T2/T-init）— 跨仓库 reference 聚合、继承、团队级 PRD 蒸馏
+
+### Changed
+- docs: 团队工作流拆分为独立文件（references/team-workflow.md），主 workflow 保持精简
+- docs: 新增团队知识库工作流指南（docs/guides/team-workflow.md）
+
+### Removed
+- refactor: 移除 Portal 可视化页面系统（portal.html），保留 00-portal.md 人类导航
+
 ## [2.16.1] - 2026-05-10
 
 ### Added

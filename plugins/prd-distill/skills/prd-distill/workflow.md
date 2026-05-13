@@ -21,6 +21,23 @@ PRD raw file/text
 
 - `/prd-distill`：日常使用入口，执行本 workflow 的完整流程。
 
+## 团队模式自动检测
+
+执行前读取 `_prd-tools/reference/project-profile.yaml`（或 `team/project-profile.yaml`），如果 `layer: "team-common"`，自动进入团队模式。
+
+团队模式行为差异：
+
+| 步骤 | 单仓模式 | 团队模式 |
+|------|----------|----------|
+| 源码扫描 | `rg`/`glob` 源码 + reference | **禁止** rg/glob；从 `team/01-codebase.yaml` + `snapshots/` 读取 |
+| Step 2.5 Query Plan | 如果 index 存在则执行 | 从 snapshots 加载多仓 index（`context-pack.py --team-snapshots`） |
+| Step 3.1 Graph Context | 3 阶段扫描 | 从 `team/01-codebase` + snapshots 读取，**禁止 rg/glob** |
+| Layer Impact | 主要分析 1 层 | 4 层全部从 snapshots 填充 |
+| Contract Delta | 单仓视角 | 全栈：consumers[] 从 `team/03-contracts.yaml` |
+| Plan | 1 份 `plan.md` | 1 份 `team-plan.md` + N 份 `plans/plan-{repo}.md` |
+
+成员仓列表来自 `team_reference.member_repos[]`，sub-plan 文件名动态生成（`member_repos[].repo` → `plans/plan-{repo}.md`）。
+
 ## 步骤 0：PRD Ingestion
 
 读取或收集：
@@ -65,7 +82,6 @@ _prd-tools/distill/<slug>/
 ├── _ingest/
 ├── report.md
 ├── plan.md
-├── portal.html
 └── context/
 ```
 
@@ -148,9 +164,16 @@ _ingest/
 如果 `_prd-tools/reference/index/` 存在，**必须**运行 `python3 .prd-tools/scripts/context-pack.py` 生成 `context/query-plan.yaml`，为后续 Graph Context（步骤 3.1）提供预匹配的代码锚点。
 
 ```bash
+# 单仓模式
 python3 .prd-tools/scripts/context-pack.py \
   --distill _prd-tools/distill/<slug> \
   --index _prd-tools/reference/index \
+  --out _prd-tools/distill/<slug>/context/context-pack.md
+
+# 团队模式：用 --team-snapshots 加载多仓 index
+python3 .prd-tools/scripts/context-pack.py \
+  --distill _prd-tools/distill/<slug> \
+  --team-snapshots . \
   --out _prd-tools/distill/<slug>/context/context-pack.md
 ```
 
@@ -212,6 +235,8 @@ phases:
 
 **门禁检查**：graph-context.md 中至少 30% 的线索应来自阶段 1-2（reference/index），否则在 readiness-report 中标记 `reference_underconsumed`。
 
+**团队模式**：阶段 2-3 禁止执行（无源码可扫描）。Graph Context 从 `team/01-codebase.yaml` 的模块/枚举/实体 + `snapshots/{repo}/` 的 YAML 快照构建。每个命中带 `repo` 字段标识来源仓库。
+
 读取目标层适配器：
 
 - frontend / BFF / backend 单层：生成对应 impacts。
@@ -260,6 +285,8 @@ ADD/MODIFY/DELETE/NO_CHANGE 必须由源码或负向搜索支撑。
 - `blocked`：字段、枚举、required、时序或责任归属冲突。
 - `not_applicable`：确认为单层内部变化。
 
+**团队模式**：consumers[] 从 `team/03-contracts.yaml` 获取全栈消费者视角，producer 跨仓对齐时标注 `alignment_status: needs_confirmation`。
+
 ## 步骤 5：计划
 
 生成 `plan.md`（函数级技术方案文档 + 开发计划）：
@@ -274,6 +301,8 @@ ADD/MODIFY/DELETE/NO_CHANGE 必须由源码或负向搜索支撑。
 - 按 Phase 分组，Phase 间标注依赖。
 - 不直接写代码，除非用户明确要求进入实现。
 - 格式详见 `references/output-contracts.md` 中 plan.md 模板。
+
+**团队模式**：生成 `team-plan.md`（跨仓整体计划）+ `plans/plan-{repo}.md`（每个成员仓的子计划）。`team-plan.md` 包含跨仓依赖、契约对齐、开发顺序；子计划包含函数级实现细节。成员仓列表从 `team_reference.member_repos[]` 读取。
 
 ## 步骤 6：Readiness 评分
 
@@ -396,21 +425,7 @@ summary:
   top_gaps: []
 ```
 
-触发时机：步骤 8（report.md）完成后、步骤 9（portal.html）之前。
-
-## 步骤 9：Portal HTML 生成
-
-生成 `_prd-tools/distill/<slug>/portal.html`，将所有蒸馏产物内联为一个自包含的可视化页面。
-
-详细生成规则见 `steps/step-04-portal.md`。
-
-核心要求：
-
-- 读取全部产出文件（report.md、plan.md、context/*），解析为结构化数据后内联到 HTML。
-- 页面包含 9 个可视化 Section：总览、源码命中、影响分析、契约差异、开发计划、QA 矩阵、阻塞问题、回流建议。
-- 开发计划的 checklist 支持交互式勾选，状态持久化到 localStorage。
-- 零外部依赖，file:// 协议可用，双击即可在浏览器中打开。
-- 生成后告知用户文件路径。
+触发时机：步骤 8（report.md）完成后。
 
 ## 暂停条件
 
@@ -428,6 +443,6 @@ summary:
 3. 业务规则不能只靠前端守。
 4. 多层需求必须给契约计划。
 5. 每个输出都要能回溯 evidence。
-6. 完成后简要告知输出路径、最重要的阻塞/风险，并优先引导用户阅读 `report.md`。同时告知 `portal.html` 可在浏览器中打开查看完整可视化报告。
+6. 完成后简要告知输出路径、最重要的阻塞/风险，并优先引导用户阅读 `report.md`。
 7. **report.md 和 plan.md 是主产物**；query-plan、context-pack、final-quality-gate 是辅助层，不替代主产物的阅读优先级。
 8. **⚠ Reference 强制消费**：`_prd-tools/reference/` 存在时，必须消费。Step 0 消费门禁（路由/规则/契约/术语）→ Step 2.5 桥接 index → Step 3.1 reference-first 扫描。禁止跳过 reference 直接 grep 源码。reference 不存在时，所有涉及 reference 的步骤必须标记缺失并降低置信度。

@@ -27,6 +27,22 @@ Claude Code 中通过 `/prd-distill <PRD 文件或需求文本>` 触发。
 4. 开发顺序和 QA 覆盖场景。
 5. 本次需求暴露了哪些新知识，需回流到 `_prd-tools/reference/`。
 
+## 团队模式
+
+**自动检测**：执行前读取 `_prd-tools/reference/project-profile.yaml`（或 `team/project-profile.yaml`），如果 `layer: "team-common"`，自动进入团队模式。
+
+**团队模式 vs 单仓模式**：
+
+| 方面 | 单仓模式 | 团队模式 |
+|------|----------|----------|
+| 源码扫描 | `rg`/`glob` 源码 + reference | 禁止；从 `team/01-codebase.yaml` + `snapshots/` 读取 |
+| Step 2.5 / 3.5 | 如果 index 存在则执行 | 从 snapshots 加载多仓 index（`context-pack.py --team-snapshots`） |
+| Layer Impact | 主要分析 1 层 | 4 层全部从 snapshots 填充 |
+| Contract Delta | 单仓视角 | 全栈：consumers[] 从 `team/03-contracts.yaml` |
+| Plan | 1 份 `plan.md` | 1 份 `team-plan.md` + N 份 `plans/plan-{repo}.md` |
+
+成员仓列表来自 `team_reference.member_repos[]`，sub-plan 文件名动态生成（`member_repos[].repo` → `plans/plan-{repo}.md`）。
+
 ## 输入
 
 - PRD：`.md`/`.txt`/`.docx` 或粘贴文本。
@@ -58,7 +74,6 @@ _prd-tools/distill/<slug>/
 │   └── conversion-warnings.md     #   转换风险
 ├── report.md                      # 渐进式披露报告
 ├── plan.md                        # 函数级技术方案 + 开发/测试计划 + QA 矩阵
-├── portal.html                    # 可视化浏览器页面（零外部依赖，双击即可打开）
 └── context/
     ├── requirement-ir.yaml        # 结构化需求：业务意图、规则、验收条件
     ├── evidence.yaml              # 证据台账：PRD、技术方案、源码、负向搜索
@@ -89,7 +104,6 @@ _prd-tools/distill/<slug>/
 | `context/query-plan.yaml` | 查询计划：种子锚点、影响提示、P0 术语（辅助层） | 不替代 graph-context.md |
 | `context/context-pack.md` | 上下文包：模型可消费的精简代码上下文（辅助层） | 不替代 graph-context.md |
 | `context/final-quality-gate.yaml` | 最终质量门禁：5 项确定性检查评分（辅助层） | 不替代 readiness-report.yaml |
-| `portal.html` | 自包含可视化页面：总览、源码命中、影响、契约、计划、QA、阻塞问题、回流建议 | 不替代 report.md 和 plan.md 的人读文本 |
 
 ## 能力面适配器
 
@@ -170,14 +184,12 @@ _prd-tools/distill/<slug>/
 13. （辅助层）运行 `python3 .prd-tools/scripts/final-quality-gate.py` 生成 `context/final-quality-gate.yaml`（5 项确定性检查评分）。
 14. 生成 `context/reference-update-suggestions.yaml`。
 15. 生成 `context/readiness-report.yaml`。
-16. 生成 `portal.html`（自包含可视化页面，详见 `steps/step-04-portal.md`）。
 
 ## 参考文件
 
 | 文件 | 何时读取 |
 |---|---|
 | `workflow.md` | 执行完整蒸馏时 |
-| `steps/step-04-portal.md` | 生成 portal.html 可视化页面时 |
 | `references/output-contracts.md` | 确认输出格式和字段边界时 |
 | `references/layer-adapters.md` | 判断能力面时 |
 | `references/selectable-reward-golden-sample.md` | 复杂需求校准时 |
@@ -192,4 +204,3 @@ _prd-tools/distill/<slug>/
 - 是否存在 `needs_confirmation` 或 `blocked` 契约。
 - 是否生成 reference 回流建议。
 - `readiness-report.yaml` 的 status、score、decision。
-- `portal.html` 已生成，可在浏览器中打开查看完整可视化报告。
