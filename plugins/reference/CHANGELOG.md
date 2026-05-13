@@ -2,10 +2,9 @@
 
 All notable changes to the **reference** plugin are documented here.
 
-## [2.19.1] - 2026-05-13
+## [2.19.2] - 2026-05-13
 
-- 团队知识库初始化工作流（/reference Mode T-init）
-- 合并 gate 脚本为统一 quality-gate.py，移除 Portal 和 team-reference 聚合脚本
+- 团队聚合增加 index 同步步骤和 4 条硬约束（禁止推断内容、跨层规则过滤、producer 验证、同名术语合并），新增 endpoint_producer_unverified 冲突类型
 
 ## [2.19.0] - 2026-05-13
 

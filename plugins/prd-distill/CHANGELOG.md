@@ -2,10 +2,9 @@
 
 All notable changes to the **prd-distill** plugin are documented here.
 
-## [2.19.1] - 2026-05-13
+## [2.19.2] - 2026-05-13
 
-- 团队级 prd-distill 模式（自动检测 team-common 层，产出 team-plan.md）
-- 合并 gate 脚本为统一 quality-gate.py，移除 Portal，消除项目硬编码
+- 团队模式不再跳过 Step 2.5/3.5，改为从 snapshots 加载多仓 index，Step 3.1 增加 index_query 数据源
 
 ## [2.19.0] - 2026-05-13
 

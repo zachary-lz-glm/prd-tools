@@ -2,11 +2,9 @@
 
 > 遵循 [Keep a Changelog](https://keepachangelog.com/) 格式。架构决策详见 [docs/adr/](docs/adr/)。
 
-## [2.19.1] - 2026-05-13
+## [2.19.2] - 2026-05-13
 
-- 团队知识库初始化工作流（/reference Mode T-init）+ 团队级 prd-distill 模式
-- 合并 7 个 gate 脚本为统一 quality-gate.py，移除 Portal 和第三方图谱依赖
-- 恢复插件独立性，消除项目硬编码
+- 团队模式补齐 index 能力（多仓 index 加载 + snapshots 同步），聚合策略强化（fatal_cross_layer + endpoint_producer_unverified + 4 条硬约束）
 
 ## [2.19.0] - 2026-05-13
 
