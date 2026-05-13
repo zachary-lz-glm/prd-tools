@@ -3,7 +3,23 @@
 All notable changes to the **reference** plugin are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
-## [2.19.0] - 2026-05-13
+## [2.19.1] - 2026-05-13
+
+### Added
+- feat: 团队知识库初始化工作流（/reference Mode T-init）
+- feat: 团队级 prd-distill 模式（v2.20 team distill）
+- feat: 枚举 label 增加 label_source 来源标注，区分源码提取与 AI 推断
+
+### Changed
+- Revert "refactor: 消除跨插件 5 个重复文件，提取到 _shared 并用 symlink 引用"
+- Revert "refactor: 删除 symlink，共享文件只存 _shared 一份，更新 hook 和路径引用"
+- refactor: 删除 symlink，共享文件只存 _shared 一份，更新 hook 和路径引用
+- refactor: 消除跨插件 5 个重复文件，提取到 _shared 并用 symlink 引用
+- refactor: 移除 team-reference 聚合/继承脚本，合并策略回归 skill 工作流
+- refactor: 合并 7 个 gate 脚本为统一 quality-gate.py，step ordering 回归 markdown
+- refactor: 移除 Portal 可视化页面系统，移除 label_source 机制
+
+- refactor: 移除 Portal 可视化页面系统，移除 label_source 机制
 
 ### Added
 - feat: 团队公共知识库聚合与继承（v2.19 T/T2 模式）

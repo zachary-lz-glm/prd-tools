@@ -3,7 +3,21 @@
 All notable changes to the **prd-distill** plugin are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
-## [2.19.0] - 2026-05-13
+## [2.19.1] - 2026-05-13
+
+### Added
+- feat: 团队级 prd-distill 模式（v2.20 team distill）
+
+### Changed
+- Revert "refactor: 消除跨插件 5 个重复文件，提取到 _shared 并用 symlink 引用"
+- Revert "refactor: 删除 symlink，共享文件只存 _shared 一份，更新 hook 和路径引用"
+- refactor: 删除 symlink，共享文件只存 _shared 一份，更新 hook 和路径引用
+- refactor: 消除跨插件 5 个重复文件，提取到 _shared 并用 symlink 引用
+- refactor: 合并 7 个 gate 脚本为统一 quality-gate.py，step ordering 回归 markdown
+- refactor: 移除 Portal 可视化页面系统，移除 label_source 机制
+- refactor: 消除 prd-tools 中 Dive 项目硬编码假设，改为从 reference 数据动态构建
+
+- refactor: 消除 prd-tools 中 Dive 项目硬编码假设，改为从 reference 数据动态构建
 
 ### Added
 - feat(team-ref): [P1-4] introduce team common reference scaffolding (aggregation + inheritance)
