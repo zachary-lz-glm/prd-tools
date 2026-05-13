@@ -82,7 +82,7 @@ fi
 # Skills 在目标项目内执行，因此确定性辅助脚本也必须安装到目标项目。
 mkdir -p "$PRD_TOOLS_SCRIPTS_DIR"
 echo "==> 安装 runtime scripts 到 $PRD_TOOLS_SCRIPTS_DIR"
-for script in _gate_fixhint.py build-index.py context-pack.py final-quality-gate.py reference-quality-gate.py distill-quality-gate.py reference-workflow-gate.py distill-workflow-gate.py distill-step-gate.py reference-step-gate.py workflow_state.py prd-coverage-gate.py validate-artifact.py team-reference-aggregate.py team-reference-inherit.py ingest-docx.py; do
+for script in _gate_fixhint.py _gate_shared.py build-index.py context-pack.py final-quality-gate.py reference-quality-gate.py distill-quality-gate.py distill-step-gate.py reference-step-gate.py workflow_state.py validate-artifact.py team-reference-aggregate.py team-reference-inherit.py ingest-docx.py; do
   src="$ARCHIVE_ROOT/scripts/$script"
   if [ -f "$src" ]; then
     cp "$src" "$PRD_TOOLS_SCRIPTS_DIR/$script"
