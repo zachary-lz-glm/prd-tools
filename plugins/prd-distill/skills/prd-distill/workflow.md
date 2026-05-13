@@ -36,8 +36,8 @@ PRD raw file/text
 执行前，读取 `_prd-tools/reference/project-profile.yaml`（或 `team/project-profile.yaml`）。如果 `layer: "team-common"`，进入团队模式：
 
 - 从 `team_reference.member_repos[]` 获取成员仓列表（`repo`、`layer`、`local_path`/`remote_url`）
-- Step 2.5 / 3.5：**跳过**（团队仓无 `_prd-tools/reference/index/`）
-- Step 3.1：数据源改为 `team/01-codebase.yaml` cross_repo_entities + `snapshots/{layer}/{repo}/` 下钻，**禁止 rg/glob**
+- Step 2.5 / 3.5：**从 snapshots 加载多仓 index**——如果 `{layer}/snapshots/{repo}/index/` 存在，用 `context-pack.py --team-snapshots` 加载；如果所有成员仓都无 index，则跳过并在 readiness-report 记录
+- Step 3.1：数据源改为 `team/01-codebase.yaml` cross_repo_entities + `snapshots/{layer}/{repo}/` 下钻 + snapshots 中的 index 精准检索，**禁止 rg/glob**
 - Step 3.2：4 层 IMP 全部从 snapshots 填充
 - Step 4：contract delta 消费 `team/03-contracts.yaml` 全栈 consumers[]
 - Step 5：生成 `team-plan.md` + `plans/plan-{repo}.md`（文件名从 `member_repos[].repo` 动态生成）
@@ -335,7 +335,7 @@ phases:
   p0_requirements: []     # P0 需求的关键实体和术语
 ```
 
-**团队模式**：跳过此步骤。团队仓无 `_prd-tools/reference/index/`，不生成 query-plan.yaml。
+**团队模式**：如果 `{layer}/snapshots/{repo}/index/` 中至少一个成员仓有 index，使用 `--team-snapshots` 参数加载多仓 index 生成 query-plan.yaml。如果所有成员仓都无 index，跳过此步骤并在 readiness-report 中标记 `team_index_missing`。
 
 ## 步骤 3.5：Context Pack（Reference Index 融合层）
 
@@ -345,7 +345,7 @@ phases:
 
 触发时机：步骤 3.2 完成后、步骤 4 之前。如果索引不存在则跳过，但必须在 readiness-report 中记录缺失。
 
-**团队模式**：跳过此步骤。团队仓无 index，不生成 context-pack.md。
+**团队模式**：如果 Step 2.5 已生成 query-plan.yaml（即至少一个成员仓有 index），运行 context-pack.py `--team-snapshots` 模式生成 context-pack.md。否则跳过。
 
 ## 步骤 3：Layer Impact
 
@@ -406,11 +406,12 @@ phases:
 **团队模式数据源**（`layer: team-common` 时）：
 1. 读取 `team/01-codebase.yaml` 的 `cross_repo_entities`，获取 PRD 相关的跨仓实体映射
 2. 对每个 REQ，从 cross_repo_entities 匹配实体，获取 `defined_in.repo`/`defined_in.file` 和 `consumed_by[]`
-3. 需要代码细节时，下钻到 `snapshots/{layer}/{repo}/01-codebase.yaml` 获取 modules、registries、data_flows
-4. 需要契约细节时，读 `snapshots/{layer}/{repo}/03-contracts.yaml`
-5. 团队 fatal 规则从 `team/02-coding-rules.yaml` 读取
-6. 团队术语从 `team/05-domain.yaml` 读取
-7. **禁止执行 rg/glob 命令**——团队仓没有源码，所有 GCTX entry 标记 `source: "team_snapshot"`
+3. **Index 精准检索**：如果 Step 2.5 生成了 query-plan.yaml，消费其中的 `matched_entities`——对 `confidence=high` 的实体直接读取 snapshots 中对应文件确认；对 `confidence=low` 的跳过（无源码可验证）。GCTX entry 标记 `source: "index_query"`
+4. 需要代码细节时，下钻到 `snapshots/{layer}/{repo}/01-codebase.yaml` 获取 modules、registries、data_flows
+5. 需要契约细节时，读 `snapshots/{layer}/{repo}/03-contracts.yaml`
+6. 团队 fatal 规则从 `team/02-coding-rules.yaml` 读取
+7. 团队术语从 `team/05-domain.yaml` 读取
+8. **禁止执行 rg/glob 命令**——团队仓没有源码，GCTX entry 标记 `source: "team_snapshot"` 或 `source: "index_query"`
 
 ### 3.2 Layer Impact 生成
 

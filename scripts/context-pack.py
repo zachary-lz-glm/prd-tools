@@ -144,6 +144,65 @@ def load_index(index_dir):
     return entities, edges, inv, by_id
 
 
+def load_team_index(snapshots_dir, member_repos=None):
+    """Load and merge evidence indexes from multiple member repo snapshots.
+
+    Args:
+        snapshots_dir: Root directory containing per-repo snapshot dirs
+                       (e.g. _prd-tools/reference/ with frontend/snapshots/repo-a/index/)
+        member_repos: Optional list of repo names to load. If None, auto-discover.
+    Returns:
+        (entities, edges, inv, by_id) — merged across all repos, each entity gets a 'repo' field.
+    """
+    base = Path(snapshots_dir)
+    index_dirs = []
+    if member_repos:
+        for repo in member_repos:
+            for layer_dir in sorted(base.iterdir()) if base.is_dir() else []:
+                candidate = layer_dir / 'snapshots' / repo / 'index'
+                if (candidate / 'entities.json').exists():
+                    index_dirs.append((repo, candidate))
+                    break
+    else:
+        # Auto-discover: find all snapshots/*/index/ under any layer
+        if base.is_dir():
+            for layer_dir in sorted(base.iterdir()):
+                snap_dir = layer_dir / 'snapshots'
+                if not snap_dir.is_dir():
+                    continue
+                for repo_dir in sorted(snap_dir.iterdir()):
+                    idx = repo_dir / 'index'
+                    if (idx / 'entities.json').exists():
+                        index_dirs.append((repo_dir.name, idx))
+
+    if not index_dirs:
+        return [], [], {}, {}
+
+    all_entities, all_edges, merged_inv = [], [], {}
+    for repo_name, idx_dir in index_dirs:
+        ents, edgs, inv, _ = load_index(idx_dir)
+        for e in ents:
+            e['repo'] = repo_name
+        all_entities.extend(ents)
+        all_edges.extend(edgs)
+        for term, eids in inv.items():
+            merged_inv.setdefault(term, []).extend(eids)
+
+    # Deduplicate inverted index lists
+    for term in merged_inv:
+        merged_inv[term] = list(dict.fromkeys(merged_inv[term]))
+
+    # Deduplicate entities by ID (first repo wins on collision)
+    seen = set()
+    deduped = []
+    for e in all_entities:
+        if e['id'] not in seen:
+            seen.add(e['id'])
+            deduped.append(e)
+    by_id = {e['id']: e for e in deduped}
+    return deduped, all_edges, merged_inv, by_id
+
+
 # ──────────────────────────────────────────
 # Domain terminology bridge
 # ──────────────────────────────────────────
@@ -652,8 +711,9 @@ def format_query_plan_yaml(queries):
 def _ent_anchor(ent, reason=''):
     """Format a single entity as a code anchor line."""
     line_str = f':{ent["line"]}' if ent.get('line') else ''
+    repo_prefix = f'{ent["repo"]}:' if ent.get('repo') else ''
     return (
-        f'| `{ent["path"]}{line_str}` '
+        f'| `{repo_prefix}{ent["path"]}{line_str}` '
         f'| `{ent["name"]}` '
         f'| {ent["type"]} '
         f'| {reason} |'
@@ -958,12 +1018,16 @@ def main():
                     help='Path to distill output directory')
     ap.add_argument('--index', '--index-dir', dest='index', required=False,
                     help='Path to evidence index directory (default: <distill>/../reference/index)')
+    ap.add_argument('--team-snapshots', required=False,
+                    help='Team snapshots root dir for multi-repo index loading '
+                         '(e.g. _prd-tools/reference/). Disables --index.')
+    ap.add_argument('--ref-dir', required=False,
+                    help='Reference directory for domain terms (default: index parent or team/)')
     ap.add_argument('--out', required=False,
                     help='Output path for context-pack.md (default: <distill>/context/context-pack.md)')
     args = ap.parse_args()
 
     distill = Path(args.distill).resolve()
-    index_dir = Path(args.index).resolve() if args.index else distill.parent / 'reference' / 'index'
     out_path = Path(args.out).resolve() if args.out else distill / 'context' / 'context-pack.md'
 
     # Validate inputs
@@ -973,18 +1037,22 @@ def main():
     if not req_ir_path.exists():
         print(f'Error: {req_ir_path} not found', file=sys.stderr)
         sys.exit(1)
-    if not (index_dir / 'entities.json').exists():
-        print(f'Error: {index_dir}/entities.json not found', file=sys.stderr)
-        sys.exit(1)
 
-    # Read inputs
-    slug = distill.name
-    requirements = parse_requirement_ir(req_ir_path)
-    impacts = parse_layer_impact(impact_path) if impact_path.exists() else []
-    entities, edges, inv, by_id = load_index(index_dir)
-
-    # Load domain terms for vocabulary bridging
-    ref_dir = index_dir.parent  # index is at _prd-tools/reference/index/, parent is reference/
+    # Load index: team mode (--team-snapshots) or single-repo mode (--index / default)
+    if args.team_snapshots:
+        snapshots_dir = Path(args.team_snapshots).resolve()
+        entities, edges, inv, by_id = load_team_index(snapshots_dir)
+        if not entities:
+            print('Error: No index files found in team snapshots', file=sys.stderr)
+            sys.exit(1)
+        ref_dir = Path(args.ref_dir).resolve() if args.ref_dir else distill.parent / 'reference' / 'team'
+    else:
+        index_dir = Path(args.index).resolve() if args.index else distill.parent / 'reference' / 'index'
+        if not (index_dir / 'entities.json').exists():
+            print(f'Error: {index_dir}/entities.json not found', file=sys.stderr)
+            sys.exit(1)
+        entities, edges, inv, by_id = load_index(index_dir)
+        ref_dir = Path(args.ref_dir).resolve() if args.ref_dir else index_dir.parent
     domain_terms = _load_domain_terms(ref_dir)
 
     # Build dynamic config from index + reference data (replaces hardcoded assumptions)

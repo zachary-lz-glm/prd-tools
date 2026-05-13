@@ -14,10 +14,10 @@
 - MUST NOT proceed if any prerequisite file is missing
 
 > **团队模式**（`project-profile.yaml` 的 `layer` 为 `team-common` 时）：
-> - Step 2.5 Query Plan：跳过（无 index）
-> - Step 3.1 Graph Context：不执行 rg/glob，从 `team/01-codebase.yaml` + `snapshots/` 读取
+> - Step 2.5 Query Plan：从 snapshots 加载多仓 index（如果 `{layer}/snapshots/{repo}/index/` 存在）
+> - Step 3.1 Graph Context：不执行 rg/glob，从 `team/01-codebase.yaml` + `snapshots/` + query-plan matched_entities 读取
 > - Step 3.2 Layer Impact：4 层全部从 snapshots 填充
-> - Step 3.5 Context Pack：跳过（无 index）
+> - Step 3.5 Context Pack：从 snapshots 加载多仓 index（如果 Step 2.5 已生成 query-plan）
 > - Step 4 Contract Delta：全栈视角，consumers[] 来自 `team/03-contracts.yaml`
 
 # 步骤 2：Layer Impact 与 Contract Delta
@@ -49,7 +49,7 @@
 ### 源码上下文构建（Reference-First，始终执行）
 
 **团队模式数据源**（`layer: team-common`）：
-从 `team/01-codebase.yaml` cross_repo_entities 获取实体映射 → 按需下钻 `snapshots/{layer}/{repo}/` 获取模块/注册表/数据流详情。每条 GCTX entry 标记 `source: "team_snapshot"`。**禁止 rg/glob**。
+从 `team/01-codebase.yaml` cross_repo_entities 获取实体映射 → 按需下钻 `snapshots/{layer}/{repo}/` 获取模块/注册表/数据流详情。如果 query-plan.yaml 存在（来自 snapshots 中的 index），消费 matched_entities 做精准检索——confidence=high 的直接读 snapshots 确认，GCTX entry 标记 `source: "index_query"`。其余 GCTX entry 标记 `source: "team_snapshot"`。**禁止 rg/glob**。
 
 Self-check：团队模式下，graph-context.md 中不应出现 `source: code_scan` 的条目。
 

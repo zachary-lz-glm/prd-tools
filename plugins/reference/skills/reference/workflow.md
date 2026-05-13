@@ -427,22 +427,43 @@ prd-tools 自动维护的团队级公共知识库。
 1. **读取配置**：`team/project-profile.yaml` 的 `team_reference.member_repos[]` 和 `aggregation_policy`
 2. **解析成员仓**：按优先级找到每个成员仓的 `_prd-tools/reference/` 目录，跳过不可达的仓并报告
 3. **读取 YAML**：从每个可达成员仓读取 01-05 五个 YAML 文件
-4. **按策略聚合**（见下表），同时收集冲突
+4. **按策略聚合**（见下表 + 硬约束），同时收集冲突
 5. **写入产物**：
    - `team/01-codebase.yaml` ~ `team/05-domain.yaml`（带 `repo_scope.authority: team_common` 和时间戳）
    - `{各层}/snapshots/{仓}/` — 成员仓全量镜像 + `_snapshot-meta.yaml`（含 `commit_sha`、`synced_at`）
    - `build/aggregation-report.yaml`（成员仓列表、各产物条目数、快照状态）
    - `build/conflicts.yaml`（如有冲突）
+6. **同步 index**：对每个可达成员仓，如果 `_prd-tools/reference/index/` 存在，将其中的 `entities.json`、`edges.json`、`inverted-index.json`、`manifest.yaml` 复制到 `{layer}/snapshots/{repo}/index/`。无 index 的成员仓在 `aggregation-report.yaml` 中标记 `index: skipped`（不报错）。此步骤为 prd-distill 团队模式提供精准代码符号检索能力。
 
 聚合策略（由 `team_reference.aggregation_policy` 配置）：
 
 | 产物 | 默认策略 | 说明 |
 |------|---------|------|
-| 03-contracts | union_by_id | 同 ID 合并 producer/consumers/checked_by，producer 不一致标 conflict |
-| 05-domain | union_dedupe | 按 term 名去重，定义不同标 divergence |
-| 02-coding-rules | fatal_only | 只聚合 severity=fatal 规则 |
+| 03-contracts | union_by_id | 同 ID 合并 producer/consumers/checked_by，producer 不一致标 conflict；consumer 调用了但无成员仓声明产出的 endpoint，标记 `endpoint_producer_unverified` |
+| 05-domain | union_dedupe | 按 term 名去重，同名不同定义时合并为单一 term 下挂 `views[]` |
+| 02-coding-rules | fatal_cross_layer | 只聚合 severity=fatal **且影响 2+ 层或有 cross_layer_impact** 的规则 |
 | 04-routing-playbooks | cross_layer_only | 只聚合 target_surfaces 涉及 2+ 层的 playbook |
-| 01-codebase | index_only | 不聚合代码地图，只从 contracts 提取 cross_repo_entities 索引 |
+| 01-codebase | index_only | 只从 contracts 提取 cross_repo_enums 和 cross_repo_entities 索引 |
+
+**聚合硬约束**（Mode T 必须遵守）：
+
+1. **01-codebase 禁止推断内容**：`index_only` 策略只允许 `cross_repo_enums`（跨仓枚举索引）和 `cross_repo_entities`（跨仓核心接口索引）。以下内容**禁止写入**团队仓 01-codebase：
+   - `cross_layer_data_flows`：跨层数据流是推断产物（无源码锚点），各仓各自的 `data_flows` 保留在成员仓 01-codebase
+   - `cross_repo_registration_points`：注册点清单是 playbook 内容，归入 `04-routing-playbooks`
+   - `shared_external_systems`：各成员仓各自的依赖，不聚合
+   - `known_gaps`：跨仓差异和已知盲点归入 `build/conflicts.yaml`
+
+2. **02-coding-rules 跨层过滤**：`fatal_cross_layer` 在原 `fatal_only` 基础上增加二次过滤——只有满足以下条件之一的 fatal 规则才升级到团队仓：
+   - 规则有 `cross_layer_impact` 字段且非空
+   - 规则影响 2+ 层（如"新增 CampaignType 必须三仓同步"）
+   - 纯本仓内部规则（如"后端路由必须通过 pathMap 注册"）不升级
+
+3. **03-contracts producer 验证**：如果前端 consumer 调用某 endpoint 但所有成员仓的 reference 都未声明产出该 endpoint，**不伪造 producer**。正确做法：
+   - `producer.repo` 写 `"unconfirmed"`
+   - `producer.verification` 写 `"consumer_orphan"`
+   - 写入 `build/conflicts.yaml`，冲突类型 `endpoint_producer_unverified`
+
+4. **05-domain 同名术语合并**：当同一术语在不同仓有不同定义时（如"5步向导" vs "3步表单"），合并为**单一 term ID**，下挂 `views[]` 数组区分各仓视角，不创建独立 term（否则 prd-distill 检索会双命中互相干扰）
 
 产出：
 
@@ -459,7 +480,7 @@ prd-tools 自动维护的团队级公共知识库。
 generated_at: "<ISO-8601>"
 total_conflicts: 0
 conflicts:
-  - type: "contract_producer_mismatch"     # 或 coding_rule_conflict / playbook_layer_steps_conflict
+  - type: "contract_producer_mismatch"     # 或 endpoint_producer_unverified / coding_rule_conflict / playbook_layer_steps_conflict
     contract_id: "CONTRACT-XXX"            # 或 rule_id / playbook_id
     divergent_claims:
       - repo: "repo-a"
@@ -474,6 +495,7 @@ conflicts:
 | 冲突类型 | 原因 | 处理 |
 |---------|------|------|
 | `contract_producer_mismatch` | 多仓声称自己是同一契约的 producer | 回到冲突仓确认实际 owner，修正 `producer` 字段 |
+| `endpoint_producer_unverified` | consumer 调用了某 endpoint 但无成员仓声明产出 | 确认该 endpoint 是否存在（可能是旧接口或跨团队接口），补充到对应成员仓的 03-contracts 后重新聚合 |
 | `coding_rule_conflict` | 同一 rule_id 在不同仓有不同描述 | 对齐规则描述后重新聚合 |
 | `playbook_layer_steps_conflict` | 多仓为同一 playbook 的同一层写了 steps | 确定一个 `playbook_owner`，其他仓删除该层 steps |
 
