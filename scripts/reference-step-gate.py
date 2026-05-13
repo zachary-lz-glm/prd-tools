@@ -249,7 +249,7 @@ def main():
 
     # --confirm-mode: just write mode selection checkpoint and exit
     if args.confirm_mode:
-        valid_modes = {"F_then_A", "F_only", "A_only", "B", "B2", "C", "E"}
+        valid_modes = {"F_then_A", "F_only", "A_only", "B", "B2", "C", "E", "T", "T2"}
         if args.confirm_mode not in valid_modes:
             print(f"ERROR: invalid mode {args.confirm_mode!r}. Valid: {', '.join(sorted(valid_modes))}")
             sys.exit(1)

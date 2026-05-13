@@ -63,6 +63,16 @@ If the step gate exits with code 2 (FAIL):
 - 不存在 → 建议 Mode F（上下文收集）→ Mode A（全量构建）。
 - 已存在 → 按用户目标执行 B/B2/C/E。
 
+**团队仓库检测**（在上述检查之前执行）：
+
+1. 检查 `_prd-tools/reference/project-profile.yaml`：如果 `layer: team-common` → 团队仓库，推荐 Mode T
+2. 检查 `team/project-profile.yaml`：如果存在且 `layer: team-common` → 团队仓库，推荐 Mode T
+3. 都不存在 → 询问用户：**这是单项目仓库还是团队知识库仓库？**
+   - 团队知识库 → 读取 `workflow.md` 阶段 T-init，执行交互式初始化
+   - 单项目 → 按现有 F→A 流程
+
+团队成员仓（`team_reference.upstream_local_path` 已配置）：可推荐 T2 团队继承。
+
 | 模式 | 何时 | 输出 |
 |---|---|---|
 | F 上下文收集 | 首次建设前 | `_prd-tools/build/context-enrichment.yaml` |

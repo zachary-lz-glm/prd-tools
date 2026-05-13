@@ -280,6 +280,112 @@ python3 .prd-tools/scripts/reference-quality-gate.py --root .
 
 用户确认后再修改 reference，并更新 `last_verified`。
 
+## 阶段 T-init：团队仓库初始化
+
+> **定位**：在空团队仓库中引导初始化，创建配置和目录结构，运行首次聚合。
+> **触发条件**：用户确认这是团队知识库仓库，且 `team/project-profile.yaml` 不存在。
+
+### 步骤 1：收集成员仓库信息
+
+向用户交互式收集：
+
+- **业务域名**（e.g. "marketing"）— 用于 project-profile.yaml 的 `business` 字段
+- **成员仓库列表**，逐条收集：
+  - 仓库名（e.g. "frontend-main"）
+  - 本地路径（e.g. "/Users/example/work/frontend-main"）
+  - 所属层：`frontend` | `bff` | `backend`
+  - 角色：`producer` | `consumer` | `middleware` | `peer`
+
+每条确认后继续下一条，用户说"完成"后进入步骤 2。
+
+### 步骤 2：验证成员仓库就绪
+
+对每个成员仓库逐个检查：
+
+1. `local_path` 目录是否存在
+2. `_prd-tools/reference/project-profile.yaml` 是否存在
+3. 5 个 YAML 文件（01-05）是否都存在
+
+就绪状态汇总表展示给用户：
+
+```text
+| 仓库 | 路径存在 | reference 存在 | 5 文件齐全 | 状态 |
+|------|---------|---------------|-----------|------|
+| repo-a | ✓ | ✓ | ✓ | ✅ 就绪 |
+| repo-b | ✓ | ✗ | — | ⚠️ 需先运行 /reference Mode A |
+```
+
+未就绪的仓库：
+- 告知用户需先在对应仓库运行 `/reference` Mode A 生成完整 reference
+- 用户可选择：跳过未就绪仓库继续、或中止等所有仓库就绪
+
+至少 1 个仓库就绪才能继续。
+
+### 步骤 3：创建团队仓库结构
+
+生成以下文件：
+
+**`team/project-profile.yaml`** — 基于成员仓库模板（`templates/project-profile.yaml`）改编：
+- `layer: "team-common"`
+- `business: "<用户填写的业务域名>"`
+- `reference_scope.authority: "team_common"`
+- 取消注释 `team_reference.member_repos[]` 和 `aggregation_policy`，填入收集的信息
+- 使用默认聚合策略（`contracts: union_by_id`, `domain_terms: union_dedupe`, `coding_rules: fatal_only`, `playbooks: cross_layer_only`）
+- 不需要 `tech_stack`、`entrypoints`、`capability_surfaces` 等成员仓库专属字段
+
+**`.prd-tools-team-version`** — 写入当前 prd-tools 版本号（读 `VERSION` 文件）
+
+**目录结构**（用 `.gitkeep` 占位空目录）：
+
+```text
+team/
+build/
+{各层}/snapshots/{各仓}/.gitkeep
+```
+
+### 步骤 4：运行首次聚合
+
+```bash
+python3 <prd-tools-path>/scripts/team-reference-aggregate.py --team-root .
+```
+
+`<prd-tools-path>` 解析方式：查找 `~/.claude/plugins/` 下已安装的 prd-tools 路径，或让用户指定。
+
+聚合完成后展示：
+- `build/aggregation-report.yaml` 摘要（成员仓数量、各产物条目数）
+- 如有 `build/conflicts.yaml`，列出冲突项和处理建议
+
+### 步骤 5：生成 README.md
+
+在仓库根目录生成 `README.md`，包含：
+
+```markdown
+# {业务域名} 团队知识库
+
+prd-tools 自动维护的团队级公共知识库。
+
+## 目录结构
+
+- `team/` — 团队级聚合数据（SSOT）
+- `{各层}/snapshots/` — 成员仓库快照
+- `build/` — 聚合报告和冲突记录
+
+## 成员仓库
+
+| 仓库 | 层 | 角色 |
+|------|---|------|
+| repo-a | frontend | producer |
+| ... | ... | ... |
+
+## 更新聚合
+
+当成员仓库的 reference 更新后，在本仓库重新运行：
+
+```bash
+python3 ~/work/prd-tools/scripts/team-reference-aggregate.py --team-root .
+```
+```
+
 ## 阶段 5：团队聚合（Mode T）
 
 > **定位**：在团队仓执行，从各成员仓的 `_prd-tools/reference/` 聚合事实到团队仓 `team/`。
