@@ -345,15 +345,18 @@ build/
 
 ### 步骤 4：运行首次聚合
 
-```bash
-python3 <prd-tools-path>/scripts/team-reference-aggregate.py --team-root .
-```
+按以下流程执行聚合，不依赖外部脚本：
 
-`<prd-tools-path>` 解析方式：查找 `~/.claude/plugins/` 下已安装的 prd-tools 路径，或让用户指定。
+1. 读取 `team/project-profile.yaml` 中的 `team_reference.member_repos[]`
+2. 逐个成员仓：读取 `_prd-tools/reference/` 下的 01-05 YAML
+3. 按 **阶段 5（Mode T）的聚合策略表** 执行合并
+4. 写入 `team/01-codebase.yaml` ~ `team/05-domain.yaml`
+5. 写入 `{各层}/snapshots/{仓}/` 全量镜像 + `_snapshot-meta.yaml`
+6. 写入 `build/aggregation-report.yaml` 和 `build/conflicts.yaml`（如有冲突）
 
 聚合完成后展示：
-- `build/aggregation-report.yaml` 摘要（成员仓数量、各产物条目数）
-- 如有 `build/conflicts.yaml`，列出冲突项和处理建议
+- 聚合摘要（成员仓数量、各产物条目数）
+- 如有冲突，列出冲突项和处理建议
 
 ### 步骤 5：生成 README.md
 
@@ -379,11 +382,7 @@ prd-tools 自动维护的团队级公共知识库。
 
 ## 更新聚合
 
-当成员仓库的 reference 更新后，在本仓库重新运行：
-
-```bash
-python3 ~/work/prd-tools/scripts/team-reference-aggregate.py --team-root .
-```
+当成员仓库的 reference 更新后，在本仓库重新运行 `/reference Mode T`。
 ```
 
 ## 阶段 5：团队聚合（Mode T）
@@ -398,15 +397,21 @@ python3 ~/work/prd-tools/scripts/team-reference-aggregate.py --team-root .
 
 **数据源解析优先级**：
 1. `local_path` 存在且有 `_prd-tools/reference/` → 直接读本地（最快）
-2. `remote_url` 提供且 local_path 不可用 → `git clone --depth 1` 到临时目录后读取
-
-运行命令：
-
-```bash
-python3 scripts/team-reference-aggregate.py --team-root .
-```
+2. `remote_url` 提供且 local_path 不可用 → 提示用户手动 clone 或切换到本地路径
 
 **成员仓前提**：各仓需将 `_prd-tools/reference/` 提交到 git（确保 `.gitignore` 没有忽略该目录）。YAML 文件是文本，体积小，适合版本控制。
+
+**执行步骤**：
+
+1. **读取配置**：`team/project-profile.yaml` 的 `team_reference.member_repos[]` 和 `aggregation_policy`
+2. **解析成员仓**：按优先级找到每个成员仓的 `_prd-tools/reference/` 目录，跳过不可达的仓并报告
+3. **读取 YAML**：从每个可达成员仓读取 01-05 五个 YAML 文件
+4. **按策略聚合**（见下表），同时收集冲突
+5. **写入产物**：
+   - `team/01-codebase.yaml` ~ `team/05-domain.yaml`（带 `repo_scope.authority: team_common` 和时间戳）
+   - `{各层}/snapshots/{仓}/` — 成员仓全量镜像 + `_snapshot-meta.yaml`（含 `commit_sha`、`synced_at`）
+   - `build/aggregation-report.yaml`（成员仓列表、各产物条目数、快照状态）
+   - `build/conflicts.yaml`（如有冲突）
 
 聚合策略（由 `team_reference.aggregation_policy` 配置）：
 
@@ -461,11 +466,12 @@ conflicts:
 - `team_reference.inherit_scopes` 已配置继承范围
 - 团队仓已运行过 Mode T 聚合
 
-运行命令：
+**执行步骤**：
 
-```bash
-python3 scripts/team-reference-inherit.py --repo-root .
-```
+1. 读取本仓 `_prd-tools/reference/project-profile.yaml`，获取 `team_reference.upstream_local_path` 和 `inherit_scopes`
+2. 从团队仓 `team/` 目录读取对应 scope 的聚合 YAML
+3. 对每个 scope，按继承规则合并到本仓的对应 YAML 文件
+4. 更新 `project-profile.yaml` 的 `team_reference.last_synced`
 
 继承规则：
 
