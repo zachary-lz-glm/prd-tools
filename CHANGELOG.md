@@ -4,6 +4,97 @@
 
 ---
 
+## [2.19.0] - 2026-05-13
+
+### Added
+- feat: 团队公共知识库聚合与继承（v2.19 T/T2 模式）
+- feat: 团队公共知识库
+- feat: teams文档
+- feat: 提交修复文档
+- feat(team-ref): [P1-4] introduce team common reference scaffolding (aggregation + inheritance)
+- feat(scripts): [P1-1] add ingest-docx.py to replace ad-hoc XML parsing in Step 0
+- feat: 自检
+- feat: 自检工具
+- feat: 自检工具
+- feat: 验收
+- feat: 2.18.1自动化测试skill
+
+### Changed
+- chore: remove 0-ref dead scripts (2748 lines) before v2.19 refactor
+- refactor(audit): self-audit postfix P2 — 13/13 fixes
+- docs(audit): v2.18.1 round2 audit fix report — P0R2 12/12, D4 1/1, selfcheck 0 fail
+- refactor(audit-p0r2): D4 selfcheck scoped to within-skill gate references
+- docs(audit): v2.18.1 audit fix report — P0 6/6, P1 10/10, P2 11/11
+- refactor(audit-p2): register phantom steps 2.6/3.6/7/8.6.1 in STEP_TABLE
+- refactor(audit-p2): [P2-11] portal EV full-set self-check + speculative tagging
+- refactor(audit-p2): [P2-10] single canonical mode-selection schema
+- refactor(audit-p2): [P2-9] unify plan.md section count to 11 across docs
+- refactor(audit-p2): [P2-8] step-04-portal current_step aligns to gate --step 9
+- refactor(audit-p2): [P2-7] materialize Phase 3.6 Critique Pass in workflow.md
+- refactor(audit-p2): [P2-6] split duplicate Step 8.6 headings
+- refactor(audit-p2): [P2-5] remove deprecated graph/ subtree from output-contracts
+- refactor(audit-p2): [P2-4] context-pack seed_queries derived from routing-playbooks
+- refactor(audit-p2): [P2-3] final-quality-gate reads anchors from routing-playbooks
+- refactor(audit-p2): [P2-2] accept --step 8.1 as alias for 8.1-confirm
+- refactor(audit-p2): [P2-1] step-gate default tool-version reads VERSION file
+- docs(audit): v2.18.1 audit fix report — P0 6/6, P1 10/10
+
+### Fixed
+- fix(audit): [P0-4 followup] add --distill alias to distill-step-gate.py
+- fix(audit-p2): [P2-2] step-03-confirm.md inline HARD STOP instruction between report and plan
+- fix(audit-p2): [P2-1] context-pack.md tiers anchors (must/should/optional) with visual markers
+- fix(audit-p1): [P1-3] step 8.6 Completion Gate renamed to Reference Update Staging with actual checks
+- fix(audit-p1): [P1-2] plan.md must-contain Checklist/Verify; report.md blocker 6-elements enforced
+- fix(audit-p0): [P0-14] restore human-readable enum labels + see_enum dedup (reference vs index boundary)
+- fix(audit-p0): [P0-13] enforce schema field names for evidence/alignment_summary/readiness (anti-drift)
+- fix(audit-p0): [P0-12] reference-update-suggestions.yaml restore 12-field schema + team candidate flag
+- fix(audit-p0): [P0-11] strict H2 section structure for report.md (12) and plan.md (11)
+- fix(audit-p0): [P0-10] routing-playbooks.yaml restore handoff_surfaces + layer_steps 3-layer
+- fix(audit-p0): [P0-9] plan.md §7/§9 enforce 3-layer validation matrix + contract table
+- fix(audit-p0): [P0-8] 03-contracts.yaml restore producer/consumers[]/checked_by[] + team repo fields
+- fix(audit-p0): [P0-7] layer-impact.yaml requires all 4 layers (frontend/bff/backend/external)
+- fix(audit-p0): [P0-6] restore v2.16.0 full-stack contract suggestions (frontend/bff/backend grouping)
+- fix(audit-p0): [P0-5] distill-step-gate writes current_step/status alongside completed_steps
+- fix(audit-p0): [P0-4] unify CLI args --distill-dir/--index-dir/--repo-root across scripts
+- fix(audit-p0): [P0-3] align schemas/03-context.md schema_version with contracts (all 2.0)
+- fix(audit-p0): [P0-2] evidence.yaml as single source of truth, evidence-map.yaml read-only
+- fix(audit-p0): [P0-1] enforce 13 english sections + ### REQ-XXX heading anchors in ai-friendly-prd
+- fix(audit): self-audit postfix — P0 1/1, P1 8/8, audit report
+- fix: install.sh 补装 _gate_fixhint.py + pre-commit 防遗漏
+- fix(audit): self-audit dryrun 29 findings — P0 6/6, P1 13/13, P2 10/10
+- fix(audit-p0r2): [P0R2-12] document-structure.json exclusion_types taught to AI
+- fix(audit-p0r2): [P0R2-11] gate failures suggest checking template/gate, not just artifact
+- fix(audit-p0r2): [P0R2-10] Step 0 outputs enforced as Step 1 prerequisites
+- fix(audit-p0r2): [P0R2-9] final-quality-gate accepts --distill-dir alias
+- fix(audit-p0r2): [P0R2-8] context-pack accepts --distill-dir alias + auto-derives --index/--out
+- fix(audit-p0r2): [P0R2-7] docx ingestion uses python zipfile standard path
+- fix(audit-p0r2): [P0R2-6] contract-delta requires meta + requirement_id + layer
+- fix(audit-p0r2): [P0R2-5] IR evidence field unified as object with source_blocks/source_block_ids
+- fix(audit-p0r2): [P0R2-4] media-analysis.yaml top-level key unified as `media`
+- fix(audit-p0r2): [P0R2-3] evidence-map.yaml top-level key unified as `blocks`
+- fix(audit-p0r2): [P0R2-2] gate accepts overall_score as score alias
+- fix(audit-p0r2): [P0R2-1] ai-friendly-prd section format matches gate regex
+- fix(audit-p1): [P1-10] document overall_score formula in output-contracts
+- fix(audit-p1): [P1-9] add fix_hint to distill-workflow and reference-step gates
+- fix(audit-p1): [P1-8] tag Self-Check items as [M]achine / [H]uman
+- fix(audit-p1): [P1-7] align ai-friendly-prd h2 thresholds
+- fix(audit-p1): [P1-6] enforce IR ↔ ai-friendly-prd REQ id consistency
+- fix(audit-p1): [P1-5] 8.1-confirm step reads real report-confirmation status
+- fix(audit-p1): [P1-4] fix duplicate step number in step-01-parse.md
+- fix(audit-p1): [P1-3] align source_blocks / source_block_ids semantics
+- fix(audit-p1): [P1-2] SKILL.md lists distill-workflow-gate.py
+- fix(audit-p1): [P1-1] normalize smart quotes in workflow.md yaml templates
+- fix(audit-p0): [P0-6] coverage-report missing now carries real block_ids
+- fix(audit-p0): [P0-5] code_scan must cover build/ for registry changes
+- fix(audit-p0): [P0-4] align contract-delta.contract.yaml with real schema
+- fix(audit-p0): [P0-3] reference-step-gate 2d requires 02-coding-rules
+- fix(audit-p0): [P0-2] remove duplicate Step 2.5/2.6 in workflow.md
+- fix(audit-p0): [P0-1] distill-workflow-gate.py import yaml
+- fix: 全盘修复 gate/workflow/command 一致性问题
+- fix: context-pack.py 兼容 IR-xxx 格式的 requirement id
+- fix: human_checkpoint 单复数兼容 + SKILL.md 文档统一为复数
+
+
 ## [2.18.1] - 2026-05-12
 
 ### Added

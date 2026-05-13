@@ -68,7 +68,7 @@ fi
 # --- 检查 4: install.sh 覆盖 scripts/*.py ---
 # scripts/ 下的 .py 文件（排除 dev-only 脚本）必须在 install.sh 中声明，否则用户安装后缺文件。
 dev_only_scripts="benchmark_score.py selfcheck-runner.py branch_case.py"
-installed_scripts=$(grep -oP '[\w_-]+\.py' "${REPO_ROOT}/install.sh" | sort -u)
+installed_scripts=$(grep -oE '[a-zA-Z0-9_-]+\.py' "${REPO_ROOT}/install.sh" | sort -u)
 repo_scripts=$(ls "${REPO_ROOT}/scripts/"*.py 2>/dev/null | xargs -n1 basename | sort -u)
 
 for s in $repo_scripts; do

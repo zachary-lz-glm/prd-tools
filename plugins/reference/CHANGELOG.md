@@ -3,7 +3,34 @@
 All notable changes to the **reference** plugin are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
-## [2.18.1] - 2026-05-12
+## [2.19.0] - 2026-05-13
+
+### Added
+- feat: 团队公共知识库聚合与继承（v2.19 T/T2 模式）
+- feat(team-ref): [P1-4] introduce team common reference scaffolding (aggregation + inheritance)
+
+### Changed
+- refactor(audit): self-audit postfix P2 — 13/13 fixes
+- refactor(audit-p2): [P2-10] single canonical mode-selection schema
+- refactor(audit-p2): [P2-5] remove deprecated graph/ subtree from output-contracts
+
+### Fixed
+- fix(audit-p0): [P0-14] restore human-readable enum labels + see_enum dedup (reference vs index boundary)
+- fix(audit-p0): [P0-10] routing-playbooks.yaml restore handoff_surfaces + layer_steps 3-layer
+- fix(audit-p0): [P0-8] 03-contracts.yaml restore producer/consumers[]/checked_by[] + team repo fields
+- fix(audit): self-audit postfix — P0 1/1, P1 8/8, audit report
+- fix(audit): self-audit dryrun 29 findings — P0 6/6, P1 13/13, P2 10/10
+- fix(audit-p0r2): [P0R2-12] document-structure.json exclusion_types taught to AI
+- fix(audit-p0r2): [P0R2-6] contract-delta requires meta + requirement_id + layer
+- fix(audit-p0r2): [P0R2-4] media-analysis.yaml top-level key unified as `media`
+- fix(audit-p0r2): [P0R2-3] evidence-map.yaml top-level key unified as `blocks`
+- fix(audit-p0r2): [P0R2-2] gate accepts overall_score as score alias
+- fix(audit-p1): [P1-10] document overall_score formula in output-contracts
+- fix(audit-p1): [P1-8] tag Self-Check items as [M]achine / [H]uman
+- fix(audit-p1): [P1-3] align source_blocks / source_block_ids semantics
+- fix: human_checkpoint 单复数兼容 + SKILL.md 文档统一为复数
+
+- fix: human_checkpoint 单复数兼容 + SKILL.md 文档统一为复数
 
 ### Added
 - feat: Evidence Index 准确性提升 — 多行签名、跨文件边、增量更新、领域术语桥接
