@@ -8,10 +8,10 @@
 
 ## MUST NOT
 
-- MUST NOT skip running step gate before starting this step
+- MUST verify ALL prerequisite files exist and are non-empty before starting this step
 - MUST NOT produce files listed in `<must_not_produce>`
 - MUST NOT read files listed in `<must_not_read_by_default>` unless explicitly needed
-- MUST NOT proceed if step gate exits with code 2
+- MUST NOT proceed if any prerequisite file is missing
 
 # 步骤 3：质量门控
 

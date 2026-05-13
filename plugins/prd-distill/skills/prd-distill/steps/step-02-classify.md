@@ -8,10 +8,10 @@
 
 ## MUST NOT
 
-- MUST NOT skip running step gate before starting this step
+- MUST verify ALL prerequisite files exist and are non-empty before starting this step
 - MUST NOT produce files listed in `<must_not_produce>`
 - MUST NOT read files listed in `<must_not_read_by_default>` unless explicitly needed
-- MUST NOT proceed if step gate exits with code 2
+- MUST NOT proceed if any prerequisite file is missing
 
 > **团队模式**（`project-profile.yaml` 的 `layer` 为 `team-common` 时）：
 > - Step 2.5 Query Plan：跳过（无 index）

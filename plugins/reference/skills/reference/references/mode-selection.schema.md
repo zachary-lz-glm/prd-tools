@@ -1,6 +1,6 @@
 # Mode Selection YAML Schema
 
-Written by `reference-step-gate.py --confirm-mode <mode>` into `reference-workflow-state.yaml`.
+Written into `_prd-tools/build/reference-workflow-state.yaml` during the mode selection step.
 
 ## Schema
 

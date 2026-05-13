@@ -14,16 +14,6 @@ PRD raw file/text
   → /prd-distill plan      (Steps 5→6→8.5→8.6→9)
 ```
 
-## Step 文件 ↔ Gate Step ID 映射
-
-> Step numbers are logical IDs, NOT execution order. Follow the three-stage execution sequence from command.md.
-
-| Step 文件 | 覆盖的 Gate Step IDs | 所属 Stage |
-|---|---|---|
-| step-01-parse.md | 0, 1, 1.5-afprd, 1.5-quality, 2 | spec |
-| step-02-classify.md | 2.5, 3.1, 3.2, 3.5, 3.6, 4 | report |
-| step-03-confirm.md | 8, 8.1-confirm, 5, 6, 7, 8.5, 8.6 | report + plan |
-
 每个阶段的核心问题：
 
 | 阶段 | 核心问题 | 是否读源码 | 是否需要用户确认 |
@@ -54,6 +44,8 @@ PRD raw file/text
 - Step 8：report.md §10 强制 4 个子节（10.1–10.4）
 
 ---
+
+> **Pre-flight Check**：Before starting, verify prerequisite files exist and are non-empty.
 
 # ── spec 阶段 ──
 
@@ -405,7 +397,7 @@ phases:
   p0_requirements: []     # P0 需求的关键实体和术语
 ```
 
-**团队模式**：跳过此步骤。团队仓无 `_prd-tools/reference/index/`，不生成 query-plan.yaml。Step gate 会自动通过。
+**团队模式**：跳过此步骤。团队仓无 `_prd-tools/reference/index/`，不生成 query-plan.yaml。
 
 ## 步骤 3.5：Context Pack（Reference Index 融合层）
 
@@ -415,7 +407,7 @@ phases:
 
 触发时机：步骤 3.2 完成后、步骤 4 之前。如果索引不存在则跳过，但必须在 readiness-report 中记录缺失。
 
-**团队模式**：跳过此步骤。团队仓无 index，不生成 context-pack.md。Step gate 会自动通过。
+**团队模式**：跳过此步骤。团队仓无 index，不生成 context-pack.md。
 
 ## 步骤 3：Layer Impact
 
@@ -576,7 +568,7 @@ findings:
 
 ### 结果处理
 
-- **`status: fail`**：退回上一步修正产物，`distill-workflow-gate.py` 会阻断后续步骤。
+- **`status: fail`**：退回上一步修正产物，`quality-gate.py distill` 会阻断后续步骤。
 - **`status: warning`**：不阻断流程，但必须进入 `readiness-report.yaml` 的 risks 部分。
 - **`status: pass`**：继续下一步。
 
@@ -799,10 +791,10 @@ blocked_reason: ""
 
 > **定位**：Final Quality Gate 是辅助层，不替代 readiness-report.yaml。readiness-report.yaml 仍是就绪度评估的主产出。
 
-运行 `python3 .prd-tools/scripts/final-quality-gate.py` 对所有交付物执行 5 项确定性检查，生成 `context/final-quality-gate.yaml`。
+运行 `python3 .prd-tools/scripts/quality-gate.py final` 对所有交付物执行 5 项确定性检查，生成 `context/final-quality-gate.yaml`。
 
 ```bash
-python3 .prd-tools/scripts/final-quality-gate.py \
+python3 .prd-tools/scripts/quality-gate.py final \
   --distill _prd-tools/distill/<slug>
 ```
 
@@ -838,7 +830,7 @@ summary:
 运行命令：
 
 ```bash
-python3 .prd-tools/scripts/distill-quality-gate.py \
+python3 .prd-tools/scripts/quality-gate.py distill \
   --distill-dir _prd-tools/distill/<slug> \
   --repo-root .
 ```
@@ -863,7 +855,7 @@ python3 .prd-tools/scripts/distill-quality-gate.py \
 
 ## 步骤 8.6.1：Gate 检查清单
 
-> 条件步骤：运行 `distill-quality-gate.py` 和 `distill-workflow-gate.py`，确认所有 gate 通过。
+> 条件步骤：运行 `quality-gate.py distill`，确认所有 gate 通过。
 
 **输入**：所有 context 文件、report.md、plan.md
 
@@ -871,9 +863,8 @@ python3 .prd-tools/scripts/distill-quality-gate.py \
 
 **检查项**：
 
-1. 运行 `python3 .prd-tools/scripts/distill-quality-gate.py --distill-dir _prd-tools/distill/<slug> --repo-root .`，exit code 不为 2。
-2. 运行 `python3 .prd-tools/scripts/distill-workflow-gate.py --distill-dir _prd-tools/distill/<slug> --repo-root .`，exit code 不为 2。
-3. 两个 gate 都通过即可完成。
+1. 运行 `python3 .prd-tools/scripts/quality-gate.py distill --distill-dir _prd-tools/distill/<slug> --repo-root .`，exit code 不为 2。
+2. gate 通过即可完成。
 
 ## 暂停条件
 

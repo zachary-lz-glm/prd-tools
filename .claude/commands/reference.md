@@ -40,31 +40,13 @@ Rules:
 - If `_prd-tools/reference/` does not exist, recommend option 1 but do not auto-run it.
 - If `_prd-tools/reference/` exists, summarize current files and ask whether to run B2 health check, B incremental update, A rebuild, or E feedback ingest.
 - Do not proceed from mode selection to artifact generation until the user confirms a mode.
-- Once the user confirms a mode, record it by running:
-
-```bash
-python3 .prd-tools/scripts/reference-step-gate.py --confirm-mode <MODE> --root .
-```
+- Once the user confirms a mode, write to `_prd-tools/build/reference-workflow-state.yaml` with `human_checkpoints.mode_selection.status: approved` and `selected_mode: '<MODE>'`
 
 Valid modes: `F_then_A`, `F_only`, `A_only`, `B`, `B2`, `C`, `E`
 
-## Step Gate (硬约束 — 每步执行前必须通过)
+## Pre-flight (硬约束 — 每步执行前必须检查)
 
-Before executing any phase/stage, you MUST run the step gate script:
-
-```bash
-python3 .prd-tools/scripts/reference-step-gate.py --step <step_id> --root . --write-state
-```
-
-Step IDs: `0`, `1`, `2a`, `2b`, `2c`, `2d`, `2e`, `3`, `3.5`, `3.6`, `4`
-
-If the step gate exits with code 2 (FAIL):
-- **STOP immediately** — do not proceed.
-- Read the error message — it tells you exactly which prerequisite is missing.
-- If the error is "MODE SELECTION REQUIRED", run `--confirm-mode <mode>` first.
-- If the error is "ORDERING ERROR" and you need to re-run a step, add `--allow-rerun`.
-- Complete the missing prerequisite first, then re-run the step gate.
-- Only proceed after exit code 0 (PASS).
+Before each step, verify ALL prerequisite files exist and are non-empty. If ANY is missing, STOP and complete that step first.
 
 ## Workflow State
 
@@ -74,26 +56,19 @@ Before each step, read `_prd-tools/build/reference-workflow-state.yaml`. If it d
 
 Source code reads MAY run in parallel. Artifact generation MUST be sequential.
 
-**Before each phase/stage, run the step gate. If it fails, stop and fix the prerequisite.**
+**Before each phase/stage, verify all prerequisite files exist and are non-empty. If any is missing, stop and complete that step first.**
 
 Phase 2 deep analysis is strictly ordered — read `steps/step-02-deep-analysis.md` as one complete file, execute 5 stages sequentially:
 
 1. Stage 1: `01-codebase.yaml`
-   ⚙ Gate: `reference-step-gate.py --step 2a`
 2. Stage 2: `02-coding-rules.yaml` (must read 01 first)
-   ⚙ Gate: `reference-step-gate.py --step 2b`
 3. Stage 3: `03-contracts.yaml` (must read 01, 02 first)
-   ⚙ Gate: `reference-step-gate.py --step 2c`
 4. Stage 4: `04-routing-playbooks.yaml` (must read 01, 02 first)
-   ⚙ Gate: `reference-step-gate.py --step 2d`
-5. Stage 5: \`05-domain.yaml\` (must read 01–04 first)
-   ⚙ Gate: `reference-step-gate.py --step 2e`
+5. Stage 5: `05-domain.yaml` (must read 01–04 first)
 6. After all 5 stages: run "去重检查" and "确定性验证"
-8. build Evidence Index with `.prd-tools/scripts/build-index.py`
-   ⚙ Gate: `reference-step-gate.py --step 3.5`
-9. run `.prd-tools/scripts/reference-quality-gate.py --root .`
-   ⚙ Gate: `reference-step-gate.py --step 3.6`
-10. run `.prd-tools/scripts/reference-workflow-gate.py --root .`
+7. build Evidence Index with `.prd-tools/scripts/build-index.py`
+8. run `.prd-tools/scripts/quality-gate.py reference --root .`
+9. run `.prd-tools/scripts/quality-gate.py reference --mode workflow --root .`
 
 **Do NOT use background agents for artifact generation.** Only source code reading may be parallelized.
 
@@ -101,11 +76,9 @@ Phase 2 deep analysis is strictly ordered — read `steps/step-02-deep-analysis.
 
 /reference is complete ONLY when ALL of the following are true:
 
-1. `reference-quality-gate.py` exits with code 0 (pass or warning)
-2. `reference-workflow-gate.py` exits with code 0 (pass or warning)
-3. The final response includes:
-   - `reference-workflow-gate.py` result
-   - `reference-quality-gate.py` result
+1. `quality-gate.py reference --mode all` exits with code 0 (pass or warning)
+2. The final response includes:
+   - `quality-gate.py reference` result
    - Index manifest summary (entity count, edge count, term count)
 
 Do not claim /reference is complete if any gate exits with code 2. Do not claim /reference is complete if index files are missing.
@@ -118,6 +91,5 @@ Do not claim /reference is complete if any gate exits with code 2. Do not claim 
 - Do not generate `04-routing-playbooks.yaml` before `03-contracts.yaml` exists.
 - Do not generate `05-domain.yaml` before `04-routing-playbooks.yaml` exists.
 - Do not split step-02-deep-analysis.md into separate reads — read it as one complete file.
-- **Before each phase/stage, run `reference-step-gate.py` with the step ID. If exit code is 2, stop and complete the missing prerequisite before proceeding.**
 
 Now continue with the user's `/reference` request.

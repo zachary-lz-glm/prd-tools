@@ -61,6 +61,6 @@ findings:
 
 ## Gate 集成
 
-`distill-workflow-gate.py` 在检查高风险步骤时，如果 `context/critique/<step_id>.yaml` 存在且 `status: fail`，则该步骤标记为需要修正。
+`quality-gate.py distill` 在检查高风险步骤时，如果 `context/critique/<step_id>.yaml` 存在且 `status: fail`，则该步骤标记为需要修正。
 
 warning 不阻断流程，但必须进入 `readiness-report.yaml` 的 risks 部分。

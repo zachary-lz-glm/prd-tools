@@ -8,16 +8,16 @@
 
 ## MUST NOT
 
-- MUST NOT skip running step gate before starting this step
+- MUST verify ALL prerequisite files exist and are non-empty before starting this step
 - MUST NOT produce files listed in `<must_not_produce>`
 - MUST NOT read files listed in `<must_not_read_by_default>` unless explicitly needed
-- MUST NOT proceed if step gate exits with code 2
+- MUST NOT proceed if any prerequisite file is missing
 
-> **修复循环规避规则**：
-> 如果 gate 连续 2 次报同一个 fail，**必须停下**检查：
-> 1. workflow 模板教你写的字段名/格式 vs gate 检查的字段名/格式是否一致
-> 2. 是 gate 错了还是产物错了？
-> 3. 不要为了让 gate 过就编造/删除证据。
+> **一致性检查规则**：
+> 如果连续 2 次产出相同错误，**必须停下**检查：
+> 1. workflow 模板要求的字段名/格式 vs 实际产出的字段名/格式是否一致
+> 2. 是模板错了还是产物错了？
+> 3. 不要为了通过检查就编造/删除证据。
 
 > **跨步骤交叉引用**：本文件声称覆盖 gate steps 0, 1, 1.5-afprd, 1.5-quality, 2，但正文仅详述 Step 0（PRD Ingestion）和 Step 2（Requirement IR）。Step 1（Evidence Ledger）和 Step 1.5（AI-friendly PRD）的完整指令见 workflow.md 对应步骤段落。
 >

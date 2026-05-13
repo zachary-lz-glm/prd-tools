@@ -972,7 +972,7 @@ weighted_avg = sum(check_weight * check_score for each check) / sum(check_weight
 overall_score = round(weighted_avg)
 ```
 
-权重表（`scripts/final-quality-gate.py` CHECK_WEIGHTS）：
+权重表（`scripts/quality-gate.py final` CHECK_WEIGHTS）：
 
 | 检查项 | 权重 |
 |--------|------|

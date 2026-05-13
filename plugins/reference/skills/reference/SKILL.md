@@ -9,31 +9,25 @@ Claude Code 中通过 `/reference` 触发。
 
 人类可读文档见插件根目录 `README.md`。
 
-## Step Gate Enforcement（硬约束）
+## Pre-flight Enforcement（硬约束）
 
-**每步执行前必须运行 step gate，并传入 `--write-state`：**
+**Before each step, verify ALL prerequisite files exist and are non-empty.**
 
-```bash
-python3 .prd-tools/scripts/reference-step-gate.py --step <step_id> --root . --write-state
-```
-
-Step IDs: `0`, `1`, `2a`, `2b`, `2c`, `2d`, `2e`, `3`, `3.5`, `3.6`, `4`
-
-If the step gate exits with code 2 (FAIL):
+If any prerequisite is missing:
 - **STOP immediately** — do not proceed with the step.
-- Read the error message — it tells you which prerequisite is missing.
-- Complete the missing prerequisite step first, then re-run the step gate.
-- Only proceed after the step gate exits with code 0 (PASS).
+- Identify which prerequisite file is missing or empty.
+- Complete the missing prerequisite step first, then re-verify.
+- Only proceed after all prerequisites are confirmed present and non-empty.
 
 **Workflow State File**: `_prd-tools/build/reference-workflow-state.yaml`
 
-- Before each step, read this file. If it does not exist, the step gate with `--write-state` will create it.
-- After each step, the gate updates it with output files and hashes.
+- Before each step, read this file. If it does not exist, create it.
+- After each step, update it with output files and hashes.
 - The next step MUST read this state file before proceeding — do not rely on conversation memory.
 
 **禁止行为：**
-- 不得跳过 step gate 直接执行步骤
-- 不得在 gate 失败后手动创建缺失文件绕过检查
+- 不得跳过前置检查直接执行步骤
+- 不得在前置检查失败后手动创建缺失文件绕过检查
 - 不得合并多个步骤为一次执行
 
 ## Final Completion Gate（硬约束）
@@ -42,7 +36,7 @@ If the step gate exits with code 2 (FAIL):
 
 1. `_prd-tools/reference/` 下 00-05 共 6 个主文件 + `project-profile.yaml` 存在且非空。
 2. 必须运行 `python3 .prd-tools/scripts/build-index.py --repo <项目路径> --out _prd-tools/reference/index`，生成 `index/` 下 4 个文件。
-3. 必须运行 `python3 .prd-tools/scripts/reference-quality-gate.py --root .`，且 exit code 不为 2。
+3. 必须运行 `python3 .prd-tools/scripts/quality-gate.py reference --root .`，且 exit code 不为 2。
 4. index 缺失时，不得宣称 /reference 完成。
 5. 最终回复必须列出 index manifest 摘要（实体数、边数、term 数）。
 6. quality-gate 报告的 warning 必须在最终回复中说明。

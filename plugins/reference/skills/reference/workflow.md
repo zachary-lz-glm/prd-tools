@@ -236,7 +236,7 @@ _prd-tools/reference/index/
 运行命令：
 
 ```bash
-python3 .prd-tools/scripts/reference-quality-gate.py --root .
+python3 .prd-tools/scripts/quality-gate.py reference --root .
 ```
 
 检查内容：

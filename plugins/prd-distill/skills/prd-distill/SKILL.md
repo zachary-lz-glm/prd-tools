@@ -89,33 +89,17 @@ Steps: 5 → 6 → 7 → 8.5 → 8.6 → 9
 
 **plan 阶段不得重新解释原始 PRD**，只消费 approved report 和 context。
 
-## Step Gate Enforcement（硬约束）
+## Pre-flight Enforcement（硬约束）
 
-**每步执行前必须运行 step gate，并传入 `--write-state`：**
+**每步执行前必须验证前置产物：**
 
-```bash
-python3 .prd-tools/scripts/distill-step-gate.py --step <step_id> --distill-dir _prd-tools/distill/<slug> --repo-root . --write-state
-```
-
-Step IDs: `0`, `1`, `1.5-afprd`, `1.5-quality`, `2`, `2.5`, `3.1`, `3.2`, `3.5`, `3.6`, `4`, `5`, `6`, `7`, `8`, `8.1-confirm`, `8.5`, `8.6`, `9`
-
-If the step gate exits with code 2 (FAIL):
-- **STOP immediately** — do not proceed with the step.
-- Read the error message — it tells you which prerequisite is missing.
-- Complete the missing prerequisite step first, then re-run the step gate.
-- Only proceed after the step gate exits with code 0 (PASS).
-
-**Workflow State File**: `_prd-tools/distill/<slug>/workflow-state.yaml`
-
-- Before each step, read this file. If it does not exist, the step gate with `--write-state` will create it.
-- After each step, the gate updates it with output files and hashes.
-- The next step MUST read this state file before proceeding — do not rely on conversation memory.
+Before each step, verify ALL prerequisite files from the previous step exist and are non-empty. If ANY is missing, STOP and complete that step first. Use `ls -la <path>` to verify.
 
 **Hard Constraints Reference（关键禁止项，<10 条）：**
 
 | # | 约束 | 原因 |
 |---|------|------|
-| 1 | 不得跳过 step gate 直接执行步骤 | 步骤依赖链断裂 |
+| 1 | 不得跳过前置产物验证直接执行步骤 | 步骤依赖链断裂 |
 | 2 | report 未 approved 时不得生成 plan | 用户未确认影响分析 |
 | 3 | spec 阶段不得产出 report/plan | 三段式工作流隔离 |
 | 4 | plan 阶段不得重新解释原始 PRD | 只消费 approved report |
@@ -126,8 +110,8 @@ If the step gate exits with code 2 (FAIL):
 其余禁止项详见 workflow.md 对应步骤。
 
 **禁止行为（详细列表）：**
-- 不得跳过 step gate 直接执行步骤
-- 不得在 gate 失败后手动创建缺失文件绕过检查
+- 不得跳过前置产物验证直接执行步骤
+- 不得在验证失败后手动创建缺失文件绕过检查
 - 不得合并多个步骤为一次执行
 
 ## Final Completion Gate（硬约束）
@@ -139,9 +123,8 @@ If the step gate exits with code 2 (FAIL):
 3. `context/layer-impact.yaml` 必须包含 `code_anchors` 或 fallback reason。
 4. 如果 `_prd-tools/reference/index` 存在，必须运行 `context-pack.py` 生成 `context/query-plan.yaml` 和 `context/context-pack.md`。**团队模式豁免**（无 index）。
 5. `context/final-quality-gate.yaml` 必须生成。
-6. 必须运行 `python3 .prd-tools/scripts/distill-quality-gate.py --distill-dir _prd-tools/distill/<slug> --repo-root .`，且 exit code 不为 2。
-7. 必须运行 `python3 .prd-tools/scripts/distill-workflow-gate.py --distill-dir _prd-tools/distill/<slug> --repo-root .`，且 exit code 不为 2（0 = 全过，1 = warning，2 = 硬失败）。
-8. completion gate 不通过，不得宣称 /prd-distill 完成。
+6. 必须运行 `python3 .prd-tools/scripts/quality-gate.py distill --mode all --distill-dir _prd-tools/distill/<slug> --repo-root .`，且 exit code 不为 2。
+7. completion gate 不通过，不得宣称 /prd-distill 完成。
 9. `report.md` 必须包含 PRD 质量摘要。
 10. 生成最终 plan 前，必须获得用户对 `report.md` 的确认，并写入 `context/report-confirmation.yaml`。
 11. `context/report-confirmation.yaml` 的 `status` 必须为 `approved`，否则不得生成最终 plan。
@@ -391,7 +374,7 @@ _prd-tools/distill/<slug>/
 
 15. 用户确认 `approved` 后，生成 `plan.md`（消费 `graph-context.md` 函数级上下文）。
 16. 生成 `context/readiness-report.yaml`。
-17. （辅助层）运行 `python3 .prd-tools/scripts/final-quality-gate.py` 生成 `context/final-quality-gate.yaml`（5 项确定性检查评分）。
+17. （辅助层）运行 `python3 .prd-tools/scripts/quality-gate.py final` 生成 `context/final-quality-gate.yaml`（5 项确定性检查评分）。
 18. 生成 `context/reference-update-suggestions.yaml`。
 
 ## 参考文件
