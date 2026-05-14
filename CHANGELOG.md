@@ -2,7 +2,10 @@
 
 > 遵循 [Keep a Changelog](https://keepachangelog.com/) 格式。架构决策详见 [docs/adr/](docs/adr/)。
 
-## [2.19.3] - 2026-05-14
+## [2.19.4] - 2026-05-14
+
+### Added
+- feat: 上游接口文档支持 + PRD 项目相关性过滤
 
 ### Changed
 - refactor: reference 阶段重编 Phase 1-6 + 步骤编号规范

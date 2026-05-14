@@ -2,7 +2,10 @@
 
 All notable changes to the **reference** plugin are documented here.
 
-## [2.19.3] - 2026-05-14
+## [2.19.4] - 2026-05-14
+
+### Added
+- feat: 上游接口文档支持 + PRD 项目相关性过滤
 
 ### Changed
 - refactor: reference 阶段重编 Phase 1-6 + 步骤编号规范
@@ -11,8 +14,6 @@ All notable changes to the **reference** plugin are documented here.
 - refactor: 瘦身 v2.0 — 砍门禁 + 拆团队模式 + 去聚合化 + 恢复 portal
 
 ### Fixed
-- fix: 修复 quality-gate.py 运行时崩溃 + 清理孤立文件
-
 - fix: 修复 quality-gate.py 运行时崩溃 + 清理孤立文件
 
 - 团队聚合增加 index 同步步骤和 4 条硬约束（禁止推断内容、跨层规则过滤、producer 验证、同名术语合并），新增 endpoint_producer_unverified 冲突类型
