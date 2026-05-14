@@ -44,6 +44,8 @@
 - `context/contract-delta.yaml`
 - `references/output-contracts.md`（report.md、plan.md、reference-update-suggestions 格式定义）
 
+**HARD GATE**：以上 5 个 context 文件必须全部存在且非空，才能开始写 report.md。不得用 Agent 异步生成 context 文件的同时写 report——report 必须消费已完成的 context 产物。如果任何前置文件缺失，必须先完成对应上游 Step，不能跳过。
+
 ## report.md（需求翻译 + 阻塞问题）
 
 `report.md` 是**需求翻译文档**：回答"PM 到底要什么"。§1-§7 使用纯业务语言，§8 收纳技术细节作为附录。开发者先理解需求，再按需翻阅技术细节。

@@ -213,6 +213,16 @@ python3 .prd-tools/scripts/context-pack.py \
 
 ## Step 6: Report
 
+**前置条件（HARD GATE）**：以下文件必须全部存在且非空，才能开始写 report.md：
+
+- `context/evidence.yaml`
+- `context/requirement-ir.yaml`
+- `context/graph-context.md`
+- `context/layer-impact.yaml`
+- `context/contract-delta.yaml`
+
+不得在上述文件未完成时并行生成 report.md。不得用 Agent 异步生成 context 文件的同时写 report——report 必须消费已完成的 context 产物。
+
 `report.md` 需求翻译结构（§1-§7 业务语言 + §8 技术附录）：
 
 1. **需求摘要**（30秒决策）— 纯业务语言，不出现 API/文件路径/枚举值
