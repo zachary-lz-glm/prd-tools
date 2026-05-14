@@ -111,31 +111,44 @@ info "当前版本: ${current}，5 处版本一致 ✓"
 info "Step 1: 计算新版本"
 
 if [ "$AUTO" = true ]; then
-  # --auto: 从 conventional commits 推导 bump 等级
-  last_tag_for_auto=$(git describe --tags --match='v[0-9]*' --abbrev=0 2>/dev/null || true)
-  if [ -z "$last_tag_for_auto" ]; then
-    die "--auto 需要至少一个现有 tag"
-  fi
-
-  auto_range="${last_tag_for_auto}..HEAD"
-  has_breaking=$(git log "${auto_range}" --format="%s%n%b" | grep -cE '^(BREAKING CHANGE:|.*[a-z]!:)' || true)
-  has_feat=$(git log "${auto_range}" --format="%s" | grep -c '^feat' || true)
-  has_fix=$(git log "${auto_range}" --format="%s" | grep -c '^fix' || true)
-
-  total=$((has_breaking + has_feat + has_fix))
-  if [ "$total" -eq 0 ]; then
-    info "${last_tag_for_auto} 以来没有 feat/fix commits，跳过发版"
-    exit 0
-  fi
-
-  if [ "$has_breaking" -gt 0 ]; then
-    bump="major"
-  elif [ "$has_feat" -gt 0 ]; then
-    bump="minor"
+  if [ -n "$VERSION_ARG" ]; then
+    # --auto + 显式版本/级别：使用显式值，仅打印检测结果供参考
+    last_tag_for_auto=$(git describe --tags --match='v[0-9]*' --abbrev=0 2>/dev/null || true)
+    if [ -n "$last_tag_for_auto" ]; then
+      auto_range="${last_tag_for_auto}..HEAD"
+      has_breaking=$(git log "${auto_range}" --format="%s%n%b" | grep -cE '^(BREAKING CHANGE:|.*[a-z]!:)' || true)
+      has_feat=$(git log "${auto_range}" --format="%s" | grep -c '^feat' || true)
+      has_fix=$(git log "${auto_range}" --format="%s" | grep -c '^fix' || true)
+      info "检测到: ${has_breaking} breaking, ${has_feat} feat, ${has_fix} fix（使用显式指定的 ${VERSION_ARG}）"
+    fi
+    bump="$VERSION_ARG"
   else
-    bump="patch"
+    # --auto 无显式版本：从 conventional commits 推导
+    last_tag_for_auto=$(git describe --tags --match='v[0-9]*' --abbrev=0 2>/dev/null || true)
+    if [ -z "$last_tag_for_auto" ]; then
+      die "--auto 需要至少一个现有 tag"
+    fi
+
+    auto_range="${last_tag_for_auto}..HEAD"
+    has_breaking=$(git log "${auto_range}" --format="%s%n%b" | grep -cE '^(BREAKING CHANGE:|.*[a-z]!:)' || true)
+    has_feat=$(git log "${auto_range}" --format="%s" | grep -c '^feat' || true)
+    has_fix=$(git log "${auto_range}" --format="%s" | grep -c '^fix' || true)
+
+    total=$((has_breaking + has_feat + has_fix))
+    if [ "$total" -eq 0 ]; then
+      info "${last_tag_for_auto} 以来没有 feat/fix commits，跳过发版"
+      exit 0
+    fi
+
+    if [ "$has_breaking" -gt 0 ]; then
+      bump="major"
+    elif [ "$has_feat" -gt 0 ]; then
+      bump="minor"
+    else
+      bump="patch"
+    fi
+    info "自动检测: ${has_breaking} breaking, ${has_feat} feat, ${has_fix} fix → ${bump}"
   fi
-  info "自动检测: ${has_breaking} breaking, ${has_feat} feat, ${has_fix} fix → ${bump}"
 else
   bump="${VERSION_ARG:-patch}"
 fi
@@ -199,7 +212,7 @@ parse_commits() {
     subject=$(git log -1 --format="%s" "$hash")
 
     # 跳过自动生成的 release 提交
-    echo "$subject" | grep -qE '^release:' && continue
+    echo "$subject" | grep -qE '^(release:|chore: release)' && continue
 
     # 路径过滤
     if [ -n "$filter_prefix" ]; then
@@ -294,10 +307,12 @@ if [ "$DRY_RUN" = false ]; then
   info "备份已保存到 ${BACKUP_DIR}"
 fi
 
-# 插入 CHANGELOG 条目（在 --- 或文件头之后）
+# 插入 CHANGELOG 条目（在第一个 ## 标题前插入）
+# 如果已有同版本 section，替换之（幂等）
 insert_changelog_entry() {
   local file="$1"
   local entry="$2"
+  local version="$3"
 
   if [ "$DRY_RUN" = true ]; then
     dry_info "会在 ${file} 插入新条目"
@@ -309,27 +324,66 @@ insert_changelog_entry() {
   entry_tmp=$(mktemp)
   printf '%s\n' "$entry" > "$entry_tmp"
 
-  # 找到第一个 --- 分隔符或 ## 标题，在其后插入
-  local tmp="${file}.tmp"
-  awk -v efile="$entry_tmp" '
-    BEGIN { inserted = 0 }
-    /^---/ && !inserted {
-      print; print ""
-      while ((getline < efile) > 0) print
-      print ""; inserted = 1; next
-    }
-    /^## / && !inserted {
-      while ((getline < efile) > 0) print
-      print ""; print; inserted = 1; next
-    }
-    { print }
-  ' "$file" > "$tmp" && mv "$tmp" "$file"
+  # 检查是否已有同版本 section
+  local version_header="## [${version}]"
+  if grep -q "^${version_header}" "$file"; then
+    # 替换已有 section：从 ## [version] 到下一个 ## [ 或文件末尾
+    local tmp="${file}.tmp"
+    awk -v efile="$entry_tmp" -v vhdr="$version_header" '
+      BEGIN { state = "before"; inserted = 0 }
+      # 匹配目标版本的 section header
+      index($0, vhdr) == 1 && state == "before" {
+        state = "in_old"; next
+      }
+      # 在旧 section 内：遇到新的 ## [ 结束
+      /^## \[/ && state == "in_old" {
+        state = "after"
+        # 此时还没有输出新 entry，先输出
+        if (!inserted) {
+          while ((getline < efile) > 0) print
+          print ""; inserted = 1
+        }
+        print; next
+      }
+      # 在旧 section 内：跳过旧行
+      state == "in_old" { next }
+      # 在旧 section 前：找第一个 ## [ 时插入
+      /^## \[/ && state == "before" && !inserted {
+        while ((getline < efile) > 0) print
+        print ""; print; inserted = 1; next
+      }
+      { print }
+      END {
+        if (!inserted) {
+          while ((getline < efile) > 0) print
+          print ""
+        }
+      }
+    ' "$file" > "$tmp" && mv "$tmp" "$file"
+  else
+    # 无已有 section：在第一个 ## 标题前插入
+    local tmp="${file}.tmp"
+    awk -v efile="$entry_tmp" '
+      BEGIN { inserted = 0 }
+      /^---/ && !inserted {
+        print; print ""
+        while ((getline < efile) > 0) print
+        print ""; inserted = 1; next
+      }
+      /^## / && !inserted {
+        while ((getline < efile) > 0) print
+        print ""; print; inserted = 1; next
+      }
+      { print }
+    ' "$file" > "$tmp" && mv "$tmp" "$file"
+  fi
+
   rm -f "$entry_tmp"
 }
 
-insert_changelog_entry "${REPO_ROOT}/CHANGELOG.md" "$root_section"
-insert_changelog_entry "${REPO_ROOT}/plugins/reference/CHANGELOG.md" "$ref_section"
-insert_changelog_entry "${REPO_ROOT}/plugins/prd-distill/CHANGELOG.md" "$pd_section"
+insert_changelog_entry "${REPO_ROOT}/CHANGELOG.md" "$root_section" "$new"
+insert_changelog_entry "${REPO_ROOT}/plugins/reference/CHANGELOG.md" "$ref_section" "$new"
+insert_changelog_entry "${REPO_ROOT}/plugins/prd-distill/CHANGELOG.md" "$pd_section" "$new"
 
 # 更新版本号
 if [ "$DRY_RUN" = true ]; then
