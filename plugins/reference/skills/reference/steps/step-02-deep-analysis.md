@@ -1,6 +1,6 @@
 <workflow_state>
   <workflow>reference</workflow>
-  <current_step>2</current_step>
+  <current_step>3</current_step>
   <allowed_inputs>_prd-tools/build/modules-index.yaml, references/reference-v4.md, references/layer-adapters.md, templates/, references/output-contracts.md</allowed_inputs>
   <must_not_read_by_default>prd-distill schemas, _prd-tools/distill/</must_not_read_by_default>
   <must_not_produce>report.md, plan.md</must_not_produce>
@@ -13,7 +13,7 @@
 - MUST NOT read files listed in `<must_not_read_by_default>` unless explicitly needed
 - MUST NOT proceed if any prerequisite file is missing
 
-# 步骤 2：深度分析
+# 步骤 3：深度分析
 
 ## 目标
 
@@ -41,7 +41,7 @@ _prd-tools/reference/05-domain.yaml
 
 按以下顺序生成文件，后生成的文件必须检查先生成的文件，避免内容重叠：
 
-### 阶段 1：代码库静态清单
+### 子阶段 1：代码库静态清单
 
 1. 使用 `rg` / glob 扫描项目目录结构。
 2. 通过 Read 读取源码，提取模块、符号、入口、数据流。
@@ -63,11 +63,11 @@ _prd-tools/reference/05-domain.yaml
 
 ---
 
-> **⏸ PAUSE**：验证阶段 1 完成 — 确认 `01-codebase.yaml` 已生成且 enums/registries/data_flows 均有源码证据，再进入阶段 2。
+> **⏸ PAUSE**：验证子阶段 1 完成 — 确认 `01-codebase.yaml` 已生成且 enums/registries/data_flows 均有源码证据，再进入子阶段 2。
 
 ---
 
-### 阶段 2：编码规则
+### 子阶段 2：编码规则
 
 5. 从源码注释（`# WHY:`、`# NOTE:`、`# HACK:`）和历史 diff 提取编码规则和踩坑经验。
 6. 生成 `02-coding-rules.yaml`：编码规范与约束（用 severity 区分 hard/soft）、高风险区域（danger_zones，必须有源码位置证据）、踩坑经验。
@@ -77,11 +77,11 @@ _prd-tools/reference/05-domain.yaml
 
 ---
 
-> **⏸ PAUSE**：验证阶段 2 完成 — 确认 `02-coding-rules.yaml` 已生成且 fatal 规则均有源码位置证据，再进入阶段 3。
+> **⏸ PAUSE**：验证子阶段 2 完成 — 确认 `02-coding-rules.yaml` 已生成且 fatal 规则均有源码位置证据，再进入子阶段 3。
 
 ---
 
-### 阶段 3：契约（全栈契约，团队公共库基础）
+### 子阶段 3：契约（全栈契约，团队公共库基础）
 
 8. 通过源码 Read 追踪 import/调用关系，精确填充 producer/consumer 关系。
 9. 生成 `03-contracts.yaml`：跨层和外部契约、字段级定义（type/required/compatibility）。
@@ -106,11 +106,11 @@ _prd-tools/reference/05-domain.yaml
 
 ---
 
-> **⏸ PAUSE**：验证阶段 3 完成 — 确认 `03-contracts.yaml` 已生成且每个契约有 alignment_status，再进入阶段 4。
+> **⏸ PAUSE**：验证子阶段 3 完成 — 确认 `03-contracts.yaml` 已生成且每个契约有 alignment_status，再进入子阶段 4。
 
 ---
 
-### 阶段 4：路由与打法（全栈路由 + 跨仓 handoff）
+### 子阶段 4：路由与打法（全栈路由 + 跨仓 handoff）
 
 14. 通过 `rg` / glob 在 PRD、技术方案中提取关键词，映射到代码模块。
 15. 生成 `04-routing-playbooks.yaml`：PRD 路由信号（只到能力面级别）、字段映射（prd_field → code_field → contract_ref）、场景打法（步骤只在这里）。
@@ -154,11 +154,11 @@ _prd-tools/reference/05-domain.yaml
 
 ---
 
-> **⏸ PAUSE**：验证阶段 4 完成 — 确认 `04-routing-playbooks.yaml` 已生成且 routing 条目均有 playbook_ref，再进入阶段 5。
+> **⏸ PAUSE**：验证子阶段 4 完成 — 确认 `04-routing-playbooks.yaml` 已生成且 routing 条目均有 playbook_ref，再进入子阶段 5。
 
 ---
 
-### 阶段 5：业务领域
+### 子阶段 5：业务领域
 
 20. 从 PRD、技术方案、QA 记录中提取领域概念和隐式规则。
 21. 生成 `05-domain.yaml`：业务域概览、术语（只收录**无法归入 01-codebase 枚举 label** 的概念）、隐式业务规则、历史决策。
@@ -169,11 +169,11 @@ _prd-tools/reference/05-domain.yaml
 
 ---
 
-> **⏸ PAUSE**：验证阶段 5 完成 — 确认 `05-domain.yaml` 已生成且术语无重复（已与 01-codebase 去重），再进入阶段 6 导航生成和去重检查。
+> **⏸ PAUSE**：验证子阶段 5 完成 — 确认 `05-domain.yaml` 已生成且术语无重复（已与 01-codebase 去重），再进入子阶段 6 导航生成和去重检查。
 
 ---
 
-### 阶段 6：导航
+### 子阶段 6：导航
 
 23. 更新 `project-profile.yaml`（如需要）。
 

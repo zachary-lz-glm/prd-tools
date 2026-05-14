@@ -1,6 +1,6 @@
 <workflow_state>
   <workflow>reference</workflow>
-  <current_step>4</current_step>
+  <current_step>6</current_step>
   <allowed_inputs>_prd-tools/distill/**/context/reference-update-suggestions.yaml, _prd-tools/reference/, source code</allowed_inputs>
   <must_not_read_by_default>unrelated distill outputs</must_not_read_by_default>
   <must_not_produce>_prd-tools/reference/01-codebase.yaml (without user confirmation)</must_not_produce>
@@ -13,7 +13,7 @@
 - MUST NOT read files listed in `<must_not_read_by_default>` unless explicitly needed
 - MUST NOT proceed if any prerequisite file is missing
 
-# 步骤 4：反馈回流
+# 步骤 6：反馈回流
 
 ## 目标
 

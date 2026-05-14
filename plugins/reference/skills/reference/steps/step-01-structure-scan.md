@@ -1,6 +1,6 @@
 <workflow_state>
   <workflow>reference</workflow>
-  <current_step>1</current_step>
+  <current_step>2</current_step>
   <allowed_inputs>project directory, references/layer-adapters.md</allowed_inputs>
   <must_not_read_by_default>_prd-tools/reference/01-codebase.yaml</must_not_read_by_default>
   <must_not_produce>_prd-tools/reference/01-codebase.yaml</must_not_produce>
@@ -13,7 +13,7 @@
 - MUST NOT read files listed in `<must_not_read_by_default>` unless explicitly needed
 - MUST NOT proceed if any prerequisite file is missing
 
-# 步骤 1：结构扫描
+# 步骤 2：结构扫描
 
 ## 目标
 

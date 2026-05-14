@@ -1,6 +1,6 @@
 <workflow_state>
   <workflow>reference</workflow>
-  <current_step>3</current_step>
+  <current_step>4</current_step>
   <allowed_inputs>_prd-tools/reference/ (all files), source code</allowed_inputs>
   <must_not_read_by_default>_prd-tools/distill/</must_not_read_by_default>
   <must_not_produce>_prd-tools/reference/01-codebase.yaml (modification)</must_not_produce>
@@ -13,7 +13,7 @@
 - MUST NOT read files listed in `<must_not_read_by_default>` unless explicitly needed
 - MUST NOT proceed if any prerequisite file is missing
 
-# 步骤 3：质量门控
+# 步骤 4：质量门控
 
 ## 目标
 

@@ -18,18 +18,18 @@ reference 是"可验证指南针"，不是项目百科。6 个文件，每个事
 
 prd-tools 负责 PRD-to-code 全链路的发现、证据治理和质量门控，产出单仓可治理的 reference 知识库。
 
-## 阶段
+## Phase
 
-| 阶段 | 名称 | 输入 | 输出 |
+| Phase | 名称 | 输入 | 输出 |
 |---|---|---|---|
-| 0 | 上下文收集 | 历史 PRD、技术方案、分支 diff、发布/返工记录 | `_prd-tools/build/context-enrichment.yaml` |
-| 1 | 结构扫描 | 项目目录、核心源码、git 历史 | `_prd-tools/build/modules-index.yaml` |
-| 2 | 深度分析 | modules-index、源码、能力面适配器 | `_prd-tools/reference/` v4.0 |
-| 3 | 质量门控 | reference、源码、样例需求 | `_prd-tools/build/quality-report.yaml` |
-| 3.5 | Evidence Index | reference、项目源码 | `_prd-tools/reference/index/`（辅助层） |
-| 4 | 反馈回流 | `/prd-distill` 输出、源码、reference | `_prd-tools/build/feedback-report.yaml` |
+| 1 | 上下文收集 | 历史 PRD、技术方案、分支 diff、发布/返工记录 | `_prd-tools/build/context-enrichment.yaml` |
+| 2 | 结构扫描 | 项目目录、核心源码、git 历史 | `_prd-tools/build/modules-index.yaml` |
+| 3 | 深度分析 | modules-index、源码、能力面适配器 | `_prd-tools/reference/` v4.0 |
+| 4 | 质量门控 | reference、源码、样例需求 | `_prd-tools/build/quality-report.yaml` |
+| 5 | Evidence Index | reference、项目源码 | `_prd-tools/reference/index/`（辅助层） |
+| 6 | 反馈回流 | `/prd-distill` 输出、源码、reference | `_prd-tools/build/feedback-report.yaml` |
 
-## 阶段 0：上下文收集
+## Phase 1: 上下文收集
 
 用于提升 reference 的业务价值，尤其适合团队首次建设。
 
@@ -63,7 +63,7 @@ samples:
 
 把高价值样例沉淀到 `04-routing-playbooks.yaml` 的 `golden_samples`。
 
-## 阶段 1：结构扫描
+## Phase 2: 结构扫描
 
 判断项目层级并选择能力面适配器：
 
@@ -106,10 +106,10 @@ capability_surfaces:
     evidence: []
 ```
 
-## 阶段 2：深度分析
+## Phase 3: 深度分析
 
 每个子步骤独立读取所需的参考文件：
-- `steps/step-02-deep-analysis.md` 包含 5 个阶段的完整生成指令、边界规则、去重检查和输出质量标准
+- `steps/step-02-deep-analysis.md` 包含 5 个子阶段的完整生成指令、边界规则、去重检查和输出质量标准
 - 共享规则：`references/reference-v4.md` 的文件边界规则、`references/layer-adapters.md` 的能力面适配器
 - 读取 `references/output-contracts.md` 获取各文件的格式定义
 
@@ -126,11 +126,11 @@ project-profile.yaml        # 项目画像
 
 按以下顺序逐步执行子步骤（每步只读当前子步骤文件 + 上一步输出），后生成的文件必须检查先生成的文件，避免内容重叠：
 
-1. 阶段 1：`01-codebase.yaml`
-2. 阶段 2：`02-coding-rules.yaml`（检查 01 去重）
-3. 阶段 3：`03-contracts.yaml`（检查 01 去重，移入字段级信息）
-4. 阶段 4：`04-routing-playbooks.yaml`（含 capability_inventory，检查 02 去重）
-5. 阶段 5：`05-domain.yaml` + `00-portal.md`（检查术语与静态事实边界）
+1. 子阶段 1：`01-codebase.yaml`
+2. 子阶段 2：`02-coding-rules.yaml`（检查 01 去重）
+3. 子阶段 3：`03-contracts.yaml`（检查 01 去重，移入字段级信息）
+4. 子阶段 4：`04-routing-playbooks.yaml`（含 capability_inventory，检查 02 去重）
+5. 子阶段 5：`05-domain.yaml` + `00-portal.md`（检查术语与静态事实边界）
 
 每个子步骤文件末尾有 Self-Check 清单，生成后必须逐项验证通过再进入下一步。
 
@@ -161,7 +161,7 @@ confidence: "high | medium | low"
 - 术语只在 `05-domain`。
 - 外部系统 endpoint 详情只在 `03-contracts`，`01-codebase` 用 `contract_ref` 引用。
 
-## 阶段 3：质量门控
+## Phase 4: 质量门控
 
 必须检查：
 
@@ -193,9 +193,9 @@ next_actions: []
 
 致命项不通过时，不要宣称 reference 可用于生产；列出最小修复项。
 
-## 阶段 3.5：Evidence Index 构建
+## Phase 5: Evidence Index 构建
 
-基于阶段 2 生成的 reference 和项目源码，构建 Evidence Index（辅助层），为下游 `/prd-distill` 提供确定性代码锚点检索。
+基于 Phase 3 生成的 reference 和项目源码，构建 Evidence Index（辅助层），为下游 `/prd-distill` 提供确定性代码锚点检索。
 
 > **定位**：Evidence Index 是辅助层，不替代 reference 作为 SSOT。reference 的 6 个文件仍是主产物。
 
@@ -229,7 +229,7 @@ _prd-tools/reference/index/
 - 增量更新（Mode B）后可选执行
 - 健康检查（Mode B2）时检查索引与源码一致性
 
-## 阶段 4：反馈回流
+## Phase 6: 反馈回流
 
 读取 `_prd-tools/distill/**/context/reference-update-suggestions.yaml` 和 `report.md`。兼容读取旧版 `spec/reference-update-suggestions.yaml` 等文件名。
 
@@ -255,18 +255,18 @@ _prd-tools/reference/index/
 
 用户确认后再修改 reference，并更新 `last_verified`。
 
-## Mode → 阶段映射（B / B2 / C / E 可执行清单）
+## Mode → Phase 映射（B / B2 / C / E 可执行清单）
 
-`F` 和 `A` 走完整阶段 0-3.5。其他模式按下表只跑必要阶段，避免重复全量构建：
+`F` 和 `A` 走完整 Phase 1-5。其他模式按下表只跑必要 Phase，避免重复全量构建：
 
-| 模式 | 跑哪些阶段 | 跳过 | 关键产物 | 完成判定 |
+| 模式 | 跑哪些 Phase | 跳过 | 关键产物 | 完成判定 |
 |------|-----------|------|---------|---------|
-| **F** 上下文收集 | 阶段 0 | 1/2/3/3.5 | `build/context-enrichment.yaml` | 至少 1 个 sample 含 lessons[] |
-| **A** 全量构建 | 阶段 1 → 2 → 3 → 3.5 | — | `reference/01-05.yaml` + `project-profile.yaml` + `index/` | 所有 required 文件存在且非空 |
-| **B** 增量更新 | 阶段 1（增量扫 git diff 影响的模块）→ 阶段 2 的相关子阶段（只重写涉及的 yaml）→ 阶段 3.5（增量 build-index，默认无 `--full`） | 阶段 0；阶段 2 中未受影响的子阶段 | 受影响的 yaml 文件 + 更新后的 `index/manifest.yaml` | 只动了"应该动"的文件 |
-| **B2** 健康检查 | 阶段 3 + last_verified 检查 + index 与源码一致性 | 阶段 0/1/2/3.5（不重建） | `build/health-check.yaml`（含 stale_entries / missing_evidence / index_drift） | 报告 status: pass/warning/fail |
-| **C** 质量门控 | 阶段 3 only | 阶段 0/1/2/3.5（信任已有产物） | `build/quality-report.yaml` | fatal_findings 为空 |
-| **E** 反馈回流 | 阶段 4 | 其他全部 | `build/feedback-report.yaml` + 受影响的 `reference/*.yaml`（仅有证据的建议被应用） | 所有 suggestion 已 dispositioned (apply / reject / defer) |
+| **F** 上下文收集 | Phase 1 | 2/3/4/5 | `build/context-enrichment.yaml` | 至少 1 个 sample 含 lessons[] |
+| **A** 全量构建 | Phase 2 → 3 → 4 → 5 | — | `reference/01-05.yaml` + `project-profile.yaml` + `index/` | 所有 required 文件存在且非空 |
+| **B** 增量更新 | Phase 2（增量扫 git diff 影响的模块）→ Phase 3 的相关子阶段（只重写涉及的 yaml）→ Phase 5（增量 build-index，默认无 `--full`） | Phase 1；Phase 3 中未受影响的子阶段 | 受影响的 yaml 文件 + 更新后的 `index/manifest.yaml` | 只动了"应该动"的文件 |
+| **B2** 健康检查 | Phase 4 + last_verified 检查 + index 与源码一致性 | Phase 1/2/3/5（不重建） | `build/health-check.yaml`（含 stale_entries / missing_evidence / index_drift） | 报告 status: pass/warning/fail |
+| **C** 质量门控 | Phase 4 only | Phase 1/2/3/5（信任已有产物） | `build/quality-report.yaml` | fatal_findings 为空 |
+| **E** 反馈回流 | Phase 6 | 其他全部 | `build/feedback-report.yaml` + 受影响的 `reference/*.yaml`（仅有证据的建议被应用） | 所有 suggestion 已 dispositioned (apply / reject / defer) |
 
 团队模式（Mode T 收集）详见 `/team-reference`。
 
