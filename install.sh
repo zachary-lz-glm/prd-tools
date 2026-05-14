@@ -15,7 +15,6 @@ TARGET="${1:-.}"
 TARGET="$(cd "$TARGET" && pwd)"
 
 CLAUDE_SKILLS_DIR="$TARGET/.claude/skills"
-CLAUDE_COMMANDS_DIR="$TARGET/.claude/commands"
 GLOBAL_CLAUDE_SKILLS_DIR="$HOME/.claude/skills"
 PRD_TOOLS_DIR="$TARGET/.prd-tools"
 PRD_TOOLS_SCRIPTS_DIR="$PRD_TOOLS_DIR/scripts"
@@ -82,7 +81,7 @@ fi
 # Skills 在目标项目内执行，因此确定性辅助脚本也必须安装到目标项目。
 mkdir -p "$PRD_TOOLS_SCRIPTS_DIR"
 echo "==> 安装 runtime scripts 到 $PRD_TOOLS_SCRIPTS_DIR"
-for script in build-index.py context-pack.py quality-gate.py validate-artifact.py ingest-docx.py; do
+for script in build-index.py context-pack.py quality-gate.py ingest-docx.py; do
   src="$ARCHIVE_ROOT/scripts/$script"
   if [ -f "$src" ]; then
     cp "$src" "$PRD_TOOLS_SCRIPTS_DIR/$script"
@@ -90,20 +89,6 @@ for script in build-index.py context-pack.py quality-gate.py validate-artifact.p
     echo "    已安装脚本：$script"
   else
     echo "    警告：源码包内未找到 scripts/$script" >&2
-  fi
-done
-
-# ── 复制 slash command 兼容入口 ─────────────────────────────────
-# Skills 是主入口；commands 是薄 wrapper，用于兼容不稳定触发 skill 的客户端/中转环境。
-mkdir -p "$CLAUDE_COMMANDS_DIR"
-echo "==> 安装 slash command wrappers 到 $CLAUDE_COMMANDS_DIR"
-for command in reference prd-distill; do
-  src="$ARCHIVE_ROOT/.claude/commands/$command.md"
-  if [ -f "$src" ]; then
-    cp "$src" "$CLAUDE_COMMANDS_DIR/$command.md"
-    echo "    已安装命令：/$command"
-  else
-    echo "    警告：源码包内未找到 .claude/commands/$command.md" >&2
   fi
 done
 
@@ -129,5 +114,5 @@ echo "  1. 关闭并重新打开 Claude Code，新 skills 才会加载。"
 echo ""
 echo "  2. 运行 /reference 构建项目知识库（首次推荐 Mode F → Mode A）。"
 echo ""
-echo "  3. 蒸馏 PRD 使用三段式入口：/prd-distill spec <PRD> → report → plan。"
+echo "  3. 蒸馏 PRD 使用 /prd-distill <PRD 文件或需求文本>。"
 echo ""
