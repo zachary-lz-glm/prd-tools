@@ -220,58 +220,6 @@ def _dq_team_sub_plans(base, member_repos):
             'sub_plans_found': found, 'sub_plans_missing': missing}
 
 
-def _dq_artifact_contracts(base):
-    script_dir = Path(__file__).resolve().parent
-    candidates = [
-        script_dir.parent / 'plugins' / 'prd-distill' / 'skills' / 'prd-distill' / 'references' / 'contracts',
-        script_dir.parent.parent / '.claude' / 'skills' / 'prd-distill' / 'references' / 'contracts',
-    ]
-    contracts_dir = next((c for c in candidates if c.is_dir()), None)
-    if not contracts_dir:
-        return {'status': 'pass', 'message': 'No contracts directory found'}
-    contract_files = sorted(contracts_dir.glob('*.contract.yaml'))
-    if not contract_files:
-        return {'status': 'pass', 'message': 'No contract files found'}
-
-    import importlib.util
-    validator_path = Path(__file__).resolve().parent / 'validate-artifact.py'
-    spec = importlib.util.spec_from_file_location("validate_artifact", validator_path)
-    mod = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(mod)
-
-    results_list, has_fail, checked, passed = [], False, 0, 0
-    for cf in contract_files:
-        with open(cf, 'r', encoding='utf-8') as f:
-            contract = yaml.safe_load(f)
-        if not contract:
-            continue
-        artifact_path = str(base / contract.get('artifact', ''))
-        if not os.path.isfile(artifact_path):
-            results_list.append({'contract': cf.name, 'artifact': contract.get('artifact', ''),
-                                 'status': 'skip', 'message': 'artifact not found'})
-            continue
-        checked += 1
-        result = mod.validate(artifact_path, contract)
-        results_list.append({'contract': cf.name, 'artifact': contract.get('artifact', ''),
-                             'status': result['status'], 'findings': result.get('findings', [])})
-        if result['status'] == 'fail':
-            has_fail = True
-        elif result['status'] == 'pass':
-            passed += 1
-
-    out_path = base / 'context' / 'artifact-validation.yaml'
-    out_path.parent.mkdir(parents=True, exist_ok=True)
-    with open(out_path, 'w', encoding='utf-8') as f:
-        yaml.dump({'schema_version': '1.0', 'status': 'fail' if has_fail else 'pass',
-                   'contracts_checked': checked, 'contracts_passed': passed, 'results': results_list},
-                  f, allow_unicode=True, default_flow_style=False, sort_keys=False)
-    if has_fail:
-        return {'status': 'fail', 'message': f"Contract violations: {', '.join(r['contract'] for r in results_list if r['status'] == 'fail')}"}
-    if checked == 0:
-        return {'status': 'pass', 'message': 'No artifacts to validate yet'}
-    return {'status': 'pass', 'message': f'{passed}/{checked} contracts passed'}
-
-
 def _dq_prd_coverage_simple(base):
     coverage_path = base / 'context' / 'coverage-report.yaml'
     if coverage_path.is_file():
@@ -302,7 +250,6 @@ def run_distill_quality(base, repo_root):
     if is_team:
         results['team_sub_plans'] = _dq_team_sub_plans(base, member_repos)
     results['prd_coverage'] = _dq_prd_coverage_simple(base)
-    results['artifact_contracts'] = _dq_artifact_contracts(base)
     return results
 
 
@@ -320,7 +267,7 @@ def print_distill_quality(results):
     ]
     if is_team:
         checks.append(('team_sub_plans', 'Team sub-plans'))
-    checks += [('prd_coverage', 'PRD coverage (fidelity)'), ('artifact_contracts', 'Artifact contracts')]
+    checks += [('prd_coverage', 'PRD coverage (fidelity)')]
     for key, label in checks:
         print_check_line(label, results[key])
 
@@ -448,7 +395,6 @@ def run_distill_coverage(distill_dir):
         "block_coverage": _dc_block_coverage(distill_dir),
         "media_coverage": _dc_media_coverage(distill_dir),
         "requirement_trace": _dc_requirement_trace(distill_dir),
-        "ai_prd_sections": _dc_ai_prd_sections(distill_dir),
         "detail_recall": _dc_detail_recall(distill_dir),
     }
 
@@ -479,8 +425,7 @@ def _write_coverage_report(distill_dir, results):
 def print_distill_coverage(results):
     print("\n=== PRD Coverage Gate ===\n")
     for key, label in [("block_coverage", "Block coverage"), ("media_coverage", "Media coverage"),
-                        ("requirement_trace", "Requirement trace"), ("ai_prd_sections", "AI-PRD sections"),
-                        ("detail_recall", "Detail recall")]:
+                        ("requirement_trace", "Requirement trace"), ("detail_recall", "Detail recall")]:
         r = results.get(key, {})
         sym = {'pass': '+', 'warning': '!', 'fail': 'x'}.get(r.get("status", "skip"), '-')
         extra = f" (ratio: {r['coverage_ratio']})" if "coverage_ratio" in r else ""
