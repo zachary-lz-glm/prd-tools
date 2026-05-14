@@ -208,7 +208,7 @@ python3 .prd-tools/scripts/context-pack.py \
 - 用 `- [ ]` checklist 格式。
 - 每个任务包含：目标文件、操作描述、参考实现、关联 REQ/IMP/CONTRACT、验证命令。
 - 按 Phase 分组，Phase 间标注依赖。
-- 格式详见 `references/schemas/04-report-plan.md`。
+- 格式详见 `references/output-contracts.md` 中 report.md 部分。
 
 ## 步骤 6：Readiness 评分
 
@@ -250,7 +250,7 @@ python3 .prd-tools/scripts/context-pack.py \
 10. **Top Open Questions**：最多 5 个
 11. **阻塞问题与待确认项**：阻塞问题（6 要素）+ 低置信度假设 + Owner 确认项
 
-格式详见 `references/schemas/04-report-plan.md`。
+格式详见 `references/output-contracts.md` 中 plan.md 部分。
 
 ## 步骤 8.1：Report Review Gate
 

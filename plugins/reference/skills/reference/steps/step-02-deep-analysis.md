@@ -34,7 +34,7 @@ _prd-tools/reference/05-domain.yaml
 - `_prd-tools/build/context-enrichment.yaml`，如存在
 - `references/reference-v4.md`
 - `references/layer-adapters.md`
-- `references/output-contracts.md`（索引，按需加载 `schemas/` 下具体 schema）
+- `references/output-contracts.md`（各文件格式定义）
 - `templates/` 下的模板
 
 ## 执行

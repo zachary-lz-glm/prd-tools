@@ -155,7 +155,7 @@ Self-check：团队模式下，graph-context.md 中不应出现 `source: code_sc
 
 ## 输出
 
-`graph-context.md` 输出格式见 `references/schemas/03-context.md`。plan.md 中每个 MODIFY/DELETE 任务必须引用至少一个 GCTX ID；无法引用时，必须在 graph-context 的 fallback/未命中表中说明。
+`graph-context.md` 输出格式见 `references/output-contracts.md` 中 graph-context.md 部分。plan.md 中每个 MODIFY/DELETE 任务必须引用至少一个 GCTX ID；无法引用时，必须在 graph-context 的 fallback/未命中表中说明。
 
 ## Self-Check（生成后必须逐项验证）
 

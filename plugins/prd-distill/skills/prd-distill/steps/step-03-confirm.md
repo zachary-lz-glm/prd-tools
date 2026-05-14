@@ -1,7 +1,7 @@
 <workflow_state>
   <workflow>prd-distill</workflow>
   <current_step>8, 8.1-confirm, 5, 6, 7, 8.5, 8.6</current_step>
-  <allowed_inputs>context/evidence.yaml, context/requirement-ir.yaml, context/graph-context.md, context/layer-impact.yaml, context/contract-delta.yaml, references/schemas/</allowed_inputs>
+  <allowed_inputs>context/evidence.yaml, context/requirement-ir.yaml, context/graph-context.md, context/layer-impact.yaml, context/contract-delta.yaml, references/output-contracts.md</allowed_inputs>
   <must_not_read_by_default>original long PRD (use requirement-ir instead)</must_not_read_by_default>
   <must_not_produce>context/requirement-ir.yaml (already produced)</must_not_produce>
 </workflow_state>
@@ -42,8 +42,7 @@
 - `context/graph-context.md`
 - `context/layer-impact.yaml`
 - `context/contract-delta.yaml`
-- `references/schemas/04-report-plan.md`（report.md + plan.md 格式定义）
-- `references/schemas/03-context.md`（reference-update-suggestions schema）
+- `references/output-contracts.md`（report.md、plan.md、reference-update-suggestions 格式定义）
 
 ## report.md（渐进式披露 + 阻塞问题）
 

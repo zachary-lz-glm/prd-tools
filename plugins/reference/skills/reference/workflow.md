@@ -111,7 +111,7 @@ capability_surfaces:
 每个子步骤独立读取所需的参考文件：
 - `steps/step-02-deep-analysis.md` 包含 5 个阶段的完整生成指令、边界规则、去重检查和输出质量标准
 - 共享规则：`references/reference-v4.md` 的文件边界规则、`references/layer-adapters.md` 的能力面适配器
-- 读取 `references/output-contracts.md` 索引，按需加载 `schemas/` 下的具体 schema
+- 读取 `references/output-contracts.md` 获取各文件的格式定义
 
 生成 `_prd-tools/reference/` v4.0：
 
