@@ -2,6 +2,11 @@
 
 > 遵循 [Keep a Changelog](https://keepachangelog.com/) 格式。架构决策详见 [docs/adr/](docs/adr/)。
 
+## [2.19.5] - 2026-05-14
+
+### Changed
+- refactor: report 12→9节业务优先 + plan §2.5映射表 + QA增强
+
 ## [2.19.4] - 2026-05-14
 
 ### Added

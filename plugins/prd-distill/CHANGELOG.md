@@ -2,6 +2,11 @@
 
 All notable changes to the **prd-distill** plugin are documented here.
 
+## [2.19.5] - 2026-05-14
+
+### Changed
+- refactor: report 12→9节业务优先 + plan §2.5映射表 + QA增强
+
 ## [2.19.4] - 2026-05-14
 
 ### Added
