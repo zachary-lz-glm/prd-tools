@@ -26,11 +26,11 @@ Step 1-3: Ingestion → Evidence → Requirement IR
    ↓
 Step 4-5: Code Search & Layer Impact → Contract Delta
    ↓
-Step 6: report.md（11 章节渐进式披露报告）
+Step 6: report.md（9 节：§1-§7 业务语言 + §8 技术附录 + §9 Readiness）
    ↓
 ⚠ Step 7: Report Review Gate：用户 approved / needs_revision / blocked
    ↓ approved
-Step 8-11: Plan → Readiness → Reference Backflow → Quality Gate
+Step 8-11: plan.md（12 节技术方案 + §2.5 需求→文件映射） → Readiness → Reference Backflow → Quality Gate
 ```
 
 **Report Review Gate** 是核心设计：report 生成后必须暂停，用户确认写入 `context/report-confirmation.yaml`。`status: approved` 才允许生成 plan。
@@ -42,8 +42,8 @@ Step 8-11: Plan → Readiness → Reference Backflow → Quality Gate
 ```text
 _prd-tools/distill/<slug>/
 ├── _ingest/                       # PRD 原始读取（document/media/extraction-quality 等）
-├── report.md                      # 11 章节渐进式披露报告
-├── plan.md                        # 11 章节技术方案 + 开发计划 + QA 矩阵
+├── report.md                      # 9 节：§1-§7 业务语言 + §8 技术附录
+├── plan.md                        # 12 节技术方案 + §2.5 需求→文件映射 + QA 矩阵
 └── context/
     ├── requirement-ir.yaml        # 结构化需求
     ├── evidence.yaml              # 证据台账
@@ -63,7 +63,7 @@ _prd-tools/distill/<slug>/
 ```text
 _prd-tools/distill/<slug>/
 ├── _ingest/                       # 同单仓
-├── report.md                      # §9 强制 5 子节：FE / BFF / BE / External / 跨层
+├── report.md                      # §8.E 强制 5 子节：FE / BFF / BE / External / 跨层
 ├── team-plan.md                   # 团队级总览 + 跨仓时序 + Sub-Plan 索引
 ├── plans/                         # 动态命名（来自 team_repos[].repo）
 │   ├── plan-genos.md

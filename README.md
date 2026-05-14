@@ -77,8 +77,8 @@ _prd-tools/distill/<slug>/
 ├── _ingest/           # PRD 读取证据（source-manifest、document、quality gate）
 ├── spec/              # AI-friendly PRD（规范化中间层）
 │   └── ai-friendly-prd.md  # 13-section 对 AI agent 友好的 PRD
-├── report.md          # 需求摘要 → 变更明细 → 字段清单 → 校验规则 → 契约风险 → 阻塞问题
-├── plan.md            # 实现顺序（精确到文件路径）、QA 矩阵、回滚方案
+├── report.md          # §1-§7 业务语言需求翻译 + §8 技术附录
+├── plan.md            # §2.5 需求→文件映射 + 实现计划（精确到行号）、QA 矩阵、回滚方案
 └── context/           # 机器可读的中间产物
     ├── prd-quality-report.yaml  # AI-friendly PRD 质量评分
     ├── evidence.yaml
