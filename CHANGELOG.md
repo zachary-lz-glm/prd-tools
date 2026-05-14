@@ -2,7 +2,21 @@
 
 > 遵循 [Keep a Changelog](https://keepachangelog.com/) 格式。架构决策详见 [docs/adr/](docs/adr/)。
 
-## [2.19.2] - 2026-05-13
+## [2.19.3] - 2026-05-14
+
+### Changed
+- refactor: reference 阶段重编 Phase 1-6 + 步骤编号规范
+- refactor: 工作流步骤重编 + report §4 需求映射优化
+- chore: gitignore install.sh 运行时产物
+- refactor: 清理死代码和 afprd 残留
+- chore: 删除过时的 .claude/commands/ 目录
+- refactor: 删除冗余 schemas/ 和 contracts/ 目录
+- refactor: 瘦身 v2.0 — 砍门禁 + 拆团队模式 + 去聚合化 + 恢复 portal
+- docs: 团队知识库工作流指南（Mode T/T2 完整流程）
+
+### Fixed
+- fix: install.sh 移除已删文件的引用
+- fix: 修复 quality-gate.py 运行时崩溃 + 清理孤立文件
 
 - 团队模式补齐 index 能力（多仓 index 加载 + snapshots 同步），聚合策略强化（fatal_cross_layer + endpoint_producer_unverified + 4 条硬约束）
 

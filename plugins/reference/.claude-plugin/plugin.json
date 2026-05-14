@@ -1,6 +1,6 @@
 {
   "name": "reference",
-  "version": "2.19.2",
+  "version": "2.19.3",
   "description": "领域知识构建工具 — 构建前端/BFF/后端通用 reference v4.0（项目画像、能力面、契约、打法、反馈回流）",
   "skills": [
     "./skills/reference",

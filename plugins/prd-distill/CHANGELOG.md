@@ -2,7 +2,18 @@
 
 All notable changes to the **prd-distill** plugin are documented here.
 
-## [2.19.2] - 2026-05-13
+## [2.19.3] - 2026-05-14
+
+### Changed
+- refactor: 工作流步骤重编 + report §4 需求映射优化
+- refactor: 清理死代码和 afprd 残留
+- refactor: 删除冗余 schemas/ 和 contracts/ 目录
+- refactor: 瘦身 v2.0 — 砍门禁 + 拆团队模式 + 去聚合化 + 恢复 portal
+
+### Fixed
+- fix: 修复 quality-gate.py 运行时崩溃 + 清理孤立文件
+
+- fix: 修复 quality-gate.py 运行时崩溃 + 清理孤立文件
 
 - 团队模式不再跳过 Step 2.5/3.5，改为从 snapshots 加载多仓 index，Step 3.1 增加 index_query 数据源
 
