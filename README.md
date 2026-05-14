@@ -11,13 +11,11 @@ curl -fsSL https://raw.githubusercontent.com/zachary-lz-glm/prd-tools/v2.0/insta
 # 2. 重启 Claude Code，然后构建项目知识库
 /reference
 
-# 3. 蒸馏一个新 PRD（三段式，推荐从 spec 起步）
-/prd-distill spec path/to/prd.md      # 解析 PRD，产出 AI-friendly PRD + requirement-ir
-/prd-distill report <slug>            # 影响分析，产出 report.md 后暂停等用户确认
-/prd-distill plan <slug>              # 用户 approved 后生成 plan.md
+# 3. 蒸馏一个新 PRD
+/prd-distill path/to/prd.md
 ```
 
-也可以直接 `/prd-distill path/to/prd.md` 走引导式入口（spec 阶段完成后暂停，不自动跑到 plan）。
+`/prd-distill` 会自动走完 Ingestion → Evidence → Requirement IR → Code Search → Contract Delta → Report，生成 `report.md` 后暂停等用户确认。用户 approved 后继续生成 `plan.md`。
 
 安装完成后目标项目下生成 `.claude/skills/`（两个 skill）、`.claude/commands/`（slash command 兼容入口）、`.prd-tools/scripts/`（零依赖 runtime 辅助脚本）和 `.prd-tools-version`（版本标记）。
 
@@ -75,16 +73,14 @@ _prd-tools/reference/
 ```text
 _prd-tools/distill/<slug>/
 ├── _ingest/           # PRD 读取证据（source-manifest、document、quality gate）
-├── spec/              # AI-friendly PRD（规范化中间层）
-│   └── ai-friendly-prd.md  # 13-section 对 AI agent 友好的 PRD
 ├── report.md          # §1-§7 业务语言需求翻译 + §8 技术附录
 ├── plan.md            # §2.5 需求→文件映射 + 实现计划（精确到行号）、QA 矩阵、回滚方案
 └── context/           # 机器可读的中间产物
-    ├── prd-quality-report.yaml  # AI-friendly PRD 质量评分
     ├── evidence.yaml
     ├── requirement-ir.yaml
     ├── query-plan.yaml
     ├── context-pack.md
+    ├── graph-context.md
     ├── final-quality-gate.yaml
     ├── readiness-report.yaml
     ├── layer-impact.yaml
@@ -103,13 +99,13 @@ PRD / 技术方案 / 源码 / 历史 diff
         ↓
 项目知识库 _prd-tools/reference/  (6 个 yaml + index/)
         ↓
-/prd-distill  (三段式)
-   ├─ spec    : PRD → AI-friendly PRD (13 章节) → requirement-ir
-   ├─ report  : 读 reference/源码 → layer-impact + contract-delta → report.md
+/prd-distill <PRD>
+   ├─ Ingestion → Evidence → Requirement IR → Code Search → Contract Delta
+   ├─ report  : §1-§7 业务语言 + §8 技术附录 → report.md
    │              ↓
    │           ⚠ Report Review Gate (用户必须 approved 才能 plan)
-   ├─ plan    : 消费 confirmed report → plan.md / team-plan.md + plans/*
-   └─ 全程附带 _ingest/ + context/ + Critique Pass + Source 标记追溯
+   ├─ plan    : §2.5 需求→文件映射 + 实现计划 → plan.md / team-plan.md + plans/*
+   └─ 全程附带 _ingest/ + context/ + Quality Gate
         ↓
 context/reference-update-suggestions.yaml
         ↓
@@ -170,7 +166,7 @@ python3 .prd-tools/scripts/quality-gate.py distill \
   --distill-dir _prd-tools/distill/<slug> --repo-root .
 ```
 
-检查项：required distill files 存在且非空、ai-friendly-prd.md 包含 13 章节、prd-quality-report.yaml 有 status/score、requirement-ir.yaml 有 ai_prd_req_id 和 planning eligibility、layer-impact.yaml 有 code_anchors 或 fallback、reference/index 存在时 query-plan.yaml 和 context-pack.md 必须存在、final-quality-gate.yaml 存在、report.md 包含 PRD 质量摘要、plan.md 不把 missing_confirmation 当确定任务。Exit code：0 = pass/warning，2 = fail。
+检查项：required distill files 存在且非空、requirement-ir.yaml 有 requirements 和 evidence、layer-impact.yaml 有 code_anchors 或 fallback、reference/index 存在时 query-plan.yaml 和 context-pack.md 必须存在、final-quality-gate.yaml 存在、report.md 包含全部 9 章节、plan.md 包含全部 12 章节。Exit code：0 = pass/warning，2 = fail。
 
 ### `quality-gate.py final`
 
