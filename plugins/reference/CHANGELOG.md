@@ -2,10 +2,23 @@
 
 All notable changes to the **reference** plugin are documented here.
 
+## [2.19.9] - 2026-05-14
+
+### Fixed
+- release.sh CHANGELOG 插入幂等修复（同步脚本变更）
+
 ## [2.19.8] - 2026-05-14
 
 ### Added
 - 同步 plan.md §2/§10/§11 增强到 reference 插件
+
+## [2.19.7] - 2026-05-14
+
+### Added
+- prd-distill 支持 .md 文件远程图片 URL 自动下载分析
+
+### Changed
+- docs: 同步 output-contracts.md 到 reference 插件
 
 ## [2.19.5] - 2026-05-14
 

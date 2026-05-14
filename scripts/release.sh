@@ -338,7 +338,6 @@ insert_changelog_entry() {
       # 在旧 section 内：遇到新的 ## [ 结束
       /^## \[/ && state == "in_old" {
         state = "after"
-        # 此时还没有输出新 entry，先输出
         if (!inserted) {
           while ((getline < efile) > 0) print
           print ""; inserted = 1
@@ -349,8 +348,9 @@ insert_changelog_entry() {
       state == "in_old" { next }
       # 在旧 section 前：找第一个 ## [ 时插入
       /^## \[/ && state == "before" && !inserted {
+        saved = $0
         while ((getline < efile) > 0) print
-        print ""; print; inserted = 1; next
+        print ""; print saved; inserted = 1; next
       }
       { print }
       END {
@@ -371,8 +371,9 @@ insert_changelog_entry() {
         print ""; inserted = 1; next
       }
       /^## / && !inserted {
+        saved = $0
         while ((getline < efile) > 0) print
-        print ""; print; inserted = 1; next
+        print ""; print saved; inserted = 1; next
       }
       { print }
     ' "$file" > "$tmp" && mv "$tmp" "$file"
