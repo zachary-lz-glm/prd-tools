@@ -10,19 +10,19 @@
 
 ---
 
-## 步骤 0：PRD Ingestion
+## Step 1: PRD Ingestion
 
 读取或收集：
 
 - PRD：`.md | .txt | .docx | pasted text`。
   - `.md`/`.txt`：直接读取。
-  - `.docx`：用 `unzip` 提取 `word/document.xml`（文本）和 `media/`（图片）。文本去 XML 标签后写入 `_ingest/document.md`，图片拷贝到 `_ingest/media/`。在文本中图片位置插入 `![image-N](media/imageN.png)` 占位。Claude 用 Read 工具逐个查看图片（原生多模态），理解 UI 截图、流程图、数据图表，结果写入 `_ingest/media-analysis.yaml`。
+  - `.docx`：优先使用 `ingest-docx.py` 脚本提取（`python3 .prd-tools/scripts/ingest-docx.py --input "<file>" --output _prd-tools/distill/<slug>`）。如果脚本不可用，用 Python zipfile 提取。**不要用 `unzip -d`**——macOS 下解压出来的文件默认 mode 是 700，易踩 permission denied。提取后写入 `_ingest/document.md`，图片拷贝到 `_ingest/media/`。在文本中图片位置插入 `![image-N](media/imageN.png)` 占位。Claude 用 Read 工具逐个查看图片（原生多模态），理解 UI 截图、流程图、数据图表，结果写入 `_ingest/media-analysis.yaml`。
   - 粘贴文本：手工建立来源和定位。
 - 技术方案 / API 文档：可选，但多层或后端相关需求强烈建议读取。
 - `_prd-tools/reference/`：必须读取并消费。
 - 目标代码库：用于代码锚定。
 
-### Reference 消费（Step 0 之后必须完成）
+### Reference 消费（Step 1 完成后必须执行）
 
 如果 `_prd-tools/reference/` 存在，必须消费：
 
@@ -66,7 +66,7 @@ _ingest/
 - `warn`：可继续，但必须把风险写入 report.md。
 - `block`：暂停，要求用户提供 markdown/text。
 
-## 步骤 1：证据台账
+## Step 2: Evidence Ledger
 
 建立 `context/evidence.yaml`，后续所有判断只引用 evidence id。
 
@@ -78,7 +78,7 @@ _ingest/
 - 搜不到也是证据，用 `negative_code_search`。
 - 没有人工确认的图片不能生成高置信度需求。
 
-## 步骤 2：Requirement IR
+## Step 3: Requirement IR
 
 将原始 PRD 需求转成 `context/requirement-ir.yaml`。
 
@@ -110,7 +110,9 @@ _ingest/
 - acceptance_criteria 缺失或 `testability: not_testable` 时，`confidence` 不能为 `high`。
 - P0 requirement 如果信息严重不足，必须进入 `open_questions`。
 
-## 步骤 2.5：Query Plan（Reference Index 桥接层）
+## Step 4: Code Search & Layer Impact
+
+### 4.1 Query Plan（Reference Index 桥接层）
 
 如果 `_prd-tools/reference/index/` 存在，运行 `context-pack.py` 生成 `context/query-plan.yaml`：
 
@@ -123,9 +125,7 @@ python3 .prd-tools/scripts/context-pack.py \
 
 产出 `context/query-plan.yaml`，为后续源码扫描提供预匹配的代码锚点。
 
-## 步骤 3：Layer Impact
-
-### 3.1 Graph Context（Reference-First 源码扫描）
+### 4.2 Graph Context（Reference-First 源码扫描）
 
 生成 `context/graph-context.md`。
 
@@ -148,7 +148,7 @@ python3 .prd-tools/scripts/context-pack.py \
 
 始终生成 `context/graph-context.md`，记录实际执行的搜索查询和命中结果。
 
-### 3.2 Layer Impact 生成
+### 4.3 Layer Impact 生成
 
 读取目标层适配器，生成 `context/layer-impact.yaml`。
 
@@ -162,7 +162,7 @@ python3 .prd-tools/scripts/context-pack.py \
 - `code_anchors`：代码锚点列表
 - `dependencies`、`risks`、`evidence`、`confidence`
 
-### 3.3 Code Anchor 规则
+### 4.4 Code Anchor 规则
 
 **MODIFY / DELETE IMP**：
 - 必须至少有一个 `code_anchor`（`layer`、`file`、`symbol`、`line`、`confidence`、`source`），除非明确写入 fallback reason。
@@ -174,9 +174,9 @@ python3 .prd-tools/scripts/context-pack.py \
 
 低置信度 anchor 必须进入 report 风险或 plan 假设。
 
-### 3.5 Context Pack（Index 融合层）
+### 4.5 Context Pack（Index 融合层）
 
-在步骤 3.2 完成后，如果索引存在，运行：
+在 Step 4.3 完成后，如果索引存在，运行：
 
 ```bash
 python3 .prd-tools/scripts/context-pack.py \
@@ -185,7 +185,7 @@ python3 .prd-tools/scripts/context-pack.py \
   --out _prd-tools/distill/<slug>/context/context-pack.md
 ```
 
-## 步骤 4：Contract Delta
+## Step 5: Contract Delta
 
 多层、接口、schema、事件等需求必须生成 `context/contract-delta.yaml`。单层无契约变化时也创建最小文件。
 
@@ -197,44 +197,7 @@ python3 .prd-tools/scripts/context-pack.py \
 - alignment_status：`aligned` | `needs_confirmation` | `blocked` | `not_applicable`
 - checked_by、evidence
 
-## 步骤 5：计划
-
-前置：`context/report-confirmation.yaml` 存在且 `status: approved`。
-
-生成 `plan.md`（函数级技术方案 + 开发计划）：
-
-- 精确到文件路径和行号。
-- 11 个章节：范围与假设、整体架构、实现计划、API 设计、数据存储、配置与开关、校验规则汇总、QA 矩阵、契约对齐、风险与回滚、工作量估算。
-- 用 `- [ ]` checklist 格式。
-- 每个任务包含：目标文件、操作描述、参考实现、关联 REQ/IMP/CONTRACT、验证命令。
-- 按 Phase 分组，Phase 间标注依赖。
-- 格式详见 `references/output-contracts.md` 中 report.md 部分。
-
-## 步骤 6：Readiness 评分
-
-生成 `context/readiness-report.yaml`。
-
-数据来源：`_ingest/extraction-quality.yaml`、`context/evidence.yaml`、`context/requirement-ir.yaml`、`context/graph-context.md`、`context/contract-delta.yaml`、`plan.md`。
-
-输出：
-- `status`: `pass | warning | fail`
-- `score`: 0-100
-- `decision`: `ready_for_dev | needs_owner_confirmation | blocked`
-- `scores`: prd_ingestion / evidence_coverage / code_search / contract_alignment / task_executability
-- `next_actions`: 最多 5 条
-
-## 步骤 7：Reference 回流
-
-生成 `context/reference-update-suggestions.yaml`。
-
-触发条件：
-- PRD 出现 reference 没有的术语、枚举、路由、契约或场景。
-- reference 说已实现但源码不存在，或源码存在但 reference 缺失。
-- 本次需求能作为高价值 golden sample。
-
-边界：`/prd-distill` 只产出回流建议，不直接编辑 `_prd-tools/reference/`。
-
-## 步骤 8：人类报告
+## Step 6: Report
 
 `report.md` 渐进式披露结构：
 
@@ -250,16 +213,16 @@ python3 .prd-tools/scripts/context-pack.py \
 10. **Top Open Questions**：最多 5 个
 11. **阻塞问题与待确认项**：阻塞问题（6 要素）+ 低置信度假设 + Owner 确认项
 
-格式详见 `references/output-contracts.md` 中 plan.md 部分。
+格式详见 `references/output-contracts.md` 中 report.md 部分。
 
-## 步骤 8.1：Report Review Gate
+## Step 7: Report Review Gate
 
 生成 report.md 后必须暂停，让用户确认：
 
 1. 向用户展示 report 摘要。
 2. 询问：`approved` | `needs_revision` | `blocked`。
 3. 写入 `context/report-confirmation.yaml`。
-4. 只有 `approved` 时才允许进入步骤 5 生成 plan。
+4. 只有 `approved` 时才允许进入 Step 8 生成 plan。
 
 ```yaml
 schema_version: "1.0"
@@ -274,7 +237,44 @@ blocked_reason: ""
 - `needs_revision`：回到对应上游产物修正，不在 plan 里打补丁。
 - `blocked`：停止蒸馏。
 
-## 步骤 8.5：Final Quality Gate
+## Step 8: Plan
+
+前置：`context/report-confirmation.yaml` 存在且 `status: approved`。
+
+生成 `plan.md`（函数级技术方案 + 开发计划）：
+
+- 精确到文件路径和行号。
+- 11 个章节：范围与假设、整体架构、实现计划、API 设计、数据存储、配置与开关、校验规则汇总、QA 矩阵、契约对齐、风险与回滚、工作量估算。
+- 用 `- [ ]` checklist 格式。
+- 每个任务包含：目标文件、操作描述、参考实现、关联 REQ/IMP/CONTRACT、验证命令。
+- 按 Phase 分组，Phase 间标注依赖。
+- 格式详见 `references/output-contracts.md` 中 plan.md 部分。
+
+## Step 9: Readiness Score
+
+生成 `context/readiness-report.yaml`。
+
+数据来源：`_ingest/extraction-quality.yaml`、`context/evidence.yaml`、`context/requirement-ir.yaml`、`context/graph-context.md`、`context/contract-delta.yaml`、`plan.md`。
+
+输出：
+- `status`: `pass | warning | fail`
+- `score`: 0-100
+- `decision`: `ready_for_dev | needs_owner_confirmation | blocked`
+- `scores`: prd_ingestion / evidence_coverage / code_search / contract_alignment / task_executability
+- `next_actions`: 最多 5 条
+
+## Step 10: Reference Backflow
+
+生成 `context/reference-update-suggestions.yaml`。
+
+触发条件：
+- PRD 出现 reference 没有的术语、枚举、路由、契约或场景。
+- reference 说已实现但源码不存在，或源码存在但 reference 缺失。
+- 本次需求能作为高价值 golden sample。
+
+边界：`/prd-distill` 只产出回流建议，不直接编辑 `_prd-tools/reference/`。
+
+## Step 11: Quality Gate
 
 ```bash
 python3 .prd-tools/scripts/quality-gate.py final \

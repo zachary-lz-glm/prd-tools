@@ -1,6 +1,6 @@
 <workflow_state>
   <workflow>prd-distill</workflow>
-  <current_step>2.5, 3.1, 3.2, 3.5, 3.6, 4</current_step>
+  <current_step>4, 5</current_step>
   <allowed_inputs>context/evidence.yaml, context/requirement-ir.yaml, _prd-tools/reference/, context/query-plan.yaml</allowed_inputs>
   <must_not_read_by_default>report.md, plan.md, original long PRD</must_not_read_by_default>
   <must_not_produce>report.md, plan.md</must_not_produce>
@@ -14,13 +14,13 @@
 - MUST NOT proceed if any prerequisite file is missing
 
 > **团队模式**（`project-profile.yaml` 的 `layer` 为 `team-common` 或 `references/` 目录存在时）：
-> - Step 2.5 Query Plan：从 `references/{repo}/index/` 加载多仓 index（`context-pack.py --team-references`）
-> - Step 3.1 Graph Context：不执行 rg/glob，从各仓 `references/{repo}/` 下的 01-05 YAML 读取
-> - Step 3.2 Layer Impact：4 层从各仓 reference 填充
-> - Step 3.5 Context Pack：从 `references/{repo}/index/` 加载多仓 index
-> - Step 4 Contract Delta：跨仓视角，从各仓 03-contracts.yaml 理解 producer/consumer 边界
+> - Step 4.1 Query Plan：从 `references/{repo}/index/` 加载多仓 index（`context-pack.py --team-references`）
+> - Step 4.2 Graph Context：不执行 rg/glob，从各仓 `references/{repo}/` 下的 01-05 YAML 读取
+> - Step 4.3 Layer Impact：4 层从各仓 reference 填充
+> - Step 4.5 Context Pack：从 `references/{repo}/index/` 加载多仓 index
+> - Step 5 Contract Delta：跨仓视角，从各仓 03-contracts.yaml 理解 producer/consumer 边界
 
-# 步骤 2：Layer Impact 与 Contract Delta
+# Phase B — Analysis: Code Search, Layer Impact, Contract Delta（Step 4-5）
 
 ## 目标
 
@@ -41,7 +41,7 @@
   - `03-contracts.yaml`：现有契约——作为 contract-delta 基线。
   - `04-routing-playbooks.yaml`：路由表——确定每个 REQ 的 target_surfaces。
   - v3.1 兼容：`01-entities.yaml`、`02-architecture.yaml`、`03-conventions.yaml`、`04-constraints.yaml`、`08-contracts.yaml`、`09-playbooks.yaml`
-- `context/query-plan.yaml`（如步骤 2.5 已生成，**必须消费**）
+- `context/query-plan.yaml`（如 Step 4.1 已生成，**必须消费**）
 - `references/layer-adapters.md`
 
 ## 执行
@@ -139,7 +139,7 @@ Self-check：团队模式下，graph-context.md 中不应出现 `source: code_sc
 
 - 每条 delta 的 `consumers` 必须是数组，至少包含 1 个除 producer 之外的层
 - 同一契约影响多端时（如新增 endpoint 同时改前端调用 + 后端实现），**必须生成一条 delta 含 `consumers: [frontend, backend]`**，禁止拆成两条单边 delta
-- 已对齐的层放入 `checked_by`，未对齐的层差集进入 report.md §10 对应小段
+- 已对齐的层放入 `checked_by`，未对齐的层差集进入 report.md §9 对应小段
 - **禁止**用 `direction: "bff -> frontend"` 单字符串替代 producer/consumers 结构
 
 以下场景生成 Contract Delta：

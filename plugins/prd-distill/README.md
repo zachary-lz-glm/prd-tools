@@ -8,7 +8,7 @@
 /prd-distill <PRD 文件或需求文本>
 ```
 
-**输入格式：** `.md` / `.txt` / `.docx` 文件，或直接粘贴需求文本。`.docx` 用原生 `unzip` 提取文本和图片，Claude 直接看图理解 UI 截图和流程图，零外部依赖。
+**输入格式：** `.md` / `.txt` / `.docx` 文件，或直接粘贴需求文本。`.docx` 用 `ingest-docx.py` 提取文本和图片，Claude 直接看图理解 UI 截图和流程图，零外部依赖。
 
 ```text
 /prd-distill docs/新司机完单奖励PRD.md
@@ -22,15 +22,15 @@
 ```text
 PRD 原文
    ↓
-Step 0-2: Ingestion → Evidence → Requirement IR
+Step 1-3: Ingestion → Evidence → Requirement IR
    ↓
-Step 3-4: Graph Context → Layer Impact → Contract Delta
+Step 4-5: Code Search & Layer Impact → Contract Delta
    ↓
-Step 8: report.md（12 章节渐进式披露报告）
+Step 6: report.md（11 章节渐进式披露报告）
    ↓
-⚠ Report Review Gate：用户 approved / needs_revision / blocked
+⚠ Step 7: Report Review Gate：用户 approved / needs_revision / blocked
    ↓ approved
-Step 5-8.6: plan.md + readiness + quality gate
+Step 8-11: Plan → Readiness → Reference Backflow → Quality Gate
 ```
 
 **Report Review Gate** 是核心设计：report 生成后必须暂停，用户确认写入 `context/report-confirmation.yaml`。`status: approved` 才允许生成 plan。
@@ -42,7 +42,7 @@ Step 5-8.6: plan.md + readiness + quality gate
 ```text
 _prd-tools/distill/<slug>/
 ├── _ingest/                       # PRD 原始读取（document/media/extraction-quality 等）
-├── report.md                      # 12 章节渐进式披露报告
+├── report.md                      # 11 章节渐进式披露报告
 ├── plan.md                        # 11 章节技术方案 + 开发计划 + QA 矩阵
 └── context/
     ├── requirement-ir.yaml        # 结构化需求
@@ -63,7 +63,7 @@ _prd-tools/distill/<slug>/
 ```text
 _prd-tools/distill/<slug>/
 ├── _ingest/                       # 同单仓
-├── report.md                      # §10 强制 5 子节：FE / BFF / BE / External / 跨层
+├── report.md                      # §9 强制 5 子节：FE / BFF / BE / External / 跨层
 ├── team-plan.md                   # 团队级总览 + 跨仓时序 + Sub-Plan 索引
 ├── plans/                         # 动态命名（来自 team_repos[].repo）
 │   ├── plan-genos.md
@@ -78,7 +78,7 @@ _prd-tools/distill/<slug>/
 
 ## 质量保障机制
 
-- **Reference 强制消费**：若 `_prd-tools/reference/` 存在，Step 0 消费门禁（路由/规则/契约/术语）→ Step 2.5 桥接 index → Step 3.1 reference-first 扫描，缺一不可
+- **Reference 强制消费**：若 `_prd-tools/reference/` 存在，Step 1 消费门禁（路由/规则/契约/术语）→ Step 4.1 桥接 index → Step 4.2 reference-first 扫描，缺一不可
 - **REQ → IMP → code_anchor 强绑定**：每个 MODIFY/DELETE 任务必须有 `code_anchor(layer/file/symbol/line/source)` 或 fallback reason
 
 ## 什么时候用

@@ -1,6 +1,6 @@
 <workflow_state>
   <workflow>prd-distill</workflow>
-  <current_step>8, 8.1-confirm, 5, 6, 7, 8.5, 8.6</current_step>
+  <current_step>6, 7, 8, 9, 10, 11</current_step>
   <allowed_inputs>context/evidence.yaml, context/requirement-ir.yaml, context/graph-context.md, context/layer-impact.yaml, context/contract-delta.yaml, references/output-contracts.md</allowed_inputs>
   <must_not_read_by_default>original long PRD (use requirement-ir instead)</must_not_read_by_default>
   <must_not_produce>context/requirement-ir.yaml (already produced)</must_not_produce>
@@ -13,7 +13,7 @@
 - MUST NOT read files listed in `<must_not_read_by_default>` unless explicitly needed
 - MUST NOT proceed if any prerequisite file is missing
 
-# 步骤 3：计划、报告与反馈
+# Phase C — Output: Report, Plan, Quality Gate（Step 6-11）
 
 ## 目标
 
@@ -58,44 +58,52 @@
 - 列出代码搜索命中的关键函数/调用链/API consumer
 - 每条命中引用 GCTX/EV ID，并说明用于哪些 REQ/IMP/CONTRACT
 
-### 4. 影响范围
+### 3. 影响范围
 - 命中的层、能力面、关键文件/模块（表格形式）
 
-### 5. 关键结论
-- 新增/修改/不改什么，每个结论带 REQ-ID、代码路径和证据引用
+### 4. 需求点与已有能力映射（逐 REQ）
+- 逐条回答"PRD 要什么 → 代码已有啥 → 差异是什么"
+- 格式：`| REQ-ID | PRD 需求点 | 项目已有能力 | 匹配方式 | 差异类型 | 差异说明 |`
+- **PRD 需求点**：从 requirement-ir 提取的一句话意图
+- **项目已有能力**：代码中已存在的对应实现（函数/模板/枚举/配置），无则写"无（negative_search 确认）"并标注搜索词
+- **匹配方式**：`code_scan`（源码确认）/ `reference_routing`（知识库路由）/ `negative_search`（确认不存在）/ `inferred`
+- **差异类型**：ADD / MODIFY / DELETE / NO_CHANGE
+- **差异说明**：一句话说明具体要做什么，引用 IMP-ID。对复杂场景（如"是两种现有模式的组合"）在此展开分析
+- 每个 REQ 必须有一行，不允许跳过
+- 低置信度匹配用 ⚠ 标注
 
-### 6. 变更明细表（核心可操作内容）
+### 5. 变更明细表（核心可操作内容）
 - 列出所有 IMP-* 项
 - 格式：`| ID | 变更描述 | 类型 | 目标文件 | 关键函数/符号 | 验证来源 |`
 - 精确到文件路径和关键 symbol，标注 code_verified / graph_verified / reference_only
 
-### 7. 字段清单（按功能模块分组）
+### 6. 字段清单（按功能模块分组）
 - 从 requirement-ir 和 contract-delta 中提取
 - 格式：`| 字段 | 类型 | 必填 | 来源 | 契约ID |`
 - 按业务模块分组
 
-### 8. 校验规则
+### 7. 校验规则
 - 从 requirement-ir.rules 中提取可验证的校验规则
 - 格式：`| ID | 规则描述 | 错误文案/提示 | 目标文件 |`
 
-### 9. 开发 Checklist（可直接执行）
+### 8. 开发 Checklist（可直接执行）
 - 用 `- [ ]` 格式
 - 按建议实现顺序排列
 - 每项标注具体操作 + 目标文件 + 关联 REQ/IMP/CONTRACT
 
-### 10. 契约对齐与建议
-- 按受影响层分组列出 5 个子节（10.1 前端 / 10.2 BFF / 10.3 后端 / 10.4 外部 / 10.5 跨层风险）
+### 9. 契约对齐与建议
+- 按受影响层分组列出 5 个子节（9.1 前端 / 9.2 BFF / 9.3 后端 / 9.4 外部 / 9.5 跨层风险）
 - 每层都要有自己的小段，即使为空也要显式写"无变更"
 - 单仓和团队模式一致；团队模式下各子节 IMP 来自对应 `references/{repo}` 的 layer
 
 每层子节格式：IMP 摘要表 + 关键契约对齐状态 + 风险项。
 
-### 11. Top Open Questions
+### 10. Top Open Questions
 - 最多5个最关键的阻塞问题，带 Q-ID
 
-### 12. 阻塞问题与待确认项
+### 11. 阻塞问题与待确认项
 
-#### 12.1 阻塞问题
+#### 11.1 阻塞问题
 每个阻塞问题必须包含 6 要素：
 - **问题**：阻塞项的具体描述
 - **线索**：代码/文档线索（如 `proxy/bpm.go:311 注释暗示冲单挑战系统已存在`）
@@ -104,10 +112,10 @@
 - **需要证据**：确认人需要提供什么
 - **默认策略**：如果不确认，默认采取什么行动
 
-#### 12.2 低置信度假设
+#### 11.2 低置信度假设
 ⚠ 标注的低置信度结论，说明为什么置信度低、需要什么才能提升。
 
-#### 12.3 Owner 确认项
+#### 11.3 Owner 确认项
 需要特定角色确认的契约字段、枚举值、外部接口行为等。
 
 如无阻塞问题，显式写"当前无阻塞问题"。
@@ -116,16 +124,16 @@
 
 `context/context-pack.md` 中 **🔴 Must-Reference Anchors** 段的每个锚点，必须在以下位置之一出现：
 
-- report.md §5（关键结论）或 §6（变更明细表）
+- report.md §4（需求点与已有能力映射）或 §5（变更明细表）
 - plan.md §3（实现计划 / Implementation Checklist）
 
-如果某个 🔴 Must-Reference 锚点无法关联到任何变更，必须在 report.md §12 显式说明原因（如："该锚点已确认不受本 PRD 影响"）。
+如果某个 🔴 Must-Reference 锚点无法关联到任何变更，必须在 report.md §11 显式说明原因（如："该锚点已确认不受本 PRD 影响"）。
 
 写作规则：
 - 自然语言为主，用 Markdown 表格提高可扫描性
 - 每个变更项都带目标文件路径
 - 关联 ID（REQ-*/IMP-*/CONTRACT-*）方便跳到 context/ 查证
-- 低置信度项用 ⚠ 标注，进入 §12.2
+- 低置信度项用 ⚠ 标注，进入 §11
 - **线索式证据不能省略**：代码注释、已有结构体名、文件路径等线索必须保留，这些对开发定位问题有极高价值
 
 职责边界：
@@ -140,7 +148,7 @@
 
 report.md 生成后、plan.md 生成前，必须暂停：
 
-1. 生成 `context/report-confirmation.yaml`（按 workflow.md 步骤 8.1 的格式）
+1. 生成 `context/report-confirmation.yaml`（按 workflow.md Step 7 的格式）
 2. 向用户展示 report.md 摘要，等待确认
 3. 仅当用户确认 `status: approved` 时继续 Phase 2
 4. 如果 `status: needs_revision`：回到上游修复对应 artifacts，重新生成 report.md
@@ -291,15 +299,17 @@ report.md 生成后、plan.md 生成前，必须暂停：
 > - `[M]` 条目必须逐条列出 `verify: <命令>` 与 `expect: <结果>`，未通过不得进下一步。
 > - `[H]` 条目作为判读提示，LLM 自检后必须写入 workflow-state.yaml 的 `self_check_notes[step_id]` 数组，内容为"我为什么认为这条满足"的简短解释。
 
-- [ ] [M] report.md 包含全部 12 个章节（§1-§12）
+- [ ] [M] report.md 包含全部 12 个章节（§1-§11，注意 §9 含 5 个子节）
 - [ ] [M] plan.md 包含全部 11 个章节（§1-§11，§11 工作量估算可选）
-- [ ] [M] report.md §10 含 5 个子节（10.1 前端 / 10.2 BFF / 10.3 后端 / 10.4 外部 / 10.5 跨层风险），即使某层无变更也要显式写"无"
+- [ ] [M] report.md §9 含 5 个子节（9.1 前端 / 9.2 BFF / 9.3 后端 / 9.4 外部 / 9.5 跨层风险），即使某层无变更也要显式写"无"
 - [ ] [M] plan.md §9 全栈表包含 Producer/Consumers/Checked By 三列
 - [ ] [M] plan.md §7 含 7.1/7.2/7.3 三个小节，每节至少 1 行或显式"无"
 - [ ] [M] plan.md 含 Implementation Checklist 段（至少 5 个 `- [ ]` 任务）
 - [ ] [M] plan.md 含 Verification Commands 段（至少 3 条命令）
-- [ ] [M] report.md §12 每个 blocker 含 owner + suggestion + risk + mitigation 中至少 3 项
+- [ ] [M] report.md §11 每个 blocker 含 owner + suggestion + risk + mitigation 中至少 3 项
 - [ ] [M] 每个 IMP 在 report.md §5 变更明细表中有对应行
+- [ ] [M] report.md §4 覆盖所有 REQ（requirement-ir 中的每条 REQ 都有对应行）
+- [ ] [M] report.md §4 的"项目已有能力"列包含具体代码位置（文件:行号或符号名），不能只写"已有实现"或"无"
 - [ ] [M] 每个 Phase 在 plan.md §3 中有 checklist 格式的任务
 - [ ] [M] 每个 MODIFY/DELETE 任务引用了至少一个 GCTX ID
 - [ ] [H] reference-update-suggestions.yaml 的 current_repo_scope.action 与证据来源匹配

@@ -69,7 +69,7 @@ _prd-tools/
 ```text
 _prd-tools/distill/<slug>/
 ├── _ingest/                       # 同单仓
-├── report.md                      # 团队级报告（§10 分 4 层子节）
+├── report.md                      # 团队级报告（§9 分 5 层子节）
 ├── team-plan.md                   # 团队级开发计划总览
 ├── plans/                         # 动态生成的 Sub-Plans
 │   └── plan-{repo}.md             # 每个成员仓一份（repo 来自 team_repos[].repo）
@@ -93,7 +93,7 @@ _prd-tools/distill/<slug>/
 | `media-analysis.yaml` | 图片分析状态和摘要。顶层字段 `media`（权威）是数组，每条含 `file / type / summary / confidence`；`images`/`items` 仅为兼容旧产物。类型：`ui_screenshot | flowchart | data_chart | table_image | decoration` | 不确认的图片内容只能产生低置信度问题 |
 | `tables/` | 单独抽出的表格 markdown | 不修复原表格，只保留转换结果 |
 | `extraction-quality.yaml` | 读取质量门禁：`pass | warn | block`、统计、风险 | 不写开发计划 |
-| `conversion-warnings.md` | 给人看的转换风险 | 不替代 report.md §12 |
+| `conversion-warnings.md` | 给人看的转换风险 | 不替代 report.md §11 |
 
 `extraction-quality.yaml` 示例：
 
@@ -132,7 +132,7 @@ media:
 质量规则：
 
 - `block`：暂停蒸馏，要求用户提供 markdown/text。
-- `warn`：允许继续，但必须在 `report.md` §12 中暴露风险。
+- `warn`：允许继续，但必须在 `report.md` §11 中暴露风险。
 - Claude 看图提取的信息置信度为 `medium`（AI 视觉理解），关键结论仍需文本证据或人工确认才能升为 `high`。
 
 ## report.md
@@ -151,39 +151,41 @@ media:
 | 来源 | 命中内容 | 用于哪些结论 | 缺口 |
 列出代码搜索命中的关键函数/调用链/API consumer。
 
-## 4. 影响范围
+## 3. 影响范围
 命中的层、能力面、关键文件/模块（表格形式）。
 
-## 5. 关键结论
-新增/修改/不改什么，每个结论带 REQ-ID 和代码路径引用。
+## 4. 需求点与已有能力映射（逐 REQ）
+| REQ-ID | PRD 需求点 | 项目已有能力 | 匹配方式 | 差异类型 | 差异说明 |
+逐条回答"PRD 要什么 → 代码已有啥 → 差异是什么"。匹配方式：code_scan / reference_routing / negative_search / inferred。差异类型：ADD / MODIFY / DELETE / NO_CHANGE。每个 REQ 必须有一行。
 
-## 6. 变更明细表（核心可操作内容）
+## 5. 变更明细表（核心可操作内容）
 | ID | 变更描述 | 类型 | 目标文件 | 关键函数/符号 | 验证来源 |
 列出所有 IMP-* 项，精确到文件路径和关键 symbol，标注 code_verified / graph_verified / reference_only。
 
-## 7. 字段清单（按功能模块分组）
+## 6. 字段清单（按功能模块分组）
 | 字段 | 类型 | 必填 | 来源 | 契约ID |
 从 requirement-ir 和 contract-delta 中提取，按业务模块分组。
 
-## 8. 校验规则
+## 7. 校验规则
 | ID | 规则描述 | 错误文案/提示 | 目标文件 |
 从 requirement-ir.rules 中提取可验证的校验规则。
 
-## 9. 开发 Checklist（可直接执行）
+## 8. 开发 Checklist（可直接执行）
 - [ ] 1. <具体操作>（<目标文件>）— REQ-001, IMP-001
 - [ ] 2. <具体操作>（<目标文件>）— REQ-002, IMP-002
 ...
 按建议实现顺序排列，每项标注关联的 REQ/IMP/CONTRACT。
 
-## 10. 契约风险
+## 9. 契约对齐与建议
+按受影响层分组（9.1 前端 / 9.2 BFF / 9.3 后端 / 9.4 外部 / 9.5 跨层风险）。
 只列 alignment_status 为 needs_confirmation 或 blocked 的契约。
 
-## 11. Top Open Questions
+## 10. Top Open Questions
 最多5个最关键的阻塞问题，带 Q-ID。
 
-## 12. 阻塞问题与待确认项
+## 11. 阻塞问题与待确认项
 
-### 12.1 阻塞问题
+### 11.1 阻塞问题
 每个阻塞问题必须包含 6 要素：
 - **问题**：阻塞项的具体描述
 - **线索**：代码/文档线索（如 `proxy/bpm.go:311 注释暗示冲单挑战系统已存在`）
@@ -192,10 +194,10 @@ media:
 - **需要证据**：确认人需要提供什么
 - **默认策略**：如果不确认，默认采取什么行动
 
-### 12.2 低置信度假设
+### 11.2 低置信度假设
 ⚠ 标注的低置信度结论，说明为什么置信度低、需要什么才能提升。
 
-### 12.3 Owner 确认项
+### 11.3 Owner 确认项
 需要特定角色确认的契约字段、枚举值、外部接口行为等。
 
 如无阻塞问题，显式写"当前无阻塞问题"。
@@ -209,11 +211,12 @@ media:
 - **自然语言为主**，避免纯 YAML/JSON 格式；用 Markdown 表格提高可扫描性。
 - **具体到文件路径**：每个变更项都带目标文件路径（如 `model/business_object/xxx/`）。
 - **关联 ID**：每个条目引用 REQ-*/IMP-*/CONTRACT-*，方便跳到 context/ 查证。
-- **不隐藏低置信度**：低置信度项用 ⚠ 标注，进入 §12 阻塞问题与待确认项。
+- **§4 需求映射必须覆盖所有 REQ**：不允许跳过任何 REQ，包括 NO_CHANGE 的。已有能力列要写具体的代码位置（文件:行号 + 符号名），不要只写"已有实现"。无对应能力时写"无"并附 negative_search 证据。
+- **不隐藏低置信度**：低置信度项用 ⚠ 标注，进入 §11 阻塞问题与待确认项。
 - **Checklist 可直接执行**：开发人员拿到就能按步骤干活。
 - **线索式证据不能省略**：代码注释、已有结构体名、文件路径等线索必须保留（如 `proxy/bpm.go:311 注释暗示冲单挑战系统已存在`）。这些线索对开发定位问题有极高价值。
 - **P0/P1 需求细节必须显性披露**：券批次/券张数/互斥、折扣卡 Card ID/数量/有效期/城市校验、EventRule、Budget/GMV、Push 占位符不能只存在于 `context/`，必须在 report 的字段、校验、阻塞或 open question 中出现。
-- **冲突比结论更重要**：PRD 内部范围矛盾、报错文案 typo、owner 职责不清必须进入 §12；不要被 reference 的既有打法掩盖。
+- **冲突比结论更重要**：PRD 内部范围矛盾、报错文案 typo、owner 职责不清必须进入 §11；不要被 reference 的既有打法掩盖。
 - **OQ 质量约束**：Open Questions 必须是真正的未解决问题。如果 report 正文已给出推断结论（如 typo 已识别为 "应为 X"），应列为 Assumption 而非 OQ。
 - **Reference 不可盲信**：reference/index 命中的事实必须被 PRD、源码、技术文档、接口文档或负向搜索确认。无法确认时写成低/中置信度假设。
 

@@ -1,6 +1,6 @@
 # team-distill 工作流
 
-> Step 0-2（PRD Ingestion、Evidence、Requirement IR）与单仓模式相同，详见 `skills/prd-distill/workflow.md`。
+> Step 1-3（PRD Ingestion、Evidence、Requirement IR）与单仓模式相同，详见 `skills/prd-distill/workflow.md`。
 > 本文件只描述团队模式与单仓的差异步骤。
 
 ## 目标
@@ -11,7 +11,7 @@
 
 ---
 
-## Step 0-2：同单仓
+## Step 1-3：同单仓
 
 PRD Ingestion → Evidence → Requirement IR，流程同 `skills/prd-distill/workflow.md`。
 
@@ -19,9 +19,9 @@ PRD Ingestion → Evidence → Requirement IR，流程同 `skills/prd-distill/wo
 - 各仓 `references/{repo}/05-domain.yaml`：术语，用于 requirement-ir 术语对齐。
 - 各仓 `references/{repo}/02-coding-rules.yaml`：fatal 规则，在 requirement-ir 中标记相关规则。
 
-## Step 3：Layer Impact（团队模式）
+## Step 4：Code Search & Layer Impact（团队模式）
 
-### 3.1 Graph Context（从 Reference 读取）
+### 4.2 Graph Context（从 Reference 读取）
 
 **禁止执行 rg/glob 命令** — 团队仓没有源码。
 
@@ -36,7 +36,7 @@ PRD Ingestion → Evidence → Requirement IR，流程同 `skills/prd-distill/wo
 
 GCTX entry 标记 `source: "team_reference"`，附带 `repo` 字段。
 
-### 3.2 Layer Impact 生成
+### 4.3 Layer Impact 生成
 
 4 层 IMP 从各仓 reference 填充。每层的 `code_anchors` 指向对应仓库的 reference 文件路径。
 
@@ -44,7 +44,7 @@ confidence 规则：
 - `medium`（默认，未直接验证源码）
 - `high`（被多个仓库 reference 交叉验证时）
 
-## Step 3.5：Context Pack
+### 4.5 Context Pack
 
 从 `references/{repo}/index/` 加载多仓 index：
 
@@ -55,14 +55,25 @@ python3 .prd-tools/scripts/context-pack.py \
   --out _prd-tools/distill/<slug>/context/context-pack.md
 ```
 
-## Step 4：Contract Delta（团队模式）
+## Step 5：Contract Delta（团队模式）
 
 跨仓视角：
 - 从各仓 `references/{repo}/03-contracts.yaml` 读取 producer/consumer 信息，构建跨仓契约全景。
 - consumer 调用的 endpoint 在其他仓声明为 producer → 标记 cross_repo 契约，`alignment_status: needs_confirmation`。
 - 每条 delta 的 `consumers[]` 跨仓填充。
 
-## Step 5：Plan（团队模式）
+## Step 6-7：Report（团队模式）
+
+report.md §9 强制 5 个子节：
+- §9.1 Frontend：前端层 IMP 和契约
+- §9.2 BFF：BFF 层 IMP 和契约
+- §9.3 Backend：后端层 IMP 和契约
+- §9.4 External：外部系统影响
+- §9.5 跨层对齐风险：`consumers - checked_by` 不为空 / `alignment_status: blocked` 等
+
+Report Review Gate 同单仓模式。
+
+## Step 8：Plan（团队模式）
 
 生成 `team-plan.md` + N 份 `plans/plan-{repo}.md`。
 
@@ -81,23 +92,12 @@ python3 .prd-tools/scripts/context-pack.py \
 
 文件名从 `team_repos[].repo` 动态生成，禁止硬编码。
 
-## Step 8：Report（团队模式）
+## Step 9-11：同单仓
 
-report.md §10 强制 5 个子节：
-- §10.1 Frontend：前端层 IMP 和契约
-- §10.2 BFF：BFF 层 IMP 和契约
-- §10.3 Backend：后端层 IMP 和契约
-- §10.4 External：外部系统影响
-- §10.5 跨层对齐风险：`consumers - checked_by` 不为空 / `alignment_status: blocked` 等
-
-## Step 8.1-8.5：同单仓
-
-Report Review Gate、Final Quality Gate 流程同单仓模式。
+Readiness Score、Reference Backflow、Quality Gate 流程同单仓模式。
 
 Quality Gate 团队模式检查 `team-plan.md` + `plans/` 目录（而非 `plan.md`）。
 
-## Step 7：Reference 回流（团队模式）
-
-额外触发条件：
+团队模式 Reference 回流额外触发条件：
 - 发现跨仓契约、owner、handoff 或团队级术语候选，但当前仓不能独立确认。
 - `team_reference_candidate: true` 标记为团队知识库收集候选。

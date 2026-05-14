@@ -14,8 +14,8 @@ description: 团队级 PRD 蒸馏 — 跨多个仓库（前端/BFF/后端）的 
 | 方面 | 单仓 `/prd-distill` | 团队 `/team-distill` |
 |------|---------------------|---------------------|
 | 源码扫描 | rg/glob + reference | **禁止 rg/glob**，只读 `references/{repo}/` 下的 01-05 YAML |
-| Step 2.5 Query Plan | index 存在则执行 | 从 `references/{repo}/index/` 加载多仓 index（`context-pack.py --team-references`） |
-| Step 3.1 Graph Context | 3 阶段扫描 | **只读 reference**：从各仓 01-05 YAML 构建理解，禁止 rg/glob |
+| Step 4.1 Query Plan | index 存在则执行 | 从 `references/{repo}/index/` 加载多仓 index（`context-pack.py --team-references`） |
+| Step 4.2 Graph Context | 3 阶段扫描 | **只读 reference**：从各仓 01-05 YAML 构建理解，禁止 rg/glob |
 | 涉及仓库识别 | 不适用 | 自动匹配 PRD 需求 → 各仓 reference，识别涉及仓库及角色 |
 | Contract Delta | 单仓视角 | 跨仓视角：从各仓 03-contracts.yaml 理解 producer/consumer 边界 |
 | Plan | 1 份 plan.md | 1 份 team-plan.md + N 份 plans/plan-{repo}.md |
@@ -48,7 +48,7 @@ description: 团队级 PRD 蒸馏 — 跨多个仓库（前端/BFF/后端）的 
 ```text
 _prd-tools/distill/<slug>/
 ├── _ingest/                       # 同单仓
-├── report.md                      # 团队级报告（§10 分 5 个子节）
+├── report.md                      # 团队级报告（§9 分 5 个子节）
 ├── team-plan.md                   # 团队级开发计划总览
 ├── plans/                         # Sub-Plans（动态命名）
 │   ├── plan-{repo1}.md            # 成员仓 sub-plan

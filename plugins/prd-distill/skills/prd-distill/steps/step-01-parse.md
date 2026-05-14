@@ -1,6 +1,6 @@
 <workflow_state>
   <workflow>prd-distill</workflow>
-  <current_step>0, 1, 2</current_step>
+  <current_step>1, 2, 3</current_step>
   <allowed_inputs>PRD file (.md/.txt/.docx), _prd-tools/reference/ (if exists), references/layer-adapters.md</allowed_inputs>
   <must_not_read_by_default>source code (beyond reference routing), report.md, plan.md</must_not_read_by_default>
   <must_not_produce>context/layer-impact.yaml</must_not_produce>
@@ -19,11 +19,11 @@
 > 2. 是模板错了还是产物错了？
 > 3. 不要为了通过检查就编造/删除证据。
 
-> **范围声明**：本文件覆盖 spec 阶段 3 个 step（0 / 1 / 2）的共享约束和入口指引。每个 step 的完整指令以 workflow.md 对应段落为 SSOT，本文件只给跨步骤的入口规则和检查。
+> **范围声明**：本文件覆盖 spec 阶段 3 个 step（1 / 2 / 3）的共享约束和入口指引。每个 step 的完整指令以 workflow.md 对应段落为 SSOT，本文件只给跨步骤的入口规则和检查。
 >
 > 宁可让 gate 报 fail，也不要让产物偏离原文。
 
-# spec 阶段入口（Step 0 → 1 → 2）
+# spec 阶段入口（Step 1 → 2 → 3）
 
 ## Pre-flight
 
@@ -69,7 +69,7 @@ EOF
 - 图片定位：解析 `word/document.xml` 中的 `<w:drawing>` 或 `<w:pict>` 标签，在纯文本对应位置插入 `![image-N](media/imageN.png)` 占位标记，Claude 后续可用 Read 工具直接查看图片内容。
 - Claude 原生支持图片理解（多模态），提取后直接用 Read 工具读取 `_ingest/media/imageN.png`，无需第三方 Vision API。
 - 表格基本结构会保留（行会用换行分隔），但复杂格式可能丢失。
-- 格式丢失时 `extraction-quality.yaml` 标记 `warn`，在 `report.md` §12 暴露。
+- 格式丢失时 `extraction-quality.yaml` 标记 `warn`，在 `report.md` §11 暴露。
 - 图片分析结果写入 `_ingest/media-analysis.yaml`：每张图片的文件名、类型（UI截图/流程图/数据图表/装饰图）、关键信息摘要、置信度。
 
 ## 目标
@@ -85,8 +85,8 @@ EOF
 - 来自 `.md/.txt` 或粘贴内容的 PRD。
 - 可选后端/API/技术方案文档。
 - `_prd-tools/reference/`（**必须消费**，如存在）：
-  - `04-routing-playbooks.yaml`：提取路由表，用于步骤 4 的 PRD 关键词匹配。
-  - `05-domain.yaml`：提取领域术语，用于步骤 4 的 glossary 同义词匹配。
+  - `04-routing-playbooks.yaml`：提取路由表，用于 Requirement IR 的 PRD 关键词匹配。
+  - `05-domain.yaml`：提取领域术语，用于 Requirement IR 的 glossary 同义词匹配。
   - v3.1 兼容：`05-routing.yaml`、`06-glossary.yaml`、`07-business-context.yaml`。
   - 旧版兼容：`05-mapping.yaml`。
 
