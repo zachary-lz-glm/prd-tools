@@ -8,7 +8,7 @@
 /prd-distill <PRD 文件或需求文本>
 ```
 
-**输入格式：** `.md` / `.txt` / `.docx` 文件，或直接粘贴需求文本。`.docx` 用 `ingest-docx.py` 提取文本和图片，Claude 直接看图理解 UI 截图和流程图，零外部依赖。
+**输入格式：** `.md` / `.txt` / `.docx` 文件，或直接粘贴需求文本。`.md`/`.txt` 中的远程图片 URL 会自动下载分析；`.docx` 用 `ingest-docx.py` 提取文本和图片。Claude 直接看图理解 UI 截图和流程图，零外部依赖。
 
 ```text
 /prd-distill docs/新司机完单奖励PRD.md

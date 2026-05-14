@@ -15,7 +15,7 @@
 读取或收集：
 
 - PRD：`.md | .txt | .docx | pasted text`。
-  - `.md`/`.txt`：直接读取。
+  - `.md`/`.txt`：读取文件内容写入 `_ingest/document.md`。扫描 `![alt](https?://...)` 远程图片 URL，下载到 `_ingest/media/`，重写为 `![image-N](media/image-N.ext)` 本地引用。用 Read 工具逐个查看图片，结果写入 `_ingest/media-analysis.yaml`。无远程图片时跳过此步骤。
   - `.docx`：优先使用 `ingest-docx.py` 脚本提取（`python3 .prd-tools/scripts/ingest-docx.py --input "<file>" --output _prd-tools/distill/<slug>`）。如果脚本不可用，用 Python zipfile 提取。**不要用 `unzip -d`**——macOS 下解压出来的文件默认 mode 是 700，易踩 permission denied。提取后写入 `_ingest/document.md`，图片拷贝到 `_ingest/media/`。在文本中图片位置插入 `![image-N](media/imageN.png)` 占位。Claude 用 Read 工具逐个查看图片（原生多模态），理解 UI 截图、流程图、数据图表，结果写入 `_ingest/media-analysis.yaml`。
   - 粘贴文本：手工建立来源和定位。
 - 上下游接口文档：可选但强烈建议传入。对 BFF 项目是后端 API 文档，对前端项目是 BFF Schema 文档，对后端项目是上游服务接口文档。传入后写入 `_ingest/upstream-api.md`（或对应文件名），作为 Contract Delta 的直接证据源。证据优先级：接口文档 > PRD 推断 > negative_search。

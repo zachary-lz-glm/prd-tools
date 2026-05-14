@@ -72,6 +72,29 @@ EOF
 - 格式丢失时 `extraction-quality.yaml` 标记 `warn`，在 `report.md` §11 暴露。
 - 图片分析结果写入 `_ingest/media-analysis.yaml`：每张图片的文件名、类型（UI截图/流程图/数据图表/装饰图）、关键信息摘要、置信度。
 
+### md/txt 图片扫描流程（远程 URL 图片）
+
+`.md`/`.txt` 文件中的远程图片 URL（如 S3 签名链接）包含关键 UI 需求，必须走以下子流程：
+
+**触发条件**：`document.md` 中包含 `![...](https?://...)` 模式。
+
+**子步骤**：
+
+a. **扫描**：用 `grep -n '!\[.*\](https\?://)' _ingest/document.md` 扫描所有远程图片 URL。跳过已指向本地 `media/` 的占位符。
+
+b. **下载**：对每个远程 URL，用 `curl -sL --max-time 30 -o "_ingest/media/image-N.ext" "<url>"` 下载到 `_ingest/media/`。文件编号从 1 开始连续递增，扩展名从 URL 或 Content-Type 推断（默认 `.png`）。如果下载失败（超时、403、404），记录到 `conversion-warnings.md`，不阻塞流程。
+
+c. **重写引用**：将 `_ingest/document.md` 中对应的 `![alt](http...)` 替换为 `![image-N](media/image-N.ext)`，与 docx 管线输出格式一致。
+
+d. **分析**：用 Read 工具逐个查看 `_ingest/media/` 下的图片，理解内容（UI 截图、流程图、数据图表），将分析结果写入 `_ingest/media-analysis.yaml`。与 docx 管线使用相同 schema。
+
+e. **质量记录**：更新 `extraction-quality.yaml` 的 `stats.media` 计数。如有下载失败，标记 `status: warn`。
+
+**规则**：
+- 下载超时设为 30 秒（`curl --max-time 30`）。S3 签名 URL 有时效性，首次处理时必须下载。
+- 如果所有图片均下载失败，`extraction-quality.yaml` 标记 `image_extraction_status: download_failed`，`status: warn`。
+- 图片中提取的信息置信度为 `medium`（与 docx 管线一致），关键结论仍需文本证据或人工确认才能升为 `high`。
+
 ## 目标
 
 将 PRD 和可选技术文档解析为：
@@ -108,7 +131,7 @@ EOF
 ## 执行
 
 1. 读取文件或接受粘贴文本：
-   - `.md`/`.txt`：直接读取，保留原文格式。
+   - `.md`/`.txt`：读取文件内容写入 `_ingest/document.md`。然后执行「md/txt 图片扫描流程」（见下方）：扫描远程图片 URL → 下载到 `_ingest/media/` → 重写本地引用 → 分析图片 → 写入 `media-analysis.yaml`。无远程图片时跳过图片流程。
    - `.docx`：使用 Pre-flight 中的 Python zipfile 标准流程一次性提取文本和图片。
      a. 运行 Python zipfile 脚本提取 `document.md` + `media/*`。
      b. 解析 XML 中的 `<w:drawing>` / `<w:pict>` 标签定位图片插入位置，在文本中插入 `![image-N](media/imageN.png)` 占位标记。

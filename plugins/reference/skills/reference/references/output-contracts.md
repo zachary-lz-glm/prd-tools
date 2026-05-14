@@ -81,7 +81,7 @@ _prd-tools/distill/<slug>/
 
 ## _ingest/
 
-`_ingest/` 解决"PRD 到底被 AI 读成了什么"的问题。它不是需求结论层，只负责保真读取、定位、图片/表格风险暴露。`.md`/`.txt` 直接读取，`.docx` 用 `unzip -p <file> word/document.xml | sed 's/<[^>]*>//g'` 提取纯文本后写入 `document.md`。
+`_ingest/` 解决"PRD 到底被 AI 读成了什么"的问题。它不是需求结论层，只负责保真读取、定位、图片/表格风险暴露。`.md`/`.txt` 读取文件内容写入 `document.md`，扫描远程图片 URL 下载到 `media/` 并重写本地引用（无远程图片时跳过）。`.docx` 用 `ingest-docx.py` 提取文本和图片后写入 `document.md` + `media/`。
 
 | 文件 | 用途 | 边界 |
 |---|---|---|
@@ -89,7 +89,7 @@ _prd-tools/distill/<slug>/
 | `document.md` | 转换后的可读 markdown，作为 Requirement IR 的主输入 | 不补充 PRD 没写的信息 |
 | `document-structure.json` | 段落、标题、表格、图片等结构块，含 block id 和 locator。`exclusion_types` 字段列出不需要 evidence 覆盖的 block 类型（如 `revision_history`、`toc`、`decoration`） | 不写业务语义结论 |
 | `evidence-map.yaml` | PRD 块级证据，供 `context/evidence.yaml` 映射。顶层字段：`meta`（元数据）、`blocks`（数组，每个元素含 `block_id / lines / content_summary / req_ids`） | 不放源码、diff、reference 证据 |
-| `media/` | 抽出的图片、截图、流程图原文件（docx 提取时自动抽取） | 不修改图片内容 |
+| `media/` | 抽出的图片、截图、流程图原文件。docx 提取时自动抽取；md/txt 中的远程 URL 图片下载到此目录 | 不修改图片内容 |
 | `media-analysis.yaml` | 图片分析状态和摘要。顶层字段 `media`（权威）是数组，每条含 `file / type / summary / confidence`；`images`/`items` 仅为兼容旧产物。类型：`ui_screenshot | flowchart | data_chart | table_image | decoration` | 不确认的图片内容只能产生低置信度问题 |
 | `tables/` | 单独抽出的表格 markdown | 不修复原表格，只保留转换结果 |
 | `extraction-quality.yaml` | 读取质量门禁：`pass | warn | block`、统计、风险 | 不写开发计划 |
@@ -107,7 +107,7 @@ stats:
 quality_gates: []
 warnings: []
 rules:
-  - "Images are analyzed by Claude Read (native multimodal). AI-interpreted content is medium confidence by default."
+  - "Images are analyzed by Claude Read (native multimodal). AI-interpreted content is medium confidence by default. Remote URL images from .md files are downloaded to media/ before analysis."
 ```
 
 `media-analysis.yaml` 示例：
