@@ -103,7 +103,7 @@ _prd-tools/distill/<slug>/
 ├── spec/                          # 同单仓
 ├── report.md                      # §10 强制 4 子节：10.1 FE / 10.2 BFF / 10.3 BE / 10.4 External
 ├── team-plan.md                   # 团队级总览 + 跨仓时序 + Sub-Plan 索引
-├── plans/                         # 动态命名（来自 member_repos[].repo）
+├── plans/                         # 动态命名（来自 team_repos[].repo）
 │   ├── plan-genos.md
 │   ├── plan-dive-bff.md
 │   └── plan-magellan.md

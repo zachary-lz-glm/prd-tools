@@ -248,9 +248,9 @@ report.md 生成后、plan.md 生成前，必须暂停：
 - 复用标准 11-section plan 模板
 - Scope 限定到单个成员仓
 - IMP 从 `layer-impact.yaml` 该仓对应层提取
-- 文件名动态生成：`member_repos[].repo` → `plan-{repo}.md`
+- 文件名动态生成：`team_repos[].repo` → `plan-{repo}.md`
 
-**禁止硬编码**：sub-plan 文件名必须从 `member_repos[].repo` 动态生成。
+**禁止硬编码**：sub-plan 文件名必须从 `team_repos[].repo` 动态生成。
 
 ## Reference 回流
 
@@ -317,4 +317,4 @@ report.md 生成后、plan.md 生成前，必须暂停：
 - `[M]` `team-plan.md` 存在且包含 Sub-Plan 索引表
 - `[M]` `plans/` 目录存在
 - `[M]` 每个 `layer-impact.yaml` 中有 IMP 的成员仓，`plans/plan-{repo}.md` 存在
-- `[M]` sub-plan 文件名与 `member_repos[].repo` 一致
+- `[M]` sub-plan 文件名与 `team_repos[].repo` 一致

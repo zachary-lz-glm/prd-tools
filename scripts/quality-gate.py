@@ -50,7 +50,7 @@ def detect_team_mode(repo_root):
             except Exception:
                 continue
             if data.get('layer') == 'team-common':
-                repos = [r.get('repo', '') for r in data.get('team_reference', {}).get('member_repos', []) if r.get('repo')]
+                repos = [r.get('repo', '') for r in data.get('team_repos', []) if r.get('repo')]
                 return True, repos
     return False, []
 

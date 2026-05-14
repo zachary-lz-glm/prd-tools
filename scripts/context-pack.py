@@ -144,36 +144,26 @@ def load_index(index_dir):
     return entities, edges, inv, by_id
 
 
-def load_team_index(snapshots_dir, member_repos=None):
-    """Load and merge evidence indexes from multiple member repo snapshots.
+def load_team_index(references_dir, member_repos=None):
+    """Load indexes from copied member repo references.
 
-    Args:
-        snapshots_dir: Root directory containing per-repo snapshot dirs
-                       (e.g. _prd-tools/reference/ with frontend/snapshots/repo-a/index/)
-        member_repos: Optional list of repo names to load. If None, auto-discover.
-    Returns:
-        (entities, edges, inv, by_id) — merged across all repos, each entity gets a 'repo' field.
+    Scans {references_dir}/{repo}/index/ for each member repo.
     """
-    base = Path(snapshots_dir)
+    base = Path(references_dir)
     index_dirs = []
     if member_repos:
         for repo in member_repos:
-            for layer_dir in sorted(base.iterdir()) if base.is_dir() else []:
-                candidate = layer_dir / 'snapshots' / repo / 'index'
-                if (candidate / 'entities.json').exists():
-                    index_dirs.append((repo, candidate))
-                    break
+            idx_dir = base / repo / 'index'
+            if (idx_dir / 'entities.json').exists():
+                index_dirs.append((repo, idx_dir))
     else:
-        # Auto-discover: find all snapshots/*/index/ under any layer
         if base.is_dir():
-            for layer_dir in sorted(base.iterdir()):
-                snap_dir = layer_dir / 'snapshots'
-                if not snap_dir.is_dir():
+            for repo_dir in sorted(base.iterdir()):
+                if not repo_dir.is_dir():
                     continue
-                for repo_dir in sorted(snap_dir.iterdir()):
-                    idx = repo_dir / 'index'
-                    if (idx / 'entities.json').exists():
-                        index_dirs.append((repo_dir.name, idx))
+                idx = repo_dir / 'index'
+                if (idx / 'entities.json').exists():
+                    index_dirs.append((repo_dir.name, idx))
 
     if not index_dirs:
         return [], [], {}, {}
@@ -1018,9 +1008,9 @@ def main():
                     help='Path to distill output directory')
     ap.add_argument('--index', '--index-dir', dest='index', required=False,
                     help='Path to evidence index directory (default: <distill>/../reference/index)')
-    ap.add_argument('--team-snapshots', required=False,
-                    help='Team snapshots root dir for multi-repo index loading '
-                         '(e.g. _prd-tools/reference/). Disables --index.')
+    ap.add_argument('--team-references', required=False,
+                    help='Team references root dir for multi-repo index loading '
+                         '(contains {repo}/index/). Disables --index.')
     ap.add_argument('--ref-dir', required=False,
                     help='Reference directory for domain terms (default: index parent or team/)')
     ap.add_argument('--out', required=False,
@@ -1038,14 +1028,14 @@ def main():
         print(f'Error: {req_ir_path} not found', file=sys.stderr)
         sys.exit(1)
 
-    # Load index: team mode (--team-snapshots) or single-repo mode (--index / default)
-    if args.team_snapshots:
-        snapshots_dir = Path(args.team_snapshots).resolve()
-        entities, edges, inv, by_id = load_team_index(snapshots_dir)
+    # Load index: team mode (--team-references) or single-repo mode (--index / default)
+    if args.team_references:
+        references_dir = Path(args.team_references).resolve()
+        entities, edges, inv, by_id = load_team_index(references_dir)
         if not entities:
-            print('Error: No index files found in team snapshots', file=sys.stderr)
+            print('Error: No index files found in team references', file=sys.stderr)
             sys.exit(1)
-        ref_dir = Path(args.ref_dir).resolve() if args.ref_dir else distill.parent / 'reference' / 'team'
+        ref_dir = Path(args.ref_dir).resolve() if args.ref_dir else references_dir
     else:
         index_dir = Path(args.index).resolve() if args.index else distill.parent / 'reference' / 'index'
         if not (index_dir / 'entities.json').exists():

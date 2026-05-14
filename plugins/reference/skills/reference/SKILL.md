@@ -5,41 +5,9 @@ description: 为前端、BFF、后端通用的 PRD-to-code 工作流构建、更
 
 # reference
 
-Claude Code 中通过 `/reference` 触发。
+通过 `/reference` 触发。
 
 人类可读文档见插件根目录 `README.md`。
-
-## Pre-flight Enforcement（硬约束）
-
-**Before each step, verify ALL prerequisite files exist and are non-empty.**
-
-If any prerequisite is missing:
-- **STOP immediately** — do not proceed with the step.
-- Identify which prerequisite file is missing or empty.
-- Complete the missing prerequisite step first, then re-verify.
-- Only proceed after all prerequisites are confirmed present and non-empty.
-
-**Workflow State File**: `_prd-tools/build/reference-workflow-state.yaml`
-
-- Before each step, read this file. If it does not exist, create it.
-- After each step, update it with output files and hashes.
-- The next step MUST read this state file before proceeding — do not rely on conversation memory.
-
-**禁止行为：**
-- 不得跳过前置检查直接执行步骤
-- 不得在前置检查失败后手动创建缺失文件绕过检查
-- 不得合并多个步骤为一次执行
-
-## Final Completion Gate（硬约束）
-
-/reference 全量构建完成必须满足以下条件，缺一不可：
-
-1. `_prd-tools/reference/` 下 00-05 共 6 个主文件 + `project-profile.yaml` 存在且非空。
-2. 必须运行 `python3 .prd-tools/scripts/build-index.py --repo <项目路径> --out _prd-tools/reference/index`，生成 `index/` 下 4 个文件。
-3. 必须运行 `python3 .prd-tools/scripts/quality-gate.py reference --root .`，且 exit code 不为 2。
-4. index 缺失时，不得宣称 /reference 完成。
-5. 最终回复必须列出 index manifest 摘要（实体数、边数、term 数）。
-6. quality-gate 报告的 warning 必须在最终回复中说明。
 
 ## 触发条件
 
@@ -51,21 +19,11 @@ If any prerequisite is missing:
 
 ## 工作模式选择
 
-`/reference` 必须先进入人机模式选择，不得默认一路全自动构建。
-
-先检查 `_prd-tools/reference/` 是否存在：
+`/reference` 先检查 `_prd-tools/reference/` 是否存在：
 - 不存在 → 建议 Mode F（上下文收集）→ Mode A（全量构建）。
 - 已存在 → 按用户目标执行 B/B2/C/E。
 
-**团队仓库检测**（在上述检查之前执行）：
-
-1. 检查 `_prd-tools/reference/project-profile.yaml`：如果 `layer: team-common` → 团队仓库，推荐 Mode T
-2. 检查 `team/project-profile.yaml`：如果存在且 `layer: team-common` → 团队仓库，推荐 Mode T
-3. 都不存在 → 询问用户：**这是单项目仓库还是团队知识库仓库？**
-   - 团队知识库 → 读取 `workflow.md` 阶段 T-init，执行交互式初始化
-   - 单项目 → 按现有 F→A 流程
-
-团队成员仓（`team_reference.upstream_local_path` 已配置）：可推荐 T2 团队继承。
+向用户展示当前状态和模式选项，等用户确认后再执行。
 
 | 模式 | 何时 | 输出 |
 |---|---|---|
@@ -75,30 +33,8 @@ If any prerequisite is missing:
 | B2 健康检查 | 是否过期/缺证据 | `_prd-tools/build/health-check.yaml` |
 | C 质量门控 | 证据/契约闭环/幻觉 | `_prd-tools/build/quality-report.yaml` |
 | E 反馈回流 | prd-distill 输出回收 | `_prd-tools/build/feedback-report.yaml` |
-| T 团队聚合 | 在团队仓执行，从成员仓聚合 | `team/*.yaml` + `snapshots/` + `build/conflicts.yaml` |
-| T2 团队继承 | 在成员仓执行，从团队仓继承 | 更新后的 `_prd-tools/reference/` |
 
-### Mode Selection Gate
-
-执行任何会写 `_prd-tools/reference/` 的动作前，必须先向用户展示当前状态和模式选项，并等待确认。
-
-展示内容：
-
-- 当前 `_prd-tools/reference/` 是否存在。
-- 当前 `_prd-tools/build/` 是否存在历史上下文或质量报告。
-- 推荐模式和原因。
-- 可选模式：F→A、F only、A only、B、B2、C、E、T、T2、Chat。
-
-默认推荐：
-
-- 首次建设：推荐 `F→A`，但必须等用户确认。
-- 已有 reference：推荐 `B2` 健康检查或 `B` 增量更新，除非用户明确要求重建。
-- 团队仓（`project-profile.yaml` 含 `layer: team-common`）：推荐 `T` 团队聚合。
-- 成员仓且已配置 `team_reference.upstream_local_path`：可推荐 `T2` 团队继承。
-
-用户确认后，将选择写入 `_prd-tools/build/reference-workflow-state.yaml`。YAML 结构见 `references/mode-selection.schema.md`。
-
-如果用户选择 Chat，只讨论方案，不生成或修改 reference 产物。
+团队模式（Mode T 收集）详见 `/team-reference`。
 
 ## 输入
 
@@ -113,17 +49,18 @@ If any prerequisite is missing:
 
 ```text
 _prd-tools/reference/           # 长期知识库（v4.0，6 文件）
+├── 00-portal.md                # 人类导航入口
 ├── project-profile.yaml       # 项目画像
 ├── 01-codebase.yaml           # 代码库静态清单
 ├── 02-coding-rules.yaml       # 编码规则
 ├── 03-contracts.yaml          # 跨层和外部契约
 ├── 04-routing-playbooks.yaml  # PRD 路由信号 + 场景打法
 ├── 05-domain.yaml             # 业务领域知识
-└── index/                     # Evidence Index（辅助层，v2.16+）
-    ├── entities.json          # 代码实体索引
-    ├── edges.json             # 实体关系索引
-    ├── inverted-index.json    # 倒排索引（term→entity）
-    └── manifest.yaml          # 索引元数据
+└── index/                     # Evidence Index（辅助层）
+    ├── entities.json
+    ├── edges.json
+    ├── inverted-index.json
+    └── manifest.yaml
 
 _prd-tools/build/              # 过程和质量报告
 ├── context-enrichment.yaml
@@ -133,13 +70,11 @@ _prd-tools/build/              # 过程和质量报告
 └── feedback-report.yaml
 ```
 
-兼容读取 v3.1（`01-entities.yaml` ~ `09-playbooks.yaml`），自动映射到 v4.0。
+兼容读取 v3.1，自动映射到 v4.0。
 
 ## 能力面适配器
 
-前端、BFF、后端共用流程，不绑定固定目录。读取 `references/layer-adapters.md`。
-
-路径只是候选，结论必须来自源码、配置、类型定义、注册点、调用链、测试或负向搜索。
+前端、BFF、后端共用流程。读取 `references/layer-adapters.md`。路径只是候选，结论必须来自源码确认。
 
 ## 文件边界（v4.0 SSOT）
 
@@ -155,25 +90,22 @@ _prd-tools/build/              # 过程和质量报告
 
 ## 证据规则
 
-- 源码、PRD、技术文档、API 文档、git diff 是权威证据。reference 是加速器。
-- 当前仓源码只能证明当前仓事实；跨仓必须由对方 owner 确认。
-- 枚举、字段、方法签名不能从文件名或 import 推断，必须读源文件。
-- 搜不到也是证据 → `negative_code_search`（记录 query 和范围）。
-- 不确定写 `confidence: low`，进入开放问题。
+- 源码、PRD、技术文档、API 文档、git diff 是权威证据。
+- 枚举、字段、方法签名必须读源文件确认。
+- 搜不到也是证据 → `negative_code_search`。
+- 不确定写 `confidence: low`。
 - 关键事实必须有 `evidence`、`verified_by` 或负向搜索。
 
 ## 执行步骤
 
-1. 识别项目路径、层级、已有 `_prd-tools/reference/` 和 `_prd-tools/build/`。
+1. 识别项目路径、层级、已有 reference。
 2. 根据用户目标选择模式。
-3. 限定在当前项目内搜索，不跨兄弟项目。
-4. 标注 `reference_scope.authority: single_repo`，跨仓线索写确认状态字段。
-5. 用 `rg`/glob 找候选，再 Read 源码确认事实。
-6. 生成或更新 `_prd-tools/reference/`。
-7. 构建 Evidence Index（辅助层）：`python3 .prd-tools/scripts/build-index.py --repo <项目路径> --out _prd-tools/reference/index`。
-8. 执行健康检查或质量门控。
-9. 运行 Completion Gate：`python3 .prd-tools/scripts/quality-gate.py reference --root .`。
-10. 给用户摘要：新增/更新文件、质量状态、风险、下一步。
+3. 限定在当前项目内搜索。
+4. 用 `rg`/glob 找候选，再 Read 源码确认事实。
+5. 生成或更新 `_prd-tools/reference/`。
+6. 构建 Evidence Index：`python3 .prd-tools/scripts/build-index.py --repo <项目路径> --out _prd-tools/reference/index`。
+7. 执行健康检查或质量门控。
+8. 给用户摘要：新增/更新文件、质量状态、风险。
 
 ## 参考文件
 
@@ -182,9 +114,8 @@ _prd-tools/build/              # 过程和质量报告
 | `workflow.md` | 完整构建/健康检查/质量门控/反馈回流时 |
 | `references/reference-v4.md` | 确认文件职责、边界、质量规则时 |
 | `references/layer-adapters.md` | 判断前端/BFF/后端能力面时 |
-| `references/output-contracts.md` | 输出契约索引（按需加载 `schemas/` 下具体文件） |
+| `references/output-contracts.md` | 输出契约索引 |
 | `templates/*.yaml` | 创建 reference 骨架时 |
-| `references/selectable-reward-golden-sample.md` | 需要示例或校准复杂需求时 |
 
 ## 完成标准
 
@@ -193,4 +124,3 @@ _prd-tools/build/              # 过程和质量报告
 - reference 健康状态：pass / warning / fail。
 - 哪些关键事实证据充分，哪些 low confidence。
 - 是否存在跨层契约 owner 未确认。
-- 下一步：运行 `prd-distill`，还是继续补历史样例或修复 reference。

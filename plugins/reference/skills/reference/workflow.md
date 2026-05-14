@@ -165,7 +165,7 @@ confidence: "high | medium | low"
 
 必须检查：
 
-- 文件完整性：`01~05` 中至少 3 个存在。
+- 文件完整性：`00-portal.md` 存在，`01~05` 中至少 3 个存在。
 - 证据完整性：实体、路由、契约、playbook 关键项都有 evidence。
 - 源码一致性：路径、枚举值、注册点、模板函数、契约字段仍存在。
 - 契约闭环：跨层字段有 producer / consumer / checked_by / alignment_status。
@@ -229,31 +229,6 @@ _prd-tools/reference/index/
 - 增量更新（Mode B）后可选执行
 - 健康检查（Mode B2）时检查索引与源码一致性
 
-## 阶段 3.6：Reference Completion Gate（硬约束）
-
-> **定位**：Completion Gate 是 /reference 的硬完成门禁。不通过不得宣称 /reference 完成。
-
-运行命令：
-
-```bash
-python3 .prd-tools/scripts/quality-gate.py reference --root .
-```
-
-检查内容：
-
-1. required reference files 是否存在且非空
-2. index 四个文件是否存在且非空
-3. YAML 文件是否基本可读
-4. 关键 reference 文件是否包含 schema_version
-5. 是否存在模糊统计、未证据化 owner/contact、无证据 high confidence（warning）
-
-门禁规则：
-
-- exit code 2（fail）：必须补缺失文件，不得宣称 /reference 完成。
-- exit code 0（pass 或 warning）：可以完成，但 warning 必须在最终回复中说明。
-- index 缺失时，不得宣称 /reference 完成。
-- 最终回复必须列出 index manifest 摘要（实体数、边数、term 数）。
-
 ## 阶段 4：反馈回流
 
 读取 `_prd-tools/distill/**/context/reference-update-suggestions.yaml` 和 `report.md`。兼容读取旧版 `spec/reference-update-suggestions.yaml` 等文件名。
@@ -282,260 +257,24 @@ python3 .prd-tools/scripts/quality-gate.py reference --root .
 
 ## Mode → 阶段映射（B / B2 / C / E 可执行清单）
 
-`F` 和 `A` 走完整阶段 0-3.6。其他模式按下表只跑必要阶段，避免重复全量构建：
+`F` 和 `A` 走完整阶段 0-3.5。其他模式按下表只跑必要阶段，避免重复全量构建：
 
 | 模式 | 跑哪些阶段 | 跳过 | 关键产物 | 完成判定 |
 |------|-----------|------|---------|---------|
-| **F** 上下文收集 | 阶段 0 | 1/2/3/3.5/3.6 | `build/context-enrichment.yaml` | 至少 1 个 sample 含 lessons[] |
-| **A** 全量构建 | 阶段 1 → 2 → 3 → 3.5 → 3.6 | — | `reference/01-05.yaml` + `project-profile.yaml` + `index/` | Completion Gate exit ≠ 2 |
-| **B** 增量更新 | 阶段 1（增量扫 git diff 影响的模块）→ 阶段 2 的相关子阶段（只重写涉及的 yaml）→ 阶段 3.5（增量 build-index，默认无 `--full`）→ 阶段 3.6 | 阶段 0；阶段 2 中未受影响的子阶段 | 受影响的 yaml 文件 + 更新后的 `index/manifest.yaml` | Completion Gate exit ≠ 2 且只动了"应该动"的文件 |
+| **F** 上下文收集 | 阶段 0 | 1/2/3/3.5 | `build/context-enrichment.yaml` | 至少 1 个 sample 含 lessons[] |
+| **A** 全量构建 | 阶段 1 → 2 → 3 → 3.5 | — | `reference/01-05.yaml` + `project-profile.yaml` + `index/` | 所有 required 文件存在且非空 |
+| **B** 增量更新 | 阶段 1（增量扫 git diff 影响的模块）→ 阶段 2 的相关子阶段（只重写涉及的 yaml）→ 阶段 3.5（增量 build-index，默认无 `--full`） | 阶段 0；阶段 2 中未受影响的子阶段 | 受影响的 yaml 文件 + 更新后的 `index/manifest.yaml` | 只动了"应该动"的文件 |
 | **B2** 健康检查 | 阶段 3 + last_verified 检查 + index 与源码一致性 | 阶段 0/1/2/3.5（不重建） | `build/health-check.yaml`（含 stale_entries / missing_evidence / index_drift） | 报告 status: pass/warning/fail |
 | **C** 质量门控 | 阶段 3 only | 阶段 0/1/2/3.5（信任已有产物） | `build/quality-report.yaml` | fatal_findings 为空 |
 | **E** 反馈回流 | 阶段 4 | 其他全部 | `build/feedback-report.yaml` + 受影响的 `reference/*.yaml`（仅有证据的建议被应用） | 所有 suggestion 已 dispositioned (apply / reject / defer) |
-| **T** 团队聚合 | 阶段 5（详解见下文） | 单仓阶段全部 | `team/*.yaml` + `snapshots/{layer}/{repo}/` + `build/aggregation-report.yaml` + `build/conflicts.yaml` | conflicts.yaml total_conflicts 已处理或归档 |
-| **T2** 团队继承 | 阶段 6（详解见下文） | 单仓阶段全部 | 更新后的本仓 `reference/*.yaml`（带 `source: team-common`） | `project-profile.yaml` 的 `team_reference.last_synced` 更新 |
+
+团队模式（Mode T 收集）详见 `/team-reference`。
 
 **Mode B/B2/C/E 共同规则**：
 
 - 执行前必须读 `_prd-tools/build/reference-workflow-state.yaml`，确认上次完成态。
 - 不允许"顺手补全"非本模式应该动的文件（典型陷阱：Mode B2 只是检查健康，不能直接改 yaml；发现问题写到 health-check.yaml 让用户决定走 B 还是 A）。
 - 结束时更新 `reference-workflow-state.yaml` 的 `mode` / `completed_at` / `last_verified`。
-
-## 阶段 T-init：团队仓库初始化
-
-> **定位**：在空团队仓库中引导初始化，创建配置和目录结构，运行首次聚合。
-> **触发条件**：用户确认这是团队知识库仓库，且 `team/project-profile.yaml` 不存在。
-
-### 步骤 1：收集成员仓库信息
-
-向用户交互式收集：
-
-- **业务域名**（e.g. "marketing"）— 用于 project-profile.yaml 的 `business` 字段
-- **成员仓库列表**，逐条收集：
-  - 仓库名（e.g. "frontend-main"）
-  - 本地路径（e.g. "/Users/example/work/frontend-main"）
-  - 所属层：`frontend` | `bff` | `backend`
-  - 角色：`producer` | `consumer` | `middleware` | `peer`
-
-每条确认后继续下一条，用户说"完成"后进入步骤 2。
-
-### 步骤 2：验证成员仓库就绪
-
-对每个成员仓库逐个检查：
-
-1. `local_path` 目录是否存在
-2. `_prd-tools/reference/project-profile.yaml` 是否存在
-3. 5 个 YAML 文件（01-05）是否都存在
-
-就绪状态汇总表展示给用户：
-
-```text
-| 仓库 | 路径存在 | reference 存在 | 5 文件齐全 | 状态 |
-|------|---------|---------------|-----------|------|
-| repo-a | ✓ | ✓ | ✓ | ✅ 就绪 |
-| repo-b | ✓ | ✗ | — | ⚠️ 需先运行 /reference Mode A |
-```
-
-未就绪的仓库：
-- 告知用户需先在对应仓库运行 `/reference` Mode A 生成完整 reference
-- 用户可选择：跳过未就绪仓库继续、或中止等所有仓库就绪
-
-至少 1 个仓库就绪才能继续。
-
-### 步骤 3：创建团队仓库结构
-
-生成以下文件：
-
-**`team/project-profile.yaml`** — 基于成员仓库模板（`templates/project-profile.yaml`）改编：
-- `layer: "team-common"`
-- `business: "<用户填写的业务域名>"`
-- `reference_scope.authority: "team_common"`
-- 取消注释 `team_reference.member_repos[]` 和 `aggregation_policy`，填入收集的信息
-- 使用默认聚合策略（`contracts: union_by_id`, `domain_terms: union_dedupe`, `coding_rules: fatal_only`, `playbooks: cross_layer_only`）
-- 不需要 `tech_stack`、`entrypoints`、`capability_surfaces` 等成员仓库专属字段
-
-**`.prd-tools-team-version`** — 写入当前 prd-tools 版本号（读 `VERSION` 文件）
-
-**目录结构**（用 `.gitkeep` 占位空目录）：
-
-```text
-team/
-build/
-{各层}/snapshots/{各仓}/.gitkeep
-```
-
-### 步骤 4：运行首次聚合
-
-按以下流程执行聚合，不依赖外部脚本：
-
-1. 读取 `team/project-profile.yaml` 中的 `team_reference.member_repos[]`
-2. 逐个成员仓：读取 `_prd-tools/reference/` 下的 01-05 YAML
-3. 按 **阶段 5（Mode T）的聚合策略表** 执行合并
-4. 写入 `team/01-codebase.yaml` ~ `team/05-domain.yaml`
-5. 写入 `{各层}/snapshots/{仓}/` 全量镜像 + `_snapshot-meta.yaml`
-6. 写入 `build/aggregation-report.yaml` 和 `build/conflicts.yaml`（如有冲突）
-
-聚合完成后展示：
-- 聚合摘要（成员仓数量、各产物条目数）
-- 如有冲突，列出冲突项和处理建议
-
-### 步骤 5：生成 README.md
-
-在仓库根目录生成 `README.md`，包含：
-
-```markdown
-# {业务域名} 团队知识库
-
-prd-tools 自动维护的团队级公共知识库。
-
-## 目录结构
-
-- `team/` — 团队级聚合数据（SSOT）
-- `{各层}/snapshots/` — 成员仓库快照
-- `build/` — 聚合报告和冲突记录
-
-## 成员仓库
-
-| 仓库 | 层 | 角色 |
-|------|---|------|
-| repo-a | frontend | producer |
-| ... | ... | ... |
-
-## 更新聚合
-
-当成员仓库的 reference 更新后，在本仓库重新运行 `/reference Mode T`。
-```
-
-## 阶段 5：团队聚合（Mode T 详解）
-
-> **定位**：在团队仓执行，从各成员仓的 `_prd-tools/reference/` 聚合事实到团队仓 `team/`。
-
-**前置条件**：
-- 当前工作目录是团队仓（含 `team/project-profile.yaml`，`layer: team-common`）
-- `team_reference.member_repos[]` 已配置各成员仓路径
-- 各成员仓已运行过 `/reference` Mode A/B，有完整的 01-05 YAML
-- **各成员仓已将 `_prd-tools/reference/*.yaml` 提交到 git**（聚合脚本需从 git 读取）
-
-**数据源解析优先级**：
-1. `local_path` 存在且有 `_prd-tools/reference/` → 直接读本地（最快）
-2. `remote_url` 提供且 local_path 不可用 → 提示用户手动 clone 或切换到本地路径
-
-**成员仓前提**：各仓需将 `_prd-tools/reference/` 提交到 git（确保 `.gitignore` 没有忽略该目录）。YAML 文件是文本，体积小，适合版本控制。
-
-**执行步骤**：
-
-1. **读取配置**：`team/project-profile.yaml` 的 `team_reference.member_repos[]` 和 `aggregation_policy`
-2. **解析成员仓**：按优先级找到每个成员仓的 `_prd-tools/reference/` 目录，跳过不可达的仓并报告
-3. **读取 YAML**：从每个可达成员仓读取 01-05 五个 YAML 文件
-4. **按策略聚合**（见下表 + 硬约束），同时收集冲突
-5. **写入产物**：
-   - `team/01-codebase.yaml` ~ `team/05-domain.yaml`（带 `repo_scope.authority: team_common` 和时间戳）
-   - `{各层}/snapshots/{仓}/` — 成员仓全量镜像 + `_snapshot-meta.yaml`（含 `commit_sha`、`synced_at`）
-   - `build/aggregation-report.yaml`（成员仓列表、各产物条目数、快照状态）
-   - `build/conflicts.yaml`（如有冲突）
-6. **同步 index**：对每个可达成员仓，如果 `_prd-tools/reference/index/` 存在，将其中的 `entities.json`、`edges.json`、`inverted-index.json`、`manifest.yaml` 复制到 `{layer}/snapshots/{repo}/index/`。无 index 的成员仓在 `aggregation-report.yaml` 中标记 `index: skipped`（不报错）。此步骤为 prd-distill 团队模式提供精准代码符号检索能力。
-
-聚合策略（由 `team_reference.aggregation_policy` 配置）：
-
-| 产物 | 默认策略 | 说明 |
-|------|---------|------|
-| 03-contracts | union_by_id | 同 ID 合并 producer/consumers/checked_by，producer 不一致标 conflict；consumer 调用了但无成员仓声明产出的 endpoint，标记 `endpoint_producer_unverified` |
-| 05-domain | union_dedupe | 按 term 名去重，同名不同定义时合并为单一 term 下挂 `views[]` |
-| 02-coding-rules | fatal_cross_layer | 只聚合 severity=fatal **且影响 2+ 层或有 cross_layer_impact** 的规则 |
-| 04-routing-playbooks | cross_layer_only | 只聚合 target_surfaces 涉及 2+ 层的 playbook |
-| 01-codebase | index_only | 只从 contracts 提取 cross_repo_enums 和 cross_repo_entities 索引 |
-
-**聚合硬约束**（Mode T 必须遵守）：
-
-1. **01-codebase 禁止推断内容**：`index_only` 策略只允许 `cross_repo_enums`（跨仓枚举索引）和 `cross_repo_entities`（跨仓核心接口索引）。以下内容**禁止写入**团队仓 01-codebase：
-   - `cross_layer_data_flows`：跨层数据流是推断产物（无源码锚点），各仓各自的 `data_flows` 保留在成员仓 01-codebase
-   - `cross_repo_registration_points`：注册点清单是 playbook 内容，归入 `04-routing-playbooks`
-   - `shared_external_systems`：各成员仓各自的依赖，不聚合
-   - `known_gaps`：跨仓差异和已知盲点归入 `build/conflicts.yaml`
-
-2. **02-coding-rules 跨层过滤**：`fatal_cross_layer` 在原 `fatal_only` 基础上增加二次过滤——只有满足以下条件之一的 fatal 规则才升级到团队仓：
-   - 规则有 `cross_layer_impact` 字段且非空
-   - 规则影响 2+ 层（如"新增 CampaignType 必须三仓同步"）
-   - 纯本仓内部规则（如"后端路由必须通过 pathMap 注册"）不升级
-
-3. **03-contracts producer 验证**：如果前端 consumer 调用某 endpoint 但所有成员仓的 reference 都未声明产出该 endpoint，**不伪造 producer**。正确做法：
-   - `producer.repo` 写 `"unconfirmed"`
-   - `producer.verification` 写 `"consumer_orphan"`
-   - 写入 `build/conflicts.yaml`，冲突类型 `endpoint_producer_unverified`
-
-4. **05-domain 同名术语合并**：当同一术语在不同仓有不同定义时（如"5步向导" vs "3步表单"），合并为**单一 term ID**，下挂 `views[]` 数组区分各仓视角，不创建独立 term（否则 prd-distill 检索会双命中互相干扰）
-
-产出：
-
-- `team/01-codebase.yaml` ~ `team/05-domain.yaml`：5 个聚合产物
-- `{frontend,bff,backend}/snapshots/{repo}/`：成员仓全量镜像 + `_snapshot-meta.yaml`
-- `build/aggregation-report.yaml`：聚合状态报告
-- `build/conflicts.yaml`：跨仓冲突清单（待人工仲裁）
-
-冲突处理：团队仓的 `conflicts.yaml` 不手工编辑。仲裁方式是回到对应成员仓修正字段，重新跑 `/reference`，再回到团队仓重新聚合。
-
-`build/conflicts.yaml` 格式：
-
-```yaml
-generated_at: "<ISO-8601>"
-total_conflicts: 0
-conflicts:
-  - type: "contract_producer_mismatch"     # 或 endpoint_producer_unverified / coding_rule_conflict / playbook_layer_steps_conflict
-    contract_id: "CONTRACT-XXX"            # 或 rule_id / playbook_id
-    divergent_claims:
-      - repo: "repo-a"
-        claim: "..."
-      - repo: "repo-b"
-        claim: "..."
-    suggested_resolution: "ask owner"
-```
-
-冲突类型及处理方式：
-
-| 冲突类型 | 原因 | 处理 |
-|---------|------|------|
-| `contract_producer_mismatch` | 多仓声称自己是同一契约的 producer | 回到冲突仓确认实际 owner，修正 `producer` 字段 |
-| `endpoint_producer_unverified` | consumer 调用了某 endpoint 但无成员仓声明产出 | 确认该 endpoint 是否存在（可能是旧接口或跨团队接口），补充到对应成员仓的 03-contracts 后重新聚合 |
-| `coding_rule_conflict` | 同一 rule_id 在不同仓有不同描述 | 对齐规则描述后重新聚合 |
-| `playbook_layer_steps_conflict` | 多仓为同一 playbook 的同一层写了 steps | 确定一个 `playbook_owner`，其他仓删除该层 steps |
-
-## 阶段 6：团队继承（Mode T2 详解）
-
-> **定位**：在成员仓执行，从团队仓 `team/` 继承公共事实到本仓 `_prd-tools/reference/`。
-
-**前置条件**：
-- 当前工作目录是成员仓（含 `_prd-tools/reference/`）
-- `project-profile.yaml` 的 `team_reference.upstream_local_path` 指向团队仓本地路径
-- `team_reference.inherit_scopes` 已配置继承范围
-- 团队仓已运行过 Mode T 聚合
-
-**前置失败处理**：
-
-| 检测项 | 失败时行为 |
-|-------|-----------|
-| `upstream_local_path` 字段未配置 | 停止，提示用户在 `project-profile.yaml` 配置后重试 |
-| `upstream_local_path` 指向的目录不存在 | 停止，输出 `unreachable_upstream` 错误：提示用户 `git clone` 或 `git pull` 团队仓到该路径，或修正路径 |
-| 团队仓存在但 `team/` 目录缺失 | 停止，输出 `team_not_aggregated` 错误：提示先在团队仓运行 `/reference` Mode T 完成聚合 |
-| 团队仓 `team/01-05.yaml` 部分缺失 | 部分继承：只继承存在且非空的 scope；缺失的 scope 写入 `_prd-tools/build/inherit-skipped.yaml` 让用户感知 |
-| 团队仓的某条目 `source: team-common` 但无 `evidence` | 跳过该条目（不允许继承无证据事实），记入 `inherit-skipped.yaml` |
-
-**执行步骤**：
-
-1. 读取本仓 `_prd-tools/reference/project-profile.yaml`，获取 `team_reference.upstream_local_path` 和 `inherit_scopes`
-2. 从团队仓 `team/` 目录读取对应 scope 的聚合 YAML
-3. 对每个 scope，按继承规则合并到本仓的对应 YAML 文件
-4. 更新 `project-profile.yaml` 的 `team_reference.last_synced`
-
-继承规则：
-
-| 场景 | 行为 |
-|------|------|
-| 本仓没有同 ID 条目 | 新增，标 `source: "team-common"`, `read_only: true` |
-| 本仓已有同 ID（非 team-common） | 保留本仓版本，记 conflict |
-| 本仓已有同 ID（team-common） | 更新为团队仓最新版 |
-| coding_rules_fatal | **强制覆盖**（团队级 fatal 规则权威） |
-
-`inherit_scopes` 可选值：`domain_terms`、`contracts_cross_repo`、`coding_rules_fatal`。
 
 ## 执行规则
 
