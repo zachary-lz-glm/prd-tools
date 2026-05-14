@@ -2,18 +2,10 @@
 
 > 遵循 [Keep a Changelog](https://keepachangelog.com/) 格式。架构决策详见 [docs/adr/](docs/adr/)。
 
-## [2.19.7] - 2026-05-14
+## [2.19.8] - 2026-05-14
 
 ### Added
-- prd-distill 支持 .md 文件远程图片 URL 自动下载分析
-
-### Changed
-- docs: 清理 README 中已废弃的 AI-friendly PRD / spec 三段式引用
-- docs: 更新 README 章节数和描述与 report 9节/plan 12节 对齐
-- refactor: report 12→9节业务优先 + plan §2.5映射表 + QA增强
-
-### Fixed
-- fix: report 生成前强制等待 context 文件完成，禁止并行写 report
+- 增强 plan.md §2/§10/§11 — 新增文件树+风险缓解+工作量估算
 
 ## [2.19.5] - 2026-05-14
 
