@@ -2,6 +2,11 @@
 
 All notable changes to the **reference** plugin are documented here.
 
+## [2.19.6] - 2026-05-14
+
+### Changed
+- docs: 同步 output-contracts.md 到 reference 插件
+
 ## [2.19.5] - 2026-05-14
 
 ### Changed
