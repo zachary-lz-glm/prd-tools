@@ -2,7 +2,10 @@
 
 All notable changes to the **reference** plugin are documented here.
 
-## [2.19.6] - 2026-05-14
+## [2.19.7] - 2026-05-14
+
+### Added
+- prd-distill 支持 .md 文件远程图片 URL 自动下载分析
 
 ### Changed
 - docs: 同步 output-contracts.md 到 reference 插件

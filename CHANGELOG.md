@@ -2,7 +2,10 @@
 
 > 遵循 [Keep a Changelog](https://keepachangelog.com/) 格式。架构决策详见 [docs/adr/](docs/adr/)。
 
-## [2.19.6] - 2026-05-14
+## [2.19.7] - 2026-05-14
+
+### Added
+- prd-distill 支持 .md 文件远程图片 URL 自动下载分析
 
 ### Changed
 - docs: 清理 README 中已废弃的 AI-friendly PRD / spec 三段式引用
