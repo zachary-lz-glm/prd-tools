@@ -54,13 +54,7 @@
 - 一句话摘要
 - 变更类型统计：ADD/MODIFY/DELETE/NO_CHANGE 各几项
 
-### 2. PRD 质量摘要
-来自 `context/prd-quality-report.yaml`：
-- AI-friendly PRD 总分和状态（pass / warning / fail）
-- source 分布：explicit / inferred / missing_confirmation 各多少条
-- 关键缺失项和风险摘要
-
-### 3. 源码扫描命中摘要
+### 2. 源码扫描命中摘要
 - 列出代码搜索命中的关键函数/调用链/API consumer
 - 每条命中引用 GCTX/EV ID，并说明用于哪些 REQ/IMP/CONTRACT
 

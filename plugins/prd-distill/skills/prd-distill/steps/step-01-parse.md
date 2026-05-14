@@ -1,6 +1,6 @@
 <workflow_state>
   <workflow>prd-distill</workflow>
-  <current_step>0, 1, 1.5-afprd, 1.5-quality, 2</current_step>
+  <current_step>0, 1, 2</current_step>
   <allowed_inputs>PRD file (.md/.txt/.docx), _prd-tools/reference/ (if exists), references/layer-adapters.md</allowed_inputs>
   <must_not_read_by_default>source code (beyond reference routing), report.md, plan.md</must_not_read_by_default>
   <must_not_produce>context/layer-impact.yaml</must_not_produce>
@@ -19,11 +19,11 @@
 > 2. 是模板错了还是产物错了？
 > 3. 不要为了通过检查就编造/删除证据。
 
-> **范围声明**：本文件覆盖 spec 阶段 5 个 gate step（0 / 1 / 1.5-afprd / 1.5-quality / 2）的共享约束和入口指引。每个 step 的完整指令以 workflow.md 对应段落为 SSOT，本文件只给跨步骤的入口规则和 Pre-flight 检查。
+> **范围声明**：本文件覆盖 spec 阶段 3 个 step（0 / 1 / 2）的共享约束和入口指引。每个 step 的完整指令以 workflow.md 对应段落为 SSOT，本文件只给跨步骤的入口规则和检查。
 >
 > 宁可让 gate 报 fail，也不要让产物偏离原文。
 
-# spec 阶段入口（Step 0 → 1 → 1.5-afprd → 1.5-quality → 2）
+# spec 阶段入口（Step 0 → 1 → 2）
 
 ## Pre-flight
 
@@ -167,47 +167,9 @@ requirements:
 open_questions: []
 ```
 
-## ai-friendly-prd.md 生成硬规则
+## IR 编号一致性
 
-### 13 段必须用英文标准名
+生成 IR 前后，必须跑自检：
 
-ai-friendly-prd.md 的 13 个 `##` 段必须使用以下英文标题，**顺序固定，不得翻译，不得合并**：
-
-1. Overview
-2. Problem Statement
-3. Target Users
-4. Goals & Success Metrics
-5. User Stories
-6. Functional Requirements
-7. Non-Functional Requirements
-8. Technical Considerations
-9. UI/UX Requirements
-10. Out of Scope
-11. Timeline & Milestones
-12. Risks & Mitigations
-13. Open Questions
-
-### 每个 REQ-XXX 必须是独立 `### REQ-XXX` 三级标题锚点
-
-在 Functional / Non-Functional / Technical / UI/UX / Open Questions 这 5 段内，每条需求必须形如：
-
-```markdown
-### REQ-CFG-001
-
-**Source**: explicit
-**Priority**: P0
-...
-```
-
-标题**只放** `### REQ-XXX`，描述性文字放正文。**不得**写成 `### FR-2: 配置页面基础信息（REQ-ID: CFG-001）` 这种复合标题。
-
-## IR ↔ AI-friendly PRD 编号一致性（硬约束）
-
-生成 IR 前后，必须跑以下两条自检：
-
-1. **每条 IR 的 `ai_prd_req_id` 必须在 `spec/ai-friendly-prd.md` 里有独立 `### REQ-XXX` 三级标题能命中**。未命中 → 当前 IR 生成失败，不得提交。
-   - verify: `grep -c "ai_prd_req_id" context/requirement-ir.yaml`
-   - expect: 数量与 requirements 条目数一致
-2. **ai-friendly-prd.md 里每个 `REQ-xxx` heading 必须在 IR 列表里至少出现一次**（哪怕 `type: NO_CHANGE`）。缺失 → 补一条 IR 占位，type=NO_CHANGE，summary 写 "no BFF-layer change, reviewed"。
-   - verify: `grep -oE 'REQ-[0-9]+' spec/ai-friendly-prd.md | sort -u | while read rid; do grep -q "$rid" context/requirement-ir.yaml || echo "MISSING: $rid"; done`
-   - expect: 无输出（所有 REQ-ID 均已覆盖）
+1. **每条 IR 必须有唯一的 `id`**（REQ-XXX 格式），且 `evidence.source_blocks` 非空。
+2. **PRD 中提到的每个需求都应在 IR 中有对应条目**（哪怕 `type: NO_CHANGE`）。

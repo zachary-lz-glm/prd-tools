@@ -105,7 +105,7 @@ Self-check：团队模式下，graph-context.md 中不应出现 `source: code_sc
 - 空数组要显式写 `capability_areas: []` 并加 comment 说明理由
 - 非当前仓层的 IMP confidence 不得 high，必须 needs_confirmation
 
-**团队模式**：4 层 IMP 全部从 `snapshots/` 填充。非本仓层的 IMP 标注 `confidence: medium, source: team_snapshot`。本仓层（如果团队仓就是当前执行仓）可为 `high`。
+**团队模式**：4 层 IMP 从各仓 `references/{repo}/` 填充。非本仓层的 IMP 标注 `confidence: medium, source: team_reference`。本仓层（如果团队仓就是当前执行仓）可为 `high`。
 
 5. 对每个跨层/API/schema/event/downstream 契约面创建 Contract Delta。
 6. `alignment_summary` 必须用 `status:` + `blockers:[]` + `next_actions:[]` 结构，**不得**用 `aligned: N / needs_confirmation: N / blocked: N` 的计数结构。

@@ -1,5 +1,7 @@
 # ADR-0011：Agent 工作流可靠性与保真度建设计划
 
+> **已废弃**：三段式工作流、Completion Gate、Pre-flight Enforcement 已在 v2.20 瘦身重构中删除。本 ADR 记录的历史决策不再适用。
+
 | 字段 | 值 |
 |------|---|
 | 状态 | 实施中 |

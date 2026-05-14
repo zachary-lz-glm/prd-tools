@@ -93,9 +93,9 @@ def _read_json(path):
 # ══════════════════════════════════════════════════════════════
 
 REQUIRED_DISTILL_FILES = {
-    'critical': ['_ingest/document.md', 'spec/ai-friendly-prd.md', 'report.md', 'plan.md'],
+    'critical': ['_ingest/document.md', 'report.md', 'plan.md'],
     'important': [
-        'context/prd-quality-report.yaml', 'context/requirement-ir.yaml',
+        'context/requirement-ir.yaml',
         'context/layer-impact.yaml', 'context/contract-delta.yaml',
         'context/graph-context.md', 'context/report-confirmation.yaml',
         'context/readiness-report.yaml', 'context/final-quality-gate.yaml',
@@ -103,23 +103,14 @@ REQUIRED_DISTILL_FILES = {
 }
 
 REQUIRED_TEAM_FILES = {
-    'critical': ['_ingest/document.md', 'spec/ai-friendly-prd.md', 'report.md', 'team-plan.md'],
+    'critical': ['_ingest/document.md', 'report.md', 'team-plan.md'],
     'important': [
-        'context/prd-quality-report.yaml', 'context/requirement-ir.yaml',
+        'context/requirement-ir.yaml',
         'context/layer-impact.yaml', 'context/contract-delta.yaml',
         'context/graph-context.md', 'context/report-confirmation.yaml',
         'context/readiness-report.yaml', 'context/final-quality-gate.yaml',
     ],
 }
-
-AFPRD_SECTIONS = [
-    'Overview', 'Problem Statement', 'Target Users',
-    'Goals & Success Metrics', 'User Stories', 'Functional Requirements',
-    'Non-Functional Requirements', 'Technical Considerations',
-    'UI/UX Requirements', 'Out of Scope', 'Timeline & Milestones',
-    'Risks & Mitigations', 'Open Questions',
-]
-
 
 # ── Distill quality checks ──
 
@@ -147,60 +138,14 @@ def _dq_required_files(base, is_team=False):
             'missing_important': missing_important, 'empty': empty}
 
 
-def _dq_afprd_sections(base):
-    text = read_safe(base / 'spec' / 'ai-friendly-prd.md')
-    if not text.strip():
-        return {'status': 'fail', 'found': 0, 'missing': AFPRD_SECTIONS}
-    found, missing = [], []
-    for s in AFPRD_SECTIONS:
-        if re.search(rf'^##\s+(?:\d+\.?\s+)?{re.escape(s)}', text, re.I | re.M):
-            found.append(s)
-        else:
-            missing.append(s)
-    status = 'fail' if len(found) < 8 else ('warning' if len(found) < 13 else 'pass')
-    return {'status': status, 'found': len(found), 'total': len(AFPRD_SECTIONS), 'missing': missing}
-
-
-def _dq_req_id_anchors(base):
-    afprd = base / 'spec' / 'ai-friendly-prd.md'
-    ir_path = base / 'context' / 'requirement-ir.yaml'
-    if not afprd.is_file() or not ir_path.is_file():
-        return {'status': 'skip', 'reason': 'files missing'}
-    afprd_text = read_safe(afprd)
-    with open(ir_path) as f:
-        ir = yaml.safe_load(f) or {}
-    headings = set(re.findall(r'^### (REQ-[A-Z0-9_-]+)\s*$', afprd_text, re.MULTILINE))
-    missing = []
-    for req in (ir.get('requirements') or []):
-        for aid in [x.strip() for x in req.get('ai_prd_req_id', '').split(',') if x.strip()]:
-            normalized = aid if aid.startswith('REQ-') else f'REQ-{aid}'
-            if normalized not in headings and aid not in headings:
-                missing.append({'ir_id': req.get('id'), 'ai_prd_req_id': aid})
-    return {'status': 'pass' if not missing else 'fail',
-            'total_heading_anchors': len(headings), 'missing': missing}
-
-
-def _dq_prd_quality_report(base):
-    text = read_safe(base / 'context' / 'prd-quality-report.yaml')
-    if not text.strip():
-        return {'status': 'fail', 'has_status': False, 'has_score': False}
-    has_status = bool(re.search(r'^status:\s*', text, re.M))
-    has_overall = bool(re.search(r'^overall_score:\s*\d+', text, re.M))
-    has_deprecated = bool(re.search(r'^score:\s*\d+', text, re.M)) and not has_overall
-    warnings = ['score field is deprecated, use overall_score instead'] if has_deprecated else []
-    return {'status': 'pass' if (has_status and (has_overall or has_deprecated)) else 'fail',
-            'has_status': has_status, 'has_score': has_overall or has_deprecated, 'warnings': warnings}
-
-
 def _dq_requirement_ir(base):
     text = read_safe(base / 'context' / 'requirement-ir.yaml')
     if not text.strip():
-        return {'status': 'fail', 'has_ai_prd_req_id': False, 'has_planning': False}
-    has_id = bool(re.search(r'ai_prd_req_id:', text))
-    has_plan = bool(re.search(r'planning:', text))
-    has_elig = bool(re.search(r'eligibility:', text))
-    return {'status': 'pass' if (has_id and has_plan and has_elig) else 'fail',
-            'has_ai_prd_req_id': has_id, 'has_planning': has_plan, 'has_eligibility': has_elig}
+        return {'status': 'fail', 'has_requirements': False}
+    has_reqs = bool(re.search(r'requirements:', text))
+    has_evidence = bool(re.search(r'evidence:', text))
+    return {'status': 'pass' if (has_reqs and has_evidence) else 'fail',
+            'has_requirements': has_reqs, 'has_evidence': has_evidence}
 
 
 def _dq_layer_impact(base):
@@ -346,9 +291,6 @@ def run_distill_quality(base, repo_root):
     is_team, member_repos = detect_team_mode(repo_root)
     results = {
         'required_files': _dq_required_files(base, is_team=is_team),
-        'afprd_sections': _dq_afprd_sections(base),
-        'req_id_anchors': _dq_req_id_anchors(base),
-        'prd_quality_report': _dq_prd_quality_report(base),
         'requirement_ir': _dq_requirement_ir(base),
         'layer_impact': _dq_layer_impact(base),
         'index_bridge': _dq_index_bridge(base, repo_root),
@@ -370,11 +312,10 @@ def print_distill_quality(results):
     print(f'=== Distill Quality Gate ({"TEAM" if is_team else "SINGLE-REPO"} MODE) ===')
     print()
     checks = [
-        ('required_files', 'Required files'), ('afprd_sections', 'AI-friendly PRD sections'),
-        ('req_id_anchors', 'REQ-ID heading anchors'), ('prd_quality_report', 'PRD quality report'),
-        ('requirement_ir', 'Requirement IR'), ('layer_impact', 'Layer impact'),
-        ('index_bridge', 'Index bridge'), ('final_quality_gate', 'Final quality gate'),
-        ('report_quality', 'Report quality'), ('report_confirmation', 'Report confirmation'),
+        ('required_files', 'Required files'), ('requirement_ir', 'Requirement IR'),
+        ('layer_impact', 'Layer impact'), ('index_bridge', 'Index bridge'),
+        ('final_quality_gate', 'Final quality gate'), ('report_quality', 'Report quality'),
+        ('report_confirmation', 'Report confirmation'),
         ('plan_missing_confirmation', 'Plan missing_confirmation'),
     ]
     if is_team:
@@ -478,29 +419,6 @@ def _dc_requirement_trace(distill_dir):
     return {"status": "pass", "total_requirements": len(requirements),
             "with_trace": len(requirements), "missing_trace": [],
             "message": "All requirements have source block trace"}
-
-
-def _dc_ai_prd_sections(distill_dir):
-    ds = _read_json(os.path.join(distill_dir, "_ingest", "document-structure.json"))
-    if ds is None:
-        return {"status": "skip", "message": "document-structure.json not found"}
-    afprd_path = os.path.join(distill_dir, "spec", "ai-friendly-prd.md")
-    if not os.path.isfile(afprd_path):
-        return {"status": "skip", "message": "ai-friendly-prd.md not found"}
-    headings = [block.get("heading", "").strip().lower() or block.get("text_excerpt", "").strip().lower()
-                for block in ds.get("blocks", [])
-                if block.get("block_type") == "heading" and block.get("level", 0) <= 2]
-    if not headings:
-        return {"status": "pass", "message": "No level-1/2 headings in document-structure"}
-    with open(afprd_path, "r", encoding="utf-8") as f:
-        afprd_content = f.read().lower()
-    uncovered = [h for h in headings
-                 if not any(kw in afprd_content for kw in [w for w in h.split() if len(w) > 2][:3])]
-    if uncovered:
-        return {"status": "warning", "total_headings": len(headings), "uncovered": uncovered[:10],
-                "message": f"{len(uncovered)} PRD headings may not be covered in ai-friendly-prd"}
-    return {"status": "pass", "total_headings": len(headings), "uncovered": [],
-            "message": "All PRD headings appear covered"}
 
 
 def _dc_detail_recall(distill_dir):
