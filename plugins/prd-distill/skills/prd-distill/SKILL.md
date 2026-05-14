@@ -30,9 +30,9 @@ description: 将 PRD、需求文本或技术方案蒸馏为有证据支撑的 re
 ## 输入
 
 - PRD：`.md`/`.txt`/`.docx` 或粘贴文本。
-- 可选技术方案、API 文档、接口定义。
+- 可选上下游接口文档（强烈建议传入）：后端 API 文档、BFF Schema 文档、上游服务接口定义等。传入后作为 Contract Delta 的直接证据源。
 - 当前项目源码路径。
-- 当前项目 `_prd-tools/reference/`。
+- 当前项目 `_prd-tools/reference/`（必须存在，否则置信度强制降为 `low`）。
 - 可选历史分支、diff、已有实现。
 
 ## 输出结构

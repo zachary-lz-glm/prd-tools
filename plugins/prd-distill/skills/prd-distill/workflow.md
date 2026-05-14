@@ -18,7 +18,7 @@
   - `.md`/`.txt`：直接读取。
   - `.docx`：优先使用 `ingest-docx.py` 脚本提取（`python3 .prd-tools/scripts/ingest-docx.py --input "<file>" --output _prd-tools/distill/<slug>`）。如果脚本不可用，用 Python zipfile 提取。**不要用 `unzip -d`**——macOS 下解压出来的文件默认 mode 是 700，易踩 permission denied。提取后写入 `_ingest/document.md`，图片拷贝到 `_ingest/media/`。在文本中图片位置插入 `![image-N](media/imageN.png)` 占位。Claude 用 Read 工具逐个查看图片（原生多模态），理解 UI 截图、流程图、数据图表，结果写入 `_ingest/media-analysis.yaml`。
   - 粘贴文本：手工建立来源和定位。
-- 技术方案 / API 文档：可选，但多层或后端相关需求强烈建议读取。
+- 上下游接口文档：可选但强烈建议传入。对 BFF 项目是后端 API 文档，对前端项目是 BFF Schema 文档，对后端项目是上游服务接口文档。传入后写入 `_ingest/upstream-api.md`（或对应文件名），作为 Contract Delta 的直接证据源。证据优先级：接口文档 > PRD 推断 > negative_search。
 - `_prd-tools/reference/`：必须读取并消费。
 - 目标代码库：用于代码锚定。
 
@@ -109,6 +109,20 @@ _ingest/
 降级规则：
 - acceptance_criteria 缺失或 `testability: not_testable` 时，`confidence` 不能为 `high`。
 - P0 requirement 如果信息严重不足，必须进入 `open_questions`。
+
+### 项目相关性过滤
+
+IR 生成后，必须用当前项目的 profile 过滤无关需求：
+
+1. 读取 `_prd-tools/reference/project-profile.yaml` 的 `layer` 和 `adapter`。
+2. 读取 `01-codebase.yaml` 的 `modules` 和 `capability_surfaces`，获得项目实际覆盖的能力范围。
+3. 逐条判断 REQ 与当前项目的相关性：
+   - `target_layers` 包含当前项目层 → 相关。
+   - REQ 涉及的能力面在 `01-codebase.yaml` 中有对应模块 → 相关。
+   - REQ 的业务实体在 `01-codebase.yaml` 的 enums/entities 中有匹配 → 相关。
+   - 以上都不匹配，且不属于跨层契约依赖 → **标记为 `change_type: NO_CHANGE`**，增加 `relevance_note` 说明原因。
+4. PRD 中混合了多个端（B 端 MIS / C 端用户 / 运营后台 / 合作方）时，只保留与当前项目 `layer` 和 `adapter` 匹配的部分。不相关端的需求标记 `NO_CHANGE`，不生成 IMP。
+5. 保留所有 REQ（包括 NO_CHANGE），在 report §4 中统一展示，让开发者知道"AI 读到了这些需求但判定当前项目不涉及"。
 
 ## Step 4: Code Search & Layer Impact
 

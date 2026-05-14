@@ -459,6 +459,7 @@ requirements:
     open_question_refs: []
     confidence: "high | medium | low"
     risk_flags: []
+    relevance_note: ""                # 仅 change_type=NO_CHANGE 且因项目范围不相关时填写，说明为什么判定无关
 open_questions:
   - id: "Q-001"
     question: ""

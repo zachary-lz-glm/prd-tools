@@ -66,11 +66,12 @@
 - 格式：`| REQ-ID | PRD 需求点 | 项目已有能力 | 匹配方式 | 差异类型 | 差异说明 |`
 - **PRD 需求点**：从 requirement-ir 提取的一句话意图
 - **项目已有能力**：代码中已存在的对应实现（函数/模板/枚举/配置），无则写"无（negative_search 确认）"并标注搜索词
-- **匹配方式**：`code_scan`（源码确认）/ `reference_routing`（知识库路由）/ `negative_search`（确认不存在）/ `inferred`
+- **匹配方式**：`code_scan`（源码确认）/ `reference_routing`（知识库路由）/ `negative_search`（确认不存在）/ `inferred` / `out_of_scope`（项目不相关）
 - **差异类型**：ADD / MODIFY / DELETE / NO_CHANGE
 - **差异说明**：一句话说明具体要做什么，引用 IMP-ID。对复杂场景（如"是两种现有模式的组合"）在此展开分析
 - 每个 REQ 必须有一行，不允许跳过
 - 低置信度匹配用 ⚠ 标注
+- **PRD 冗杂过滤**：当 PRD 包含与当前项目无关的需求（如 B 端 MIS/运营后台/其他端），`匹配方式` 标为 `out_of_scope`，`差异说明` 写明为什么判定无关（引用 `project-profile.yaml` 的 layer 和 `01-codebase.yaml` 的模块范围），让开发者知道"AI 读到了但判定不属于当前项目"
 
 ### 5. 变更明细表（核心可操作内容）
 - 列出所有 IMP-* 项

@@ -83,7 +83,7 @@ EOF
 ## 输入
 
 - 来自 `.md/.txt` 或粘贴内容的 PRD。
-- 可选后端/API/技术方案文档。
+- 可选上下游接口文档（强烈建议传入）。传入后写入 `_ingest/` 并在 evidence-map.yaml 中注册。作为 Contract Delta 的直接证据源，证据优先级高于 PRD 推断。
 - `_prd-tools/reference/`（**必须消费**，如存在）：
   - `04-routing-playbooks.yaml`：提取路由表，用于 Requirement IR 的 PRD 关键词匹配。
   - `05-domain.yaml`：提取领域术语，用于 Requirement IR 的 glossary 同义词匹配。
